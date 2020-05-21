@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 771d42cbeb5fb094d9fc189280d7b2a4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - listTransform: {instanceID: 0}
+  - sliderClip: {fileID: 8300000, guid: 2ad6b870796a8294b8762a0a70f52f95, type: 3}
+  - sliderPrefab: {fileID: 7336488618789243263, guid: e5b9033a50ecd434a982c932b7f99b54,
+      type: 3}
+  - dropdownPrefab: {fileID: 7933985664453384967, guid: c679527e2a6f0b0419cc2e5c97e89287,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

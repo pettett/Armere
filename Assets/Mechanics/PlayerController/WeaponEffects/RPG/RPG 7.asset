@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ae576ff67c86294eb6cb216cd5a5bd3, type: 3}
+  m_Name: RPG 7
+  m_EditorClassIdentifier: 
+  prefab: {fileID: 4879839238537365781, guid: fb5c1147cf8a3d843867b399393bcef1, type: 3}
+  weaponLookOffset: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  lockToBone: 1
+  bones: 14
+  boneOffset: {x: 0, y: 0.08, z: 0}
+  firstPersonOffset: {x: 0.14, y: -0.01, z: -0.21}
+  bulletVelocity: 5
+  bulletPrefab: {fileID: 4780676096111893090, guid: 72f8c1a8071db77418591852b59923ba,
+    type: 3}
+  spread: 0.5
+  damage: 50

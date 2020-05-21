@@ -1,0 +1,26 @@
+{
+    "name": "YarnSpinner.Unity",
+    "references": [
+        "Unity.TextMeshPro",
+        "Unity.InputSystem",
+        "Game.Quests",
+        "Inventory",
+        "Game.UI",
+        "Game.Structure"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.firelight.fmodunityintegration",
+            "expression": "2.0.0",
+            "define": "FMOD_2_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

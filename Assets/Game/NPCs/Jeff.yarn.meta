@@ -1,0 +1,51 @@
+fileFormatVersion: 2
+guid: b1060550c7ad1d44f8ac795a2d8a725b
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - Jeff-Start-0
+  - Jeff-Start-1
+  - Jeff-MainLoop-2
+  - Jeff-MainLoop-3
+  - Jeff-MainLoop-4
+  - Jeff-MainLoop-5
+  - Jeff-MainLoop-6
+  - Jeff-Talk-7
+  - Jeff-Talk-8
+  - Jeff-Talk-9
+  - Jeff-Talk-10
+  - Jeff-Talk-11
+  - Jeff-Talk-12
+  - Jeff-Talk-13
+  - Jeff-AskSticks-14
+  - Jeff-AskSticks-15
+  - Jeff-AskSticks-16
+  - Jeff-AskSticks-17
+  - Jeff-AskSticks-18
+  - Jeff-GiveSticks-19
+  - Jeff-GiveSticks-20
+  - Jeff-Exit-21
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 'Error on line 1 at position 1:
+
+    mismatched input
+    ''<EOF>'' expecting {ID, HASHTAG}
+
+
+
+
+
+    Tokens:
+
+    1:0 EOF "<EOF>"'
+  baseLanguage: {fileID: 7128917941130120860, guid: b1060550c7ad1d44f8ac795a2d8a725b,
+    type: 3}
+  localizations: []

@@ -1,0 +1,9 @@
+title: Start
+---
+<<if $Quest_SortOutTwins is "Inactive">>
+Immanuel: Please talk to Seaburg for me
+<<quest SortOutTwins>>
+<<else>>
+
+<<endif>>
+===

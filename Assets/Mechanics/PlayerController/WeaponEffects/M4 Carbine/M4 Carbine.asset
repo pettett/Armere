@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b76511ffd93efb4d8a6baf74fb12f6a, type: 3}
+  m_Name: M4 Carbine
+  m_EditorClassIdentifier: 
+  killfeedSprite: {fileID: 21300000, guid: 7ddcbcfa642cb8444a8b62ddeab6fbeb, type: 3}
+  headshotKillfeedSprite: {fileID: 21300000, guid: dddb4473e4a66714b9ab11136502920d,
+    type: 3}
+  prefab: {fileID: 5901305585533005507, guid: 454c2176e5cd2a4408cdb7c2a2ae2742, type: 3}
+  weaponLookOffset: {x: 0, y: 0.70710677, z: 0, w: 0.70710677}
+  lockToBone: 1
+  bones: 12
+  boneOffset: {x: 0.14, y: -0.09, z: 0.37}
+  firstPersonOffset: {x: -0.42, y: -0.14, z: 0.18}
+  bulletVelocity: 399.7
+  firingClip: {fileID: 8300000, guid: 0294be9e4c3092f4d9a53d44269f11cd, type: 3}
+  bulletTrailPrefab: {fileID: 5707417527368439653, guid: adc5db6641f7a5d49a067d090e87d2b5,
+    type: 3}
+  bulletImpactPrefab: {fileID: 3349501041158754051, guid: 7c0c94105ba8ad24ba1a642f374b1318,
+    type: 3}
+  spread: 0.62
+  damage: 2
+  headshotDamage: 3
+  shotVolume: 200
+  shotsPerSecond: 12
+  timeBetweenShots: 0.083333336
+  compensationTime: 1
+  direction: {x: 1, y: 0}
+  strength: 1
+  randomMagnitude: 1

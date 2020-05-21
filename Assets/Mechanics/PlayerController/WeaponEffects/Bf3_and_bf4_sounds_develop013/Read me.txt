@@ -1,0 +1,18 @@
+hello champs. 
+
+you can put these sounds to go with develop013 weapons or what ever weapon you chose
+
+
+
+---->Stuff you'll have to do<------
+you'll have to change the fir rate of some weapons
+>g3a4(fire rate 500)(also change the stoptype to 2)
+>pp2000(fire rate 650)
+>
+
+
+
+if you want to use the sounds in a mod you plan to release just let me know atleast 
+
+
+if you have any questions just email me at moddb

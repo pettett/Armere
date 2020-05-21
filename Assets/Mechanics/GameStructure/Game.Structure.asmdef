@@ -1,0 +1,17 @@
+{
+    "name": "Game.Structure",
+    "references": [
+        "GUID:01f049d3077c4ff44935ea92b73d3dc0",
+        "GUID:f06555f75b070af458a003d92f9efb00",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

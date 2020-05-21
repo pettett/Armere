@@ -1,0 +1,17 @@
+{
+    "name": "Game.Structure.TIme",
+    "references": [
+        "GUID:673bd6fd09384874ea1f04611ca9dde5",
+        "GUID:01f049d3077c4ff44935ea92b73d3dc0",
+        "GUID:2891bcd4145984240b1612d14aadc43f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

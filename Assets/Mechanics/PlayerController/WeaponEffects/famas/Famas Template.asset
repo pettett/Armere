@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a2ae5d272ae6204c82b6cd8d1c85ceb, type: 3}
+  m_Name: Famas Template
+  m_EditorClassIdentifier: 
+  killfeedSprite: {fileID: 21300000, guid: 9c40ef4cab843d94eaff2db4aacc75d0, type: 3}
+  headshotKillfeedSprite: {fileID: 21300000, guid: dddb4473e4a66714b9ab11136502920d,
+    type: 3}
+  prefab: {fileID: 6798937685340506400, guid: e488cb48f1315cf478bdcb4009713b69, type: 3}
+  weaponLookOffset: {x: 0, y: 0, z: 0, w: 0}
+  lockToBone: 0
+  bones: 0
+  boneOffset: {x: 0, y: 0, z: 0}
+  firstPersonOffset: {x: 0.24, y: -0.16, z: 0.6}
+  magSize: 30
+  damage: 10
+  charged: 0
+  speedOverCharge:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  drawOverCharge:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  fullChargeTime: 1
+  maxChargeTime: 3
+  minChargeTime: 0.2
+  resetTime: 0.4
+  firingClip: {fileID: 8300000, guid: caad1e3d4bfdad4438e15af43e3458fc, type: 3}
+  bulletTrailPrefab: {fileID: 5707417527368439653, guid: adc5db6641f7a5d49a067d090e87d2b5,
+    type: 3}
+  bulletImpactPrefab: {fileID: 3349501041158754051, guid: 7c0c94105ba8ad24ba1a642f374b1318,
+    type: 3}
+  spread: 1
+  additionalSpreadPerConsecutiveShot:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 30
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxSpread: 5
+  headshotDamage: 15
+  shotVolume: 200
+  shotsPerSecond: 15
+  timeBetweenShots: 0.06666667
+  compensationTime: 0.5
+  direction: {x: 0, y: 1}
+  strength: 0.31
+  randomMagnitude: 0.25
+  bulletVelocity: 400
+  killConditions: 8

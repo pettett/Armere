@@ -1,0 +1,17 @@
+{
+    "name": "GenericCharacterAssembly",
+    "references": [
+        "UtilityAssembly",
+        "Unity.TextMeshPro",
+        "Game.Structure"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

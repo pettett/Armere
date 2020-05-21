@@ -1,0 +1,9 @@
+title: Start
+---
+<<if $Quest_SortOutTwins is "Active">>
+Saeberg: Oh yeah, but he is the bigger poo
+<<quest SortOutTwins>>
+<<else>>
+Saeberg: I dont want to speak
+<<endif>>
+===

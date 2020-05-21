@@ -1,0 +1,69 @@
+title: Start
+---
+<<if $Quest_JeffSticks is "Completed">>
+Jeff: Thanks for the sticks
+<<else>>
+Jeff: Hello, I'm Jeff
+<<endif>>
+[[MainLoop]]
+===
+title: MainLoop
+---
+Jeff: What can I do you for?
+<<if $Quest_JeffSticks is "Inactive">>
+[[Whats up?|AskSticks]]
+<<else>>
+    <<if $Quest_JeffSticks is "Active">>
+    [[I've got the sticks|GiveSticks]]
+    <<endif>>
+<<endif>>
+[[Talk for a bit|Talk]]
+[[Free stuff?|Give]]
+[[Goodbye<Exit>|Exit]]
+===
+title: Give
+---
+Jeff: Take this item lol
+Jeff: <skip>
+<<GiveItems Stick 3>>
+===
+
+title: Talk
+---
+Jeff: <color="blue">AAAAA AAAAAAAAAAAAAA AAAAAAA AAAAAAAAAAAAAA AAAAAAAAAAAAAAh</color> now its not red lol
+Jeff: AAA<b>AAAAAAAAA</b>AAAAAAAAAAAA AAAAAAAAA AAAAAAAAAAAA AAAAAAAAAh
+Jeff: AAAAAAAA AAAAAAAAAAAAAAAAAAA <wait 1.5>AAAAAAAAAAAAAAAAAAAAAAAAAAAh
+Jeff: AAAA AAAAAAAAAAAAAAAAAA AAAAAAAAA AAAAAAAAAAAAAAA AAAAAAAAh
+Jeff: AAAAAAAAAAAAAAAAAAAAAA AAAAAAAA AAAAAAAAAAAAAAAAAAAAAA AAh
+Jeff: AAAAAAAAAAAAAAAAA <i>AAAAAAAAAAAAAAAAAAAAAAA</i>wAAAAAAAAAAAAAAh
+Jeff: AAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAA AAAAAAAAAAAAAAA AAAAAh
+[[MainLoop]]
+===
+
+title: AskSticks
+---
+Jeff: I need you to gather some items for me
+-> Okay
+    Jeff: I need <color=numberCol>10</color> <color=itemCol>Sticks</color> for a project
+    <<quest JeffSticks>>
+    Jeff: Thanks!
+    [[MainLoop]]
+-> No <Exit>
+    [[Exit]]
+===
+
+title: GiveSticks
+---
+<<if $Item_Stick < 10>>
+Jeff: Thats not anough sticks \n Sorry but it's important that there anough. \n Please gather <color=itemCol>10</color> sticks
+<<else>>
+Jeff: Wow! you got 10 sticks
+<<questDeliver JeffSticks>>
+<<endif>>
+[[MainLoop]]
+===
+
+title: Exit
+---
+Jeff: Okay, Bye
+===

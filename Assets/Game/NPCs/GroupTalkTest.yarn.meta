@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: f2fd957dfd88bfa43bb0641f9b47f1a2
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: 
+  stringIDs:
+  - GroupTalkTest-Start-0
+  - GroupTalkTest-Start-1
+  - GroupTalkTest-Start-2
+  - GroupTalkTest-Start-3
+  - GroupTalkTest-Start-4
+  - GroupTalkTest-Start-5
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {instanceID: 0}
+  localizations: []

@@ -137,6 +137,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mod: 0
   cameraTransform: {fileID: 0}
+  freeLook: {fileID: 0}
   playerCameraSettings:
     cameraOrbitingDistance: 2
     cameraVerticalOffset: 1.6
@@ -178,6 +179,12 @@ MonoBehaviour:
   cameraStepHeightOffset: 0
   cameraStepDistance: 0
   currentCameraStepTime: 1
+  cameraController:
+    canBeTargeted: 1
+    cameraSmoothing: 0
+    cameraSmoothAmount: 10
+    cameraStepResetTime: 0.05
+    camRotation: {x: 0, y: 0}
   walkingProperties:
     walkingSpeed: 3
     runningSpeed: 5
@@ -188,6 +195,7 @@ MonoBehaviour:
     maxAcceleration: 32
     maxStepHeight: 0.39
     stepSearchOvershoot: 0.17
+    steppingTime: 0
     jumpForce: 200
     playerWeapons: {fileID: 0}
   freefallingProperties:
@@ -218,6 +226,8 @@ MonoBehaviour:
   shootingCollisionLayerMask:
     serializedVersion: 2
     m_Bits: 1079
+  rb: {fileID: 0}
+  collider: {fileID: 0}
   animator: {fileID: 0}
   currentStateText: {fileID: 0}
   input:
@@ -243,6 +253,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b942db5c5b47b02449cc956642595674, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableFeetIK: 1
+  heightFromGroundRaycast: 1.14
+  raycastDownDistance: 1.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  pelvisOffset: 0
+  pelvisVerticalSpeed: 0.28
+  feetToIKPositionSpeed: 0.5
+  leftFootAnimVariableName: LeftFootCurve
+  rightFootAnimVariableName: RightFootCurve
+  useFootCurvesForRotationGrounding: 0
+  showSolver: 0
   useIK: 1
   localPlayer: 0
   holdPoints:

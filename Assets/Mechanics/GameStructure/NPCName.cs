@@ -8,5 +8,7 @@
     Friðbergur,
     Dave,
     Phil,
-    Jess
+    Jess,
+    Digga,
+    Mayor,
 }

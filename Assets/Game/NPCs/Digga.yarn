@@ -1,0 +1,18 @@
+title: Start
+---
+<<if $Quest_OpenTheMines is "Inactive">>
+Digga: <size=200%>OUT!
+<<else>>
+<<if 1 == 1>>
+Digga: The mine is shut, it has been taken over
+-> Okay 
+    Digga: Good
+    Digga: <skip>
+    <<ProgressQuest OpenTheMines>>
+-> <Exit> Bye
+    <<Exit>>
+<<else>>
+Digga: Open the mine!
+<<endif>>
+<<endif>>
+===

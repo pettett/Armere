@@ -611,7 +611,7 @@ namespace Yarn.Unity
         /// <inheritdoc/>
         public override void DialogueComplete()
         {
-            if (!cachedLine.Contains("<skip>"))
+            if (cachedLine != null && !cachedLine.Contains("<skip>"))
                 StartCoroutine(DoRunLine(cachedLine,
                         () => StartCoroutine(WaitForNextLineRequest(FinishDialogue))));
             else

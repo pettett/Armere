@@ -21,7 +21,7 @@ namespace PlayerController
         public AnimationCurve cameraStepCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
     }
     [System.Serializable]
-    public class CameraControl : ParallelState
+    public class CameraControl : MovementState
     {
         public override string StateName => "Camera Control";
 
@@ -55,11 +55,19 @@ namespace PlayerController
             }
         }
 
-        bool starting = true;
+        bool starting = false;
         float startT = 0;
         float startTVel = 0;
         Vector3 startPos;
         Quaternion startRot;
+
+        [System.NonSerialized] DebugMenu.DebugEntry entry;
+        RaycastHit[] hit = new RaycastHit[1];
+
+        bool controlling = true;
+        ///<summary>
+        ///Change the active camera settings profile
+        ///</summary>
         public void SetCameraControlSettings(CameraControlSettings settings)
         {
             activeCameraSettings = settings;
@@ -79,7 +87,7 @@ namespace PlayerController
             activeCameraSettings.cameraVerticalOffset = offset;
         }
 
-        [System.NonSerialized] DebugMenu.DebugEntry entry;
+
         public override void Start()
         {
             ResetCameraControlSettings();
@@ -92,11 +100,9 @@ namespace PlayerController
             }
             cam = c.cameraTransform.GetComponent<Camera>();
 
-            //start the transition from free camare to game camera
-            startPos = cam.transform.position;
-            startRot = cam.transform.rotation;
-        }
+            Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
 
+        }
         public override void End()
         {
             DebugMenu.RemoveEntry(entry);
@@ -106,14 +112,47 @@ namespace PlayerController
         public Vector3 TransformInput(Vector2 input)
         {
             Vector3 direction = new Vector3(input.x, 0, input.y);
-            direction = Quaternion.Euler(0, camRotation.x, 0) * direction;
+            direction = Quaternion.Euler(0, c.cameraTransform.eulerAngles.y, 0) * direction;
             return direction;
         }
-        RaycastHit[] hit = new RaycastHit[1];
+
+        public void DisableControl()
+        {
+            controlling = false;
+            c.freeLook.Priority = 0;
+        }
+        public void EnableControl()
+        {
+            //start the transition from free camare to game camera
+            startPos = cam.transform.position;
+            startRot = cam.transform.rotation;
+            starting = true;
+            startT = 0;
+            controlling = true;
+            c.freeLook.Priority = 10;
+        }
+
+
+        float GetInputAxis(string axisName)
+        {
+            switch (axisName)
+            {
+                case "Mouse X":
+                    return -mouseDelta.x;
+                case "Mouse Y":
+                    return -mouseDelta.y;
+                default:
+                    return 0;
+            }
+        }
+
         public override void LateUpdate()
         {
+            if (!controlling) return;
 
+            mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
 
+            return;
 
             if (c.currentCameraStepTime <= 1)
             {
@@ -139,7 +178,7 @@ namespace PlayerController
                 ? activeCameraSettings.cameraTarget.TransformDirection(activeCameraSettings.cameraHorizontalOffset * Vector3.right)
                 : c.cameraTransform.TransformDirection(activeCameraSettings.cameraHorizontalOffset * Vector3.right));
 
-            mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
+
             if (Gamepad.current != null)
                 mouseDelta += Gamepad.current.rightStick.ReadValue() * Time.deltaTime * SettingsManager.settings.sensitivity * 20;
 

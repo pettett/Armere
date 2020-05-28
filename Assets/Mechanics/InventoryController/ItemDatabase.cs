@@ -11,6 +11,10 @@ public class ItemDatabase : ScriptableObject
         public string name;
         [TextArea]
         public string description;
+        public ItemType type;
+        public Sprite sprite;
+        public Mesh mesh;
+        public Material[] materials;
     }
     [System.Serializable]
     public class ItemDatabaseStructure : RotaryHeart.Lib.SerializableDictionary.SerializableDictionaryBase<ItemName, ItemData> { }

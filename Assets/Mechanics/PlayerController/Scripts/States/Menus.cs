@@ -14,11 +14,15 @@ namespace PlayerController
             Cursor.lockState = CursorLockMode.None;
             UIController.SetTabMenu(true);
             c.onPlayerInput += OnInput;
+
+            c.paused = true;
         }
         public override void End()
         {
             UIController.SetTabMenu(false);
             c.onPlayerInput -= OnInput;
+
+            c.paused = false;
         }
 
         public void OnInput(InputAction.CallbackContext context)

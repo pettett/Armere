@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using PlayerController;
 using Yarn.Unity;
+
+using Cinemachine;
+
 public class NPC : MonoBehaviour, IInteractable
 {
     public NPCName npcName;
@@ -27,11 +30,18 @@ public class NPC : MonoBehaviour, IInteractable
     private void Awake()
     {
         camera = Camera.main;
+
+
+
         runner = GetComponent<Yarn.Unity.DialogueRunner>();
         runner.AddCommandHandler("quest", GiveQuest);
-        runner.AddCommandHandler("questDeliver", QuestDeliver);
+        runner.AddCommandHandler("ProgressQuest", ProgressQuest);
         runner.AddCommandHandler("cameraPan", CameraPan);
         runner.AddCommandHandler("GiveItems", GiveItems);
+        runner.AddCommandHandler("TurnPlayerToTarget", TurnPlayerToTarget);
+        runner.AddCommandHandler("TurnNPCToTarget", TurnNPCToTarget);
+        runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
+
         runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
         runner.dialogueUI = DialogueInstances.singleton.dialogueUI;
     }
@@ -53,11 +63,25 @@ public class NPC : MonoBehaviour, IInteractable
         }
         speakingNPC = currentSpeaker;
     }
+    IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
+    {
+        Quaternion desiredRot = Quaternion.LookRotation(transform.position - playerTransform.position);
+        while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
+        {
+            playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
 
     public void StartSpeaking(Player_CharacterController c)
     {
-        StartCoroutine(AdjustCameraForNPC(c.transform.position, transform.position));
+        c.conversationGroup.m_Targets[1].target = transform;
+
+
         StartCoroutine(RotatePlayerTowardsNPC(c.transform));
+
+        c.conversationGroup.Transform.rotation = Quaternion.LookRotation(c.transform.position - transform.position) * Quaternion.Euler(0, 90, 0);
 
         foreach (var r in GetComponentsInChildren<Renderer>())
             foreach (var mat in r.materials)
@@ -76,45 +100,23 @@ public class NPC : MonoBehaviour, IInteractable
     {
         this.c = c;
         c.ChangeToState<Conversation>();
-        StartCoroutine(TurnToPlayer());
+        c.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
+        StartCoroutine(TurnToPlayer(c.transform.position));
     }
     Vector3 focusPoint;
-    IEnumerator TurnToPlayer()
+    IEnumerator TurnToPlayer(Vector3 playerPosition)
     {
 
-        yield return null;
+        Quaternion desiredRot = Quaternion.LookRotation(playerPosition - transform.position);
+        while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
+        {
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRot, Time.deltaTime * 800);
+            yield return new WaitForEndOfFrame();
+        }
 
         DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
         DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
         runner.StartDialogue("Start");
-    }
-
-    IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
-    {
-        Quaternion desiredRot = Quaternion.LookRotation(transform.position - playerTransform.position);
-        while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
-        {
-            playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);
-            yield return new WaitForEndOfFrame();
-        }
-    }
-    IEnumerator AdjustCameraForNPC(Vector3 playerPos, Vector3 npcPos)
-    {
-        focusPoint = (playerPos + npcPos) * 0.5f + Vector3.up;
-        //adjust the camera so it points down 45*
-        Quaternion startRotation = camera.transform.rotation;
-
-
-
-        Vector3 position = camera.transform.position;
-        Vector3 forward = ((playerPos - npcPos) * 0.5f).normalized;
-        Vector3 right = Vector3.Cross(forward, Vector3.up);
-        Vector3 targetPosition = focusPoint + (Vector3.up + right) * 3;
-        Vector3 vel = Vector3.zero;
-
-        Quaternion targetRotation = Quaternion.LookRotation((focusPoint - targetPosition));
-
-        yield return LerpCameraToPositionAndRotation(targetPosition, targetRotation, 0.3f);
     }
 
     void OnDialogueComplete()
@@ -124,6 +126,7 @@ public class NPC : MonoBehaviour, IInteractable
         c.ChangeToState<Player_CharacterController.Walking>();
         DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
         DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
+        ResetCamera();
     }
 
     void GiveQuest(string[] arg)
@@ -137,7 +140,7 @@ public class NPC : MonoBehaviour, IInteractable
             }
         }
     }
-    void QuestDeliver(string[] arg)
+    void ProgressQuest(string[] arg)
     {
         string questName = arg[0];
         QuestManager.ProgressQuest(questName);
@@ -145,10 +148,33 @@ public class NPC : MonoBehaviour, IInteractable
     private void CameraPan(string[] arg, System.Action onComplete)
     {
         //pan the camera to the target destination
-        string target = arg[0];
-        StartCoroutine(TurnCameraToTarget(t.focusPoints[target], onComplete));
+        StartCoroutine(TurnCameraToTarget(t.focusPoints[arg[0]], onComplete));
     }
 
+
+    void TurnPlayerToTarget(string[] arg, System.Action onComplete)
+    {
+        Vector3 target = t.focusPoints[arg[0]];
+        target.y = c.transform.position.y;
+        c.transform.LookAt(target);
+        onComplete?.Invoke();
+    }
+    void TurnNPCToTarget(string[] arg, System.Action onComplete)
+    {
+        Vector3 target = t.focusPoints[arg[0]];
+        target.y = transform.position.y;
+        transform.LookAt(target);
+        onComplete?.Invoke();
+    }
+    void TurnNPCAndPlayerToTarget(string[] arg, System.Action onComplete)
+    {
+        Vector3 target = t.focusPoints[arg[0]];
+        target.y = transform.position.y;
+        transform.LookAt(target);
+        target.y = c.transform.position.y;
+        c.transform.LookAt(target);
+        onComplete?.Invoke();
+    }
 
     void GiveItems(string[] arg, System.Action onComplete)
     {
@@ -162,19 +188,28 @@ public class NPC : MonoBehaviour, IInteractable
         //give [count] items of type [item]
         NewItemPrompt.singleton.ShowPrompt(item, onComplete);
     }
+
     IEnumerator TurnCameraToTarget(Vector3 target, System.Action onComplete)
     {
         //Orbit around the focus point
-
+        //
         Quaternion targetRotation = Quaternion.LookRotation((target - focusPoint + Vector3.up));
 
-        Vector3 pos = focusPoint + Vector3.up + targetRotation * Vector3.back * 2;
+        //Vector3 pos = focusPoint + Vector3.up + targetRotation * Vector3.back * 2;
 
-        yield return LerpCameraToPositionAndRotation(pos, targetRotation, 0.3f);
+        //yield return LerpCameraToPositionAndRotation(pos, targetRotation, 0.3f);
 
+        c.cutsceneCamera.LookAt = c.lookAtTarget;
+        c.lookAtTarget.position = target;
 
+        yield return new WaitForSeconds(0.5f);
 
         onComplete?.Invoke();
+    }
+
+    void ResetCamera()
+    {
+        c.cutsceneCamera.LookAt = c.conversationGroup.Transform;
     }
 
 
@@ -185,9 +220,11 @@ public class NPC : MonoBehaviour, IInteractable
         float angleVel = 0;
         float delta;
         float t = 0;
+        float elapsedTime = 0;
         Quaternion startRot = camera.transform.rotation;
         do
         {
+            elapsedTime += Time.deltaTime * 0.25f;
             delta = Quaternion.Angle(camera.transform.rotation, targetRotation);
             t = Mathf.SmoothDampAngle(t, 1, ref angleVel, time, Mathf.Infinity, Time.deltaTime);
 
@@ -197,7 +234,7 @@ public class NPC : MonoBehaviour, IInteractable
             );
 
             yield return new WaitForEndOfFrame();
-        } while (delta > 0.1 || (camera.transform.position - targetPosition).sqrMagnitude > 0.01f);
+        } while ((delta > 0.1 || (camera.transform.position - targetPosition).sqrMagnitude > 0.01f) && elapsedTime < time);
 
         camera.transform.SetPositionAndRotation(targetPosition, targetRotation);
     }

@@ -7,7 +7,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPC Template", order = 0)]
 public class NPCTemplate : ScriptableObject
 {
-    public NPCName NPCName;
     public YarnProgram dialogue;
     public Quest[] quests;
 

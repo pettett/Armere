@@ -1,0 +1,9 @@
+title: Start
+---
+<<if $Quest_OpenTheMines is "Inactive">>
+Mayor: Sort out the mines!
+<<quest OpenTheMines>>
+<<else>>
+Mayor: GO!
+<<endif>>
+===

@@ -11,6 +11,27 @@ namespace PlayerController
         public override string StateName => "Interact";
 
         IInteractable currentInteractable;
+        public override void Start()
+        {
+            ScanForInteractables();
+        }
+
+        void ScanForInteractables()
+        {
+
+            //Test for interactables on position
+            Collider[] hits = Physics.OverlapCapsule(
+                transform.position,
+                transform.position + c.collider.height * Vector3.up,
+                 c.collider.radius,
+                 Physics.AllLayers,
+                 QueryTriggerInteraction.Collide);
+
+            foreach (var c in hits)
+            {
+                OnTriggerEnter(c);
+            }
+        }
 
         public override void OnTriggerEnter(Collider interactable)
         {
@@ -26,20 +47,26 @@ namespace PlayerController
             //if this was the interactable, remove it
             if (interactable.GetComponent<IInteractable>() == currentInteractable)
             {
-                ExitInteractable();
+                OnInteractableRemoved();
             }
         }
         public override void Update()
         {
             if (currentInteractable != null && currentInteractable.enabled == false)
             {
-                ExitInteractable();
+                OnInteractableRemoved();
             }
         }
+        void OnInteractableRemoved()
+        {
+            ExitInteractable();
+        }
+
         void ExitInteractable()
         {
             currentInteractable = null;
             UIPrompt.ResetPrompt();
+
         }
 
         public override void OnInteract(float state)
@@ -49,6 +76,7 @@ namespace PlayerController
                 if (currentInteractable != null)
                 {
                     currentInteractable.Interact(c);
+
                 }
             }
         }

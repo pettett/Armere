@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: c3ea0bee1b52bf24eb3d916b96798a09
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs: []
+  compilationStatus: 0
+  isSuccesfullyCompiled: 0
+  compilationErrorMessage: "Error on line 8 at position 7:\nno viable alternative
+    at input '<<>>'\r\n    <<>>\r\r\n      ^^\n\nTokens:\n1:0 ID \"title\"\n1:5 HEADER_DELIMITER
+    \": \"\n1:7 REST_OF_LINE \"Start\"\n2:0 HEADER_NEWLINE \"\r\n\"\n2:0 '---' \"---\"\n3:0
+    COMMAND_START \"<<\"\n3:2 COMMAND_IF \"if \"\n3:5 VAR_ID \"$Quest_OpenTheMine\"\n3:24
+    OPERATOR_LOGICAL_EQUALS \"is\"\n3:27 STRING \"\"Inactive\"\"\n3:37 EXPRESSION_COMMAND_END
+    \">>\"\n4:0 TEXT \"Digga: The mine is shut, it has been taken over\"\n5:0 TEXT_NEWLINE
+    \"\r\n\"\n5:0 '->' \"->\"\n5:3 TEXT \"Okay \"\n6:4 TEXT_NEWLINE \"  \"\n6:4 INDENT
+    \"    \"\n6:4 TEXT \"Digga: Good\"\n7:4 TEXT_NEWLINE \"  \"\n7:4 TEXT \"Digga:
+    <skip>\"\n8:4 TEXT_NEWLINE \"  \"\n8:4 COMMAND_START \"<<\"\n8:6 COMMAND_END
+    \">>\""
+  baseLanguage: {instanceID: 0}
+  localizations: []

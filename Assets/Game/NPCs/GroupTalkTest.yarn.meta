@@ -8,7 +8,7 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
-  baseLanguageID: 
+  baseLanguageID: en-GB
   stringIDs:
   - GroupTalkTest-Start-0
   - GroupTalkTest-Start-1
@@ -19,5 +19,6 @@ ScriptedImporter:
   compilationStatus: 1
   isSuccesfullyCompiled: 1
   compilationErrorMessage: 
-  baseLanguage: {instanceID: 0}
+  baseLanguage: {fileID: 7128917941130120860, guid: f2fd957dfd88bfa43bb0641f9b47f1a2,
+    type: 3}
   localizations: []

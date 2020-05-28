@@ -7,7 +7,9 @@ namespace PlayerController
     [System.Serializable]
     public class ToggleMenus : PlayerController.ParallelState
     {
-        Type previousState;
+
+
+
         public override string StateName => "Enter Menus";
         public override void Start()
         {

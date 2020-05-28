@@ -11,6 +11,11 @@ namespace PlayerController
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
             c.rb.velocity = Vector3.zero;
+            c.cameraController.DisableControl();
+        }
+        public override void End()
+        {
+            c.cameraController.EnableControl();
         }
     }
 }

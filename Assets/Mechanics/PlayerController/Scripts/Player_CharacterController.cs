@@ -34,7 +34,10 @@ namespace PlayerController
         public MovementModifiers mod;
 
         public Transform cameraTransform;
-
+        public Cinemachine.CinemachineFreeLook freeLook;
+        public Cinemachine.CinemachineTargetGroup conversationGroup;
+        public Cinemachine.CinemachineVirtualCamera cutsceneCamera;
+        public Transform lookAtTarget;
         public CameraControlSettings playerCameraSettings;
 
         [HideInInspector] public bool controllingCamera = true;
@@ -56,11 +59,15 @@ namespace PlayerController
 
         //Parallel state list:
 
-        //Camera Controller - NOT DONE
+        //Camera Controller - DONE
         //Weapons - DONE
-        //Interaction with objects - NOT DONE
+        //Interaction with objects - DONE
 
         private ParallelState[] parallelStates = new ParallelState[0];
+
+        public CameraControl cameraController;
+
+
 
         [Header("State Properties")]
 
@@ -93,7 +100,7 @@ namespace PlayerController
         public LayerMask groundLayerMask;
         public LayerMask shootingCollisionLayerMask;
         public Rigidbody rb;
-        private new CapsuleCollider collider;
+        [HideInInspector] public new CapsuleCollider collider;
 
         [HideInInspector]
         public Animator animator;
@@ -151,15 +158,13 @@ namespace PlayerController
         /// </summary>
         void Awake()
         {
-
             activePlayerController = this;
             animationController = GetComponent<AnimationController>();
         }
+
         bool loadedStates = false;
         private void Start()
         {
-
-
             rb = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
             collider = GetComponent<CapsuleCollider>();
@@ -180,6 +185,10 @@ namespace PlayerController
             maxGroundDot = Mathf.Cos(maxGroundAngle);
             entry = DebugMenu.CreateEntry("Player", "Current State: {0}", "");
 
+            cameraController = new CameraControl();
+            cameraController.Init(this);
+            cameraController.Start();
+
 
             if (loadedStates)
             {
@@ -196,6 +205,9 @@ namespace PlayerController
                 //start a fresh state
                 ChangeToState<Walking>();
             }
+
+
+
 
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
@@ -216,6 +228,38 @@ namespace PlayerController
             ChangeToState<Dead>();
 
         }
+        bool _paused = false;
+        public bool paused
+        {
+            get => _paused;
+            set
+            {
+                if (_paused != value)
+                {
+                    _paused = value;
+                    //value has changed
+                    if (_paused)
+                    {
+                        Pause();
+                    }
+                    else
+                    {
+                        Play();
+                    }
+                }
+            }
+        }
+
+        public void Pause()
+        {
+            Time.timeScale = 0;
+        }
+        public void Play()
+        {
+            Time.timeScale = 1;
+        }
+
+
 
         public void UpdateModifier(bool enabled, MovementModifiers modifier)
         {
@@ -304,13 +348,14 @@ namespace PlayerController
             for (int i = 0; i < parallelStates.Length; i++)
                 parallelStates[i].Update();
             currentState.Animate();
-
+            cameraController.Update();
         }
         private void LateUpdate()
         {
             currentState.LateUpdate();
             for (int i = 0; i < parallelStates.Length; i++)
                 parallelStates[i].LateUpdate();
+            cameraController.LateUpdate();
         }
 
         void OnTriggerEnter(Collider other)
@@ -334,58 +379,6 @@ namespace PlayerController
 
             allCPs.Clear();
         }
-
-
-
-        private void AccelerateRigidbody(Vector3 targetVelocity, float maxAcceleration, float dt)
-        {
-            //scale required velocity by current speed
-            rigidbodyAccelerationRequiredForce = targetVelocity - rb.velocity;
-            rigidbodyAccelerationRequiredForce.y = 0;
-            rigidbodyAccelerationRequiredForce = Vector3.ClampMagnitude(rigidbodyAccelerationRequiredForce, maxAcceleration * dt);
-            //rotate the target based on the ground the player is standing on
-
-            rb.AddForce(rigidbodyAccelerationRequiredForce, ForceMode.VelocityChange);
-        }
-
-        /* Old Input handing for mode send messages on player input
-
-                private void OnWalk(InputValue value) => input.inputWalk = value.Get<Vector2>();
-
-                private void OnCrouch(InputValue value)
-                {
-
-                }
-                private void OnCamera(InputValue value) => input.inputCamera = value.Get<Vector2>();
-                private void OnShield(InputValue value) => input.shielding = value.Get<float>() > 0.5f;
-
-                private void OnAction(InputValue value)
-                {
-                    input.actioning = value.Get<float>() == 1;
-                    currentState.OnInteract(value.Get<float>());
-                }
-                private void OnSprint(InputValue value)
-                {
-                    input.sprinting = value.Get<float>() == 1;
-                    currentState.OnSprint(value.Get<float>());
-                }
-                private void OnJump(InputValue value) => currentState.OnJump(value.Get<float>());
-
-                private void OnAttack(InputValue value) => currentState.OnAttack(value.Get<float>());
-                private void OnAltAttack(InputValue value) => currentState.OnAltAttack(value.Get<float>());
-
-
-                private void OnSelectWeapon1(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(0); }
-                private void OnSelectWeapon2(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(1); }
-                private void OnSelectWeapon3(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(2); }
-                private void OnSelectWeapon4(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(3); }
-                private void OnSelectWeapon5(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(4); }
-                private void OnSelectWeapon6(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(5); }
-                private void OnSelectWeapon7(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(6); }
-                private void OnSelectWeapon8(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(7); }
-                private void OnSelectWeapon9(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(8); }
-                private void OnSelectWeapon10(InputValue value) { if (value.Get<float>() == 1) OnSelectWeapon(9); }
-        */
 
         private void OnSelectWeapon(int index)
         {
@@ -694,7 +687,6 @@ namespace PlayerController
         }
         [Serializable]
         [RequiresParallelState(typeof(ToggleMenus))]
-        [RequiresParallelState(typeof(CameraControl))]
         [RequiresParallelState(typeof(Interact))]
         public class Walking : MovementState
         {
@@ -713,6 +705,7 @@ namespace PlayerController
                 public float maxAcceleration;
                 public float maxStepHeight;
                 public float stepSearchOvershoot;
+                public float steppingTime;
                 public float jumpForce;
                 public GameObject playerWeapons;
             }
@@ -723,7 +716,6 @@ namespace PlayerController
             [SerializeField] Vector3 desiredVelocity;
             //used to continue momentum when the controller hits a stair
             Vector3 lastVelocity;
-            CameraControl cc;
             Vector3 groundVelocity;
             //shooting variables for gizmos
 
@@ -738,14 +730,25 @@ namespace PlayerController
                 //c.transform.up = Vector3.up;
 
                 c.rb.isKinematic = false;
-                c.TryGetParallelState(out cc);
             }
 
             public bool CanSprint => c.input.sprinting && c.input.inputWalk.y > 0.5f;
             bool grounded;
 
             bool crouching;
+            bool inControl = true;
             [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
+
+            float WalkingRunningCrouching(float crouchingSpeed, float runningSpeed, float walkingSpeed)
+            {
+                if (crouching)
+                    return crouchingSpeed;
+                else if (c.mod.HasFlag(MovementModifiers.Sprinting))
+                    return runningSpeed;
+                else
+                    return walkingSpeed;
+            }
+
             public override void FixedUpdate()
             {
                 if (c.onGround == false)
@@ -754,8 +757,10 @@ namespace PlayerController
                     return;
                 }
 
+                if (!inControl) return; //currently being controlled by some other movement coroutine
+
                 Vector3 velocity = c.rb.velocity;
-                Vector3 playerDirection = cc.TransformInput(c.input.inputWalk);
+                Vector3 playerDirection = c.cameraController.TransformInput(c.input.inputWalk);
 
                 grounded = FindGround(out ContactPoint groundCP, c.allCPs);
 
@@ -765,13 +770,13 @@ namespace PlayerController
                     //step up onto the stair, reseting the velocity to what it was
                     if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, playerDirection))
                     {
-                        transform.position += stepUpOffset;
-                        c.rb.velocity = lastVelocity;
+                        //transform.position += stepUpOffset;
+                        //c.rb.velocity = lastVelocity;
 
                         c.cameraStepDistance = stepUpOffset.y;
                         c.currentCameraStepTime = 0;
 
-                        //c.StartCoroutine(StepToPoint(transform.position + stepUpOffset, lastVelocity));
+                        c.StartCoroutine(StepToPoint(transform.position + stepUpOffset, lastVelocity));
                     }
                 }
                 else
@@ -813,7 +818,7 @@ namespace PlayerController
                 c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
                 //TODO - more variability
-                cc.SetVerticalOffset(c.collider.height - 0.2f);
+                c.cameraController.SetVerticalOffset(c.collider.height - 0.2f);
 
 
 
@@ -836,13 +841,7 @@ namespace PlayerController
 
                         //scale required velocity by current speed
                         //only allow sprinting if the play is moving forward
-                        float speed;
-                        if (crouching)
-                            speed = p.crouchingSpeed;
-                        else if (c.mod.HasFlag(MovementModifiers.Sprinting))
-                            speed = p.runningSpeed;
-                        else
-                            speed = p.walkingSpeed;
+                        float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);
 
                         desiredVelocity = playerDirection * speed;
                     }
@@ -978,42 +977,46 @@ namespace PlayerController
                 return true;
             }
 
-            // IEnumerator StepToPoint(Vector3 point, Vector3 lastVelocity)
-            // {
-            //     c.rb.isKinematic = true;
-            //     Vector3 start = transform.position;
-            //     Vector3 pos = Vector3.zero;
-            //     Vector2 xzStart = new Vector2(start.x, start.z);
-            //     Vector2 xzEnd = new Vector2(point.x, point.z);
-            //     Vector2 xz;
-            //     float t = 0;
-            //     while (t < 1)
-            //     {
-            //         t += Time.deltaTime;
-            //         t = Mathf.Clamp01(t);
-            //         //lerp y values
-            //         //first quarter of sin graph is quick at first but slower later
-            //         pos.y = Mathf.Lerp(start.y, point.y, Mathf.Sin(t * Mathf.PI * 0.5f));
-            //         //lerp xz values
-            //         xz = Vector2.Lerp(xzStart, xzEnd, t);
-            //         pos.x = xz.x;
-            //         pos.z = xz.y;
-            //         yield return new WaitForEndOfFrame();
-            //     }
-            //     c.rb.isKinematic = false;
-            //     c.rb.velocity = lastVelocity;
-            // }
+            IEnumerator StepToPoint(Vector3 point, Vector3 lastVelocity)
+            {
+                c.rb.isKinematic = true;
+                inControl = false;
+                Vector3 start = transform.position;
+                Vector3 pos = Vector3.zero;
+                Vector2 xzStart = new Vector2(start.x, start.z);
+                Vector2 xzEnd = new Vector2(point.x, point.z);
+                Vector2 xz;
+                float t = 0;
+                while (t < 1)
+                {
+                    t += Time.deltaTime / p.steppingTime;
+                    t = Mathf.Clamp01(t);
+                    //lerp y values
+                    //first quarter of sin graph is quick at first but slower later
+                    pos.y = Mathf.Lerp(start.y, point.y, Mathf.Sin(t * Mathf.PI * 0.5f));
+                    //lerp xz values
+                    xz = Vector2.Lerp(xzStart, xzEnd, t);
+                    pos.x = xz.x;
+                    pos.z = xz.y;
+                    transform.position = pos;
+                    yield return new WaitForEndOfFrame();
+                }
+                c.rb.isKinematic = false;
+                c.rb.velocity = lastVelocity;
+                inControl = true;
+            }
 
 
             public override void Animate()
             {
-                c.animator.SetBool("IsSurfing", false);
+                animator.SetBool("IsSurfing", false);
 
-                c.animator.SetFloat("InputVertical", c.input.inputWalk.magnitude);
+                animator.SetFloat("InputVertical", c.input.inputWalk.magnitude);
                 //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
-                c.animator.SetBool("IsGrounded", true);
-                c.animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
-                c.animator.SetFloat("GroundDistance", c.currentHeight);
+                animator.SetFloat("WalkingSpeed", WalkingRunningCrouching(0.5f, 1f, 0.7f));
+                animator.SetBool("IsGrounded", true);
+                animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
+                animator.SetFloat("GroundDistance", c.currentHeight);
             }
 
             public override void OnJump(float state)
@@ -1050,7 +1053,11 @@ namespace PlayerController
             }
             public override void OnCollideCliff(RaycastHit hit)
             {
-                if (c.climbing && hit.rigidbody != null && hit.rigidbody.isKinematic == true && Vector3.Dot(-hit.normal, cc.TransformInput(c.input.inputWalk)) > 0.5f)
+                if (
+                    c.climbing &&
+                    hit.rigidbody != null &&
+                    hit.rigidbody.isKinematic == true &&
+                    Vector3.Dot(-hit.normal, c.cameraController.TransformInput(c.input.inputWalk)) > 0.5f)
                 {
                     if (Vector3.Angle(Vector3.up, hit.normal) > c.minAngleForCliff)
                     {
@@ -1089,8 +1096,6 @@ namespace PlayerController
             }
         }
         [Serializable]
-        //[RequiresParallelState(typeof(UseWeaponry))]
-        [RequiresParallelState(typeof(CameraControl))]
         public class Freefalling : MovementState
         {
 
@@ -1110,11 +1115,10 @@ namespace PlayerController
 
             int airJumps;
 
-            CameraControl cc;
 
             public override void FixedUpdate()
             {
-                desiredVelocity = cc.TransformInput(c.input.inputWalk);
+                desiredVelocity = c.cameraController.TransformInput(c.input.inputWalk);
 
                 c.rb.AddForce(desiredVelocity);
 
@@ -1173,11 +1177,9 @@ namespace PlayerController
             public override void Start()
             {
                 airJumps = p.airJumps;
-                c.TryGetParallelState(out cc);
             }
         }
         [Serializable]
-        [RequiresParallelState(typeof(CameraControl))]
         public class Climbing : MovementState
         {
             [System.Serializable]
@@ -1271,15 +1273,13 @@ namespace PlayerController
             }
         }
         [Serializable]
-        [RequiresParallelState(typeof(CameraControl))]
         public class Shieldsurfing : MovementState
         {
-            CameraControl cc;
+
             public override void Start()
             {
                 originalMaterial = c.collider.material;
                 c.collider.material = p.surfPhysicMat;
-                c.TryGetParallelState(out cc);
             }
             public override string StateName => "Shield Surfing";
             [System.Serializable]
@@ -1317,8 +1317,8 @@ namespace PlayerController
             {
                 animator.SetBool("IsSurfing", true);
                 animator.SetBool("IsGrounded", c.onGround);
-                animator.SetFloat("InputHorizontal", cc.TransformInput(c.input.inputWalk).x);
-                animator.SetFloat("InputVertical", cc.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
+                animator.SetFloat("InputHorizontal", c.cameraController.TransformInput(c.input.inputWalk).x);
+                animator.SetFloat("InputVertical", c.cameraController.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
                 animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
             }
             public override void OnJump(float state)

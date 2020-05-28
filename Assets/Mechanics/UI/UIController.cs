@@ -11,13 +11,14 @@ public class UIController : MonoBehaviour
     public static UIController singleton;
 
 
+    private void Awake()
+    {
 
-    private void Awake() {
-
-        singleton=this;
+        singleton = this;
     }
 
-    public static void SetTabMenu(bool active){
-       singleton.tabMenu.SetActive(active);
+    public static void SetTabMenu(bool active)
+    {
+        singleton.tabMenu.SetActive(active);
     }
 }

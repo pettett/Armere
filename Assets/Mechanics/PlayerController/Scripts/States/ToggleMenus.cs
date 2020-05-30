@@ -5,7 +5,7 @@ namespace PlayerController
 {
     //allow the player to access the menu system if tab is pressed
     [System.Serializable]
-    public class ToggleMenus : PlayerController.ParallelState
+    public class ToggleMenus : ParallelState
     {
 
 
@@ -14,10 +14,12 @@ namespace PlayerController
         public override void Start()
         {
             c.onPlayerInput += OnInput;
+
         }
         public override void End()
         {
             c.onPlayerInput -= OnInput;
+
         }
 
         public void OnInput(InputAction.CallbackContext context)

@@ -9,9 +9,12 @@ public class TriggerBox : MonoBehaviour
     public bool onceOff;
     [System.Serializable]
     public class ColliderEvent : UnityEvent<Collider> { }
+
     public ColliderEvent onTriggerEnter;
     public bool fired = false;
-    public string activatorTag = "Player";
+    [TagSelector] public string activatorTag = "Player";
+
+    public event System.Action<Collider> onTriggerEnterEvent;
 
     private void Start()
     {
@@ -24,6 +27,8 @@ public class TriggerBox : MonoBehaviour
 
         fired = true;
         onTriggerEnter.Invoke(other);
+        onTriggerEnterEvent?.Invoke(other);
+
         if (onceOff)
             gameObject.SetActive(false);
     }

@@ -35,8 +35,8 @@ MonoBehaviour:
       elementIcon: {fileID: 0}
     reqReferences: {fileID: 0}
     isExpanded: 1
-    _keyValues: 0000000001000000
-    _keys: 0000000001000000
+    _keyValues: 000000000100000002000000
+    _keys: 000000000100000002000000
     _values:
     - name: Stick
       description: A long wooden object
@@ -54,3 +54,11 @@ MonoBehaviour:
         type: 3}
       materials:
       - {fileID: 2100000, guid: 29acb9d0606ef7f46a6b8b6a2e061788, type: 2}
+    - name: Iron Sword
+      description: A trusty sword
+      type: 1
+      sprite: {fileID: 0}
+      mesh: {fileID: 4686849319519084627, guid: 41617879a15bc8946a35d0587f7494cf,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: 08c14b86ac3b6e14eb13d217af96ac61, type: 2}

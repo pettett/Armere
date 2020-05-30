@@ -7,21 +7,27 @@ public class Quest : ScriptableObject
     public enum QuestType
     {
         Deliver,
-        TalkTo
+        TalkTo,
+        Damage,
+        Kill
     }
 
     public string title;
 
+
     [System.Serializable]
     public class QuestStage
     {
-
         [TextArea]
-        public string description;
+        [SerializeField] public string description;
         public QuestType type;
         public NPCName receiver;
         public ItemName item;
         public int count = 1;
+        public float damage = 20;
     }
+
+
     public QuestStage[] stages;
+
 }

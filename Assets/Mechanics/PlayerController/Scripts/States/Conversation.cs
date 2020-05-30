@@ -12,10 +12,16 @@ namespace PlayerController
             Cursor.lockState = CursorLockMode.None;
             c.rb.velocity = Vector3.zero;
             c.cameraController.DisableControl();
+            c.cutsceneCamera.Priority = 50;
         }
         public override void End()
         {
             c.cameraController.EnableControl();
+            c.cutsceneCamera.Priority = 0;
+        }
+        public override void Animate(AnimatorVariables vars)
+        {
+            animator.SetFloat(vars.vertical.id, 0);
         }
     }
 }

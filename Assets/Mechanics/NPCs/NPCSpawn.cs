@@ -10,11 +10,14 @@ public class NPCSpawn : MonoBehaviour
 
     public NPCTemplate template;
     public GameObject baseNPC;
+
+    public Transform[] conversationGroupTargetsOverride = new Transform[0];
+
     // Start is called before the first frame update
     void Start()
     {
         var npc = Spawner.Spawn(ref npcPool, baseNPC, transform.position, transform.rotation).GetComponent<NPC>();
-        npc.InitNPC(template, spawnedNPCName);
+        npc.InitNPC(template, spawnedNPCName, conversationGroupTargetsOverride);
     }
 
     private void OnDrawGizmos()

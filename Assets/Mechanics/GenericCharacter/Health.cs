@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-public class Health : MonoBehaviour, ILevelTrigger
+public class Health : MonoBehaviour
 {
     float _health;
     //so you can see health in inspector
@@ -17,8 +17,6 @@ public class Health : MonoBehaviour, ILevelTrigger
 
 
     public bool dead { get; private set; }
-
-
 
 
     public delegate void EventDelegate(GameObject attacker, GameObject victim);
@@ -69,23 +67,11 @@ public class Health : MonoBehaviour, ILevelTrigger
         Gizmos.DrawCube(transform.position + Vector3.up * headshotHeight, new Vector3(1, 0, 1));
     }
 
-    public class WaitForDead : CustomYieldInstruction
-    {
-        Health health;
-        public WaitForDead(Health h)
-        {
-            health = h;
-        }
-        public override bool keepWaiting => health.dead == false;
-    }
+
     void UpdateUI()
     {
         //if (useUI)
         //ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
-    }
-    public CustomYieldInstruction WaitInstrunction()
-    {
-        return new WaitForDead(this);
     }
 
 }

@@ -22,7 +22,7 @@ public class InteractableSign : MonoBehaviour, IInteractable
 
     void OnDialogueComplete()
     {
-        c.ChangeToState<PlayerController.Player_CharacterController.Walking>();
+        c.ChangeToState<Walking>();
         DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
     }
 

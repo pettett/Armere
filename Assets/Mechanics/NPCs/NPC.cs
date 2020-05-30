@@ -13,18 +13,19 @@ public class NPC : MonoBehaviour, IInteractable
     Camera camera;
     DialogueRunner runner;
     NPCTemplate t;
-
+    Transform[] conversationGroupOverride;
 
 
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
 
-    public void InitNPC(NPCTemplate template, NPCName name)
+    public void InitNPC(NPCTemplate template, NPCName name, Transform[] conversationGroupOverride)
     {
         t = template;
         runner.Add(t.dialogue);
         npcName = name;
         activeNPCs[npcName] = this;
         speakingNPC = name;
+        this.conversationGroupOverride = conversationGroupOverride;
     }
 
     private void Awake()
@@ -53,13 +54,13 @@ public class NPC : MonoBehaviour, IInteractable
         var currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
         if (!hasSpeaker)
         {
-            activeNPCs[currentSpeaker].StartSpeaking(c);
+            activeNPCs[currentSpeaker].StartSpeaking(c, true);
             hasSpeaker = true;
         }
         else if (speakingNPC != currentSpeaker)
         {
             activeNPCs[speakingNPC].StopSpeaking();
-            activeNPCs[currentSpeaker].StartSpeaking(c);
+            activeNPCs[currentSpeaker].StartSpeaking(c, false);
         }
         speakingNPC = currentSpeaker;
     }
@@ -74,19 +75,34 @@ public class NPC : MonoBehaviour, IInteractable
     }
 
 
-    public void StartSpeaking(Player_CharacterController c)
+    public void StartSpeaking(Player_CharacterController c, bool first)
     {
-        c.conversationGroup.m_Targets[1].target = transform;
+        if (!first)
+            //Make the camera look at this npc
+            PointCameraToSpeaker(c);
+        else
+            c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
 
 
+        //Point the player towards the currently speaking npc
         StartCoroutine(RotatePlayerTowardsNPC(c.transform));
 
-        c.conversationGroup.Transform.rotation = Quaternion.LookRotation(c.transform.position - transform.position) * Quaternion.Euler(0, 90, 0);
 
         foreach (var r in GetComponentsInChildren<Renderer>())
             foreach (var mat in r.materials)
                 mat.color = Color.blue;
     }
+    ///<summary>Point the player's conversation camera to this npc</summary>
+    void PointCameraToSpeaker(Player_CharacterController c)
+    {
+        //Get an angle that looks from the player to the npc, at a slight offset
+        c.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(c), 0);
+        //Setup the transposer to recenter
+        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
+        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
+    }
+
+
     public void StopSpeaking()
     {
         StopAllCoroutines();
@@ -96,16 +112,56 @@ public class NPC : MonoBehaviour, IInteractable
     }
 
     Player_CharacterController c;
+
+    public float GetCameraAngle(Player_CharacterController c)
+    {
+        return Quaternion.LookRotation(transform.position - c.transform.position).eulerAngles.y + 15f;
+    }
+
     public void Interact(Player_CharacterController c)
     {
         this.c = c;
         c.ChangeToState<Conversation>();
+
         c.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
+
+        int targets = Mathf.Max(2, conversationGroupOverride.Length + 1);
+        //Add all targets including the player
+        c.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
+        c.conversationGroup.m_Targets[0] = GenerateTarget(c.transform);
+        if (conversationGroupOverride.Length != 0)
+        {
+            for (int i = 0; i < conversationGroupOverride.Length; i++)
+            {
+                c.conversationGroup.m_Targets[i + 1] = GenerateTarget(conversationGroupOverride[i]);
+            }
+        }
+        else
+        {
+            c.conversationGroup.m_Targets[1] = GenerateTarget(transform);
+        }
+
+        c.conversationGroup.DoUpdate();
+
+        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
+        //  c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
+
         StartCoroutine(TurnToPlayer(c.transform.position));
     }
+
+    CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
+    {
+        return new CinemachineTargetGroup.Target() { target = transform, weight = weight, radius = radius };
+    }
+
+
+
     Vector3 focusPoint;
     IEnumerator TurnToPlayer(Vector3 playerPosition)
     {
+        DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
+        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+        runner.StartDialogue("Start");
 
         Quaternion desiredRot = Quaternion.LookRotation(playerPosition - transform.position);
         while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
@@ -114,16 +170,14 @@ public class NPC : MonoBehaviour, IInteractable
             yield return new WaitForEndOfFrame();
         }
 
-        DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
-        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-        runner.StartDialogue("Start");
+
     }
 
     void OnDialogueComplete()
     {
         activeNPCs[speakingNPC].StopSpeaking();
         hasSpeaker = false;
-        c.ChangeToState<Player_CharacterController.Walking>();
+        c.ChangeToState<Walking>();
         DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
         DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
         ResetCamera();

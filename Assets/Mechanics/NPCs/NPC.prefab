@@ -62,6 +62,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18eaa140095f2394ca07b84313258822, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  npcName: 0
   ambientThought: {fileID: 4652687440477550186}
 --- !u!114 &2318585634096166321
 MonoBehaviour:
@@ -97,8 +98,8 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
-  m_Radius: 1.0578992
-  m_Height: 2.5584073
+  m_Radius: 1.75
+  m_Height: 2.12
   m_Direction: 1
   m_Center: {x: -4.611984e-10, y: 0.7792034, z: -0.08563435}
 --- !u!1 &2514814076895201609
@@ -161,6 +162,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -416,6 +418,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.6039216}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

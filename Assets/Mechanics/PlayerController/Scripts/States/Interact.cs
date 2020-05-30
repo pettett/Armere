@@ -15,10 +15,10 @@ namespace PlayerController
         {
             ScanForInteractables();
         }
-
-        void ScanForInteractables()
+        ///<summary>Perform an overlap capsule to check for interactables, returning whether it did or not</summary>
+        bool ScanForInteractables()
         {
-
+            currentInteractable = null;
             //Test for interactables on position
             Collider[] hits = Physics.OverlapCapsule(
                 transform.position,
@@ -30,7 +30,10 @@ namespace PlayerController
             foreach (var c in hits)
             {
                 OnTriggerEnter(c);
+                if (currentInteractable != null)
+                    return true;
             }
+            return false;
         }
 
         public override void OnTriggerEnter(Collider interactable)
@@ -54,12 +57,15 @@ namespace PlayerController
         {
             if (currentInteractable != null && currentInteractable.enabled == false)
             {
+                print("Interactable removed");
                 OnInteractableRemoved();
             }
         }
         void OnInteractableRemoved()
         {
-            ExitInteractable();
+            //Test to see if there is another interactable. If not, exit
+            if (!ScanForInteractables())
+                ExitInteractable();
         }
 
         void ExitInteractable()

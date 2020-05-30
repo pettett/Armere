@@ -1,7 +1,8 @@
 public enum ItemName
 {
     Stick,
-    MineDeed
+    MineDeed,
+    IronSword
 }
 public enum ItemType
 {

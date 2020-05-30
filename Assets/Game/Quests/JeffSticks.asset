@@ -14,8 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   title: Jeff's Sticks
   stages:
-  - description: Jeff needs 10 sticks for a project. Help him out!
+  - description: 
     type: 0
     receiver: 0
     item: 0
-    count: 10
+    count: 1
+    damage: 20
+  - description: 
+    type: 0
+    receiver: 0
+    item: 0
+    count: 1
+    damage: 20
+  - description: 
+    type: 0
+    receiver: 0
+    item: 0
+    count: 1
+    damage: 20
+  - description: 
+    type: 0
+    receiver: 0
+    item: 0
+    count: 1
+    damage: 20

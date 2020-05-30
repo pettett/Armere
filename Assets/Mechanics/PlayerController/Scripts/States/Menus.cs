@@ -14,21 +14,21 @@ namespace PlayerController
             Cursor.lockState = CursorLockMode.None;
             UIController.SetTabMenu(true);
             c.onPlayerInput += OnInput;
-
+            c.cameraController.lockingMouse = false;
             c.paused = true;
         }
         public override void End()
         {
             UIController.SetTabMenu(false);
             c.onPlayerInput -= OnInput;
-
+            c.cameraController.lockingMouse = true;
             c.paused = false;
         }
 
         public void OnInput(InputAction.CallbackContext context)
         {
             if (context.action.name == "TabMenu" && context.ReadValue<float>() == 1)
-                c.ChangeToState<PlayerController.Player_CharacterController.Walking>();
+                c.ChangeToState<Walking>();
 
         }
 

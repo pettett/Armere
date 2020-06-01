@@ -222,19 +222,19 @@ public class ContourGenerator : MonoBehaviour
             for (int y = 0; y < res; y++)
             {
 
-                h = heights[x, y];
+
                 //calculate normal of the point
                 if (x != 0 && y != 0 && x != res - 1 && y != res - 1)
                 {
-                    s[0] = heights[x - 1, y - 1];
-                    s[1] = heights[x, y - 1];
-                    s[2] = heights[x + 1, y - 1];
-                    s[3] = heights[x - 1, y];
-                    s[4] = heights[x, y];
-                    s[5] = heights[x + 1, y];
-                    s[6] = heights[x - 1, y + 1];
-                    s[7] = heights[x, y + 1];
-                    s[8] = heights[x + 1, y + 1];
+                    s[0] = Height(x - 1, y - 1);
+                    s[1] = Height(x, y - 1);
+                    s[2] = Height(x + 1, y - 1);
+                    s[3] = Height(x - 1, y);
+                    s[4] = Height(x, y);
+                    s[5] = Height(x + 1, y);
+                    s[6] = Height(x - 1, y + 1);
+                    s[7] = Height(x, y + 1);
+                    s[8] = Height(x + 1, y + 1);
 
                     normal.x = normalScale * -(s[2] - s[0] + 2 * (s[5] - s[3]) + s[8] - s[6]);
                     normal.y = 1f;
@@ -242,18 +242,19 @@ public class ContourGenerator : MonoBehaviour
 
                     normal.Normalize();
                     float ndotl = Mathf.Clamp01(Vector3.Dot(normal, sunDir));
-                    float brightness = ndotl * 0.5f + heights[x, y] * 0.5f;
-                    colors[x + y * res] = new Color(brightness, brightness, brightness);
+                    float brightness = ndotl * 0.5f;
+                    colors[x + y * res] = new Color(brightness, brightness, brightness) + heightGradient.Evaluate(Height(x, y)) * 0.5f;
                 }
             }
         }
+
         terrainHeightmap.SetPixels(colors);
         terrainHeightmap.Apply();
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        Gizmos.DrawGUITexture(new Rect(0, 0, scale, scale), terrain.terrainData.heightmapTexture);
+        Gizmos.DrawGUITexture(new Rect(0, 0, scale, scale), terrainHeightmap);
         if (levels != null)
             for (int k = 0; k < levels.Length; k++)
             {

@@ -20,6 +20,7 @@ public class ContourGeneratorEditor : Editor
             (target as ContourGenerator).GenerateTerrainHeightmap();
             Debug.LogFormat("Look {0} ms to calculate heightmap", (EditorApplication.timeSinceStartup - startTime) * 1000f);
         }
+
         base.OnInspectorGUI();
     }
 }

@@ -142,6 +142,7 @@ MonoBehaviour:
   cutsceneCamera: {fileID: 0}
   lookAtTarget: {fileID: 0}
   cameraController:
+    updateWhilePaused: 0
     canBeTargeted: 1
     lockingMouse: 1
   m_walkingProperties:
@@ -153,7 +154,7 @@ MonoBehaviour:
     groundClamp: 1
     maxAcceleration: 20
     maxStepHeight: 0.3
-    stepSearchOvershoot: 0.1
+    stepSearchOvershoot: 0.31
     steppingTime: 0.1
     jumpForce: 1
     playerWeapons: {fileID: 0}

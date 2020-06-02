@@ -72,18 +72,19 @@ namespace PlayerController
                 c.rb.AddForce(Vector3.up * (p.airJumpVelocity - c.rb.velocity.y), ForceMode.VelocityChange);
             }
         }
-        public override void OnCollideCliff(RaycastHit hit)
-        {
-            if (c.input.inputWalk.sqrMagnitude > 0.5f)
-            {
-                ChangeToState<Climbing>();
-            }
-        }
+        // public override void OnCollideCliff(RaycastHit hit)
+        // {
+        //     if (c.input.inputWalk.sqrMagnitude > 0.5f)
+        //     {
+        //         ChangeToState<Climbing>();
+        //     }
+        // }
         public override string StateName => "Falling";
 
         public override void Start()
         {
             airJumps = p.airJumps;
+            c.animationController.enableFeetIK = false;
         }
     }
 }

@@ -14,21 +14,41 @@ namespace PlayerController
         public override void Start()
         {
             c.onPlayerInput += OnInput;
-
         }
         public override void End()
         {
             c.onPlayerInput -= OnInput;
-
         }
 
+        bool inMenus;
         public void OnInput(InputAction.CallbackContext context)
         {
             if (context.action.name == "TabMenu" && context.ReadValue<float>() == 1)
-                c.ChangeToState<Menus>();
-
+            {
+                inMenus = !inMenus;
+                UpdateMenus();
+            }
         }
 
+        void UpdateMenus()
+        {
+            if (inMenus)
+            {
+                c.Pause();
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                UIController.SetTabMenu(true);
+                c.cameraController.lockingMouse = false;
+            }
+            else
+            {
+                UIController.SetTabMenu(false);
+                c.cameraController.lockingMouse = true;
+                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
+                c.Play();
+            }
+        }
     }
 
 }

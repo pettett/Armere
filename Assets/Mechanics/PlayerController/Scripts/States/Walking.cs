@@ -34,12 +34,13 @@ namespace PlayerController
         Vector3 currentGroundNormal = new Vector3();
 
         Vector3 requiredForce;
-        [SerializeField] Vector3 desiredVelocity;
+        Vector3 desiredVelocity;
         //used to continue momentum when the controller hits a stair
         Vector3 lastVelocity;
         Vector3 groundVelocity;
-        //shooting variables for gizmos
 
+
+        //shooting variables for gizmos
         [NonSerialized] public DebugMenu.DebugEntry entry;
 
         public override void Start()
@@ -49,7 +50,7 @@ namespace PlayerController
             //c.controllingCamera = false; // debug for camera parallel state
 
             //c.transform.up = Vector3.up;
-
+            c.animationController.enableFeetIK = true;
             c.rb.isKinematic = false;
         }
 
@@ -68,6 +69,7 @@ namespace PlayerController
             else
                 return walkingSpeed;
         }
+        ContactPoint groundCP;
 
         public override void FixedUpdate()
         {
@@ -81,7 +83,7 @@ namespace PlayerController
             Vector3 velocity = c.rb.velocity;
             Vector3 playerDirection = c.cameraController.TransformInput(c.input.inputWalk);
 
-            grounded = FindGround(out ContactPoint groundCP, c.allCPs);
+            grounded = FindGround(out groundCP, out currentGroundNormal, c.allCPs);
 
             if (grounded)
             {
@@ -135,7 +137,7 @@ namespace PlayerController
 
 
 
-            Vector3 desiredVelocity;
+
 
             if (playerDirection.sqrMagnitude > 0.1f)
             {
@@ -188,19 +190,30 @@ namespace PlayerController
         /// \param allCPs List to search
         /// \param groundCP The contact point with the ground
         /// \return If grounded
-        public static bool FindGround(out ContactPoint groundCP, List<ContactPoint> allCPs)
+        public bool FindGround(out ContactPoint groundCP, out Vector3 groundNormal, List<ContactPoint> allCPs)
         {
-            groundCP = default(ContactPoint);
+            groundCP = default;
+
             bool found = false;
+            float dot;
+            groundNormal = Vector3.zero;
             foreach (ContactPoint cp in allCPs)
             {
+                dot = Vector3.Dot(Vector3.up, cp.normal);
+
                 //Pointing with some up direction
-                if (cp.normal.y > 0.0001f && (found == false || cp.normal.y > groundCP.normal.y))
+                if (dot > c.m_maxGroundDot)
                 {
-                    groundCP = cp;
-                    found = true;
+                    groundNormal += cp.normal;
+                    //Get the most upwards pointing contact point
+                    if (found == false || cp.normal.y > groundCP.normal.y)
+                    {
+                        groundCP = cp;
+                        found = true;
+                    }
                 }
             }
+            groundNormal.Normalize();
 
             return found;
         }
@@ -230,7 +243,7 @@ namespace PlayerController
         /// \return If the passed ContactPoint was a step
         bool ResolveStepUp(out Vector3 stepUpOffset, ContactPoint stepTestCP, ContactPoint groundCP, Vector3 velocity)
         {
-            stepUpOffset = default(Vector3);
+            stepUpOffset = default;
             Collider stepCol = stepTestCP.otherCollider;
 
             //( 1 ) Check if the contact point normal matches that of a step (y close to 0)
@@ -240,7 +253,7 @@ namespace PlayerController
             // }
 
             //if the step and the ground are too close, do not count
-            if (Vector3.Dot(stepTestCP.normal, groundCP.normal) > 0.95f)
+            if (Vector3.Dot(stepTestCP.normal, groundCP.normal) > c.m_maxGroundDot)
             {
                 return false;
             }
@@ -269,7 +282,7 @@ namespace PlayerController
             RaycastHit hitInfo;
             float stepHeight = groundCP.point.y + c.m_walkingProperties.maxStepHeight + 0.0001f;
 
-            Vector3 stepTestInvDir = new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
+            Vector3 stepTestInvDir = velocity.normalized; // new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
 
             //check forward based off the direction the player is walking
 
@@ -347,7 +360,7 @@ namespace PlayerController
 
         public override void OnCollideGround(RaycastHit hit)
         {
-            currentGroundNormal = hit.normal;
+            //currentGroundNormal = hit.normal;
             //Make the player stand on a platform if it is kinematic
             if (hit.rigidbody != null && hit.rigidbody.isKinematic)
             {
@@ -363,23 +376,23 @@ namespace PlayerController
             //attempt to lock the player to the ground while walking
 
         }
-        public override void OnCollideCliff(RaycastHit hit)
-        {
-            if (
-                hit.rigidbody != null &&
-                hit.rigidbody.isKinematic == true &&
-                Vector3.Dot(-hit.normal, c.cameraController.TransformInput(c.input.inputWalk)) > 0.5f)
-            {
-                if (Vector3.Angle(Vector3.up, hit.normal) > c.minAngleForCliff)
-                {
-                    ChangeToState<Climbing>();
-                }
-                else
-                {
-                    print("did not engage climb as {0} is too shallow", Vector3.Angle(Vector3.up, hit.normal));
-                }
-            }
-        }
+        // public override void OnCollideCliff(RaycastHit hit)
+        // {
+        //     if (
+        //         hit.rigidbody != null &&
+        //         hit.rigidbody.isKinematic == true &&
+        //         Vector3.Dot(-hit.normal, c.cameraController.TransformInput(c.input.inputWalk)) > 0.5f)
+        //     {
+        //         if (Vector3.Angle(Vector3.up, hit.normal) > c.minAngleForCliff)
+        //         {
+        //             ChangeToState<Climbing>();
+        //         }
+        //         else
+        //         {
+        //             print("did not engage climb as {0} is too shallow", Vector3.Angle(Vector3.up, hit.normal));
+        //         }
+        //     }
+        // }
 
 
         public override void End()
@@ -393,12 +406,21 @@ namespace PlayerController
         }
         public override void OnDrawGizmos()
         {
+            FindGround(out groundCP, out currentGroundNormal, c.allCPs);
             for (int i = 0; i < c.allCPs.Count; i++)
             {
                 //draw positions the ground is touching
+                if (c.allCPs[i].point == groundCP.point)
+                    Gizmos.color = Color.red;
+                else //Change color of cps depending on importance
+                    Gizmos.color = Color.white;
                 Gizmos.DrawWireSphere(c.allCPs[i].point, 0.05f);
                 Gizmos.DrawLine(c.allCPs[i].point, c.allCPs[i].point + c.allCPs[i].normal * 0.1f);
             }
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(transform.position, transform.position + desiredVelocity);
+            Gizmos.DrawLine(transform.position, transform.position + requiredForce.normalized);
+            Gizmos.DrawLine(transform.position, transform.position + currentGroundNormal.normalized * 0.5f);
 
             Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * c.m_walkingProperties.maxStepHeight, Quaternion.identity, new Vector3(1, 0, 1));
             Gizmos.color = Color.yellow;

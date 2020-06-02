@@ -12,10 +12,12 @@ namespace PlayerController
             Cursor.lockState = CursorLockMode.None;
             c.rb.velocity = Vector3.zero;
             c.cameraController.DisableControl();
+            c.rb.isKinematic = true;
             c.cutsceneCamera.Priority = 50;
         }
         public override void End()
         {
+            c.rb.isKinematic = false;
             c.cameraController.EnableControl();
             c.cutsceneCamera.Priority = 0;
         }

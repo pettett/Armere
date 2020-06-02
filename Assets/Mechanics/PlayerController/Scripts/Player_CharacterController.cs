@@ -6,49 +6,6 @@ using UnityEngine.InputSystem;
 namespace PlayerController
 {
 
-    [Serializable]
-    public class AnimatorVariables
-    {
-        public AnimatorVariable surfing = new AnimatorVariable("IsSurfing");
-        public AnimatorVariable vertical = new AnimatorVariable("InputVertical");
-        public AnimatorVariable horizontal = new AnimatorVariable("InputHorizontal");
-        public AnimatorVariable walkingSpeed = new AnimatorVariable("WalkingSpeed");
-        public AnimatorVariable isGrounded = new AnimatorVariable("IsGrounded");
-        public AnimatorVariable verticalVelocity = new AnimatorVariable("VerticalVelocity");
-        public AnimatorVariable groundDistance = new AnimatorVariable("GroundDistance");
-        public void UpdateIDs()
-        {
-            surfing.UpdateID();
-            vertical.UpdateID();
-            horizontal.UpdateID();
-            walkingSpeed.UpdateID();
-            isGrounded.UpdateID();
-            isGrounded.UpdateID();
-            verticalVelocity.UpdateID();
-            groundDistance.UpdateID();
-        }
-    }
-    [Serializable]
-    public class AnimatorVariable
-    {
-        public string name;
-        [HideInInspector] public int id;
-        public AnimatorVariable(string name)
-        {
-            this.name = name;
-        }
-        public void UpdateID()
-        {
-            id = Animator.StringToHash(name);
-        }
-    }
-    [System.Flags]
-    public enum MovementModifiers
-    {
-        None = 0,
-        Sprinting = 1,
-        Crouching = 2
-    }
 
 
     [RequireComponent(typeof(Rigidbody))]
@@ -61,7 +18,7 @@ namespace PlayerController
 
         public event Action<InputAction.CallbackContext> onPlayerInput;
 
-        [System.Serializable]
+        [Serializable]
         public struct InputStatus
         {
             public Vector2 inputWalk;
@@ -78,6 +35,8 @@ namespace PlayerController
         Camera playerCamera;
 
         private MovementState currentState;
+        public Type CurrentStateType => currentState?.GetType();
+        public Type lastStateType = null;
 
         //Parallel state list:
 
@@ -89,7 +48,7 @@ namespace PlayerController
 
         public CameraControl cameraController;
 
-
+        MovementState[] allStates;
 
         [Header("State Properties")]
 
@@ -199,7 +158,8 @@ namespace PlayerController
                 playerCamera = cameraTransform.GetComponent<Camera>();
             }
 
-            m_maxGroundDot = Mathf.Cos(m_maxGroundAngle);
+            m_maxGroundDot = Mathf.Cos(m_maxGroundAngle * Mathf.Deg2Rad);
+
             entry = DebugMenu.CreateEntry("Player", "Current State: {0}", "");
 
             cameraController = new CameraControl();
@@ -253,16 +213,11 @@ namespace PlayerController
             {
                 if (_paused != value)
                 {
-                    _paused = value;
                     //value has changed
-                    if (_paused)
-                    {
+                    if (value)
                         Pause();
-                    }
                     else
-                    {
                         Play();
-                    }
                 }
             }
         }
@@ -272,10 +227,12 @@ namespace PlayerController
         public void Pause()
         {
             Time.timeScale = 0;
+            _paused = true;
         }
         public void Play()
         {
             Time.timeScale = 1;
+            _paused = false;
         }
 
 
@@ -291,6 +248,7 @@ namespace PlayerController
                 mod &= ~modifier;
             }
         }
+        public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
 
         public void OnActionTriggered(InputAction.CallbackContext action)
         {
@@ -322,33 +280,33 @@ namespace PlayerController
                     input.inputCamera = action.ReadValue<Vector2>();
                     break;
                 case "Action":
-                    currentState.OnInteract(action.ReadValue<float>());
-                    for (int i = 0; i < parallelStates.Length; i++)
-                        parallelStates[i].OnInteract(action.ReadValue<float>());
+                    for (int i = 0; i < allStates.Length; i++)
+                        if (StateActive(i))
+                            allStates[i].OnInteract(action.ReadValue<float>());
                     break;
                 case "Crouch":
                     UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Crouching);
                     break;
                 case "Sprint":
                     UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Sprinting);
-                    currentState.OnSprint(action.ReadValue<float>());
-                    for (int i = 0; i < parallelStates.Length; i++)
-                        parallelStates[i].OnSprint(action.ReadValue<float>());
+                    for (int i = 0; i < allStates.Length; i++)
+                        if (StateActive(i))
+                            allStates[i].OnSprint(action.ReadValue<float>());
                     break;
                 case "Jump":
-                    currentState.OnJump(action.ReadValue<float>());
-                    for (int i = 0; i < parallelStates.Length; i++)
-                        parallelStates[i].OnJump(action.ReadValue<float>());
+                    for (int i = 0; i < allStates.Length; i++)
+                        if (StateActive(i))
+                            allStates[i].OnJump(action.ReadValue<float>());
                     break;
                 case "Attack":
-                    currentState.OnAttack(action.ReadValue<float>());
-                    for (int i = 0; i < parallelStates.Length; i++)
-                        parallelStates[i].OnAttack(action.ReadValue<float>());
+                    for (int i = 0; i < allStates.Length; i++)
+                        if (StateActive(i))
+                            allStates[i].OnAttack(action.ReadValue<float>());
                     break;
                 case "AltAttack":
-                    currentState.OnAltAttack(action.ReadValue<float>());
-                    for (int i = 0; i < parallelStates.Length; i++)
-                        parallelStates[i].OnAltAttack(action.ReadValue<float>());
+                    for (int i = 0; i < allStates.Length; i++)
+                        if (StateActive(i))
+                            allStates[i].OnAltAttack(action.ReadValue<float>());
                     break;
 
                 default:
@@ -362,49 +320,56 @@ namespace PlayerController
         {
             RaycastGround();
             RaycastCliff();
-            currentState.Update();
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].Update();
-            currentState.Animate(animatorVariables);
-            cameraController.Update();
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].Update();
+
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].Animate(animatorVariables);
+
         }
         private void LateUpdate()
         {
-            currentState.LateUpdate();
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].LateUpdate();
-            cameraController.LateUpdate();
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].LateUpdate();
         }
 
         void OnTriggerEnter(Collider other)
         {
-            currentState.OnTriggerEnter(other);
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].OnTriggerEnter(other);
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].OnTriggerEnter(other);
         }
         void OnTriggerExit(Collider other)
         {
-            currentState.OnTriggerExit(other);
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].OnTriggerExit(other);
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].OnTriggerExit(other);
         }
 
         private void FixedUpdate()
         {
-            currentState.FixedUpdate();
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].FixedUpdate();
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].FixedUpdate();
 
             allCPs.Clear();
         }
-
+        private void OnAnimatorIK(int layerIndex)
+        {
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].OnAnimatorIK(layerIndex);
+        }
         private void OnSelectWeapon(int index)
         {
             //print(String.Format("Switched to weapon {0}", index));
 
-            currentState.OnSelectWeapon(index);
-            for (int i = 0; i < parallelStates.Length; i++)
-                parallelStates[i].OnSelectWeapon(index);
+            for (int i = 0; i < allStates.Length; i++)
+                if (StateActive(i))
+                    allStates[i].OnSelectWeapon(index);
         }
 
 
@@ -430,9 +395,13 @@ namespace PlayerController
 
         public T ChangeToState<T>(params object[] parameters) where T : MovementState, new()
         {
-
+            return ChangeToState(typeof(T), parameters) as T;
+        }
+        public MovementState ChangeToState(Type type, params object[] parameters)
+        {
+            lastStateType = CurrentStateType;
             currentState?.End(); // state specific end method
-            currentState = new T();
+            currentState = Activator.CreateInstance(type) as MovementState;
             currentState.Init(this); //non - overridable init method for reference to controller
 
 
@@ -440,7 +409,7 @@ namespace PlayerController
             entry.values[0] = currentState.StateName;
 
             //test to see if this state requires any parallel states to be started
-            RequiresParallelState[] attributes = typeof(T).GetCustomAttributes(typeof(RequiresParallelState), true) as RequiresParallelState[];
+            RequiresParallelState[] attributes = type.GetCustomAttributes(typeof(RequiresParallelState), true) as RequiresParallelState[];
             ParallelState[] newStates = new ParallelState[attributes.Length];
 
             for (int i = 0; i < attributes.Length; i++)
@@ -481,7 +450,16 @@ namespace PlayerController
             // start all the states after everything has been constructed
             currentState.Start(parameters);
 
-            return currentState as T;
+            allStates = new MovementState[parallelStates.Length + 2];
+            for (int i = 0; i < parallelStates.Length; i++)
+            {
+                allStates[i] = parallelStates[i];
+            }
+            allStates[parallelStates.Length] = currentState;
+            allStates[parallelStates.Length + 1] = cameraController;
+
+
+            return currentState;
         }
 
         public ParallelState GetParallelState(Type t)
@@ -505,7 +483,7 @@ namespace PlayerController
                     return true;
                 }
             }
-            state = default(T);
+            state = default;
             return false;
         }
 
@@ -566,62 +544,4 @@ namespace PlayerController
         void IAITarget.HearSound(IAITarget source, float volume, ref bool responded) { }
 
     }
-
-
-    [Serializable]
-    public abstract class ParallelState : MovementState
-    {
-
-    }
-
-    [Serializable]
-    public abstract class MovementState : State
-    {
-        public bool canBeTargeted = true;
-        public void ChangeToState<T>() where T : MovementState, new() => c.ChangeToState<T>();
-
-        public Transform transform => c.transform;
-        public GameObject gameObject => c.gameObject;
-
-        public Animator animator => c.animator;
-        [NonSerialized] protected Player_CharacterController c;
-
-
-        public void Init(Player_CharacterController characterController)
-        {
-            c = characterController;
-        }
-
-        public abstract string StateName { get; }
-
-
-        public virtual void Animate(AnimatorVariables vars) { }
-        public virtual void OnCollideGround(RaycastHit hit) { }
-        public virtual void OnCollideCliff(RaycastHit hit) { }
-        public virtual void OnJump(float state) { }
-        public virtual void OnAttack(float state) { }
-        public virtual void OnAltAttack(float state) { }
-        public virtual void OnSprint(float state) { }
-        public virtual void OnInteract(float state) { }
-        public virtual void OnTriggerEnter(Collider other) { }
-        public virtual void OnTriggerExit(Collider other) { }
-        public virtual void OnGroundedChange() { }
-        public virtual void OnSelectWeapon(int index) { }
-        public virtual void OnCustomAction(InputAction.CallbackContext action) { }
-        protected void print(string format, params object[] args) => Debug.LogFormat(format, args);
-    }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class RequiresParallelState : Attribute
-    {
-        public Type state { get; private set; }
-        public RequiresParallelState(Type state)
-        {
-            if (!state.IsSubclassOf(typeof(ParallelState)))
-                throw new Exception("Must use a parallel State");
-            this.state = state;
-        }
-    }
-
-
 }

@@ -20,7 +20,7 @@ GameObject:
   - component: {fileID: 2193245523499967993}
   - component: {fileID: 6137509289512668310}
   - component: {fileID: 8222275986114918330}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -153,10 +153,11 @@ MonoBehaviour:
     crouchingHeight: 0.9
     groundClamp: 1
     maxAcceleration: 20
-    maxStepHeight: 0.3
+    maxStepHeight: 1
+    maxStepDown: 0.25
     stepSearchOvershoot: 0.31
     steppingTime: 0.1
-    jumpForce: 1
+    jumpForce: 9
     playerWeapons: {fileID: 0}
   m_freefallingProperties:
     airJumps: 1
@@ -178,12 +179,12 @@ MonoBehaviour:
   m_maxGroundDistance: 0.1
   m_groundSphereRadius: 0.3
   m_groundScanningOffset: 1
-  m_maxGroundAngle: 70
+  m_maxGroundAngle: 53.4
   m_maxGroundDot: 0.3
   onGround: 0
   m_groundLayerMask:
     serializedVersion: 2
-    m_Bits: 257
+    m_Bits: 513
   rb: {fileID: 0}
   collider: {fileID: 0}
   animator: {fileID: 0}
@@ -234,7 +235,7 @@ MonoBehaviour:
   raycastDownDistance: 0.41
   groundLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 257
   pelvisOffset: 0
   pelvisVerticalSpeed: 0.861
   feetToIKPositionSpeed: 0.5

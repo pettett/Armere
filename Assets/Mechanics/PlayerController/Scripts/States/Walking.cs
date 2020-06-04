@@ -25,6 +25,7 @@ namespace PlayerController
             public float groundClamp;
             public float maxAcceleration;
             public float maxStepHeight;
+            public float maxStepDown;
             public float stepSearchOvershoot;
             public float steppingTime;
             public float jumpForce;
@@ -45,7 +46,7 @@ namespace PlayerController
 
         public override void Start()
         {
-            entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0}", 0);
+            entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false);
 
             //c.controllingCamera = false; // debug for camera parallel state
 
@@ -73,17 +74,21 @@ namespace PlayerController
 
         public override void FixedUpdate()
         {
-            if (c.onGround == false)
-            {
-                c.ChangeToState<Freefalling>();
-                return;
-            }
+            // if (c.onGround == false)
+            // {
+            //     //c.ChangeToState<Freefalling>();
+            //     return;
+            // }
+
             if (!inControl) return; //currently being controlled by some other movement coroutine
 
             Vector3 velocity = c.rb.velocity;
             Vector3 playerDirection = c.cameraController.TransformInput(c.input.inputWalk);
 
             grounded = FindGround(out groundCP, out currentGroundNormal, c.allCPs);
+
+            c.animationController.enableFeetIK = grounded;
+            //List<ContactPoint> groundCPs = new List<ContactPoint>();
 
             if (grounded)
             {
@@ -101,18 +106,10 @@ namespace PlayerController
             {
                 if (!c.onGround)
                 {
-                    c.ChangeToState<Freefalling>();
+                    //c.ChangeToState<Freefalling>();
                 }
             }
-
-
-
-
             //c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
-
-
-
-
             if (c.mod.HasFlag(MovementModifiers.Crouching))
             {
                 c.collider.height = p.crouchingHeight;
@@ -135,10 +132,6 @@ namespace PlayerController
 
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
-
-
-
-
             if (playerDirection.sqrMagnitude > 0.1f)
             {
                 Quaternion walkingAngle = Quaternion.LookRotation(playerDirection);
@@ -159,6 +152,8 @@ namespace PlayerController
                     float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);
 
                     desiredVelocity = playerDirection * speed;
+                    //Rotate the velocity based on ground
+                    desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
                 }
 
             }
@@ -167,7 +162,6 @@ namespace PlayerController
                 desiredVelocity = Vector3.zero;
             }
 
-
             requiredForce = desiredVelocity - c.rb.velocity;
             requiredForce.y = 0;
 
@@ -175,15 +169,17 @@ namespace PlayerController
 
             //rotate the target based on the ground the player is standing on
 
-            requiredForce = Vector3.ProjectOnPlane(requiredForce, currentGroundNormal);
 
-            requiredForce -= currentGroundNormal * p.groundClamp;
+            if (grounded)
+                requiredForce -= currentGroundNormal * p.groundClamp;
 
             c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
 
             lastVelocity = velocity;
 
             entry.values[0] = c.rb.velocity.magnitude;
+            entry.values[1] = c.allCPs.Count;
+            entry.values[3] = grounded;
         }
 
         /// Finds the MOST grounded (flattest y component) ContactPoint
@@ -196,7 +192,8 @@ namespace PlayerController
 
             bool found = false;
             float dot;
-            groundNormal = Vector3.zero;
+            float bestDirectionDot = 1;
+            groundNormal = default;
             foreach (ContactPoint cp in allCPs)
             {
                 dot = Vector3.Dot(Vector3.up, cp.normal);
@@ -204,16 +201,23 @@ namespace PlayerController
                 //Pointing with some up direction
                 if (dot > c.m_maxGroundDot)
                 {
-                    groundNormal += cp.normal;
+
                     //Get the most upwards pointing contact point
-                    if (found == false || cp.normal.y > groundCP.normal.y)
+
+                    //Also get the point that points most in the current direction the player desires to move
+                    float directionDot = Vector3.Dot(cp.normal, desiredVelocity);
+
+
+
+                    if (found == false || /*cp.normal.y > groundCP.normal.y ||*/ directionDot < bestDirectionDot)
                     {
                         groundCP = cp;
+                        bestDirectionDot = directionDot;
                         found = true;
+                        groundNormal = cp.normal;
                     }
                 }
             }
-            groundNormal.Normalize();
 
             return found;
         }
@@ -236,6 +240,9 @@ namespace PlayerController
             }
             return false;
         }
+
+        bool debugStep = false;
+
         /// Takes a contact point that looks as though it's the side face of a step and sees if we can climb it
         /// \param stepTestCP ContactPoint to check.
         /// \param groundCP ContactPoint on the ground.
@@ -253,48 +260,47 @@ namespace PlayerController
             // }
 
             //if the step and the ground are too close, do not count
-            if (Vector3.Dot(stepTestCP.normal, groundCP.normal) > c.m_maxGroundDot)
+            if (Vector3.Dot(stepTestCP.normal, Vector3.up) > c.m_maxGroundDot)
             {
+                if (debugStep) print("Contact too close to ground normal {0}", Vector3.Dot(stepTestCP.normal, Vector3.up));
                 return false;
             }
 
             //( 2 ) Make sure the contact point is low enough to be a step
-            if (!(stepTestCP.point.y - groundCP.point.y < c.m_walkingProperties.maxStepHeight))
+            if (!(stepTestCP.point.y - groundCP.point.y < p.maxStepHeight))
             {
+                if (debugStep) print("Contact to high");
                 return false;
             }
 
 
-
-
-
             //( 2.5 ) Make sure the step is in the direction the player is moving
-            Vector3 stepDirection = stepTestCP.point - transform.position;
-            if (Vector3.Dot(stepDirection.normalized, velocity.normalized) < 0.01f)
+            if (Vector3.Dot(-stepTestCP.normal, velocity.normalized) < 0.01f)
             {
+                if (debugStep) print(Vector3.Dot(-stepTestCP.normal, velocity.normalized).ToString());
                 //not pointing in the general direction of movement - fail
                 return false;
             }
 
-
             //( 3 ) Check to see if there's actually a place to step in front of us
             //Fires one Raycast
             RaycastHit hitInfo;
-            float stepHeight = groundCP.point.y + c.m_walkingProperties.maxStepHeight + 0.0001f;
+            float stepHeight = groundCP.point.y + p.maxStepHeight + 0.0001f;
 
             Vector3 stepTestInvDir = velocity.normalized; // new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
 
             //check forward based off the direction the player is walking
 
-            Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * c.m_walkingProperties.stepSearchOvershoot);
+            Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * p.stepSearchOvershoot);
             Vector3 direction = Vector3.down;
-            if (!(stepCol.Raycast(new Ray(origin, direction), out hitInfo, c.m_walkingProperties.maxStepHeight)))
+            if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, p.maxStepHeight + p.maxStepDown))
             {
+                if (debugStep) print("Nothing to step to");
                 return false;
             }
 
             //We have enough info to calculate the points
-            Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * c.m_walkingProperties.stepSearchOvershoot);
+            Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * p.stepSearchOvershoot);
             Vector3 stepUpPointOffset = stepUpPoint - new Vector3(stepTestCP.point.x, groundCP.point.y, stepTestCP.point.z);
 
             //We passed all the checks! Calculate and return the point!
@@ -312,9 +318,11 @@ namespace PlayerController
             Vector2 xzEnd = new Vector2(point.x, point.z);
             Vector2 xz;
             float t = 0;
+
             while (t < 1)
             {
                 t += Time.deltaTime / p.steppingTime;
+                entry.values[2] = t;
                 t = Mathf.Clamp01(t);
                 //lerp y values
                 //first quarter of sin graph is quick at first but slower later
@@ -326,6 +334,7 @@ namespace PlayerController
                 transform.position = pos;
                 yield return new WaitForEndOfFrame();
             }
+            entry.values[2] = 0;
             c.rb.isKinematic = false;
             c.rb.velocity = lastVelocity;
             inControl = true;
@@ -353,7 +362,7 @@ namespace PlayerController
                 v.y = c.m_walkingProperties.jumpForce;
                 c.rb.velocity = v;
 
-                ChangeToState<Freefalling>();
+                //ChangeToState<Freefalling>();
             }
         }
 
@@ -419,6 +428,7 @@ namespace PlayerController
             }
             Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, transform.position + desiredVelocity);
+            Gizmos.color = Color.blue;
             Gizmos.DrawLine(transform.position, transform.position + requiredForce.normalized);
             Gizmos.DrawLine(transform.position, transform.position + currentGroundNormal.normalized * 0.5f);
 

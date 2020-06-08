@@ -14,9 +14,11 @@ public class NPC : MonoBehaviour, IInteractable
     DialogueRunner runner;
     NPCTemplate t;
     Transform[] conversationGroupOverride;
-
-
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
+
+    public Animator animator;
+    bool hasSpeaker = false;
+    NPCName speakingNPC;
 
     public void InitNPC(NPCTemplate template, NPCName name, Transform[] conversationGroupOverride)
     {
@@ -27,14 +29,16 @@ public class NPC : MonoBehaviour, IInteractable
         speakingNPC = name;
         this.conversationGroupOverride = conversationGroupOverride;
     }
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
 
     private void Awake()
     {
         camera = Camera.main;
 
-
-
-        runner = GetComponent<Yarn.Unity.DialogueRunner>();
+        runner = GetComponent<DialogueRunner>();
         runner.AddCommandHandler("quest", GiveQuest);
         runner.AddCommandHandler("ProgressQuest", ProgressQuest);
         runner.AddCommandHandler("cameraPan", CameraPan);
@@ -42,12 +46,11 @@ public class NPC : MonoBehaviour, IInteractable
         runner.AddCommandHandler("TurnPlayerToTarget", TurnPlayerToTarget);
         runner.AddCommandHandler("TurnNPCToTarget", TurnNPCToTarget);
         runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
+        runner.AddCommandHandler("Animate", Animate);
 
         runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
         runner.dialogueUI = DialogueInstances.singleton.dialogueUI;
     }
-    bool hasSpeaker = false;
-    NPCName speakingNPC;
 
     public void StartNPCSpeaking(string line)
     {
@@ -64,6 +67,10 @@ public class NPC : MonoBehaviour, IInteractable
         }
         speakingNPC = currentSpeaker;
     }
+
+
+
+
     IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
     {
         Quaternion desiredRot = Quaternion.LookRotation(transform.position - playerTransform.position);
@@ -181,6 +188,18 @@ public class NPC : MonoBehaviour, IInteractable
         DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
         DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
         ResetCamera();
+    }
+
+
+    void Animate(string[] arg, System.Action onComplete)
+    {
+        string animName = arg[0];
+        if (arg.Length > 1)
+        {
+            bool wait = bool.Parse(arg[1]);
+        }
+        animator.SetTrigger(animName);
+        onComplete?.Invoke();
     }
 
     void GiveQuest(string[] arg)

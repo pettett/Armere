@@ -12,7 +12,12 @@ namespace PlayerController
         public override string StateName => "Climbing Ladder";
         Ladder ladder;
         float height;
-        public float climbingSpeed = 2.5f;
+        public float climbingSpeed = 0.5f;
+
+        const float footLadderHeight = 0.1f;
+        const float handLadderHeight = 1.4f;
+
+
         public override void Start(params object[] info)
         {
             if (info.Length > 0 && info[0] is Ladder)
@@ -25,6 +30,9 @@ namespace PlayerController
             transform.SetPositionAndRotation(GetLadderPos(height), ladder.transform.rotation);
             c.rb.isKinematic = true;
             c.animationController.enableFeetIK = false;
+            animator.SetBool("OnLadder", true);
+
+
         }
 
         public Vector3 GetLadderPos(float h)
@@ -37,6 +45,7 @@ namespace PlayerController
             //Dont do if manually moved
             c.rb.isKinematic = false;
             c.animationController.enableFeetIK = true;
+            animator.SetBool("OnLadder", false);
         }
 
         public int RoundToNearest(float value, int interval, int offset) => Mathf.RoundToInt((value - offset) / interval) * interval + offset;
@@ -48,29 +57,33 @@ namespace PlayerController
             rung = Mathf.Lerp(rung, RoundToNearest(height, 2, offset), Time.deltaTime * 25);//Closest even rung
         }
 
+
+
         public override void OnAnimatorIK(int layerIndex)
         {
-            float rung = (height + 1.4f - ladder.rungOffset) / ladder.rungDistance;
+            return;
+
+            float rung = (height + handLadderHeight - ladder.rungOffset) / ladder.rungDistance;
             //Update the position of every body part
             UpdateRung(ref lhRung, rung, 0);
             UpdateRung(ref rhRung, rung, 1);
             //The height of feet is lower then the hands ; target a different position
-            rung = (height + 0.4f - ladder.rungOffset) / ladder.rungDistance;
+            rung = (height + footLadderHeight - ladder.rungOffset) / ladder.rungDistance;
             UpdateRung(ref lfRung, rung, 0);
             UpdateRung(ref rfRung, rung, 1);
 
-            SetPosition(AvatarIKGoal.LeftHand, ladder.LadderPosByRung(lhRung, -0.1f));
-            SetPosition(AvatarIKGoal.RightHand, ladder.LadderPosByRung(rhRung, 0.1f));
+            SetPosition(AvatarIKGoal.LeftHand, "LeftHandCurve", ladder.LadderPosByRung(lhRung, -0.1f));
+            SetPosition(AvatarIKGoal.RightHand, "RightHandCurve", ladder.LadderPosByRung(rhRung, 0.1f));
 
             //Do the same for feet
-
-            SetPosition(AvatarIKGoal.LeftFoot, ladder.LadderPosByRung(lfRung, -0.1f));
-            SetPosition(AvatarIKGoal.RightFoot, ladder.LadderPosByRung(rfRung, 0.1f));
+            SetPosition(AvatarIKGoal.LeftFoot, "LeftFootCurve", ladder.LadderPosByRung(lfRung, -0.1f));
+            SetPosition(AvatarIKGoal.RightFoot, "RightFootCurve", ladder.LadderPosByRung(rfRung, 0.1f));
         }
-        void SetPosition(AvatarIKGoal goal, Vector3 pos)
+
+        void SetPosition(AvatarIKGoal goal, string curve, Vector3 pos)
         {
-            c.animator.SetIKPositionWeight(goal, 1);
-            c.animator.SetIKPosition(goal, pos);
+            animator.SetIKPositionWeight(goal, animator.GetFloat(curve));
+            animator.SetIKPosition(goal, pos);
         }
         public override void OnJump(float state)
         {
@@ -98,7 +111,7 @@ namespace PlayerController
 
         public override void Animate(AnimatorVariables vars)
         {
-            animator.SetFloat(vars.vertical.id, 0);
+            animator.SetFloat(vars.vertical.id, c.input.inputWalk.y * climbingSpeed);
             animator.SetFloat(vars.horizontal.id, 0f);
         }
     }

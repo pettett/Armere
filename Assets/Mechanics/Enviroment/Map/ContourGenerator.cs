@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine.Profiling;
 public class ContourGenerator : MonoBehaviour
 {
+    public bool gizmos;
     [System.Serializable]
     public class ContourLine
     {
@@ -254,6 +255,7 @@ public class ContourGenerator : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        if (!gizmos) return;
         Gizmos.DrawGUITexture(new Rect(0, 0, scale, scale), terrainHeightmap);
         if (levels != null)
             for (int k = 0; k < levels.Length; k++)

@@ -11,6 +11,34 @@ namespace PlayerController
 
 
         public override string StateName => "Enter Menus";
+
+        bool inMenus;
+        bool inConsole;
+
+        void OnCommand(Console.Command command)
+        {
+
+            void DesiredInputs(int num)
+            {
+                if (command.values.Length < num)
+                    throw new ArgumentException("Not enough inputs for command");
+            }
+
+            switch (command.func)
+            {
+                case "tp":
+                    DesiredInputs(1);
+                    if (TeleportWaypoints.singleton.waypoints.ContainsKey(command.values[0]))
+                    {
+                        var t = TeleportWaypoints.singleton.waypoints[command.values[0]];
+                        transform.SetPositionAndRotation(t.position, t.rotation);
+                    }
+                    break;
+
+            }
+            inConsole = false;
+            UpdateConsole();
+        }
         public override void Start()
         {
             c.onPlayerInput += OnInput;
@@ -20,32 +48,67 @@ namespace PlayerController
             c.onPlayerInput -= OnInput;
         }
 
-        bool inMenus;
+
         public void OnInput(InputAction.CallbackContext context)
         {
-            if (context.action.name == "TabMenu" && context.ReadValue<float>() == 1)
+            if (!inConsole && context.action.name == "TabMenu" && context.ReadValue<float>() == 1)
             {
                 inMenus = !inMenus;
                 UpdateMenus();
             }
+            else if (!inMenus && context.action.name == "Console" && context.ReadValue<float>() == 1)
+            {
+                inConsole = !inConsole;
+                UpdateConsole();
+            }
+
         }
+        void UpdateConsole()
+        {
+            if (inConsole)
+            {
+                print("Activated Console");
+                SetPaused(true);
+                Console.Enable(OnCommand);
+            }
+            else
+            {
+                print("Deactivated console");
+                Console.Disable();
+                SetPaused(false);
+            }
+        }
+
+
 
         void UpdateMenus()
         {
             if (inMenus)
             {
-                c.Pause();
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
                 UIController.SetTabMenu(true);
-                c.cameraController.lockingMouse = false;
+                SetPaused(true);
             }
             else
             {
                 UIController.SetTabMenu(false);
-                c.cameraController.lockingMouse = true;
+                SetPaused(false);
+            }
+        }
+
+        void SetPaused(bool p)
+        {
+            if (p)
+            {
+                c.Pause();
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                c.cameraController.lockingMouse = false;
+            }
+            else
+            {
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
+                c.cameraController.lockingMouse = true;
                 c.Play();
             }
         }

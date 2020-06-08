@@ -1,7 +1,7 @@
 {
     "name": "enviroment.map",
     "references": [
-        ""
+        "DebugMenuAssembly"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

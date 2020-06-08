@@ -16,6 +16,7 @@ namespace PlayerController
         {
             originalMaterial = c.collider.material;
             c.collider.material = p.surfPhysicMat;
+
         }
         public override string StateName => "Shield Surfing";
         [System.Serializable]
@@ -56,6 +57,7 @@ namespace PlayerController
             animator.SetFloat("InputHorizontal", c.cameraController.TransformInput(c.input.inputWalk).x);
             animator.SetFloat("InputVertical", c.cameraController.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
+
         }
         public override void OnJump(float state)
         {
@@ -78,6 +80,7 @@ namespace PlayerController
         public override void End()
         {
             c.collider.material = originalMaterial;
+
         }
     }
 

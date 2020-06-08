@@ -21,30 +21,30 @@ public class QuestManager : MonoBehaviour
         quests = new List<QuestStatus>();
         completedQuests = new List<QuestStatus>();
     }
-    public static bool TryGetQuest(string questName, out Quest q)
+    public static bool TryGetQuest(string questName, out QuestStatus q)
     {
         for (int i = 0; i < singleton.quests.Count; i++)
         {
             if (singleton.quests[i].quest.name == questName)
             {
-                q = singleton.quests[i].quest;
+                q = singleton.quests[i];
                 return true;
             }
         }
-        q = default(Quest);
+        q = default;
         return false;
     }
-    public static bool TryGetCompletedQuest(string questName, out Quest q)
+    public static bool TryGetCompletedQuest(string questName, out QuestStatus q)
     {
         for (int i = 0; i < singleton.completedQuests.Count; i++)
         {
             if (singleton.completedQuests[i].quest.name == questName)
             {
-                q = singleton.completedQuests[i].quest;
+                q = singleton.completedQuests[i];
                 return true;
             }
         }
-        q = default(Quest);
+        q = default;
         return false;
     }
 

@@ -2,8 +2,13 @@ title: Start
 ---
 <<if $Quest_OpenTheMines is "Inactive">>
 Mayor: Sort out the mines!
+<<Animate explain>>
+Mayor: I'm sure you'll be fine
+<<Animate dismis>>
 <<quest OpenTheMines>>
+
 <<else>>
+
 Mayor: GO!
 <<endif>>
 ===

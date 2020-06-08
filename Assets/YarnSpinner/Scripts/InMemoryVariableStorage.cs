@@ -175,6 +175,7 @@ namespace Yarn.Unity
         }
         const string questPrefix = "$Quest_";
         const string itemPrefix = "$Item_";
+        const string questStagePrefix = "$QuestStage_";
 
         /// <summary>
         /// Retrieves a <see cref="Value"/> by name.
@@ -205,6 +206,25 @@ namespace Yarn.Unity
                 else
                     return new Value("Inactive");
             }
+
+
+            else if (variableName.StartsWith(questStagePrefix))
+            {
+                //it is a quest
+                string quest = variableName.Substring(questStagePrefix.Length);
+
+                if (QuestManager.TryGetQuest(quest, out var q))
+
+                    //there is a quest with this name, return it's current state
+                    return new Value(q.stage);
+                else if (QuestManager.TryGetCompletedQuest(quest, out var qw))
+
+                    //there is a quest with this name, return it's current state
+                    return new Value(qw.stage + 1);
+                else
+                    return new Value(-1);
+            }
+
             else if (variableName.StartsWith(itemPrefix))
             {
                 ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), variableName.Substring(itemPrefix.Length));

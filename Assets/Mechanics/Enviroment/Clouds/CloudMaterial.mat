@@ -54,7 +54,7 @@ Material:
     - Vector1_E693A330: 0.58
     - _AlphaClip: 0
     - _AlphaCliping: 0.5
-    - _AlphaClipping: 0.66335833
+    - _AlphaClipping: 0.45740837
     - _Blend: 0
     - _BumpScale: 1
     - _Cull: 2
@@ -85,7 +85,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SunDir: {r: 0.13396555, g: -0.99098605, b: -0.000000059604645, a: 0}
+    - _SunDir: {r: 0.007617891, g: -0.7540295, b: 0.65679634, a: 0}
 --- !u!114 &4269931730163353358
 MonoBehaviour:
   m_ObjectHideFlags: 11

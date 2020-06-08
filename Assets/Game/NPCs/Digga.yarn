@@ -3,16 +3,27 @@ title: Start
 <<if $Quest_OpenTheMines is "Inactive">>
 Digga: <size=200%>OUT!
 <<else>>
-<<if 1 == 1>>
+//Start talking when the mine quest in in stage 1
+<<if $QuestStage_OpenTheMines == 0>>
 Digga: The mine is shut, it has been taken over
--> Okay 
-    Digga: Good
+Digga: Don't tell the others, but we are trying a new tactic to get it back
+Digga: The <color=npcCol>New United High Concil</color> has told us to start using
+Digga: Diplomacy
+<<Animate wisper>>
+Digga: I don't know what that is, but they said not to fight, so we are going to sneak in and steal the deed
+<<Animate talk>>
+Digga: Then they will have to leave!
+<<Animate explain>>
+Digga: Only problem is, no-one wants to do it or knows where it is.<wait 1>\nSo here we are.
+-> I'll Do it!
+    Digga: Thanks! Take this stealth gear. We are too manly to fit into it
+    <<Animate dismis>>
     Digga: <skip>
     <<ProgressQuest OpenTheMines>>
--> <Exit> Bye
+-> <Exit>Have fun with that!
     <<Exit>>
 <<else>>
-Digga: Open the mine!
+Digga: Still not done it?\n If you dont get a move on, I'm gunna loose a bet<wait 0.5>\n I mean we won't iron ore <wait 1><size=60%>Much worse...
 <<endif>>
 <<endif>>
 ===

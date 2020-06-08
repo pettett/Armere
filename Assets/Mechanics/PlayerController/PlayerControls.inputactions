@@ -102,6 +102,14 @@
                     "interactions": ""
                 },
                 {
+                    "name": "Console",
+                    "type": "Button",
+                    "id": "87c30319-f012-45cd-8a4e-26b53291af39",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "SelectWeapon1",
                     "type": "Button",
                     "id": "cce44b51-8074-4d08-b4c3-be374f2d4d0d",
@@ -554,6 +562,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "TabMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1936b794-8ace-4e74-bd8e-31743912cb77",
+                    "path": "<Keyboard>/f1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Console",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

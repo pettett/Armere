@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b3ccbcb7ab119042978c3f01e940b5c, type: 3}
+  m_Name: Armere
+  m_EditorClassIdentifier: 
+  texture: {fileID: 2800000, guid: ca03125eedefcea41ae3d8ec84727974, type: 3}
+  regions:
+  - name: Town
+    shape:
+    - {x: -218.8501, y: -53.4891}
+    - {x: -192.68062, y: 26.162956}
+    - {x: -279.19937, y: 35.040005}
+    - {x: -271.20078, y: -34.682507}
+    - {x: -235.85638, y: -24.03931}
+    priority: 0
+    triangles: 010000000400000003000000030000000200000001000000010000000000000004000000
+    bounds:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0.5
+      height: 0.5
+  - name: Mine Camp
+    shape:
+    - {x: -4.0084515, y: -80.06383}
+    - {x: 11.389012, y: -124.89515}
+    - {x: -29.306473, y: -127.88799}
+    - {x: -27.66915, y: -88.41028}
+    priority: 0
+    triangles: 010000000200000000000000
+    bounds:
+      serializedVersion: 2
+      x: 0.5
+      y: 0.2
+      width: 0.5
+      height: 0.10000001
+  - name: Mine Bridge
+    shape:
+    - {x: -2.2115679, y: -112.84169}
+    - {x: -10.541378, y: -86.574615}
+    - {x: -15.614265, y: -86.671814}
+    - {x: -8.1060295, y: -114.65545}
+    priority: 10
+    triangles: 010000000200000000000000
+    bounds:
+      serializedVersion: 2
+      x: 0.5
+      y: 0.2
+      width: 0.5
+      height: 0.10000001
+  - name: Riverside Zone
+    shape:
+    - {x: 37.554245, y: -21.883118}
+    - {x: 35.623543, y: 30.894505}
+    - {x: -12.228065, y: 14.0068655}
+    - {x: 6.0959787, y: -31.042736}
+    priority: 10
+    triangles: 010000000200000000000000
+    bounds:
+      serializedVersion: 2
+      x: 0.5
+      y: 0.2
+      width: 0.5
+      height: 0.10000001

@@ -13,12 +13,17 @@ public class InventoryUI : MonoBehaviour
     public TextMeshProUGUI selectedTitle;
     public TextMeshProUGUI selectedDescription;
 
-    public void CreateTemplate(Transform itemGridPanel, ItemName name, int count)
+    public void CreateTemplate(Transform itemGridPanel, ItemName name, int count, InventoryController.OptionDelegate[] optionDelegates, int index)
     {
         var go = Instantiate(template, itemGridPanel);
         go.transform.GetChild(0).GetComponent<Image>().sprite = db[name].sprite;
-        go.GetComponentInChildren<TextMeshProUGUI>().text = count.ToString();
+
+        go.GetComponentInChildren<TextMeshProUGUI>().text = count == 1 ? "" : count.ToString();
+
         go.GetComponent<InventoryUIItem>().onSelect += () => OnItemSelected(name);
+        go.GetComponent<InventoryUIItem>().optionDelegates = optionDelegates;
+        go.GetComponent<InventoryUIItem>().itemIndex = index;
+        go.GetComponent<InventoryUIItem>().type = db[name].type;
     }
     public Transform CreateGridPanelTemplate()
     {
@@ -39,11 +44,15 @@ public class InventoryUI : MonoBehaviour
         {
             Destroy(gridPanelHolder.GetChild(i).gameObject);
         }
-        foreach (KeyValuePair<ItemType, Dictionary<ItemName, int>> itemGroup in InventoryController.singleton.items)
+        foreach (System.Tuple<ItemType, InventoryController.InventoryPanel> itemGroup in InventoryController.singleton.ItemPanels())
         {
             var grid = CreateGridPanelTemplate();
-            foreach (KeyValuePair<ItemName, int> item in itemGroup.Value)
-                CreateTemplate(grid, item.Key, item.Value);
+            int i = 0;
+            foreach (System.Tuple<ItemName, int> item in itemGroup.Item2)
+            {
+                CreateTemplate(grid, item.Item1, item.Item2, itemGroup.Item2.options, i);
+                i++;
+            }
 
         }
     }

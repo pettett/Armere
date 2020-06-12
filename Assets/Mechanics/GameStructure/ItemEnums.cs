@@ -2,11 +2,13 @@ public enum ItemName
 {
     Stick,
     MineDeed,
-    IronSword
+    IronSword,
+    Lantern
 }
 public enum ItemType
 {
     Common,
     Weapon,
+    SideArm,
     Quest,
 }

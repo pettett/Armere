@@ -35,17 +35,18 @@ MonoBehaviour:
       elementIcon: {fileID: 0}
     reqReferences: {fileID: 0}
     isExpanded: 1
-    _keyValues: 000000000100000002000000
-    _keys: 000000000100000002000000
+    _keyValues: 00000000010000000200000003000000
+    _keys: 00000000010000000200000003000000
     _values:
     - name: Stick
-      description: A long wooden object
+      description: Jeff like
       type: 0
       sprite: {fileID: 21300000, guid: 1f47375c58888fd45b1e33aad3e02ed5, type: 3}
       mesh: {fileID: -5495902117074765545, guid: b32317c7b58b11d4bbb63baf2262ce44,
         type: 3}
       materials:
       - {fileID: 2100000, guid: 29acb9d0606ef7f46a6b8b6a2e061788, type: 2}
+      properties: []
     - name: Mine Deed
       description: Deed to the mines! Return to Diga
       type: 2
@@ -54,11 +55,23 @@ MonoBehaviour:
         type: 3}
       materials:
       - {fileID: 2100000, guid: 29acb9d0606ef7f46a6b8b6a2e061788, type: 2}
+      properties: []
     - name: Iron Sword
       description: A trusty sword
       type: 1
-      sprite: {fileID: 0}
-      mesh: {fileID: 4686849319519084627, guid: 41617879a15bc8946a35d0587f7494cf,
+      sprite: {fileID: 21300000, guid: 29216f2d47291b54d899c79ed55c650e, type: 3}
+      mesh: {fileID: -7486298912302941878, guid: 268ceb1e3136cf944a9e57474d522fae,
         type: 3}
       materials:
       - {fileID: 2100000, guid: 08c14b86ac3b6e14eb13d217af96ac61, type: 2}
+      properties: []
+    - name: Lantern
+      description: Create Light, without a sheild
+      type: 2
+      sprite: {fileID: 21300000, guid: 29216f2d47291b54d899c79ed55c650e, type: 3}
+      mesh: {fileID: -5420149580168298667, guid: 286deab20111cc04fac341f0d3da40da,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: 8560556ce2df113499650333949e3784, type: 2}
+      properties:
+      - {fileID: 11400000, guid: 3e4534d02e696274ea0ee70317a08c8e, type: 2}

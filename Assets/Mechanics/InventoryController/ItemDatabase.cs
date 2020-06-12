@@ -15,6 +15,8 @@ public class ItemDatabase : ScriptableObject
         public Sprite sprite;
         public Mesh mesh;
         public Material[] materials;
+
+        public ItemPropertyBase[] properties;
     }
     [System.Serializable]
     public class ItemDatabaseStructure : RotaryHeart.Lib.SerializableDictionary.SerializableDictionaryBase<ItemName, ItemData> { }

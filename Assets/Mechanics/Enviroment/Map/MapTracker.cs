@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System.Linq;
 public class MapTracker : MonoBehaviour
 {
 
@@ -30,17 +30,40 @@ public class MapTracker : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        entry = DebugMenu.CreateEntry("Player", "Current Region: {0}", "");
+        entry = DebugMenu.CreateEntry("Player", "Current Regions: {0}", "");
+    }
+    int inRegion = -1;
+    MusicTrack highestMusicTrack;
+
+    class RegionInfluence
+    {
+        public int region;
+        public float influence;
+
+        public RegionInfluence(int region, float influence)
+        {
+            this.region = region;
+            this.influence = influence;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         Vector2 pos = new Vector2(transform.position.x, transform.position.z);
-        int inRegion = -1;
+        int prevRegion = inRegion;
+        float highestVolume = 0;
+        inRegion = -1;
+        MusicTrack prevTrack = highestMusicTrack;
+
+        highestMusicTrack = null;
+
+        List<RegionInfluence> regionInfluences = new List<RegionInfluence>();
+
         for (int i = 0; i < map.regions.Length; i++)
         {
-            if (inRegion != -1 && map.regions[inRegion].priority > map.regions[i].priority) continue; //Only scan top priority layers
+            //If highest music track is not null, a track has been found with greater importance then this
+            if (inRegion != -1 && highestMusicTrack != null && map.regions[inRegion].priority > map.regions[i].priority) continue; //Only scan top priority layers
 
             if (map.regions[i].bounds.Contains(pos))
             {
@@ -48,32 +71,96 @@ public class MapTracker : MonoBehaviour
                 for (int j = 0; j < map.regions[i].triangles.Length / 3; j++)
                 {
                     Vector2[] tri = new Vector2[]{
-                    map.regions[i].shape[map.regions[i].triangles[j * 3]],
-                    map.regions[i].shape[map.regions[i].triangles[j * 3 + 1]],
-                    map.regions[i].shape[map.regions[i].triangles[j * 3 + 2]]
-                };
+                        map.regions[i].shape[map.regions[i].triangles[j * 3]],
+                        map.regions[i].shape[map.regions[i].triangles[j * 3 + 1]],
+                        map.regions[i].shape[map.regions[i].triangles[j * 3 + 2]]
+                    };
 
                     if (PointInTriangle(
                         pos,
                         tri[0],
                         tri[1],
-                        tri[2]
-                    ))
+                        tri[2]))
                     {
                         inRegion = i;
+                        //Set this region's track to highest priority if it is not null
+                        highestMusicTrack = map.regions[i].trackOverride ?? highestMusicTrack;
+                        highestVolume = 1;
+                        regionInfluences.Add(new RegionInfluence(i, 1));
+                    }
+                }
+                if (!(inRegion == i))
+                {
+                    //Not inside the region - test blending
+                    Vector2 closestPoint = VectorMath.ClosestPointOnPath(map.regions[i].shape, pos, true);
+                    float sqrDist = (closestPoint - pos).sqrMagnitude;
+                    if (sqrDist < map.regions[i].blendDistance * map.regions[i].blendDistance)
+                    {
+                        //Set this region's track to highest priority if it is not null
+
+                        highestMusicTrack = map.regions[i].trackOverride ?? highestMusicTrack;
+                        if (map.regions[i].trackOverride != null)
+                        {
+                            highestVolume = 1 - sqrDist / (map.regions[i].blendDistance * map.regions[i].blendDistance);
+                            regionInfluences.Add(new RegionInfluence(i, highestVolume));
+                        }
+                        else
+                        {
+                            regionInfluences.Add(new RegionInfluence(i, 1 - sqrDist / (map.regions[i].blendDistance * map.regions[i].blendDistance)));
+                        }
                     }
                 }
             }
         }
 
+        if (highestMusicTrack != null)
+        {
 
-        if (inRegion != -1)
-        {
-            entry.values[0] = map.regions[inRegion].name;
+            if (!MusicController.TrackPlaying(highestMusicTrack))
+            {
+                //A new music track is included with this new region
+                MusicController.instance.Play(highestMusicTrack);
+            }
+            MusicController.SetTrackVolume(highestMusicTrack, highestVolume);
         }
-        else
+        if (prevTrack != highestMusicTrack && prevTrack != null)
         {
-            entry.values[0] = "Wilderness";
+            //Stop the previous track from playing
+            MusicController.instance.Stop(prevTrack);
         }
+
+
+        if (prevRegion != inRegion)
+        {
+            //New region, new name
+        }
+
+        entry.values[0] = regionInfluences.Count == 0 ? "Wilderness" : string.Join(" ", regionInfluences.Select((RegionInfluence r) => string.Format("{0} : {1}", map.regions[r.region].name, r.influence)));
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        Vector2 pos = new Vector2(transform.position.x, transform.position.z);
+        for (int i = 0; i < map.regions.Length; i++)
+        {
+            //If highest music track is not null, a track has been found with greater importance then this
+            if (inRegion != -1 && highestMusicTrack != null && map.regions[inRegion].priority > map.regions[i].priority) continue; //Only scan top priority layers
+
+            if (map.regions[i].bounds.Contains(pos))
+            {
+
+
+                //Not inside the region - test blending
+                Vector2 closestPoint = VectorMath.ClosestPointOnPath(map.regions[i].shape, pos, true);
+                float sqrDist = (closestPoint - pos).sqrMagnitude;
+                if (sqrDist < map.regions[i].blendDistance * map.regions[i].blendDistance)
+                {
+                    Gizmos.DrawWireSphere(new Vector3(closestPoint.x, 0, closestPoint.y), 0.05f);
+                }
+
+            }
+        }
+
     }
 }

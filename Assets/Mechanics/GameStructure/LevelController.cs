@@ -16,6 +16,7 @@ public static class LevelController
     async static Task LoadLevelAsync(LevelName level)
     {
         AsyncOperation a = SceneManager.LoadSceneAsync(level.ToString());
+        System.GC.Collect();
         while (a.progress < 1)
         {
             await Task.Delay(1000);

@@ -12,7 +12,7 @@ namespace PlayerController
         public override string StateName => "Climbing Ladder";
         Ladder ladder;
         float height;
-        public float climbingSpeed = 0.5f;
+        public float climbingSpeed = 4f;
 
         const float footLadderHeight = 0.1f;
         const float handLadderHeight = 1.4f;

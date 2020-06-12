@@ -26,7 +26,7 @@ namespace PlayerController
         }
 
         public MovementModifiers mod;
-
+        public ItemDatabase db;
         public Transform cameraTransform;
         public Cinemachine.CinemachineFreeLook freeLook;
         public Cinemachine.CinemachineTargetGroup conversationGroup;

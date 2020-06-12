@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 368902570172234606}
-  - component: {fileID: 368902570163183676}
   - component: {fileID: 368902570167259964}
   - component: {fileID: 368902570159159844}
   - component: {fileID: 368902570172568931}
@@ -20,6 +19,8 @@ GameObject:
   - component: {fileID: 2193245523499967993}
   - component: {fileID: 6137509289512668310}
   - component: {fileID: 8222275986114918330}
+  - component: {fileID: 259278959}
+  - component: {fileID: 1375336887245378073}
   m_Layer: 10
   m_Name: Player
   m_TagString: Player
@@ -43,25 +44,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &368902570163183676
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 368902570172568930}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 340f99b8334a14c4a8a01dce6e1e5348, type: 3}
-  m_Controller: {fileID: 9100000, guid: 4eb84d25b3cf1104fa6406bdcdc62fb5, type: 2}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!54 &368902570167259964
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -119,7 +101,7 @@ MonoBehaviour:
       m_Calls: []
   m_ActionEvents: []
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: Gamepad
+  m_DefaultControlScheme: KeyboardMouse
   m_DefaultActionMap: Ground Action Map
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
@@ -136,6 +118,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mod: 0
+  db: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
   cameraTransform: {fileID: 0}
   freeLook: {fileID: 0}
   conversationGroup: {fileID: 0}
@@ -271,16 +254,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f174331e8dc857047a4c9dcaf410775a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponLookSpot: {x: 0, y: 0, z: 0}
-  weapon: {fileID: 0}
-  weaponHolder: {fileID: 368902570246789374}
-  firstPersonHolder: {fileID: 0}
-  rightHandBone: {fileID: 0}
-  weaponLookAt: 0
-  fireEffects: []
-  weaponAnimator: {fileID: 0}
-  localPlayer: 1
-  firstPersonLayer: FirstPersonView
+  weaponHoldPoint:
+    anchor: 18
+    posOffset: {x: -2, y: 9.81, z: 3.95}
+    rotOffset: {x: 0.49999997, y: -0.49999997, z: -0.49999997, w: 0.49999997}
+  sheathedHoldPoint:
+    anchor: 0
+    posOffset: {x: -18.91, y: 0, z: 0}
+    rotOffset: {x: 0.63410056, y: 0.5793036, z: -0.38992488, w: 0.33208784}
+  sideArmHoldPoint:
+    anchor: 17
+    posOffset: {x: 0, y: 0, z: 0}
+    rotOffset: {x: 0, y: 0, z: 0, w: 1}
+  heldWeapon: {fileID: 0}
+  heldSidearm: {fileID: 0}
+  swordSheathed: 1
 --- !u!114 &8716322609640156541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -427,6 +415,38 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &259278959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368902570172568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f45a39253cda44abb13573a9176983, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  map: {fileID: 11400000, guid: 452af71c18c9bb246b12cee8e03c679a, type: 2}
+--- !u!95 &1375336887245378073
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368902570172568930}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4eb84d25b3cf1104fa6406bdcdc62fb5, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &368902570246789373
 GameObject:
   m_ObjectHideFlags: 0

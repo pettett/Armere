@@ -294,7 +294,7 @@ namespace Yarn.Unity
         }
         void OnInputButton(int index)
         {
-            if (buttonIDs[index] != -1)
+            if (buttonIDs.Length > index && buttonIDs[index] != -1)
             {
                 SelectOption(buttonIDs[index]);
             }

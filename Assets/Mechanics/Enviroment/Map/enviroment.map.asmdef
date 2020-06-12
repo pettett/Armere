@@ -1,7 +1,9 @@
 {
     "name": "enviroment.map",
     "references": [
-        "DebugMenuAssembly"
+        "DebugMenuAssembly",
+        "Enviroment.Music",
+        "UtilityAssembly"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

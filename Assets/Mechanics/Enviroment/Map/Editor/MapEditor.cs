@@ -109,6 +109,7 @@ public class MapEditor : Editor
                     m.regions[i].shape[j] = new Vector2(n.x, n.z);
 
                     m.regions[i].UpdateBounds();
+                    EditorUtility.SetDirty(m);
                 }
 
                 c += n;

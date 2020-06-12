@@ -59,7 +59,7 @@ public class QuestManager : MonoBehaviour
         {
             if (singleton.quests[i].quest.name == questName)
             {
-                InventoryController.TakeItems(
+                InventoryController.TakeItem(
                     singleton.quests[i].quest.stages[singleton.quests[i].stage].item,
                     singleton.quests[i].quest.stages[singleton.quests[i].stage].count);
 

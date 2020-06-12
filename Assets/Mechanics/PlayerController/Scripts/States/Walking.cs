@@ -44,6 +44,15 @@ namespace PlayerController
         //shooting variables for gizmos
         [NonSerialized] public DebugMenu.DebugEntry entry;
 
+
+        bool grounded;
+
+        bool crouching;
+        bool inControl = true;
+        [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
+        ContactPoint groundCP;
+        int currentSidearm = -1;
+        bool sidearmHolstered = false;
         public override void Start()
         {
             entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false);
@@ -53,13 +62,32 @@ namespace PlayerController
             //c.transform.up = Vector3.up;
             c.animationController.enableFeetIK = true;
             c.rb.isKinematic = false;
+            InventoryController.singleton.OnSelectItemEvent += OnSelectItem;
         }
 
-        bool grounded;
+        public override void End()
+        {
+            transform.SetParent(null, true);
+            DebugMenu.RemoveEntry(entry);
 
-        bool crouching;
-        bool inControl = true;
-        [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
+            //make sure the collider is left correctly
+            c.collider.height = p.walkingHeight;
+            c.collider.center = Vector3.up * c.collider.height * 0.5f;
+            InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
+        }
+        public void OnSelectItem(ItemType type, int index)
+        {
+            switch (type)
+            {
+                case ItemType.Weapon:
+                    OnSelectWeapon(index);
+                    break;
+                case ItemType.SideArm:
+                    SelectSidearm(index);
+                    break;
+            }
+        }
+
 
         float WalkingRunningCrouching(float crouchingSpeed, float runningSpeed, float walkingSpeed)
         {
@@ -70,7 +98,59 @@ namespace PlayerController
             else
                 return walkingSpeed;
         }
-        ContactPoint groundCP;
+
+        public override void OnSelectWeapon(int index)
+        {
+            if (InventoryController.singleton.weapon.items.Count > index)
+            {
+                print(InventoryController.singleton.weapon.items[index].ToString());
+                c.weaponGraphicsController.SetHeldWeapon(InventoryController.singleton.weapon.items[index], c.db);
+            }
+        }
+
+        public void SelectSidearm(int index)
+        {
+            if (InventoryController.singleton.sideArm.items.Count > index)
+            {
+                if (currentSidearm != -1)
+                    foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm]].properties)
+                        p.OnItemDeEquip(animator);
+
+                foreach (var p in c.db[InventoryController.singleton.sideArm.items[index]].properties)
+                    p.OnItemEquip(animator);
+                currentSidearm = index;
+                sidearmHolstered = false;
+                c.weaponGraphicsController.SetHeldSidearm(InventoryController.singleton.sideArm.items[index], c.db);
+            }
+        }
+        public void DeEquipSidearm()
+        {
+            if (currentSidearm != -1)
+            {
+                foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm]].properties)
+                    p.OnItemDeEquip(animator);
+                c.weaponGraphicsController.RemoveSidearm();
+                sidearmHolstered = true;
+            }
+        }
+
+        public override void OnAttack(float state)
+        {
+            if (state == 1)
+            {
+                c.weaponGraphicsController.swordSheathed = false;
+            }
+        }
+        public override void OnAltAttack(float state)
+        {
+            if (state == 1)
+            {
+                if (sidearmHolstered)
+                {
+                    SelectSidearm(currentSidearm);
+                }
+            }
+        }
 
         public override void FixedUpdate()
         {
@@ -88,6 +168,14 @@ namespace PlayerController
             grounded = FindGround(out groundCP, out currentGroundNormal, c.allCPs);
 
             c.animationController.enableFeetIK = grounded;
+
+            if (c.mod.HasFlag(MovementModifiers.Sprinting))
+            {
+                c.weaponGraphicsController.swordSheathed = true;
+                //Will only operate if sidearm exists
+                DeEquipSidearm();
+            }
+
             //List<ContactPoint> groundCPs = new List<ContactPoint>();
 
             if (grounded)
@@ -404,15 +492,6 @@ namespace PlayerController
         // }
 
 
-        public override void End()
-        {
-            transform.SetParent(null, true);
-            DebugMenu.RemoveEntry(entry);
-
-            //make sure the collider is left correctly
-            c.collider.height = p.walkingHeight;
-            c.collider.center = Vector3.up * c.collider.height * 0.5f;
-        }
         public override void OnDrawGizmos()
         {
             FindGround(out groundCP, out currentGroundNormal, c.allCPs);

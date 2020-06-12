@@ -34,7 +34,11 @@ namespace PlayerController
                         transform.SetPositionAndRotation(t.position, t.rotation);
                     }
                     break;
-
+                case "time":
+                    DesiredInputs(1);
+                    if (command.values[0] == "day")
+                        print("Made day");
+                    break;
             }
             inConsole = false;
             UpdateConsole();

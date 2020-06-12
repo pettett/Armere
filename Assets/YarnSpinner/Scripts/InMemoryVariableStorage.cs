@@ -228,7 +228,7 @@ namespace Yarn.Unity
             else if (variableName.StartsWith(itemPrefix))
             {
                 ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), variableName.Substring(itemPrefix.Length));
-                return new Value(InventoryController.GetItemCount(item));
+                return new Value(InventoryController.ItemCount(item));
             }
 
 

@@ -3,7 +3,8 @@
     "references": [
         "UtilityAssembly",
         "Unity.TextMeshPro",
-        "Game.Structure"
+        "Game.Structure",
+        "Inventory"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

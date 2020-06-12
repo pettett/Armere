@@ -1,0 +1,15 @@
+{
+    "name": "Enviroment.Music",
+    "references": [
+        "GUID:e2ecf0ac9cca6c046a2e95d93273720c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 namespace PlayerController
 {
@@ -9,16 +10,21 @@ namespace PlayerController
     public class Interact : ParallelState
     {
         public override string StateName => "Interact";
+        int currentLookAt;
+        List<IInteractable> interactablesInRange = new List<IInteractable>();
 
-        IInteractable currentInteractable;
+        IInteractable prevTarget;
+        PlayerInput playerInput;
         public override void Start()
         {
+            playerInput = c.GetComponent<PlayerInput>();
             ScanForInteractables();
         }
         ///<summary>Perform an overlap capsule to check for interactables, returning whether it did or not</summary>
-        bool ScanForInteractables()
+        void ScanForInteractables()
         {
-            currentInteractable = null;
+            interactablesInRange.Clear();
+
             //Test for interactables on position
             Collider[] hits = Physics.OverlapCapsule(
                 transform.position,
@@ -29,66 +35,124 @@ namespace PlayerController
 
             foreach (var c in hits)
             {
-                OnTriggerEnter(c);
-                if (currentInteractable != null)
+                TestForInteractable(c);
+            }
+
+        }
+
+        public override void OnTriggerEnter(Collider other)
+        {
+            TestForInteractable(other);
+        }
+
+        bool TestForInteractable(Collider interactable)
+        {
+            if (interactable.TryGetComponent(out IInteractable i))
+            {
+                if (i.canInteract)
+                {
+                    interactablesInRange.Add(i);
+
+
+
                     return true;
+                }
             }
             return false;
         }
 
-        public override void OnTriggerEnter(Collider interactable)
-        {
-            if (interactable.TryGetComponent(out IInteractable i))
-            {
-                currentInteractable = i;
-                PlayerInput playerInput = c.GetComponent<PlayerInput>();
-                UIPrompt.ApplyPrompt("Interact", playerInput.actions.FindAction("Action").controls[0].displayName);
-            }
-        }
         public override void OnTriggerExit(Collider interactable)
         {
             //if this was the interactable, remove it
-            if (interactable.GetComponent<IInteractable>() == currentInteractable)
+            if (interactable.TryGetComponent<IInteractable>(out var i))
             {
-                OnInteractableRemoved();
+                OnInteractableRemoved(i);
             }
         }
         public override void Update()
         {
-            if (currentInteractable != null && currentInteractable.enabled == false)
+            Vector3 direction = transform.forward;
+            Vector3 interactableDir;
+            float dot;
+            float bestDot = -1;
+
+            for (int i = 0; i < interactablesInRange.Count; i++)
             {
-                print("Interactable removed");
-                OnInteractableRemoved();
+                if (!interactablesInRange[i].canInteract)
+                {
+                    OnInteractableRemoved(interactablesInRange[i]);
+                }
+                else
+                {
+                    //Test to see if this interactable is the one the player is looking most at
+                    interactableDir = (interactablesInRange[i].gameObject.transform.position - transform.position).normalized;
+
+                    dot = Vector3.Dot(direction, interactableDir);
+                    if (dot > bestDot)
+                    {
+                        bestDot = dot;
+                        currentLookAt = i;
+                    }
+
+                }
             }
+
+            if (interactablesInRange.Count == 0)
+            {
+                if (prevTarget != null)
+                {
+                    prevTarget.OnEndHighlight();
+                    prevTarget = null;
+                    UIPrompt.ResetPrompt();
+                }
+            }
+            else
+            {
+                if (prevTarget != interactablesInRange[currentLookAt])
+                {
+                    if (prevTarget != null)
+                        prevTarget.OnEndHighlight();
+                    else //no target before this, start applying the prompt
+                        UIPrompt.ApplyPrompt("Interact", playerInput.actions.FindAction("Action").controls[0].displayName);
+
+                    interactablesInRange[currentLookAt].OnStartHighlight();
+                    prevTarget = interactablesInRange[currentLookAt];
+                }
+            }
+
+
+
         }
-        void OnInteractableRemoved()
+        void OnInteractableRemoved(IInteractable interactable)
         {
             //Test to see if there is another interactable. If not, exit
-            if (!ScanForInteractables())
-                ExitInteractable();
+            ExitInteractable(interactable);
         }
 
-        void ExitInteractable()
+        void ExitInteractable(IInteractable exit)
         {
-            currentInteractable = null;
-            UIPrompt.ResetPrompt();
-
+            interactablesInRange.Remove(exit);
         }
 
         public override void OnInteract(float state)
         {
             if (state == 1)
             {
-                if (currentInteractable != null)
+                //activate the interactable that is pointed most to the player
+
+                if (interactablesInRange.Count != 0)
                 {
-                    currentInteractable.Interact(c);
+                    interactablesInRange[currentLookAt].Interact(c);
 
                 }
             }
         }
         public override void End()
         {
-            ExitInteractable();
+            for (int i = 0; i < interactablesInRange.Count; i++)
+            {
+                ExitInteractable(interactablesInRange[i]);
+            }
         }
     }
 }

@@ -5,29 +5,63 @@ using TMPro;
 using UnityEngine.UI;
 public class InventoryUI : MonoBehaviour
 {
+    public int rowCount = 4;
     public GameObject gridPanelTemplate;
     public GameObject template;
+    public GameObject blankSlotTemplate;
+
     public ItemDatabase db;
     public Transform gridPanelHolder;
     public Image selectedSprite;
     public TextMeshProUGUI selectedTitle;
     public TextMeshProUGUI selectedDescription;
+    public bool sellMenu;
+    public System.Action<ItemType, int> onItemSelected;
 
-    public void CreateTemplate(Transform itemGridPanel, ItemName name, int count, InventoryController.OptionDelegate[] optionDelegates, int index)
+    public void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
     {
-        var go = Instantiate(template, itemGridPanel);
-        go.transform.GetChild(0).GetComponent<Image>().sprite = db[name].sprite;
+        var go = Instantiate(template, itemGridPanel.GetChild(1));
+        go.transform.GetChild(0).GetComponent<Image>().sprite = db[panel[index].name].sprite;
 
-        go.GetComponentInChildren<TextMeshProUGUI>().text = count == 1 ? "" : count.ToString();
+        switch (panel[index])
+        {
+            case InventoryController.StackPanel.ItemStack stack:
+                go.GetComponentInChildren<TextMeshProUGUI>().text = stack.count == 1 ? "" : stack.count.ToString();
+                break;
+            default:
+                Destroy(go.GetComponentInChildren<TextMeshProUGUI>());
+                break;
+        }
 
-        go.GetComponent<InventoryUIItem>().onSelect += () => OnItemSelected(name);
-        go.GetComponent<InventoryUIItem>().optionDelegates = optionDelegates;
-        go.GetComponent<InventoryUIItem>().itemIndex = index;
-        go.GetComponent<InventoryUIItem>().type = db[name].type;
+        InventoryUIItem item = go.GetComponent<InventoryUIItem>();
+
+        item.onSelect += () => OnItemSelected(panel[index].name);
+
+        if (!sellMenu)
+            item.optionDelegates = panel.options;
+        else
+            item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
+
+        item.itemIndex = index;
+        item.type = db[panel[index].name].type;
     }
-    public Transform CreateGridPanelTemplate()
+    public void CreateBlankSlotTemplate(Transform itemGridPanel)
+    {
+        var go = Instantiate(blankSlotTemplate, itemGridPanel.GetChild(1));
+    }
+
+
+    public void OnSelectItem(ItemType type, int itemIndex)
+    {
+        print("Selected " + itemIndex.ToString());
+        onItemSelected?.Invoke(type, itemIndex);
+    }
+
+
+    public Transform CreateGridPanelTemplate(InventoryController.InventoryPanel panel)
     {
         var go = Instantiate(gridPanelTemplate, gridPanelHolder);
+        go.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = panel.name;
         return go.transform;
     }
 
@@ -46,12 +80,33 @@ public class InventoryUI : MonoBehaviour
         }
         foreach (System.Tuple<ItemType, InventoryController.InventoryPanel> itemGroup in InventoryController.singleton.ItemPanels())
         {
-            var grid = CreateGridPanelTemplate();
-            int i = 0;
-            foreach (System.Tuple<ItemName, int> item in itemGroup.Item2)
+            var grid = CreateGridPanelTemplate(itemGroup.Item2);
+            //Add all the item readouts
+            for (int i = 0; i < itemGroup.Item2.itemCount; i++)
             {
-                CreateTemplate(grid, item.Item1, item.Item2, itemGroup.Item2.options, i);
-                i++;
+                CreateTemplate(grid, itemGroup.Item2, i);
+            }
+            int blankCount;
+            switch (itemGroup.Item2)
+            {
+                case InventoryController.StackPanel stack:
+                    blankCount = 4 - (stack.itemCount % rowCount);
+                    break;
+                case InventoryController.UniquesPanel uniques:
+
+                    if (uniques.maxItems == int.MaxValue)
+                        blankCount = 4 - (uniques.itemCount % rowCount);
+                    else
+                        blankCount = uniques.maxItems - uniques.itemCount;
+                    break;
+                default:
+                    blankCount = 0;
+                    break;
+            }
+
+            for (int i = 0; i < blankCount; i++)
+            {
+                CreateBlankSlotTemplate(grid);
             }
 
         }

@@ -8,7 +8,7 @@ public class Ladder : MonoBehaviour, IInteractable
     public float rungDistance = 0.25f;
     public float rungOffset = 0.1f;
     public float ladderHeight = 12;
-
+    public bool canInteract { get => enabled; set => enabled = value; }
 
     public void Interact(Player_CharacterController c)
     {
@@ -25,6 +25,18 @@ public class Ladder : MonoBehaviour, IInteractable
     public Vector3 LadderPosByRung(float rung, float right)
     {
         return transform.position + Vector3.up * (rung * rungDistance + rungOffset) + transform.right * right;
+    }
+
+    //Ladder is not highlighted
+    public void OnEndHighlight()
+    {
+
+    }
+
+    public void OnStartHighlight()
+    {
+
+
     }
 
     private void OnDrawGizmosSelected()

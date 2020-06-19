@@ -13,8 +13,8 @@ namespace PlayerController
     {
 
 
-        public event Action<Player_CharacterController> onDeath;
-        public event Action<Player_CharacterController> onRepawn;
+        // public event Action<Player_CharacterController> onDeath;
+        //public event Action<Player_CharacterController> onRepawn;
 
         public event Action<InputAction.CallbackContext> onPlayerInput;
 
@@ -126,6 +126,9 @@ namespace PlayerController
 
         public AnimatorVariables animatorVariables;
 
+        public static List<PlayerRelativeObject> relativeObjects = new List<PlayerRelativeObject>();
+
+
         // Start is called before the first frame update
         /// <summary>
         /// Awake is called when the script instance is being loaded.
@@ -140,6 +143,8 @@ namespace PlayerController
         private void Start()
         {
             animatorVariables.UpdateIDs();
+
+
 
             rb = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
@@ -314,7 +319,7 @@ namespace PlayerController
                     break;
             }
         }
-
+        float sqrMagTemp;
         // Update is called once per frame
         private void Update()
         {
@@ -327,6 +332,24 @@ namespace PlayerController
             for (int i = 0; i < allStates.Length; i++)
                 if (StateActive(i))
                     allStates[i].Animate(animatorVariables);
+
+
+            for (int i = 0; i < relativeObjects.Count; i++)
+            {
+                sqrMagTemp = (transform.position - relativeObjects[i].transform.position).sqrMagnitude;
+                if (relativeObjects[i].enabled && sqrMagTemp > relativeObjects[i].disableRange * relativeObjects[i].disableRange)
+                {
+                    //Disable the object - disable range should be larger then enable range to stop object flickering
+                    relativeObjects[i].Disable();
+                }
+                //else, check if it is close enough to enable
+                else if (!relativeObjects[i].enabled && sqrMagTemp < relativeObjects[i].enableRange * relativeObjects[i].enableRange)
+                {
+                    //Enable the object
+                    relativeObjects[i].Enable();
+                }
+            }
+
 
         }
         private void LateUpdate()

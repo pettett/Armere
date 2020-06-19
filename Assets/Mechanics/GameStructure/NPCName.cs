@@ -3,7 +3,7 @@
     Jeff,
     Sæberg,
     Kraki,
-    Sigtryggur,
+    Jimbo,
     Immanúel,
     Friðbergur,
     Dave,

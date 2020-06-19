@@ -481,7 +481,8 @@ namespace Yarn.Unity
         {
             escapeOption = -1;
             //draw out the line for this question
-            yield return DoRunLine(cachedLine, null);
+            if (cachedLine != null)
+                yield return DoRunLine(cachedLine, null);
             cachedLine = null;
 
             // Do a little bit of safety checking

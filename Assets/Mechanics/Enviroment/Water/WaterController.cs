@@ -77,4 +77,13 @@ public class WaterController : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        other.GetComponent<IWaterObject>()?.OnWaterExit(this);
+    }
+
 }

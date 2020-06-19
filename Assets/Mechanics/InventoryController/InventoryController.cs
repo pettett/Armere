@@ -5,98 +5,119 @@ using UnityEngine;
 
 public class InventoryController : MonoBehaviour
 {
-
-    public abstract class InventoryPanel : IEnumerable<System.Tuple<ItemName, int>>
+    public class ItemStackBase
     {
+        public ItemName name;
+    }
+    public abstract class InventoryPanel
+    {
+        public string name;
         public OptionDelegate[] options;
-        public abstract bool AddItem(ItemName name);
+        public abstract bool AddItem(ItemName name, int count);
         public abstract bool TakeItem(ItemName name, int count);
         public abstract int ItemCount(ItemName item);
-        public abstract IEnumerator<Tuple<ItemName, int>> GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public InventoryPanel(string name, OptionDelegate[] options)
         {
-            return GetEnumerator();
-        }
-        public InventoryPanel(OptionDelegate[] options)
-        {
+            this.name = name;
             this.options = options;
         }
+        public abstract ItemStackBase this[int i]
+        {
+            get;
+            set;
+        }
+        public abstract int itemCount
+        {
+            get;
+        }
+
     }
 
     public class StackPanel : InventoryPanel
     {
-        public class ItemStack
+        public class ItemStack : ItemStackBase
         {
-            public ItemName name;
             public int count;
         }
-        Dictionary<ItemName, int> items;
-        public List<ItemStack> iss;
 
-        public StackPanel(OptionDelegate[] options) : base(options)
+        public List<ItemStack> items;
+
+        public override int itemCount => items.Count;
+
+        public override ItemStackBase this[int i] { get => items[i]; set => items[i].name = value.name; }
+
+        public StackPanel(string name, OptionDelegate[] options) : base(name, options)
         {
-            items = new Dictionary<ItemName, int>();
+            items = new List<ItemStack>();
         }
 
         public override int ItemCount(ItemName item)
         {
-            if (!items.ContainsKey(item))
-                return 0;
-            else
-                return items[item];
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i].name == item)
+                    return items[i].count;
+
+            }
+            return 0;
         }
-        public override bool AddItem(ItemName item)
+        public override bool AddItem(ItemName item, int count)
         {
-            if (!items.ContainsKey(item))
-                items[item] = 1;
-            else
-                items[item]++;
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i].name == item)
+                {
+                    items[i].count += count;
+                    return true;
+                }
+            }
+
+            items.Add(new ItemStack() { name = item, count = count });
+
             return true; //Always space to add new items
         }
         public override bool TakeItem(ItemName item, int count)
         {
-            if (items.ContainsKey(item) && items[item] >= count)
+
+            for (int i = 0; i < items.Count; i++)
             {
-                items[item] -= count;
-                if (items[item] == 0)
+                if (items[i].name == item && items[i].count >= count)
                 {
-                    items.Remove(item);
+                    items[i].count -= count;
+                    if (items[i].count == 0)
+                    {
+                        items.RemoveAt(i);
+                    }
+                    return true;
                 }
-                return true;
             }
-            else
-            {
-                //Unable to remove that many items
-                return false;
-            }
+            return false;
         }
 
-        public override IEnumerator<Tuple<ItemName, int>> GetEnumerator()
-        {
-            foreach (KeyValuePair<ItemName, int> k in items)
-            {
-                yield return new Tuple<ItemName, int>(k.Key, k.Value);
-            }
-        }
+
     }
     public class UniquesPanel : InventoryPanel
     {
         public int maxItems;
-        public List<ItemName> items;
+        public List<ItemStackBase> items;
 
-        public UniquesPanel(int maxItems, OptionDelegate[] options) : base(options)
+        public UniquesPanel(int maxItems, string name, OptionDelegate[] options) : base(name, options)
         {
             this.maxItems = maxItems;
 
-            items = new List<ItemName>(maxItems == int.MaxValue ? 0 : maxItems);
+            items = new List<ItemStackBase>(maxItems == int.MaxValue ? 0 : maxItems);
         }
 
-        public override bool AddItem(ItemName name)
+        public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value; }
+
+        public override int itemCount => items.Count;
+
+        public override bool AddItem(ItemName name, int count)
         {
             if (items.Count < maxItems)
             {
-                items.Add(name);
+                items.Add(new ItemStackBase() { name = name });
                 return true;
             }
             else
@@ -105,22 +126,29 @@ public class InventoryController : MonoBehaviour
             }
         }
 
-        public override IEnumerator<Tuple<ItemName, int>> GetEnumerator()
-        {
-            foreach (ItemName k in items)
-            {
-                yield return new Tuple<ItemName, int>(k, 1);
-            }
-        }
 
         public override int ItemCount(ItemName item)
         {
-            return items.Contains(item) ? 1 : 0;
+            int count = 0;
+            for (int i = 0; i < itemCount; i++)
+            {
+                if (items[i].name == item)
+                    count++;
+            }
+            return count;
         }
 
         public override bool TakeItem(ItemName name, int count)
         {
-            return items.Remove(name);
+            for (int i = 0; i < itemCount; i++)
+            {
+                if (items[i].name == name)
+                {
+                    items.RemoveAt(i);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -177,15 +205,15 @@ public class InventoryController : MonoBehaviour
     private void Awake()
     {
 
-        common = new StackPanel(new OptionDelegate[0]);
-        quest = new UniquesPanel(int.MaxValue, new OptionDelegate[0]);
-        weapon = new UniquesPanel(10, new OptionDelegate[] { OnSelectItem, OnDropItem });
-        sideArm = new UniquesPanel(10, new OptionDelegate[] { OnSelectItem, OnDropItem });
+        common = new StackPanel("Items", new OptionDelegate[0]);
+        quest = new UniquesPanel(int.MaxValue, "Quest Items", new OptionDelegate[0]);
+        weapon = new UniquesPanel(10, "Weapons", new OptionDelegate[] { OnSelectItem, OnDropItem });
+        sideArm = new UniquesPanel(10, "Side Arms", new OptionDelegate[] { OnSelectItem, OnDropItem });
 
         singleton = this;
     }
 
-    public static bool AddItem(ItemName n) => singleton.items(singleton.db[n].type).AddItem(n);
+    public static bool AddItem(ItemName n, int count) => singleton.items(singleton.db[n].type).AddItem(n, count);
     public static bool TakeItem(ItemName n, int count = 1) => singleton.items(singleton.db[n].type).TakeItem(n, count);
     public static int ItemCount(ItemName n) => singleton.items(singleton.db[n].type).ItemCount(n);
 }

@@ -8,12 +8,14 @@ using Cinemachine;
 
 public class NPC : MonoBehaviour, IInteractable
 {
+    public bool canInteract { get => enabled; set => enabled = value; }
     public NPCName npcName;
     public Transform ambientThought;
-    Camera camera;
+    new Camera camera;
     DialogueRunner runner;
     NPCTemplate t;
     Transform[] conversationGroupOverride;
+    Conversation currentConv;
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
 
     public Animator animator;
@@ -47,14 +49,71 @@ public class NPC : MonoBehaviour, IInteractable
         runner.AddCommandHandler("TurnNPCToTarget", TurnNPCToTarget);
         runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
         runner.AddCommandHandler("Animate", Animate);
+        runner.AddCommandHandler("OfferToSell", OfferToSell);
 
         runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
         runner.dialogueUI = DialogueInstances.singleton.dialogueUI;
     }
 
+    public void OfferToSell(string[] arg)
+    {
+        print("Selling");
+
+        runner.AddCommandHandler("StopSell", StopSell);
+        //Show the Inventory UI
+        currentConv.RunSellMenu(OnItemSelected);
+        //Wait for the player to select an item
+    }
+    void OnItemSelected(ItemType type, int itemIndex)
+    {
+        //Buy the item
+        runner.AddCommandHandler("ConfirmSell", ConfirmSell);
+        runner.AddCommandHandler("CancelSell", CancelSell);
+        print("Selected item " + type.ToString());
+        runner.StartDialogue("Sell");
+    }
+    void ReEnableBuyMenu()
+    {
+        runner.RemoveCommandHandler("ConfirmSell");
+        runner.RemoveCommandHandler("CancelSell");
+        // runner.StartDialogue("WaitForSell");
+    }
+    void ConfirmSell(string[] arg)
+    {
+        //Buy the item
+        print("Sold Item");
+        ReEnableBuyMenu();
+    }
+    void CancelSell(string[] arg)
+    {
+        //Go back to selecting
+        print("Cancelled selection");
+        ReEnableBuyMenu();
+    }
+    void StopSell(string[] arg)
+    {
+        runner.RemoveCommandHandler("ConfirmSell");
+        runner.RemoveCommandHandler("CancelSell");
+        runner.RemoveCommandHandler("StopSell");
+        currentConv.CloseSellMenu();
+    }
+
+
     public void StartNPCSpeaking(string line)
     {
-        var currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
+        if (line == null) return;
+
+        NPCName currentSpeaker;
+        try
+        {
+            currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
+        }
+        catch (System.Exception ex)
+        {
+            print(line);
+            throw ex;
+        }
+
         if (!hasSpeaker)
         {
             activeNPCs[currentSpeaker].StartSpeaking(c, true);
@@ -128,7 +187,7 @@ public class NPC : MonoBehaviour, IInteractable
     public void Interact(Player_CharacterController c)
     {
         this.c = c;
-        c.ChangeToState<Conversation>();
+        currentConv = c.ChangeToState<Conversation>();
 
         c.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
 
@@ -259,7 +318,7 @@ public class NPC : MonoBehaviour, IInteractable
             count = int.Parse(arg[1]);
 
         //give [count] items of type [item]
-        NewItemPrompt.singleton.ShowPrompt(item, onComplete);
+        NewItemPrompt.singleton.ShowPrompt(item, count, onComplete);
     }
 
     IEnumerator TurnCameraToTarget(Vector3 target, System.Action onComplete)
@@ -316,5 +375,17 @@ public class NPC : MonoBehaviour, IInteractable
     private void Update()
     {
         ambientThought.rotation = camera.transform.rotation;
+    }
+
+    public void OnStartHighlight()
+    {
+        //show arrow
+        UIController.singleton.npcIndicator.StartIndication(transform, npcName.ToString(), Vector3.up * 2);
+    }
+
+    public void OnEndHighlight()
+    {
+        //remove arrow
+        UIController.singleton.npcIndicator.EndIndication();
     }
 }

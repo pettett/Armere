@@ -98,13 +98,13 @@ namespace PlayerController
             else
                 return walkingSpeed;
         }
-
+        int currentWeapon = -1;
         public override void OnSelectWeapon(int index)
         {
             if (InventoryController.singleton.weapon.items.Count > index)
             {
-                print(InventoryController.singleton.weapon.items[index].ToString());
-                c.weaponGraphicsController.SetHeldWeapon(InventoryController.singleton.weapon.items[index], c.db);
+                currentWeapon = index;
+                c.weaponGraphicsController.SetHeldWeapon(InventoryController.singleton.weapon.items[index].name, c.db);
             }
         }
 
@@ -113,37 +113,87 @@ namespace PlayerController
             if (InventoryController.singleton.sideArm.items.Count > index)
             {
                 if (currentSidearm != -1)
-                    foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm]].properties)
+                    foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties)
                         p.OnItemDeEquip(animator);
 
-                foreach (var p in c.db[InventoryController.singleton.sideArm.items[index]].properties)
+                foreach (var p in c.db[InventoryController.singleton.sideArm.items[index].name].properties)
                     p.OnItemEquip(animator);
                 currentSidearm = index;
                 sidearmHolstered = false;
-                c.weaponGraphicsController.SetHeldSidearm(InventoryController.singleton.sideArm.items[index], c.db);
+                c.weaponGraphicsController.SetHeldSidearm(InventoryController.singleton.sideArm.items[index].name, c.db);
             }
         }
         public void DeEquipSidearm()
         {
             if (currentSidearm != -1)
             {
-                foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm]].properties)
+                foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties)
                     p.OnItemDeEquip(animator);
                 c.weaponGraphicsController.RemoveSidearm();
                 sidearmHolstered = true;
             }
         }
-
+        bool requestedSwordSwing = false;
         public override void OnAttack(float state)
         {
-            if (state == 1)
+            if (state == 1 && currentWeapon != -1)
             {
-                c.weaponGraphicsController.swordSheathed = false;
+                if (inControl)
+                {
+                    c.weaponGraphicsController.swordSheathed = false;
+                    c.StartCoroutine(SwingSword());
+                }
+                else
+                {
+                    requestedSwordSwing = true;
+                }
             }
         }
+
+        IEnumerator SwingSword()
+        {
+            inControl = false;
+            //swing the sword
+
+            animator.SetTrigger("Swing Sword");
+            requestedSwordSwing = false;
+            //Check for triggers from the sword
+            void OnTrigger(Collider other)
+            {
+                print("Checking collider" + other.name);
+                if (other.TryGetComponent<IAttackable>(out IAttackable a))
+                {
+                    a.Attack();
+                }
+            }
+
+            var ccc = c.weaponGraphicsController.heldWeapon.AddComponent<MeshCollider>();
+            ccc.convex = true;
+            ccc.isTrigger = true;
+            var trig = c.weaponGraphicsController.heldWeapon.AddComponent<WeaponTrigger>();
+            trig.onTriggerEnter = OnTrigger;
+            //Make the player take a step forward
+            yield return new WaitForSeconds(0.583f);
+
+
+            //If the player has clicked again in the time of the first swing, 
+            if (requestedSwordSwing == true)
+            {
+                //Swing the sword back
+                animator.SetTrigger("Swing Sword");
+                yield return new WaitForSeconds(0.583f);
+            }
+            //Clean up the trigger detection of the sword
+            MonoBehaviour.Destroy(ccc);
+            MonoBehaviour.Destroy(trig);
+
+            inControl = true;
+
+        }
+
         public override void OnAltAttack(float state)
         {
-            if (state == 1)
+            if (inControl && state == 1)
             {
                 if (sidearmHolstered)
                 {
@@ -439,6 +489,7 @@ namespace PlayerController
             animator.SetBool("IsGrounded", true);
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
             animator.SetFloat("GroundDistance", c.currentHeight);
+            animator.SetBool("Crouching", crouching);
         }
 
         public override void OnJump(float state)

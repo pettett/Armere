@@ -39,6 +39,12 @@ namespace PlayerController
                     if (command.values[0] == "day")
                         print("Made day");
                     break;
+                case "give":
+                    DesiredInputs(2);
+                    ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
+                    int count = int.Parse(command.values[1]);
+                    InventoryController.AddItem(item, count);
+                    break;
             }
             inConsole = false;
             UpdateConsole();

@@ -7,7 +7,7 @@ public class InteractableButton : MonoBehaviour, IInteractable
 {
     public bool isOn;
     public bool onlyTurnOn;
-
+    public bool canInteract { get => enabled; set => enabled = value; }
 
     public UnityEvent activateEvent;
     public UnityEvent deactivateEvent;
@@ -25,7 +25,13 @@ public class InteractableButton : MonoBehaviour, IInteractable
             deactivateEvent.Invoke();
     }
 
+    public void OnStartHighlight()
+    {
 
+    }
 
+    public void OnEndHighlight()
+    {
 
+    }
 }

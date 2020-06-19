@@ -3,7 +3,9 @@ public enum ItemName
     Stick,
     MineDeed,
     IronSword,
-    Lantern
+    Lantern,
+    Meat,
+    Herb
 }
 public enum ItemType
 {

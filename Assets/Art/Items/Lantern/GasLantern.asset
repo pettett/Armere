@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: GasLantern
   m_EditorClassIdentifier: 
   color: {r: 1, g: 0.6894004, b: 0, a: 1}
+  range: 43.6
+  intensity: 3

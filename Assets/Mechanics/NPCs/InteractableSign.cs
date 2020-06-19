@@ -5,6 +5,7 @@ using PlayerController;
 using Yarn.Unity;
 public class InteractableSign : MonoBehaviour, IInteractable
 {
+    public bool canInteract { get => enabled; set => enabled = value; }
     DialogueRunner runner;
     private void Start()
     {
@@ -30,5 +31,15 @@ public class InteractableSign : MonoBehaviour, IInteractable
     void Test(string[] arg)
     {
         print(arg[0]);
+    }
+
+    public void OnStartHighlight()
+    {
+        //Show arrow
+    }
+
+    public void OnEndHighlight()
+    {
+        //remove arrow
     }
 }

@@ -10,7 +10,6 @@ public class Console : MonoBehaviour
     private void Awake()
     {
         singleton = this;
-        gameObject.SetActive(false);
     }
     public struct Command
     {
@@ -31,13 +30,13 @@ public class Console : MonoBehaviour
     public static void Enable(System.Action<Command> onCommand)
     {
         singleton.onCommand = onCommand;
-        singleton.gameObject.SetActive(true);
+        singleton.input.gameObject.SetActive(true);
         singleton.input.onEndEdit.AddListener(singleton.OnSubmitCommand);
         singleton.input.Select();
     }
     public static void Disable()
     {
-        singleton.gameObject.SetActive(false);
+        singleton.input.gameObject.SetActive(false);
         singleton.input.onEndEdit.RemoveListener(singleton.OnSubmitCommand);
     }
     void OnSubmitCommand(string text)

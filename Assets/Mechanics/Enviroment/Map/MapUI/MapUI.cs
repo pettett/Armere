@@ -13,6 +13,11 @@ public abstract class MapUI : MonoBehaviour
     }
     protected virtual void Update()
     {
+        if (terrain == null)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
         map.sizeDelta = new Vector2(terrain.terrainData.size.x, terrain.terrainData.size.z) * mapScale;
     }
 }

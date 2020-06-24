@@ -13,11 +13,16 @@ public class NPCSpawn : MonoBehaviour
 
     public Transform[] conversationGroupTargetsOverride = new Transform[0];
 
+    [System.Serializable] public class PositionDict : RotaryHeart.Lib.SerializableDictionary.SerializableDictionaryBase<string, Transform> { }
+    public PositionDict focusPoints;
+    public PositionDict walkingPoints;
+
+
     // Start is called before the first frame update
     void Start()
     {
         var npc = Spawner.Spawn(ref npcPool, baseNPC, transform.position, transform.rotation).GetComponent<NPC>();
-        npc.InitNPC(template, spawnedNPCName, conversationGroupTargetsOverride);
+        npc.InitNPC(template, this, conversationGroupTargetsOverride);
     }
 
     private void OnDrawGizmos()

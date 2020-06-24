@@ -5,10 +5,16 @@ using PlayerController;
 using Yarn.Unity;
 
 using Cinemachine;
+using Yarn;
 
-public class NPC : MonoBehaviour, IInteractable
+public class NPC : AIBase, IInteractable, IVariableAddon
 {
     public bool canInteract { get => enabled; set => enabled = value; }
+
+    public string prefix => "$NPC_";
+    public Dictionary<string, Value> variables { get => npcVariables; set => npcVariables = value; }
+    private Dictionary<string, Yarn.Value> npcVariables;
+
     public NPCName npcName;
     public Transform ambientThought;
     new Camera camera;
@@ -22,18 +28,25 @@ public class NPC : MonoBehaviour, IInteractable
     bool hasSpeaker = false;
     NPCName speakingNPC;
 
-    public void InitNPC(NPCTemplate template, NPCName name, Transform[] conversationGroupOverride)
+    NPCSpawn spawn;
+
+    public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;
         runner.Add(t.dialogue);
-        npcName = name;
+        this.spawn = spawn;
+        npcName = spawn.spawnedNPCName;
         activeNPCs[npcName] = this;
-        speakingNPC = name;
+        speakingNPC = npcName;
         this.conversationGroupOverride = conversationGroupOverride;
     }
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         animator = GetComponent<Animator>();
+        npcVariables = new Dictionary<string, Value>(t.defaultValues.Length);
+        foreach (var variable in t.defaultValues)
+            npcVariables[variable.name] = InMemoryVariableStorage.AddDefault(variable);
     }
 
     private void Awake()
@@ -50,9 +63,27 @@ public class NPC : MonoBehaviour, IInteractable
         runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
         runner.AddCommandHandler("Animate", Animate);
         runner.AddCommandHandler("OfferToSell", OfferToSell);
+        runner.AddCommandHandler("GoTo", GoTo);
 
         runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
         runner.dialogueUI = DialogueInstances.singleton.dialogueUI;
+
+    }
+    void SetDialogBoxActive(bool active) => DialogueInstances.singleton.dialogueUI.dialogueContainer.SetActive(active);
+    void EnableDialogBox() => SetDialogBoxActive(true);
+    void DisableDialogBox() => SetDialogBoxActive(false);
+
+    void GoTo(string[] arg, System.Action onComplete)
+    {
+        DisableDialogBox();
+        GoToPosition(spawn.walkingPoints[arg[0]].position,
+        () =>
+        {
+            //Re-enable the dialog box when the AI has finished walking
+            EnableDialogBox();
+            onComplete?.Invoke();
+        }
+        );
     }
 
     public void OfferToSell(string[] arg)
@@ -209,11 +240,29 @@ public class NPC : MonoBehaviour, IInteractable
 
         c.conversationGroup.DoUpdate();
 
+        //Add the variables for this NPC
+
+        (runner.variableStorage as InMemoryVariableStorage).addon = this;
+
         c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
         //  c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
 
         StartCoroutine(TurnToPlayer(c.transform.position));
     }
+
+
+    void OnDialogueComplete()
+    {
+        //Conversation over - clean up
+        activeNPCs[speakingNPC].StopSpeaking();
+        hasSpeaker = false;
+        c.ChangeToState<Walking>();
+        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+        DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
+        ResetCamera();
+        (runner.variableStorage as InMemoryVariableStorage).addon = null;
+    }
+
 
     CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
     {
@@ -239,15 +288,6 @@ public class NPC : MonoBehaviour, IInteractable
 
     }
 
-    void OnDialogueComplete()
-    {
-        activeNPCs[speakingNPC].StopSpeaking();
-        hasSpeaker = false;
-        c.ChangeToState<Walking>();
-        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-        DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
-        ResetCamera();
-    }
 
 
     void Animate(string[] arg, System.Action onComplete)
@@ -280,27 +320,27 @@ public class NPC : MonoBehaviour, IInteractable
     private void CameraPan(string[] arg, System.Action onComplete)
     {
         //pan the camera to the target destination
-        StartCoroutine(TurnCameraToTarget(t.focusPoints[arg[0]], onComplete));
+        StartCoroutine(TurnCameraToTarget(spawn.focusPoints[arg[0]].position, onComplete));
     }
 
 
     void TurnPlayerToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = t.focusPoints[arg[0]];
+        Vector3 target = spawn.focusPoints[arg[0]].position;
         target.y = c.transform.position.y;
         c.transform.LookAt(target);
         onComplete?.Invoke();
     }
     void TurnNPCToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = t.focusPoints[arg[0]];
+        Vector3 target = spawn.focusPoints[arg[0]].position;
         target.y = transform.position.y;
         transform.LookAt(target);
         onComplete?.Invoke();
     }
     void TurnNPCAndPlayerToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = t.focusPoints[arg[0]];
+        Vector3 target = spawn.focusPoints[arg[0]].position;
         target.y = transform.position.y;
         transform.LookAt(target);
         target.y = c.transform.position.y;

@@ -5,9 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Levels/stealthTest/stealthTest.unity
+    guid: ba231df1cfca33b4f8b643aefec16154
+  - enabled: 1
+    path: Assets/Levels/test/test.unity
+    guid: 0cce2bc6475f9934583065e3fc50f1f6
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 0a0e0f38676879a4484428eb1d6cadbb,
       type: 2}

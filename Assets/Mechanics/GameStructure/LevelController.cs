@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 public enum LevelName
 {
-    test
+    test,
+    stealthTest
 }
 public static class LevelController
 {

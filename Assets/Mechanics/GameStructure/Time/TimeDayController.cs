@@ -59,8 +59,8 @@ public class TimeDayController : MonoBehaviour
             weather = WeatherConditions.Sunny;
 
 
-
-        clouds.SetCloudDensity(weatherScaler);
+        if (clouds != null)
+            clouds.SetCloudDensity(weatherScaler);
 
         hour += Time.deltaTime * hoursPerSecond;
 

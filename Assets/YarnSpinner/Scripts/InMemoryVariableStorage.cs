@@ -31,6 +31,14 @@ using System.Collections.Generic;
 namespace Yarn.Unity
 {
 
+    public interface IVariableAddon
+    {
+        string prefix { get; }
+
+        Dictionary<string, Value> variables { get; set; }
+    }
+
+
     /// <summary>
     /// An simple implementation of DialogueUnityVariableStorage, which
     /// stores everything in memory.
@@ -50,11 +58,15 @@ namespace Yarn.Unity
     /// ]]>
     /// 
     /// </remarks>    
-    public class InMemoryVariableStorage : VariableStorageBehaviour, IEnumerable<KeyValuePair<string, Yarn.Value>>
+    public class InMemoryVariableStorage : VariableStorageBehaviour, IEnumerable<KeyValuePair<string, Value>>
     {
 
         /// Where we actually keeping our variables
-        private Dictionary<string, Yarn.Value> variables = new Dictionary<string, Yarn.Value>();
+        private Dictionary<string, Value> variables = new Dictionary<string, Value>();
+
+
+        public IVariableAddon addon;
+
 
         /// <summary>
         /// A default value to apply when the object wakes up, or when
@@ -99,6 +111,10 @@ namespace Yarn.Unity
         [SerializeField]
         internal UnityEngine.UI.Text debugTextView = null;
 
+
+
+
+
         /// Reset to our default values when the game starts
         internal void Awake()
         {
@@ -116,50 +132,54 @@ namespace Yarn.Unity
             // For each default variable that's been defined, parse the
             // string that the user typed in in Unity and store the
             // variable
-            foreach (var variable in defaultVariables)
+            foreach (DefaultVariable variable in defaultVariables)
             {
-
-                object value;
-
-                switch (variable.type)
-                {
-                    case Yarn.Value.Type.Number:
-                        float f = 0.0f;
-                        float.TryParse(variable.value, out f);
-                        value = f;
-                        break;
-
-                    case Yarn.Value.Type.String:
-                        value = variable.value;
-                        break;
-
-                    case Yarn.Value.Type.Bool:
-                        bool b = false;
-                        bool.TryParse(variable.value, out b);
-                        value = b;
-                        break;
-
-                    case Yarn.Value.Type.Variable:
-                        // We don't support assigning default variables from
-                        // other variables yet
-                        Debug.LogErrorFormat("Can't set variable {0} to {1}: You can't " +
-                            "set a default variable to be another variable, because it " +
-                            "may not have been initialised yet.", variable.name, variable.value);
-                        continue;
-
-                    case Yarn.Value.Type.Null:
-                        value = null;
-                        break;
-
-                    default:
-                        throw new System.ArgumentOutOfRangeException();
-
-                }
-
-                var v = new Yarn.Value(value);
-
+                var v = AddDefault(variable);
                 SetValue("$" + variable.name, v);
             }
+        }
+        public static Value AddDefault(DefaultVariable variable)
+        {
+            object value;
+
+            switch (variable.type)
+            {
+                case Value.Type.Number:
+                    float f = 0.0f;
+                    float.TryParse(variable.value, out f);
+                    value = f;
+                    break;
+
+                case Value.Type.String:
+                    value = variable.value;
+                    break;
+
+                case Value.Type.Bool:
+                    bool b = false;
+                    bool.TryParse(variable.value, out b);
+                    value = b;
+                    break;
+
+                case Value.Type.Variable:
+                    // We don't support assigning default variables from
+                    // other variables yet
+                    Debug.LogErrorFormat("Can't set variable {0} to {1}: You can't " +
+                        "set a default variable to be another variable, because it " +
+                        "may not have been initialised yet.", variable.name, variable.value);
+                    return Value.NULL;
+
+                case Value.Type.Null:
+                    value = null;
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException();
+
+            }
+
+            return new Value(value);
+
+
         }
 
         /// <summary>
@@ -170,8 +190,15 @@ namespace Yarn.Unity
         /// <param name="value">The value to store.</param>
         public override void SetValue(string variableName, Value value)
         {
-            // Copy this value into our list
-            variables[variableName] = new Yarn.Value(value);
+            if (variableName.StartsWith(addon.prefix))
+            {
+                addon.variables[variableName.Substring(addon.prefix.Length)] = new Value(value);
+            }
+            else
+            {
+                // Copy this value into our list
+                variables[variableName] = new Value(value);
+            }
         }
         const string questPrefix = "$Quest_";
         const string itemPrefix = "$Item_";
@@ -223,6 +250,11 @@ namespace Yarn.Unity
                     return new Value(qw.stage + 1);
                 else
                     return new Value(-1);
+            }
+
+            else if (variableName.StartsWith(addon.prefix))
+            {
+                return addon.variables[variableName.Substring(addon.prefix.Length)];
             }
 
             else if (variableName.StartsWith(itemPrefix))

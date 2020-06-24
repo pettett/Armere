@@ -11,4 +11,5 @@
     Jess,
     Digga,
     Mayor,
+    BlackSmith,
 }

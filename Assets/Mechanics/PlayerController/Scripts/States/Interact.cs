@@ -143,7 +143,6 @@ namespace PlayerController
                 if (interactablesInRange.Count != 0)
                 {
                     interactablesInRange[currentLookAt].Interact(c);
-
                 }
             }
         }

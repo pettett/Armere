@@ -1,0 +1,26 @@
+title: Start
+---
+BlackSmith: You want an iron sword? Or something more specialized?
+->Iron Sword?
+    BlackSmith: The new federated high consel ordered a shipment of 500 basic iron swords
+    BlackSmith: Unfortunately, due to a paperwork mistake, the order was defunct
+    BlackSmith: Now I have {$NPC_swords} iron swords filling my shop
+    BlackSmith: <i>Please</i> take as many as you want
+->Iron Sword!
+    BlackSmith: 1 Sec!
+    BlackSmith: hmmm... <wait 1> \nOh? <wait 1>\n Aha!
+    <<GoTo storage>>
+    BlackSmith: 1 Iron Sword! Thanks
+    <<GoTo till>>
+    <<set $NPC_swords to $NPC_swords-1>>
+    BlackSmith: Now I only have {$NPC_swords} [plural {$NPC_swords} one="sword" other="swords"] left!
+    <<GiveItems IronSword 1>>
+->Something more specialized
+    BlackSmith: Take a look at this
+->Bye
+    BlackSmith: Bye
+
+
+===
+
+

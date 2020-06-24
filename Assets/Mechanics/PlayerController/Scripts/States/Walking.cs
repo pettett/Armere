@@ -247,6 +247,52 @@ namespace PlayerController
                     //c.ChangeToState<Freefalling>();
                 }
             }
+            float speedScalar = 1;
+            if (c.currentWater != null)
+            {
+                //Find depth of water
+                //Buffer of two: One for water surface, one for water base
+                RaycastHit[] waterHits = new RaycastHit[2];
+                float heightOffset = 2;
+                float maxStrideDepth = 1;
+                int hits = Physics.RaycastNonAlloc(transform.position + new Vector3(0, heightOffset, 0), Vector3.down, waterHits, maxStrideDepth + heightOffset, c.m_groundLayerMask, QueryTriggerInteraction.Collide);
+                print(hits.ToString());
+
+                if (hits == 2)
+                {
+                    WaterController w = waterHits[1].collider.GetComponentInParent<WaterController>();
+                    if (w != null)
+                    {
+                        //Hit water and ground
+                        print("Hit water and ground");
+                        float depth = waterHits[0].distance - waterHits[1].distance;
+
+                        float scaledDepth = depth / maxStrideDepth;
+                        if (scaledDepth > 1)
+                        {
+                            //Start swimming
+                            print("Too deep to walk");
+                        }
+                        else if (scaledDepth >= 0)
+                        {
+                            //Striding through water
+                            //Slow speed of walk
+                            //Full depth walks at half speed
+                            speedScalar = scaledDepth * 0.5f + 0.5f;
+                            print("Striding in water");
+                        }
+
+                    }
+
+                }
+                else if (hits == 1)
+                {
+
+                    //Start swimming
+                    print("Too deep to walk");
+                }
+            }
+
             //c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
             if (c.mod.HasFlag(MovementModifiers.Crouching))
             {
@@ -288,8 +334,8 @@ namespace PlayerController
                     //scale required velocity by current speed
                     //only allow sprinting if the play is moving forward
                     float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);
-
-                    desiredVelocity = playerDirection * speed;
+                    //Include speed scalar from water
+                    desiredVelocity = playerDirection * speed * speedScalar;
                     //Rotate the velocity based on ground
                     desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
                 }
@@ -297,6 +343,7 @@ namespace PlayerController
             }
             else
             {
+                //No movement
                 desiredVelocity = Vector3.zero;
             }
 

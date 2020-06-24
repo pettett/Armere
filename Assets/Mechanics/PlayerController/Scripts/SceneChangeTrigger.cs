@@ -11,6 +11,7 @@ public class SceneChangeTrigger : TriggerBox
     }
     PlayerController.AutoWalking walker;
     public Transform endTransform;
+    public LevelName changeToLevel;
     void OnPlayerEnter(Collider player)
     {
         transitionToCamera.Priority = 20;
@@ -30,6 +31,6 @@ public class SceneChangeTrigger : TriggerBox
             d.m_PathPosition = t;
             yield return new WaitForEndOfFrame();
         }
-        LevelController.ChangeToLevel(LevelName.test);
+        LevelController.ChangeToLevel(changeToLevel);
     }
 }

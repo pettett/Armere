@@ -9,7 +9,7 @@ namespace PlayerController
 
 
     [RequireComponent(typeof(Rigidbody))]
-    public class Player_CharacterController : MonoBehaviour, IAITarget
+    public class Player_CharacterController : MonoBehaviour, IAITarget, IWaterObject
     {
 
 
@@ -128,6 +128,7 @@ namespace PlayerController
 
         public static List<PlayerRelativeObject> relativeObjects = new List<PlayerRelativeObject>();
 
+        public WaterController currentWater;
 
         // Start is called before the first frame update
         /// <summary>
@@ -566,5 +567,16 @@ namespace PlayerController
         //show the sound on the minimap?
         void IAITarget.HearSound(IAITarget source, float volume, ref bool responded) { }
 
+
+
+        public void OnWaterEnter(WaterController waterController)
+        {
+            currentWater = waterController;
+        }
+
+        public void OnWaterExit(WaterController waterController)
+        {
+            currentWater = null;
+        }
     }
 }

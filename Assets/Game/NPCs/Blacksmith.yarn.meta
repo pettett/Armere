@@ -1,0 +1,38 @@
+fileFormatVersion: 2
+guid: 872d84ad1b84d6f4f806aff8ed9eb954
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - Blacksmith-Start-0
+  - Blacksmith-Start-1
+  - Blacksmith-Start-2
+  - Blacksmith-Start-3
+  - Blacksmith-Start-4
+  - Blacksmith-Start-5
+  - Blacksmith-Start-6
+  - Blacksmith-WaitForSell-7
+  - Blacksmith-WaitForSell-8
+  - Blacksmith-WaitForSell-9
+  - Blacksmith-Sell-10
+  - Blacksmith-Sell-11
+  - Blacksmith-Sell-12
+  - Blacksmith-Sell-13
+  - Blacksmith-Sell-14
+  - Blacksmith-Sell-15
+  - Blacksmith-Sell-16
+  - Blacksmith-Sell-17
+  - Blacksmith-Sell-18
+  - Blacksmith-Sell-19
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {fileID: 7128917941130120860, guid: 872d84ad1b84d6f4f806aff8ed9eb954,
+    type: 3}
+  localizations: []

@@ -46,7 +46,7 @@ public class MapTracker : MonoBehaviour
             this.influence = influence;
         }
     }
-
+    public string currentRegion;
     // Update is called once per frame
     void Update()
     {
@@ -133,9 +133,16 @@ public class MapTracker : MonoBehaviour
         if (prevRegion != inRegion)
         {
             //New region, new name
+            currentRegion = inRegion == -1 ?
+                "Wilderness" :
+                map.regions[inRegion].name;
         }
 
-        entry.values[0] = regionInfluences.Count == 0 ? "Wilderness" : string.Join(" ", regionInfluences.Select((RegionInfluence r) => string.Format("{0} : {1}", map.regions[r.region].name, r.influence)));
+
+
+        entry.values[0] = regionInfluences.Count == 0 ?
+            "Wilderness" :
+            string.Join(" ", regionInfluences.Select((RegionInfluence r) => string.Format("{0} : {1}", map.regions[r.region].name, r.influence)));
     }
 
 

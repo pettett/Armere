@@ -31,6 +31,6 @@ public class SceneChangeTrigger : TriggerBox
             d.m_PathPosition = t;
             yield return new WaitForEndOfFrame();
         }
-        LevelController.ChangeToLevel(changeToLevel);
+        LevelController.ChangeToLevel(changeToLevel, null);
     }
 }

@@ -35,7 +35,12 @@ namespace Yarn.Unity
     {
         string prefix { get; }
 
-        Dictionary<string, Value> variables { get; set; }
+        Value this[string name]
+        {
+            get;
+            set;
+        }
+
     }
 
 
@@ -192,7 +197,7 @@ namespace Yarn.Unity
         {
             if (variableName.StartsWith(addon.prefix))
             {
-                addon.variables[variableName.Substring(addon.prefix.Length)] = new Value(value);
+                addon[variableName.Substring(addon.prefix.Length)] = new Value(value);
             }
             else
             {
@@ -254,7 +259,7 @@ namespace Yarn.Unity
 
             else if (variableName.StartsWith(addon.prefix))
             {
-                return addon.variables[variableName.Substring(addon.prefix.Length)];
+                return addon[variableName.Substring(addon.prefix.Length)];
             }
 
             else if (variableName.StartsWith(itemPrefix))

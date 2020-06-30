@@ -7,15 +7,15 @@ public class PlayerRelativeObject : MonoBehaviour
 {
     public float enableRange = 50;
     public float disableRange = 60;
-    protected void Start()
+    protected void AddToRegister()
     {
-        PlayerController.Player_CharacterController.relativeObjects.Add(this);
+        PlayerController.Player_CharacterController.activePlayerController.relativeObjects.Add(this);
     }
-    protected void OnDestroy()
+    protected void RemoveFromRegister()
     {
-        PlayerController.Player_CharacterController.relativeObjects.Remove(this);
+        PlayerController.Player_CharacterController.activePlayerController.relativeObjects.Remove(this);
     }
-    public virtual void Enable() { enabled = true; }
-    public virtual void Disable() { enabled = false; }
+    public virtual void OnPlayerInRange() { enabled = true; }
+    public virtual void OnPlayerOutRange() { enabled = false; }
 }
 

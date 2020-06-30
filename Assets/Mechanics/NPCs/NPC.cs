@@ -12,8 +12,14 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public bool canInteract { get => enabled; set => enabled = value; }
 
     public string prefix => "$NPC_";
-    public Dictionary<string, Value> variables { get => npcVariables; set => npcVariables = value; }
-    private Dictionary<string, Yarn.Value> npcVariables;
+
+
+    public Value this[string name]
+    {
+        //Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved
+        get => NPCManager.NPCVariable.ToYarnEquiv(NPCManager.singleton.data[npcName].variables[name]);
+        set => NPCManager.singleton.data[npcName].variables[name] = NPCManager.NPCVariable.FromYarnEquiv(value);
+    }
 
     public NPCName npcName;
     public Transform ambientThought;
@@ -44,9 +50,12 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     {
         base.Start();
         animator = GetComponent<Animator>();
-        npcVariables = new Dictionary<string, Value>(t.defaultValues.Length);
-        foreach (var variable in t.defaultValues)
-            npcVariables[variable.name] = InMemoryVariableStorage.AddDefault(variable);
+
+        if (!NPCManager.singleton.data.ContainsKey(npcName))
+        {
+            //Only add this data if the NPC has not existed in the save before
+            NPCManager.singleton.data[npcName] = new NPCManager.NPCData(t);
+        }
     }
 
     private void Awake()
@@ -101,6 +110,16 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         runner.AddCommandHandler("ConfirmSell", ConfirmSell);
         runner.AddCommandHandler("CancelSell", CancelSell);
         print("Selected item " + type.ToString());
+
+        //TODO - Add amount control
+        InventoryController.TakeItem(itemIndex, type);
+
+        //update the buy menu with revised amounts
+
+        //Restart the dialog
+        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+        runner.Stop();
+        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
         runner.StartDialogue("Sell");
     }
     void ReEnableBuyMenu()
@@ -219,6 +238,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     {
         this.c = c;
         currentConv = c.ChangeToState<Conversation>();
+
+        //Probably quicker to overrite true with true then find the value and
+        //check if it is true then find it again to set it
+        NPCManager.singleton.data[npcName].spokenTo = true;
+
 
         c.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
 
@@ -351,11 +375,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     void GiveItems(string[] arg, System.Action onComplete)
     {
         ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), arg[0]);
-        int count;
+        uint count;
         if (arg.Length == 1)
             count = 1;
         else
-            count = int.Parse(arg[1]);
+            count = uint.Parse(arg[1]);
 
         //give [count] items of type [item]
         NewItemPrompt.singleton.ShowPrompt(item, count, onComplete);
@@ -420,7 +444,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public void OnStartHighlight()
     {
         //show arrow
-        UIController.singleton.npcIndicator.StartIndication(transform, npcName.ToString(), Vector3.up * 2);
+        UIController.singleton.npcIndicator.StartIndication(
+            transform,
+            NPCManager.singleton.data[npcName].spokenTo ? npcName.ToString() : "", //Do not show the npc name if the player has never spoken to them
+            Vector3.up * 2);
     }
 
     public void OnEndHighlight()

@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 public static class Items
 {
 
@@ -50,12 +52,18 @@ public static class Items
         i.Init(ItemSpawner.SpawnType.Item, item, 1, db);
         return i;
     }
-    public static InteractableItem SpawnChest(GameObject prefab, ItemName item, int count, Vector3 position, Quaternion rotation, ItemDatabase db)
+    public static InteractableItem SpawnChest(GameObject prefab, ItemName item, uint count, Vector3 position, Quaternion rotation, ItemDatabase db)
     {
         var go = MonoBehaviour.Instantiate(prefab, position, rotation);
         var i = go.GetComponent<InteractableItem>();
         i.Init(ItemSpawner.SpawnType.Chest, item, count, db);
         return i;
+    }
+    public static void OnSceneChange()
+    {
+        Debug.Log("New Scene");
+        itemPhysicsPool = new Queue<GameObject>();
+        itemStaticPool = new Queue<GameObject>();
     }
 }
 
@@ -69,24 +77,18 @@ public class ItemSpawner : PlayerRelativeObject
     public SpawnType spawnType;
     public ItemDatabase database;
     public ItemName item;
-    [MyBox.ConditionalField("spawnType", false, SpawnType.Chest)] public int count;
+    [MyBox.ConditionalField("spawnType", false, SpawnType.Chest)] public uint chestItemCount;
     [MyBox.ConditionalField("spawnType", false, SpawnType.Chest)] public GameObject prefab;
     GameObject spawned;
-    new private void Start()
-    {
-        Enable();
-        base.Start();
-    }
-    public override void Enable()
+    private void Start()
     {
         SpawnItem();
-        base.Enable();
+        AddToRegister();
     }
-    public override void Disable()
+    public override void OnPlayerInRange()
     {
-
-        base.Disable();
-
+        SpawnItem();
+        base.OnPlayerInRange();
     }
 
     void SpawnItem()
@@ -99,7 +101,7 @@ public class ItemSpawner : PlayerRelativeObject
         }
         else
         {
-            var c = Items.SpawnChest(prefab, item, count, transform.position, transform.rotation, database);
+            var c = Items.SpawnChest(prefab, item, chestItemCount, transform.position, transform.rotation, database);
             c.onItemDestroy = DestroyItem;
             spawned = c.gameObject;
         }

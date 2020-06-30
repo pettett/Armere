@@ -11,7 +11,37 @@ namespace PlayerController
     [RequireComponent(typeof(Rigidbody))]
     public class Player_CharacterController : MonoBehaviour, IAITarget, IWaterObject
     {
+        [System.Serializable]
+        public class PlayerSaveData
+        {
+            public MovementState currentState;
+            public ParallelState[] parallels;
+            public Vector3 position;
+            public Quaternion rotation;
 
+            public PlayerSaveData(Player_CharacterController c)
+            {
+
+                currentState = c.currentState;
+                parallels = c.parallelStates;
+                position = c.transform.position;
+                rotation = c.transform.rotation;
+            }
+        }
+        public PlayerSaveData CreateSaveData()
+        {
+            return new PlayerSaveData(this);
+        }
+        public void RestoreSave(PlayerSaveData data)
+        {
+            print("Restored state");
+
+            currentState = data.currentState;
+            print(currentState);
+            parallelStates = data.parallels;
+            transform.SetPositionAndRotation(data.position, data.rotation);
+            loadedStates = true;
+        }
 
         // public event Action<Player_CharacterController> onDeath;
         //public event Action<Player_CharacterController> onRepawn;
@@ -32,6 +62,7 @@ namespace PlayerController
         public Cinemachine.CinemachineTargetGroup conversationGroup;
         public Cinemachine.CinemachineVirtualCamera cutsceneCamera;
         public Transform lookAtTarget;
+        [HideInInspector] public PlayerInput playerInput;
         Camera playerCamera;
 
         private MovementState currentState;
@@ -126,9 +157,10 @@ namespace PlayerController
 
         public AnimatorVariables animatorVariables;
 
-        public static List<PlayerRelativeObject> relativeObjects = new List<PlayerRelativeObject>();
+        public List<PlayerRelativeObject> relativeObjects = new List<PlayerRelativeObject>();
 
         public WaterController currentWater;
+
 
         // Start is called before the first frame update
         /// <summary>
@@ -145,7 +177,7 @@ namespace PlayerController
         {
             animatorVariables.UpdateIDs();
 
-
+            playerInput = GetComponent<PlayerInput>();
 
             rb = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
@@ -175,13 +207,8 @@ namespace PlayerController
 
             if (loadedStates)
             {
-                currentState.Init(this);
-                currentState.Start();
-                for (int i = 0; i < parallelStates.Length; i++)
-                {
-                    parallelStates[i].Init(this);
-                    parallelStates[i].Start();
-                }
+                StartAllStates();
+                FillAllStates();
             }
             else
             {
@@ -341,13 +368,13 @@ namespace PlayerController
                 if (relativeObjects[i].enabled && sqrMagTemp > relativeObjects[i].disableRange * relativeObjects[i].disableRange)
                 {
                     //Disable the object - disable range should be larger then enable range to stop object flickering
-                    relativeObjects[i].Disable();
+                    relativeObjects[i].OnPlayerOutRange();
                 }
                 //else, check if it is close enough to enable
                 else if (!relativeObjects[i].enabled && sqrMagTemp < relativeObjects[i].enableRange * relativeObjects[i].enableRange)
                 {
                     //Enable the object
-                    relativeObjects[i].Enable();
+                    relativeObjects[i].OnPlayerInRange();
                 }
             }
 
@@ -426,7 +453,7 @@ namespace PlayerController
             lastStateType = CurrentStateType;
             currentState?.End(); // state specific end method
             currentState = Activator.CreateInstance(type) as MovementState;
-            currentState.Init(this); //non - overridable init method for reference to controller
+
 
 
             //update f3 information
@@ -443,8 +470,6 @@ namespace PlayerController
                 if (newStates[i] == null)
                 {
                     newStates[i] = Activator.CreateInstance(attributes[i].state) as ParallelState;
-                    newStates[i].Init(this);
-                    newStates[i].Start();
                 }
             }
 
@@ -471,9 +496,15 @@ namespace PlayerController
                 currentStateText.text = currentState.StateName;
             }
 
-            // start all the states after everything has been constructed
-            currentState.Start(parameters);
 
+
+            StartAllStates(parameters);
+            FillAllStates();
+
+            return currentState;
+        }
+        public void FillAllStates()
+        {
             allStates = new MovementState[parallelStates.Length + 2];
             for (int i = 0; i < parallelStates.Length; i++)
             {
@@ -481,9 +512,23 @@ namespace PlayerController
             }
             allStates[parallelStates.Length] = currentState;
             allStates[parallelStates.Length + 1] = cameraController;
+        }
+        public void StartAllStates(params object[] parameters)
+        {
+            for (int i = 0; i < parallelStates.Length; i++)
+            {
+                parallelStates[i].Init(this);
+            }
+            currentState.Init(this); //non - overridable init method for reference to controller
+
+            for (int i = 0; i < parallelStates.Length; i++)
+            {
+                parallelStates[i].Start();
+            }
+            // start all the states after everything has been constructed
+            currentState.Start(parameters);
 
 
-            return currentState;
         }
 
         public ParallelState GetParallelState(Type t)

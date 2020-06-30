@@ -6,7 +6,8 @@
         "Game.Quests",
         "Inventory",
         "Game.UI",
-        "Game.Structure"
+        "Game.Structure",
+        "RotaryHeartDict"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -37,9 +37,9 @@ public class DebugMenu : MonoBehaviour
 
 
     const float fpsMeasurePeriod = 0.5f;
-    private int m_FpsAccumulator = 0;
+    private uint m_FpsAccumulator = 0;
     private float m_FpsNextPeriod = 0;
-    private int m_CurrentFps;
+    private uint m_CurrentFps;
 
     private void Awake()
     {
@@ -114,7 +114,7 @@ public class DebugMenu : MonoBehaviour
         m_FpsAccumulator++;
         if (Time.realtimeSinceStartup > m_FpsNextPeriod)
         {
-            m_CurrentFps = (int)(m_FpsAccumulator / fpsMeasurePeriod);
+            m_CurrentFps = (uint)(m_FpsAccumulator / fpsMeasurePeriod);
             m_FpsAccumulator = 0;
             m_FpsNextPeriod += fpsMeasurePeriod;
             fps.values[0] = m_CurrentFps;

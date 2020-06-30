@@ -5,7 +5,7 @@ using UnityEngine;
 public class UIController : MonoBehaviour
 {
 
-    public GameObject tabMenu;
+    public UIMenu tabMenu;
     public GameObject buyMenu;
     public WorldIndicator itemIndicator;
     public WorldIndicator npcIndicator;
@@ -20,6 +20,9 @@ public class UIController : MonoBehaviour
 
     public static void SetTabMenu(bool active)
     {
-        singleton.tabMenu.SetActive(active);
+        if (active)
+            singleton.tabMenu.OpenMenu();
+        else
+            singleton.tabMenu.CloseMenu();
     }
 }

@@ -14,10 +14,10 @@ namespace PlayerController
         List<IInteractable> interactablesInRange = new List<IInteractable>();
 
         IInteractable prevTarget;
-        PlayerInput playerInput;
+
         public override void Start()
         {
-            playerInput = c.GetComponent<PlayerInput>();
+
             ScanForInteractables();
         }
         ///<summary>Perform an overlap capsule to check for interactables, returning whether it did or not</summary>
@@ -113,7 +113,7 @@ namespace PlayerController
                     if (prevTarget != null)
                         prevTarget.OnEndHighlight();
                     else //no target before this, start applying the prompt
-                        UIPrompt.ApplyPrompt("Interact", playerInput.actions.FindAction("Action").controls[0].displayName);
+                        UIPrompt.ApplyPrompt("Interact", c.playerInput.actions.FindAction("Action").controls[0].displayName);
 
                     interactablesInRange[currentLookAt].OnStartHighlight();
                     prevTarget = interactablesInRange[currentLookAt];

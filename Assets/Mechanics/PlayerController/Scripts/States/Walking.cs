@@ -50,7 +50,7 @@ namespace PlayerController
         bool crouching;
         bool inControl = true;
         [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
-        ContactPoint groundCP;
+        [NonSerialized] ContactPoint groundCP;
         int currentSidearm = -1;
         bool sidearmHolstered = false;
         public override void Start()
@@ -160,7 +160,6 @@ namespace PlayerController
             //Check for triggers from the sword
             void OnTrigger(Collider other)
             {
-                print("Checking collider" + other.name);
                 if (other.TryGetComponent<IAttackable>(out IAttackable a))
                 {
                     a.Attack();

@@ -5,8 +5,8 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class AIBase : MonoBehaviour
 {
-    NavMeshAgent agent;
-    Animator anim;
+    protected NavMeshAgent agent;
+    protected Animator anim;
     // Start is called before the first frame update
     protected virtual void Start()
     {

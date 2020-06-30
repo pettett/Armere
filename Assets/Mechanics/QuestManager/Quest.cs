@@ -23,7 +23,7 @@ public class Quest : ScriptableObject
         public QuestType type;
         public NPCName receiver;
         public ItemName item;
-        public int count = 1;
+        public uint count = 1; //Cannot take negative amount of items
         public float damage = 20;
     }
 

@@ -42,7 +42,7 @@ namespace PlayerController
                 case "give":
                     DesiredInputs(2);
                     ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
-                    int count = int.Parse(command.values[1]);
+                    uint count = uint.Parse(command.values[1]);
                     InventoryController.AddItem(item, count);
                     break;
             }
@@ -77,13 +77,11 @@ namespace PlayerController
         {
             if (inConsole)
             {
-                print("Activated Console");
                 SetPaused(true);
                 Console.Enable(OnCommand);
             }
             else
             {
-                print("Deactivated console");
                 Console.Disable();
                 SetPaused(false);
             }

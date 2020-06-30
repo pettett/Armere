@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class InventoryController : MonoBehaviour
 {
+    [System.Serializable]
     public class ItemStackBase
     {
         public ItemName name;
@@ -13,9 +14,11 @@ public class InventoryController : MonoBehaviour
     {
         public string name;
         public OptionDelegate[] options;
-        public abstract bool AddItem(ItemName name, int count);
-        public abstract bool TakeItem(ItemName name, int count);
-        public abstract int ItemCount(ItemName item);
+        public abstract bool AddItem(ItemName name, uint count);
+        public abstract bool AddItem(int index, uint count);
+        public abstract bool TakeItem(ItemName name, uint count);
+        public abstract bool TakeItem(int index, uint count);
+        public abstract uint ItemCount(ItemName item);
 
         public InventoryPanel(string name, OptionDelegate[] options)
         {
@@ -36,9 +39,10 @@ public class InventoryController : MonoBehaviour
 
     public class StackPanel : InventoryPanel
     {
+        [System.Serializable]
         public class ItemStack : ItemStackBase
         {
-            public int count;
+            public uint count;
         }
 
         public List<ItemStack> items;
@@ -52,7 +56,7 @@ public class InventoryController : MonoBehaviour
             items = new List<ItemStack>();
         }
 
-        public override int ItemCount(ItemName item)
+        public override uint ItemCount(ItemName item)
         {
             for (int i = 0; i < items.Count; i++)
             {
@@ -62,7 +66,7 @@ public class InventoryController : MonoBehaviour
             }
             return 0;
         }
-        public override bool AddItem(ItemName item, int count)
+        public override bool AddItem(ItemName item, uint count)
         {
             for (int i = 0; i < items.Count; i++)
             {
@@ -77,7 +81,17 @@ public class InventoryController : MonoBehaviour
 
             return true; //Always space to add new items
         }
-        public override bool TakeItem(ItemName item, int count)
+        public override bool AddItem(int index, uint count)
+        {
+            if (index < items.Count && index >= 0)
+            {
+                items[index].count += count;
+                return true;
+            }
+            else return false;
+        }
+
+        public override bool TakeItem(ItemName item, uint count)
         {
 
             for (int i = 0; i < items.Count; i++)
@@ -95,7 +109,18 @@ public class InventoryController : MonoBehaviour
             return false;
         }
 
-
+        public override bool TakeItem(int index, uint count)
+        {
+            //index within array and enough items to remove the amount
+            if (index < items.Count && index >= 0 && items[index].count >= count)
+            {
+                items[index].count -= count;
+                if (items[index].count == 0)
+                    items.RemoveAt(index);
+                return true;
+            }
+            else return false;
+        }
     }
     public class UniquesPanel : InventoryPanel
     {
@@ -113,7 +138,7 @@ public class InventoryController : MonoBehaviour
 
         public override int itemCount => items.Count;
 
-        public override bool AddItem(ItemName name, int count)
+        public override bool AddItem(ItemName name, uint count)
         {
             if (items.Count < maxItems)
             {
@@ -126,10 +151,14 @@ public class InventoryController : MonoBehaviour
             }
         }
 
-
-        public override int ItemCount(ItemName item)
+        public override bool AddItem(int index, uint count)
         {
-            int count = 0;
+            return false; //cannot add item at index as no stacking
+        }
+
+        public override uint ItemCount(ItemName item)
+        {
+            uint count = 0;
             for (int i = 0; i < itemCount; i++)
             {
                 if (items[i].name == item)
@@ -138,7 +167,7 @@ public class InventoryController : MonoBehaviour
             return count;
         }
 
-        public override bool TakeItem(ItemName name, int count)
+        public override bool TakeItem(ItemName name, uint count)
         {
             for (int i = 0; i < itemCount; i++)
             {
@@ -147,6 +176,16 @@ public class InventoryController : MonoBehaviour
                     items.RemoveAt(i);
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public override bool TakeItem(int index, uint count)
+        {
+            if (index < items.Count && index >= 0)
+            {
+                items.RemoveAt(index);
+                return true;
             }
             return false;
         }
@@ -173,6 +212,33 @@ public class InventoryController : MonoBehaviour
     }
 
     public delegate void OptionDelegate(ItemType type, int itemIndex);
+    [System.Serializable]
+    public class InventorySave
+    {
+        public List<StackPanel.ItemStack> common;
+        public List<ItemStackBase> quest;
+        public List<ItemStackBase> weapon;
+        public List<ItemStackBase> sideArm;
+        public InventorySave(InventoryController c)
+        {
+            common = c.common.items;
+            quest = c.quest.items;
+            weapon = c.weapon.items;
+            sideArm = c.sideArm.items;
+        }
+    }
+
+    public InventorySave CreateSave()
+    {
+        return new InventorySave(this);
+    }
+    public void RestoreSave(InventorySave inventorySave)
+    {
+        common.items = inventorySave.common;
+        quest.items = inventorySave.quest;
+        weapon.items = inventorySave.weapon;
+        sideArm.items = inventorySave.sideArm;
+    }
 
     public StackPanel common;
     public UniquesPanel quest;
@@ -213,7 +279,10 @@ public class InventoryController : MonoBehaviour
         singleton = this;
     }
 
-    public static bool AddItem(ItemName n, int count) => singleton.items(singleton.db[n].type).AddItem(n, count);
-    public static bool TakeItem(ItemName n, int count = 1) => singleton.items(singleton.db[n].type).TakeItem(n, count);
-    public static int ItemCount(ItemName n) => singleton.items(singleton.db[n].type).ItemCount(n);
+    public static bool AddItem(ItemName n, uint count) => singleton.items(singleton.db[n].type).AddItem(n, count);
+    public static bool TakeItem(ItemName n, uint count = 1) => singleton.items(singleton.db[n].type).TakeItem(n, count);
+
+    public static bool AddItem(int index, ItemType type, uint count) => singleton.items(type).AddItem(index, count);
+    public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.items(type).TakeItem(index, count);
+    public static uint ItemCount(ItemName n) => singleton.items(singleton.db[n].type).ItemCount(n);
 }

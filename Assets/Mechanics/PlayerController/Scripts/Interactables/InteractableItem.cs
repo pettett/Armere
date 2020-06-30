@@ -10,14 +10,15 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
 
     ItemSpawner.SpawnType type;
     ItemName item;
-    int count;
+    uint count;
     ItemDatabase database;
-    public void Init(ItemSpawner.SpawnType type, ItemName item, int count, ItemDatabase database)
+    public void Init(ItemSpawner.SpawnType type, ItemName item, uint count, ItemDatabase database)
     {
         this.type = type;
         this.item = item;
         this.count = count;
         this.database = database;
+        AddToRegister();
     }
 
     public void Interact(PlayerController.Player_CharacterController c)
@@ -29,7 +30,9 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
         }
         else
         {
-            NewItemPrompt.singleton.ShowPrompt(item, count, null);
+            Time.timeScale = 0;
+
+            NewItemPrompt.singleton.ShowPrompt(item, count, () => { Time.timeScale = 1; });
             //Do not allow multiple chest opens
             enabled = false;
             gameObject.gameObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 40, 0);
@@ -41,7 +44,7 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
     public void OnStartHighlight()
     {
         //Show an arrow for this item with name on ui
-        UIController.singleton.itemIndicator.StartIndication(transform,item.ToString());
+        UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
     }
 
     public void OnEndHighlight()
@@ -52,6 +55,7 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
 
     void DestroyItem()
     {
+        RemoveFromRegister();
         if (type == ItemSpawner.SpawnType.Item)
         {
             enabled = false;
@@ -66,7 +70,7 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
         }
     }
 
-    public override void Disable()
+    public override void OnPlayerOutRange()
     {
         DestroyItem();
     }

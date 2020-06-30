@@ -25,16 +25,13 @@ title: Sell
 Jimbo: So you want to sell that?
 -> You can take it
     Jimbo: Thanks! I'll take whatever
-    Jimbo: <skip>
     <<ConfirmSell>>
     [[WaitForSell]]
 -> Actually, I'll Keep it
     Jimbo: Suit yourself
-    Jimbo: <skip>
     <<CancelSell>>
     [[WaitForSell]]
 -> <Exit>I need to go
     Jimbo: See you around
-    Jimbo: <skip>
     <<StopSell>>
 ===

@@ -3,8 +3,8 @@ title: Start
 Jimbo: Now you fixed the mill, bread production is back on track \n What can I do for you?
 -> Looking to buy
     Jimbo: I'm fresh in stock!
-    Jimbo: <skip>
     <<OfferToBuy>>
+    [[WaitForBuy]]
 -> Looking to sell
     <<OfferToSell>>
     [[WaitForSell]]
@@ -34,4 +34,28 @@ Jimbo: So you want to sell that?
 -> <Exit>I need to go
     Jimbo: See you around
     <<StopSell>>
+===
+
+title: WaitForBuy
+---
+Jimbo: I've got good meats!
+-> <Exit>I need to go
+    Jimbo: See you around
+    <<StopBuy>>
+===
+
+title: Buy
+---
+Jimbo: So you want to take one?
+-> Yep!
+    Jimbo: Thanks! Get it out of here!
+    <<ConfirmBuy>>
+    [[WaitForBuy]]
+-> Nope!
+    Jimbo: Suit yourself
+    <<CancelBuy>>
+    [[WaitForBuy]]
+-> <Exit>I need to go
+    Jimbo: See you around
+    <<StopBuy>>
 ===

@@ -17,14 +17,15 @@ namespace PlayerController
             c.cutsceneCamera.Priority = 50;
         }
         public override void End()
-        {            
+        {
             c.cameraController.lockingMouse = true;
             c.rb.isKinematic = false;
             c.cameraController.EnableControl();
             c.cutsceneCamera.Priority = 0;
         }
 
-        public override void Update() {
+        public override void Update()
+        {
 
             Cursor.lockState = CursorLockMode.None;
         }
@@ -35,17 +36,21 @@ namespace PlayerController
         }
 
 
-        public void RunSellMenu(System.Action<ItemType, int> onSelectItem){
-            UIController.singleton.buyMenu.SetActive(true);
-	      //Wait for a buy
-            UIController.singleton.buyMenu.GetComponentInChildren<InventoryUI>().onItemSelected = onSelectItem;
+        public void RunSellMenu(System.Action<ItemType, int> onSelectItem)
+        {
+            UIController.singleton.sellMenu.SetActive(true);
+            //Wait for a buy
+            UIController.singleton.sellMenu.GetComponentInChildren<InventoryUI>().onItemSelected = onSelectItem;
         }
-        public void CloseSellMenu(){
+        public void CloseSellMenu()
+        {
             //Close the buy menu
-            UIController.singleton.buyMenu.SetActive(false);
-            UIController.singleton.buyMenu.GetComponentInChildren<InventoryUI>().onItemSelected = null;
-
+            UIController.singleton.sellMenu.SetActive(false);
+            UIController.singleton.sellMenu.GetComponentInChildren<InventoryUI>().onItemSelected = null;
         }
+
+
+
 
     }
 }

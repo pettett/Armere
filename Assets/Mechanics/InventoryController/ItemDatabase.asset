@@ -62,7 +62,7 @@ MonoBehaviour:
       description: A trusty sword
       staticPickup: 0
       type: 1
-      sprite: {fileID: 21300000, guid: 29216f2d47291b54d899c79ed55c650e, type: 3}
+      sprite: {fileID: 21300000, guid: 7c743814603b02a44826ad1efd7ddf21, type: 3}
       mesh: {fileID: -7486298912302941878, guid: 268ceb1e3136cf944a9e57474d522fae,
         type: 3}
       materials:
@@ -83,11 +83,11 @@ MonoBehaviour:
       description: Tasty Snack
       staticPickup: 0
       type: 0
-      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
-      mesh: {fileID: -5495902117074765545, guid: 88c89e70d2281024aafcd933afa944a4,
+      sprite: {fileID: 21300000, guid: ac35566b90ee1ee44aa121ca0a1318ac, type: 3}
+      mesh: {fileID: -5023624866596571984, guid: 88c89e70d2281024aafcd933afa944a4,
         type: 3}
       materials:
-      - {fileID: 2100000, guid: 8560556ce2df113499650333949e3784, type: 2}
+      - {fileID: 2100000, guid: 011af645ed1946c40933a11f199d0b51, type: 2}
       properties: []
     - name: Herb
       description: Good with beef

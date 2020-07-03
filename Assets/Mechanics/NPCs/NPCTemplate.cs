@@ -11,14 +11,7 @@ public class NPCTemplate : ScriptableObject
     public Quest[] quests;
 
     public Yarn.Unity.InMemoryVariableStorage.DefaultVariable[] defaultValues;
-    [System.Serializable]
-    public class BuyMenuItem
-    {
-        public ItemName item;
-        public uint count;
-        public uint stock;
-        public uint cost;
-    }
+
     public BuyMenuItem[] buyMenuItems;
 
 }

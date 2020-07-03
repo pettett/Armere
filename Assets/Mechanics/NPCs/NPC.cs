@@ -36,11 +36,16 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     NPCSpawn spawn;
 
+    public BuyMenuItem[] buyInventory;
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;
         runner.Add(t.dialogue);
         this.spawn = spawn;
+
+        buyInventory = new BuyMenuItem[template.buyMenuItems.Length];
+        template.buyMenuItems.CopyTo(buyInventory, 0);
+
         npcName = spawn.spawnedNPCName;
         activeNPCs[npcName] = this;
         speakingNPC = npcName;
@@ -72,6 +77,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
         runner.AddCommandHandler("Animate", Animate);
         runner.AddCommandHandler("OfferToSell", OfferToSell);
+        runner.AddCommandHandler("OfferToBuy", OfferToBuy);
         runner.AddCommandHandler("GoTo", GoTo);
 
         runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
@@ -95,24 +101,90 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         );
     }
 
+    public void OfferToBuy(string[] arg)
+    {
+        print("Opening Buy Menu");
+        runner.AddCommandHandler("StopBuy", (a) =>
+        {
+            runner.RemoveCommandHandler("ConfirmBuy");
+            runner.RemoveCommandHandler("CancelBuy");
+            runner.RemoveCommandHandler("StopBuy");
+            UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>().CloseInventory();
+        });
+
+        UIController.singleton.buyMenu.SetActive(true);
+        //Wait for a buy
+        UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>().ShowInventory(buyInventory, InventoryController.singleton.db, OnBuyMenuItemSelected);
+    }
+
+    void OnBuyMenuItemSelected()
+    {
+        void ResetBuyCommands()
+        {
+            runner.RemoveCommandHandler("ConfirmBuy");
+            runner.RemoveCommandHandler("CancelBuy");
+        }
+        //Buy the item
+        runner.AddCommandHandler("ConfirmBuy", (string[] arg) =>
+        {
+            //Buy the item
+            print("Bought Item");
+
+
+            ResetBuyCommands();
+        });
+
+        runner.AddCommandHandler("CancelBuy", (string[] arg) =>
+        {
+            //Go back to selecting
+            print("Cancelled selection");
+            ResetBuyCommands();
+        });
+
+        //update the buy menu with revised amounts
+
+        //Restart the dialog
+        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+        runner.Stop();
+        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+        runner.StartDialogue("Buy");
+    }
+
     public void OfferToSell(string[] arg)
     {
         print("Selling");
 
         runner.AddCommandHandler("StopSell", StopSell);
         //Show the Inventory UI
-        currentConv.RunSellMenu(OnItemSelected);
+        currentConv.RunSellMenu(OnSellMenuItemSelected);
         //Wait for the player to select an item
     }
-    void OnItemSelected(ItemType type, int itemIndex)
+
+
+    void OnSellMenuItemSelected(ItemType type, int itemIndex)
     {
+
         //Buy the item
-        runner.AddCommandHandler("ConfirmSell", ConfirmSell);
-        runner.AddCommandHandler("CancelSell", CancelSell);
+        runner.AddCommandHandler("ConfirmSell", (string[] arg) =>
+        {
+            //Buy the item
+            print("Sold Item");
+
+            //TODO - Add amount control
+            InventoryController.TakeItem(itemIndex, type);
+
+            ReEnableSellMenu();
+        });
+
+        runner.AddCommandHandler("CancelSell", (string[] arg) =>
+        {
+            //Go back to selecting
+            print("Cancelled selection");
+            ReEnableSellMenu();
+        });
+
         print("Selected item " + type.ToString());
 
-        //TODO - Add amount control
-        InventoryController.TakeItem(itemIndex, type);
 
         //update the buy menu with revised amounts
 
@@ -122,24 +194,13 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
         runner.StartDialogue("Sell");
     }
-    void ReEnableBuyMenu()
+    void ReEnableSellMenu()
     {
         runner.RemoveCommandHandler("ConfirmSell");
         runner.RemoveCommandHandler("CancelSell");
         // runner.StartDialogue("WaitForSell");
     }
-    void ConfirmSell(string[] arg)
-    {
-        //Buy the item
-        print("Sold Item");
-        ReEnableBuyMenu();
-    }
-    void CancelSell(string[] arg)
-    {
-        //Go back to selecting
-        print("Cancelled selection");
-        ReEnableBuyMenu();
-    }
+
     void StopSell(string[] arg)
     {
         runner.RemoveCommandHandler("ConfirmSell");

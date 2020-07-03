@@ -189,6 +189,12 @@ public class ContourGenerator : MonoBehaviour
         int cascadeCount = Mathf.CeilToInt(terrain.terrainData.size.y / contourDistance);
         //levels = new ContourLevel[cascadeCount - 1];
         List<ContourLevel> l = new List<ContourLevel>();
+
+        isoLineResolution = terrain.terrainData.heightmapResolution - 1;
+
+        //Use byte array to reduce memory useage, as no number will ever be greater than 15
+        cases = new byte[isoLineResolution, isoLineResolution];
+
         for (int i = 0; i < cascadeCount - 1; i++)
         {
             var le = GenerateIsoLines(i * contourDistance / terrain.terrainData.size.y);
@@ -212,7 +218,6 @@ public class ContourGenerator : MonoBehaviour
 
         Color[] colors = new Color[res * res];
         float pixelGap = 1f / res;
-        float h;
 
         float[] s = new float[9];
         Vector3 normal = new Vector3();
@@ -271,8 +276,10 @@ public class ContourGenerator : MonoBehaviour
         return heights[y, x] >= level;
     }
     float Height(int x, int y) => heights[y, x];
-
-
+    int isoLineResolution;
+    byte[,] cases;
+    //Number of segments in every case from 0 to 15
+    readonly byte[] segmentsPerCase = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
 
     ContourLevel GenerateIsoLines(float level)
     {
@@ -285,24 +292,20 @@ public class ContourGenerator : MonoBehaviour
         float topRight;
         float bottomRight;
 
-        int isoLineResolution = terrain.terrainData.heightmapResolution - 1;
-
-        int[,] cases = new int[isoLineResolution, isoLineResolution];
-
         int lineSegments = 0;
 
-        int[] segmentsPerCase = new int[]{//Number of segments in every case from 0 to 15
-            0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0
-        };
 
         for (int x = 0; x < isoLineResolution; x++)
         {
             for (int y = 0; y < isoLineResolution; y++)
             {
-                cases[x, y] = (SampleHeightmap(x, y, level) ? 1 : 0) +
-                (SampleHeightmap(x + 1, y, level) ? 2 : 0) +
-                (SampleHeightmap(x, y + 1, level) ? 4 : 0) +
-                (SampleHeightmap(x + 1, y + 1, level) ? 8 : 0);
+                if (SampleHeightmap(x, y, level)) cases[x, y] = 1;
+                else cases[x, y] = 0; //Case array is being reused
+                if (SampleHeightmap(x + 1, y, level)) cases[x, y] += 2;
+                if (SampleHeightmap(x, y + 1, level)) cases[x, y] += 4;
+                if (SampleHeightmap(x + 1, y + 1, level)) cases[x, y] += 8;
+
+
                 //Add to the running total of cases required
                 lineSegments += segmentsPerCase[cases[x, y]];
             }
@@ -402,6 +405,7 @@ public class ContourGenerator : MonoBehaviour
                 index += segmentsPerCase[cases[x, y]] * 2;
             }
         }
+
 
         Debug.Assert(index == lines.Count);
 

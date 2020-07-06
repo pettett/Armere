@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
-
+using Yarn.Unity;
 public class NPCManager : MonoBehaviour
 {
     public static NPCManager singleton;
+    public DialogueRunner dialogueRunner;
+    
     private void Awake()
     {
         if (singleton != null)

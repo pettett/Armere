@@ -2,7 +2,6 @@ title: Start
 ---
 Jimbo: Now you fixed the mill, bread production is back on track \n What can I do for you?
 -> Looking to buy
-    Jimbo: I'm fresh in stock!
     <<OfferToBuy>>
     [[WaitForBuy]]
 -> Looking to sell

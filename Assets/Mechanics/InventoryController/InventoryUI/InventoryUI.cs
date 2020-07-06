@@ -12,9 +12,7 @@ public class InventoryUI : MonoBehaviour
 
     public ItemDatabase db;
     public Transform gridPanelHolder;
-    public Image selectedSprite;
-    public TextMeshProUGUI selectedTitle;
-    public TextMeshProUGUI selectedDescription;
+    public ItemInfoDisplay selectedDisplay;
     public bool sellMenu;
     public System.Action<ItemType, int> onItemSelected;
 
@@ -67,9 +65,7 @@ public class InventoryUI : MonoBehaviour
 
     public void OnItemSelected(ItemName item)
     {
-        selectedTitle.text = db[item].name;
-        selectedSprite.sprite = db[item].sprite;
-        selectedDescription.text = db[item].description;
+        selectedDisplay.ShowInfo(item, db);
     }
 
     private void OnEnable()

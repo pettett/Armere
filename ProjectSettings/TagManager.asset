@@ -17,7 +17,7 @@ TagManager:
   - PlayerClip
   - Player
   - IgnoreNavMesh
-  - 
+  - PostProcessing
   - 
   - 
   - 

@@ -265,7 +265,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 120.79999, y: -25.000004}
-  m_SizeDelta: {x: 177.35236, y: 50}
+  m_SizeDelta: {x: 374.57385, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &251537585109806162
 CanvasRenderer:
@@ -294,7 +294,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "100\u20AC"
+  m_text: "4294967295\u20AC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -363,7 +363,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 8194696403978631329}
-    characterCount: 4
+    characterCount: 11
     spriteCount: 0
     spaceCount: 0
     wordCount: 1
@@ -400,6 +400,7 @@ GameObject:
   - component: {fileID: 3172806766491687334}
   - component: {fileID: 5532545724493098810}
   - component: {fileID: 2160625066887689415}
+  - component: {fileID: 70926387977181384}
   m_Layer: 5
   m_Name: BuyMenuTemplate
   m_TagString: Untagged
@@ -505,6 +506,8 @@ MonoBehaviour:
   stock: {fileID: 6273709884347542669}
   thumbnail: {fileID: 8872518819915775845}
   selectButton: {fileID: 2160625066887689415}
+  controller: {fileID: 0}
+  index: 0
 --- !u!114 &2160625066887689415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -548,6 +551,49 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &70926387977181384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6507908986349701572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 9
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 5532545724493098810}
+          m_MethodName: OnSelect
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 5532545724493098810}
+          m_MethodName: OnPointerOver
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &7433729226283087710
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,7 +629,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: -7.3900146, y: -25.000004}
-  m_SizeDelta: {x: 169.96423, y: 50}
+  m_SizeDelta: {x: 372.24133, y: 50}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &8805932189583822004
 CanvasRenderer:
@@ -612,7 +658,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 10
+  m_text: 4294967295
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -681,7 +727,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 6273709884347542669}
-    characterCount: 2
+    characterCount: 10
     spriteCount: 0
     spaceCount: 0
     wordCount: 1
@@ -739,7 +785,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 120.79999, y: 25}
-  m_SizeDelta: {x: 177.35236, y: 50}
+  m_SizeDelta: {x: 374.57385, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &352046938832939856
 CanvasRenderer:

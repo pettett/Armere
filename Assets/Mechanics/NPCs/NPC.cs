@@ -14,6 +14,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public string prefix => "$NPC_";
 
 
+
     public Value this[string name]
     {
         //Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved
@@ -36,15 +37,23 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     NPCSpawn spawn;
 
+
     public BuyMenuItem[] buyInventory;
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;
         runner.Add(t.dialogue);
         this.spawn = spawn;
-
-        buyInventory = new BuyMenuItem[template.buyMenuItems.Length];
-        template.buyMenuItems.CopyTo(buyInventory, 0);
+        //Copy the buy inventory
+        buyInventory = new BuyMenuItem[t.buyMenuItems.Length];
+        for (int i = 0; i < buyInventory.Length; i++)
+        {
+            //Copy all the data
+            buyInventory[i].item = t.buyMenuItems[i].item;
+            buyInventory[i].cost = t.buyMenuItems[i].cost;
+            buyInventory[i].count = t.buyMenuItems[i].count;
+            buyInventory[i].stock = t.buyMenuItems[i].stock;
+        }
 
         npcName = spawn.spawnedNPCName;
         activeNPCs[npcName] = this;
@@ -100,21 +109,23 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
         );
     }
-
+    BuyInventoryUI buyMenu;
     public void OfferToBuy(string[] arg)
     {
+        buyMenu = UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>();
         print("Opening Buy Menu");
         runner.AddCommandHandler("StopBuy", (a) =>
         {
             runner.RemoveCommandHandler("ConfirmBuy");
             runner.RemoveCommandHandler("CancelBuy");
             runner.RemoveCommandHandler("StopBuy");
-            UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>().CloseInventory();
+            //Apply the changes made to the buy menu to the inventory
+            buyMenu.CloseInventory();
         });
 
         UIController.singleton.buyMenu.SetActive(true);
         //Wait for a buy
-        UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>().ShowInventory(buyInventory, InventoryController.singleton.db, OnBuyMenuItemSelected);
+        buyMenu.ShowInventory(buyInventory, InventoryController.singleton.db, OnBuyMenuItemSelected);
     }
 
     void OnBuyMenuItemSelected()
@@ -128,16 +139,14 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         runner.AddCommandHandler("ConfirmBuy", (string[] arg) =>
         {
             //Buy the item
-            print("Bought Item");
-
-
+            buyMenu.ConfirmBuy();
             ResetBuyCommands();
         });
-
+        //Do not buy the item
         runner.AddCommandHandler("CancelBuy", (string[] arg) =>
         {
             //Go back to selecting
-            print("Cancelled selection");
+            buyMenu.CancelBuy();
             ResetBuyCommands();
         });
 
@@ -404,8 +413,14 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     }
     private void CameraPan(string[] arg, System.Action onComplete)
     {
-        //pan the camera to the target destination
-        StartCoroutine(TurnCameraToTarget(spawn.focusPoints[arg[0]].position, onComplete));
+        if (spawn.focusPoints.ContainsKey(arg[0]))
+            //pan the camera to the target destination
+            StartCoroutine(TurnCameraToTarget(spawn.focusPoints[arg[0]].position, onComplete));
+        else
+        {
+            Debug.LogWarning("Lookat target not in dictionary");
+            onComplete?.Invoke();
+        }
     }
 
 
@@ -425,11 +440,18 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     }
     void TurnNPCAndPlayerToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = spawn.focusPoints[arg[0]].position;
-        target.y = transform.position.y;
-        transform.LookAt(target);
-        target.y = c.transform.position.y;
-        c.transform.LookAt(target);
+        if (spawn.focusPoints.ContainsKey(arg[0]))
+        {
+            Vector3 target = spawn.focusPoints[arg[0]].position;
+            target.y = transform.position.y;
+            transform.LookAt(target);
+            target.y = c.transform.position.y;
+            c.transform.LookAt(target);
+        }
+        else
+        {
+            Debug.LogWarning("Lookat target not in dictionary");
+        }
         onComplete?.Invoke();
     }
 

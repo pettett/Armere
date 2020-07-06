@@ -6,9 +6,11 @@ using UnityEngine.InputSystem;
 
 namespace PlayerController
 {
-    [Serializable]
-    [RequiresParallelState(typeof(ToggleMenus))]
-    [RequiresParallelState(typeof(Interact))]
+    [
+        Serializable,
+        RequiresParallelState(typeof(ToggleMenus)),
+        RequiresParallelState(typeof(Interact))
+    ]
     public class Walking : MovementState
     {
         public override string StateName => "Walking";

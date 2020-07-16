@@ -58,7 +58,7 @@ title: GiveSticks
 Jeff: Thats not anough sticks \n Sorry but it's important that there anough. \n Please gather <color=itemCol>10</color> sticks
 <<else>>
 Jeff: Wow! you got 10 sticks
-<<ProgressQuest JeffSticks>>
+<<DeliverQuest JeffSticks>>
 <<endif>>
 [[MainLoop]]
 ===

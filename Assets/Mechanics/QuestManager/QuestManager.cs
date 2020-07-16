@@ -1,10 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class QuestManager : MonoBehaviour
 {
     public static QuestManager singleton;
+    public QuestDatabase qdb;
 
     [System.Serializable]
     public class QuestStatus
@@ -20,7 +20,14 @@ public class QuestManager : MonoBehaviour
         singleton = this;
         quests = new List<QuestStatus>();
         completedQuests = new List<QuestStatus>();
+
     }
+    private void Start()
+    {
+        //Add listener for new item event
+        InventoryController.singleton.onItemAdded += OnInventoryItemAdded;
+    }
+
     public static bool TryGetQuest(string questName, out QuestStatus q)
     {
         for (int i = 0; i < singleton.quests.Count; i++)
@@ -47,34 +54,93 @@ public class QuestManager : MonoBehaviour
         q = default;
         return false;
     }
+    public static void AddQuest(string name)
+    {
+        //Try to find the quest
+        foreach (Quest q in singleton.qdb.quests)
+            if (q.name == name)
+            {
+                singleton.quests.Add(new QuestStatus() { quest = q });
+                return;//When found return
+            }
+        throw new System.ArgumentException("No quest with that name in database", name);
+    }
 
     public static void AddQuest(Quest q)
     {
         singleton.quests.Add(new QuestStatus() { quest = q });
     }
-
-    public static void ProgressQuest(string questName)
+    public void OnInventoryItemAdded(ItemName newItem)
     {
+        //test if any quests are listening for this event
         for (int i = 0; i < singleton.quests.Count; i++)
         {
-            if (singleton.quests[i].quest.name == questName)
+            if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.Acquire && //if is listening for any item
+                singleton.quests[i].quest.stages[singleton.quests[i].stage].item == newItem &&  //and is listening for this item
+                InventoryController.ItemCount(newItem) >= singleton.quests[i].quest.stages[singleton.quests[i].stage].count //And the player now has at least this many items
+            )
             {
-                InventoryController.TakeItem(
-                    singleton.quests[i].quest.stages[singleton.quests[i].stage].item,
-                    singleton.quests[i].quest.stages[singleton.quests[i].stage].count);
-
-                singleton.quests[i].stage++;
-                if (singleton.quests[i].stage == singleton.quests[i].quest.stages.Length)
-                {
-                    //quest is complete
-                    CompleteQuest(i);
-                }
+                ProgressQuest(i);
             }
         }
     }
+
+    public static void ForfillDeliverQuest(string questName)
+    {
+        for (int i = 0; i < singleton.quests.Count; i++)
+            if (singleton.quests[i].quest.name == questName)
+            {
+                if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type != Quest.QuestType.Deliver)
+                    throw new System.ArgumentException("Quest is not in deliver orstage");
+                InventoryController.TakeItem(
+                    singleton.quests[i].quest.stages[singleton.quests[i].stage].item,
+                    singleton.quests[i].quest.stages[singleton.quests[i].stage].count);
+                ProgressQuest(i);
+                return;
+            }
+    }
+    public static void ForfillTalkToQuest(string questName)
+    {
+        for (int i = 0; i < singleton.quests.Count; i++)
+            if (singleton.quests[i].quest.name == questName)
+            {
+                if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type != Quest.QuestType.TalkTo)
+                    throw new System.ArgumentException("Quest is not in talk to stage");
+                ProgressQuest(i);
+                return;
+            }
+    }
+
+
+
+
+
+    public static void ProgressQuest(int index)
+    {
+        singleton.quests[index].stage++;
+        if (singleton.quests[index].stage == singleton.quests[index].quest.stages.Length)
+        {
+            //quest is complete
+            CompleteQuest(index);
+        }
+    }
+
+
     public static void CompleteQuest(int index)
     {
         singleton.completedQuests.Add(singleton.quests[index]);
+        for (int i = 0; i < singleton.quests.Count; i++)
+        {
+            if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.Complete &&
+            singleton.quests[i].quest.stages[singleton.quests[i].stage].quest == singleton.quests[index].quest.name
+            )
+            {
+                //Completed this quest and progressing this next quest
+                ProgressQuest(i);
+                //Do not break as multiple quests may be waiting for this one
+            }
+        }
+
         singleton.quests.RemoveAt(index);
     }
 }

@@ -14,13 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   title: Open The Mines
   stages:
-  - description: The Mayor wants you to open the iron mines
+  - description: The Digga wants you to open the iron mines. First learn to use the
+      bow
     type: 1
     receiver: 0
     item: 0
     count: 0
+    damage: 20
+    quest: 
   - description: Get past the bandits and steal the deed
     type: 0
     receiver: 9
     item: 1
     count: 1
+    damage: 20
+    quest: 

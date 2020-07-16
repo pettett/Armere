@@ -1,0 +1,12 @@
+title: Start
+---
+Wizard: Welcome to my tower!
+-> How's Things?
+    Wizard: Good. Better with my scrolls
+-> Whats the scroll for
+    Wizard: Magic. You'll need it to get the dungeon key
+-> Whats in the dungeon
+    Wizard: Not really sure
+-> <Exit> Bye:
+    [[Exit]]
+===

@@ -16,7 +16,6 @@ public class ItemDatabase : ScriptableObject
         public Sprite sprite;
         public Mesh mesh;
         public Material[] materials;
-
         public ItemPropertyBase[] properties;
     }
     [System.Serializable]

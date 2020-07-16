@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class InventoryController : MonoBehaviour
 {
+
+
     [System.Serializable]
     public class ItemStackBase
     {
@@ -19,6 +21,7 @@ public class InventoryController : MonoBehaviour
         public abstract bool TakeItem(ItemName name, uint count);
         public abstract bool TakeItem(int index, uint count);
         public abstract uint ItemCount(ItemName item);
+        public abstract ItemName ItemAt(int index);
 
         public InventoryPanel(string name, OptionDelegate[] options)
         {
@@ -121,6 +124,10 @@ public class InventoryController : MonoBehaviour
             }
             else return false;
         }
+
+        public override ItemName ItemAt(int index) => items[index].name;
+
+
     }
     public class UniquesPanel : InventoryPanel
     {
@@ -156,6 +163,9 @@ public class InventoryController : MonoBehaviour
             return false; //cannot add item at index as no stacking
         }
 
+        public override ItemName ItemAt(int index) => items[index].name;
+
+
         public override uint ItemCount(ItemName item)
         {
             uint count = 0;
@@ -190,7 +200,8 @@ public class InventoryController : MonoBehaviour
             return false;
         }
     }
-
+    public delegate void NewItemDelegate(ItemName item);
+    public NewItemDelegate onItemAdded;
 
     public ItemDatabase db;
 
@@ -279,10 +290,24 @@ public class InventoryController : MonoBehaviour
         singleton = this;
     }
 
-    public static bool AddItem(ItemName n, uint count) => singleton.items(singleton.db[n].type).AddItem(n, count);
+    public static bool AddItem(ItemName n, uint count)
+    {
+        var b = singleton.items(singleton.db[n].type).AddItem(n, count);
+        if (b)
+            singleton.onItemAdded?.Invoke(n);
+        return b;
+    }
+
+
     public static bool TakeItem(ItemName n, uint count = 1) => singleton.items(singleton.db[n].type).TakeItem(n, count);
 
-    public static bool AddItem(int index, ItemType type, uint count) => singleton.items(type).AddItem(index, count);
+    public static bool AddItem(int index, ItemType type, uint count)
+    {
+        var b = singleton.items(type).AddItem(index, count);
+        if (b) //Use itemat command to find the type of item that was added
+            singleton.onItemAdded?.Invoke(singleton.items(type).ItemAt(index));
+        return b;
+    }
     public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.items(type).TakeItem(index, count);
     public static uint ItemCount(ItemName n) => singleton.items(singleton.db[n].type).ItemCount(n);
 }

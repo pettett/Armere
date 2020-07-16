@@ -12,4 +12,5 @@
     Digga,
     Mayor,
     BlackSmith,
+    Wizard,
 }

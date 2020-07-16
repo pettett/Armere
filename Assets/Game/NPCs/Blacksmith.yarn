@@ -1,5 +1,6 @@
 title: Start
 ---
+<<if $QuestStage_Tutorial > 0>>
 BlackSmith: You want an iron sword? Or something more specialized?
 ->Iron Sword?
     BlackSmith: The new federated high consel ordered a shipment of 500 basic iron swords
@@ -19,8 +20,9 @@ BlackSmith: You want an iron sword? Or something more specialized?
     BlackSmith: Take a look at this
 ->Bye
     BlackSmith: Bye
-
-
+<<else>>
+BlackSmith: Talk to the mayor before more
+<<endif>>
 ===
 
 

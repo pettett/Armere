@@ -25,7 +25,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public NPCName npcName;
     public Transform ambientThought;
     new Camera camera;
-    DialogueRunner runner;
     NPCTemplate t;
     Transform[] conversationGroupOverride;
     Conversation currentConv;
@@ -42,7 +41,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;
-        runner.Add(t.dialogue);
+
         this.spawn = spawn;
         //Copy the buy inventory
         buyInventory = new BuyMenuItem[t.buyMenuItems.Length];
@@ -60,6 +59,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         speakingNPC = npcName;
         this.conversationGroupOverride = conversationGroupOverride;
     }
+
     protected override void Start()
     {
         base.Start();
@@ -75,24 +75,66 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     private void Awake()
     {
         camera = Camera.main;
-
-        runner = GetComponent<DialogueRunner>();
-        runner.AddCommandHandler("quest", GiveQuest);
-        runner.AddCommandHandler("ProgressQuest", ProgressQuest);
-        runner.AddCommandHandler("cameraPan", CameraPan);
-        runner.AddCommandHandler("GiveItems", GiveItems);
-        runner.AddCommandHandler("TurnPlayerToTarget", TurnPlayerToTarget);
-        runner.AddCommandHandler("TurnNPCToTarget", TurnNPCToTarget);
-        runner.AddCommandHandler("TurnNPCAndPlayerToTarget", TurnNPCAndPlayerToTarget);
-        runner.AddCommandHandler("Animate", Animate);
-        runner.AddCommandHandler("OfferToSell", OfferToSell);
-        runner.AddCommandHandler("OfferToBuy", OfferToBuy);
-        runner.AddCommandHandler("GoTo", GoTo);
-
-        runner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
-        runner.dialogueUI = DialogueInstances.singleton.dialogueUI;
-
     }
+
+    DialogueRunner runner => NPCManager.singleton.dialogueRunner;
+
+    public const string GiveQuestCommand = "quest";
+    public const string DeliverQuestCommand = "DeliverQuest";
+    public const string TalkToQuestCommand = "TalkToQuest";
+    public const string CameraPanCommand = "cameraPan";
+    public const string GiveItemsCommand = "GiveItems";
+    public const string TurnPlayerToTargetCommand = "TurnPlayerToTarget";
+    public const string TurnNPCToTargetCommand = "TurnNPCToTarget";
+    public const string TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget";
+    public const string AnimateCommand = "Animate";
+    public const string OfferToSellCommand = "OfferToSell";
+    public const string OfferToBuyCommand = "OfferToBuy";
+    public const string GoToCommand = "GoTo";
+    public void SetupRunner()
+    {
+
+        runner.Add(t.dialogue);
+        runner.AddCommandHandler(GiveQuestCommand, GiveQuest);
+        runner.AddCommandHandler(DeliverQuestCommand, DeliverQuest);
+        runner.AddCommandHandler(TalkToQuestCommand, TalkToQuest);
+        runner.AddCommandHandler(CameraPanCommand, CameraPan);
+        runner.AddCommandHandler(GiveItemsCommand, GiveItems);
+        runner.AddCommandHandler(TurnPlayerToTargetCommand, TurnPlayerToTarget);
+        runner.AddCommandHandler(TurnNPCToTargetCommand, TurnNPCToTarget);
+        runner.AddCommandHandler(TurnNPCAndPlayerToTargetCommand, TurnNPCAndPlayerToTarget);
+        runner.AddCommandHandler(AnimateCommand, Animate);
+        runner.AddCommandHandler(OfferToSellCommand, OfferToSell);
+        runner.AddCommandHandler(OfferToBuyCommand, OfferToBuy);
+        runner.AddCommandHandler(GoToCommand, GoTo);
+    }
+
+    public void CleanUpRunner()
+    {
+        print("Cleaning up dialogue runner after dialogue");
+        //Remove all commands from the runner as well as removing dialogue
+        runner.Clear();
+        runner.ClearStringTable();
+        runner.Stop();
+        runner.RemoveCommandHandler(GiveQuestCommand);
+        runner.RemoveCommandHandler(DeliverQuestCommand);
+        runner.RemoveCommandHandler(TalkToQuestCommand);
+        runner.RemoveCommandHandler(CameraPanCommand);
+        runner.RemoveCommandHandler(GiveItemsCommand);
+        runner.RemoveCommandHandler(TurnPlayerToTargetCommand);
+        runner.RemoveCommandHandler(TurnNPCToTargetCommand);
+        runner.RemoveCommandHandler(TurnNPCAndPlayerToTargetCommand);
+        runner.RemoveCommandHandler(AnimateCommand);
+        runner.RemoveCommandHandler(OfferToSellCommand);
+        runner.RemoveCommandHandler(OfferToBuyCommand);
+        runner.RemoveCommandHandler(GoToCommand);
+
+        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+        DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
+
+        (runner.variableStorage as InMemoryVariableStorage).addon = null;
+    }
+
     void SetDialogBoxActive(bool active) => DialogueInstances.singleton.dialogueUI.dialogueContainer.SetActive(active);
     void EnableDialogBox() => SetDialogBoxActive(true);
     void DisableDialogBox() => SetDialogBoxActive(false);
@@ -306,6 +348,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     public void Interact(Player_CharacterController c)
     {
+        SetupRunner();
+
         this.c = c;
         currentConv = c.ChangeToState<Conversation>();
 
@@ -351,10 +395,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         activeNPCs[speakingNPC].StopSpeaking();
         hasSpeaker = false;
         c.ChangeToState<Walking>();
-        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-        DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
+
         ResetCamera();
-        (runner.variableStorage as InMemoryVariableStorage).addon = null;
+
+        CleanUpRunner();
     }
 
 
@@ -370,6 +414,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     {
         DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
         DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+
         runner.StartDialogue("Start");
 
         Quaternion desiredRot = Quaternion.LookRotation(playerPosition - transform.position);
@@ -406,11 +451,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             }
         }
     }
-    void ProgressQuest(string[] arg)
-    {
-        string questName = arg[0];
-        QuestManager.ProgressQuest(questName);
-    }
+    void DeliverQuest(string[] arg) => QuestManager.ForfillDeliverQuest(arg[0]);
+
+    void TalkToQuest(string[] arg) => QuestManager.ForfillTalkToQuest(arg[0]);
+
+
     private void CameraPan(string[] arg, System.Action onComplete)
     {
         if (spawn.focusPoints.ContainsKey(arg[0]))

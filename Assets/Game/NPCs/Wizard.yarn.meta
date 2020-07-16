@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: cfd79c98b9982d647b46c69012fd36d2
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - Wizard-Start-0
+  - Wizard-Start-1
+  - Wizard-Start-2
+  - Wizard-Start-3
+  - Wizard-Start-4
+  - Wizard-Start-5
+  - Wizard-Start-6
+  - Wizard-Start-7
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {fileID: 7128917941130120860, guid: cfd79c98b9982d647b46c69012fd36d2,
+    type: 3}
+  localizations: []

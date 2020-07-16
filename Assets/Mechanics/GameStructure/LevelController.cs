@@ -5,14 +5,14 @@ using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 public enum LevelName
 {
-    test,
-    stealthTest
+    test = 0,
+    stealthTest = 1
 }
 public static class LevelController
 {
     public static LevelName currentLevel;
     static System.Action<Scene, LoadSceneMode> onLevelLoaded;
-    public static void ChangeToLevel(LevelName level, System.Action<Scene, LoadSceneMode> onLevelLoadedEvent)
+    public static void ChangeToLevel(LevelName level, System.Action<Scene, LoadSceneMode> onLevelLoadedEvent = null)
     {
         currentLevel = level;
         onLevelLoaded = onLevelLoadedEvent;

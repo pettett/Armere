@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4832598259131234588
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4832598259131234584}
+  - component: {fileID: 4832598259131234590}
+  - component: {fileID: 4832598259131234589}
+  - component: {fileID: 4832598259131234585}
+  - component: {fileID: 4832598259131234586}
+  - component: {fileID: 4832598259131234591}
+  - component: {fileID: 6225402510337564490}
+  - component: {fileID: 1254477659995837600}
+  m_Layer: 0
+  m_Name: PersistentGameManagers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4832598259131234584
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4832598259131234590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e153d1f244c7ed04e885bd12618ee4dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  db: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
+--- !u!114 &4832598259131234589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1debd933a18c0274987ed785317e643e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  qdb: {fileID: 11400000, guid: a5be63a84bd90c74790a8163832869f0, type: 2}
+  quests: []
+  completedQuests: []
+--- !u!114 &4832598259131234585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77da173dffde79446b0ebe50e00697b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  volumes: []
+--- !u!114 &4832598259131234586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f943c9fad36fa554f8e413a029186d90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueRunner: {fileID: 1254477659995837600}
+--- !u!114 &4832598259131234591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64e9fa245efd3c04a8b6f9a9b7f9139b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  quicksaveAction:
+    m_Name: <keyboard>/f5
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 2c343851-aa6e-4e79-b0e6-9aad11cb7d09
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 8dc4cc4b-d8d0-4f45-816e-f85fbe42c15b
+      m_Path: <Keyboard>/f5
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: <keyboard>/f5
+      m_Flags: 0
+  lastSaveDir: 
+--- !u!114 &6225402510337564490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7391c27d182794e4ea55f2e595008831, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startingCommands:
+  - give IronSword 1
+  - givequest Tutorial
+--- !u!114 &1254477659995837600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bec29c0a230741bdac901dba8da47ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yarnScripts: []
+  textLanguage: 
+  variableStorage: {fileID: 0}
+  dialogueUI: {fileID: 0}
+  startNode: Start
+  startAutomatically: 0
+  onNodeComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  onDialogueComplete:
+    m_PersistentCalls:
+      m_Calls: []

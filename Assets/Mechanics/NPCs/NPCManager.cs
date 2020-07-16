@@ -7,7 +7,7 @@ public class NPCManager : MonoBehaviour
 {
     public static NPCManager singleton;
     public DialogueRunner dialogueRunner;
-    
+
     private void Awake()
     {
         if (singleton != null)
@@ -16,6 +16,12 @@ public class NPCManager : MonoBehaviour
         {
             DontDestroyOnLoad(gameObject);
             singleton = this;
+
+
+
+            dialogueRunner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
+            dialogueRunner.dialogueUI = DialogueInstances.singleton.dialogueUI;
+
         }
     }
 

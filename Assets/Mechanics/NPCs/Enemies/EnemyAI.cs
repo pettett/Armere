@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+[RequireComponent(typeof(Health))]
 public class EnemyAI : AIBase, IAttackable
 {
     public enum EnemyBehaviour
@@ -27,7 +27,7 @@ public class EnemyAI : AIBase, IAttackable
         public Vector3[] path = new Vector3[0];
     }
     [MyBox.ConditionalField("enemyBehaviour", false, EnemyBehaviour.Patrol)] public PatrolData patrolData;
-
+    public Health health;
     [Header("Player Detection")]
     public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
     [MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
@@ -47,12 +47,13 @@ public class EnemyAI : AIBase, IAttackable
     bool investigateOnSight = false;
     bool engageOnAttack = true;
 
-    public void Attack()
+    public void Attack(float damage)
     {
         //Push the ai back
+        health.Damage(damage,gameObject);
         print("Hit Enemy");
-
-        ChangeRoutine(EngagePlayer());
+        if (engageOnAttack)
+            ChangeRoutine(EngagePlayer());
     }
 
 
@@ -73,6 +74,7 @@ public class EnemyAI : AIBase, IAttackable
 
     protected override void Start()
     {
+        health = GetComponent<Health>();
         base.Start();
         StartBaseRoutine();
     }

@@ -18,7 +18,7 @@ public class Animal : MonoBehaviour, IAttackable
     public float speed = 1f;
     public float scareSpeed = 3f;
     public ItemDatabase db;
-    public void Attack()
+    public void Attack(float damage)
     {
         //Die
         print("Hit Animal");

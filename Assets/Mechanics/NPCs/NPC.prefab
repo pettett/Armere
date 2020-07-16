@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 934568498111962955}
   - component: {fileID: 2318585634096166334}
   - component: {fileID: 2318585634096166320}
-  - component: {fileID: 2318585634096166321}
   - component: {fileID: 2318585634096166322}
   - component: {fileID: 3580662529507969412}
   m_Layer: 0
@@ -86,30 +85,7 @@ MonoBehaviour:
   npcName: 0
   ambientThought: {fileID: 4652687440477550186}
   animator: {fileID: 0}
---- !u!114 &2318585634096166321
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2318585634096166333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bec29c0a230741bdac901dba8da47ee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yarnScripts: []
-  textLanguage: 
-  variableStorage: {fileID: 0}
-  dialogueUI: {fileID: 0}
-  startNode: Start
-  startAutomatically: 0
-  onNodeComplete:
-    m_PersistentCalls:
-      m_Calls: []
-  onDialogueComplete:
-    m_PersistentCalls:
-      m_Calls: []
+  buyInventory: []
 --- !u!136 &2318585634096166322
 CapsuleCollider:
   m_ObjectHideFlags: 0

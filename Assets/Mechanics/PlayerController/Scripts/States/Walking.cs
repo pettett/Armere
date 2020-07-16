@@ -101,12 +101,24 @@ namespace PlayerController
                 return walkingSpeed;
         }
         int currentWeapon = -1;
+        int meleeWeaponPropertyIndex = -1;
+        MeleeWeapon meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentWeapon].name].properties[meleeWeaponPropertyIndex] as MeleeWeapon;
+
         public override void OnSelectWeapon(int index)
         {
             if (InventoryController.singleton.weapon.items.Count > index)
             {
                 currentWeapon = index;
-                c.weaponGraphicsController.SetHeldWeapon(InventoryController.singleton.weapon.items[index].name, c.db);
+                ItemName name = InventoryController.singleton.weapon.items[index].name;
+                for (int i = 0; i < c.db[name].properties.Length; i++)
+                {
+                    if (c.db[name].properties[i].GetType() == typeof(MeleeWeapon))
+                        meleeWeaponPropertyIndex = i;
+                }
+                if (meleeWeaponPropertyIndex == -1)
+                    throw new System.Exception("Melee weapon requires apropiet data");
+
+                c.weaponGraphicsController.SetHeldWeapon(name, c.db);
             }
         }
 
@@ -164,7 +176,7 @@ namespace PlayerController
             {
                 if (other.TryGetComponent<IAttackable>(out IAttackable a))
                 {
-                    a.Attack();
+                    a.Attack(meleeWeapon.damage);
                 }
             }
 

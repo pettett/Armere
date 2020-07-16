@@ -7,8 +7,10 @@ public class Quest : ScriptableObject
     public enum QuestType
     {
         Deliver,
+        Acquire,
         TalkTo,
         Damage,
+        Complete,
         Kill
     }
 
@@ -25,6 +27,7 @@ public class Quest : ScriptableObject
         public ItemName item;
         public uint count = 1; //Cannot take negative amount of items
         public float damage = 20;
+        public string quest;
     }
 
 

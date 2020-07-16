@@ -507,6 +507,11 @@ namespace Yarn.Unity
          */
         Dialogue dialogue;
 
+        public void ClearStringTable()
+        {
+            strings = new Dictionary<string, string>();
+        }
+
         /// Start the dialogue
         void Start()
         {

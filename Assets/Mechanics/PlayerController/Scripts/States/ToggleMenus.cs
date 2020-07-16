@@ -15,40 +15,7 @@ namespace PlayerController
         bool inMenus;
         bool inConsole;
 
-        void OnCommand(Console.Command command)
-        {
 
-            void DesiredInputs(int num)
-            {
-                if (command.values.Length < num)
-                    throw new ArgumentException("Not enough inputs for command");
-            }
-
-            switch (command.func)
-            {
-                case "tp":
-                    DesiredInputs(1);
-                    if (TeleportWaypoints.singleton.waypoints.ContainsKey(command.values[0]))
-                    {
-                        var t = TeleportWaypoints.singleton.waypoints[command.values[0]];
-                        transform.SetPositionAndRotation(t.position, t.rotation);
-                    }
-                    break;
-                case "time":
-                    DesiredInputs(1);
-                    if (command.values[0] == "day")
-                        print("Made day");
-                    break;
-                case "give":
-                    DesiredInputs(2);
-                    ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
-                    uint count = uint.Parse(command.values[1]);
-                    InventoryController.AddItem(item, count);
-                    break;
-            }
-            inConsole = false;
-            UpdateConsole();
-        }
         public override void Start()
         {
             c.onPlayerInput += OnInput;
@@ -71,14 +38,17 @@ namespace PlayerController
                 inConsole = !inConsole;
                 UpdateConsole();
             }
-
         }
         void UpdateConsole()
         {
             if (inConsole)
             {
                 SetPaused(true);
-                Console.Enable(OnCommand);
+                Console.Enable(() =>
+                {
+                    inConsole = false;
+                    UpdateConsole();
+                });
             }
             else
             {

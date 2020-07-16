@@ -1,14 +1,11 @@
 title: Start
 ---
-<<if $Quest_OpenTheMines is "Inactive">>
-Mayor: Sort out the mines!
-<<Animate explain>>
-Mayor: I'm sure you'll be fine
-<<Animate dismis>>
-<<quest OpenTheMines>>
-
-<<else>>
-
-Mayor: GO!
+<<if $QuestStage_Tutorial is 0>>
+Mayor: Hello adventurer
+Mayor: We picked you up trying to cross the border
+Mayor: The only way out is to open the temple at the top of the hill
+Mayor: Go and get a sword from the blacksmith, then you may leave the town
+Mayor: There are dangers beyond
+<<TalkToQuest Tutorial>>
 <<endif>>
 ===

@@ -26,18 +26,21 @@ namespace PlayerController
         }
 
 
-        public void OnInput(InputAction.CallbackContext context)
+        public bool OnInput(InputAction.CallbackContext context)
         {
-            if (!inConsole && context.action.name == "TabMenu" && context.ReadValue<float>() == 1)
+            if (!inConsole && context.action.name == "TabMenu" && context.phase == InputActionPhase.Started)
             {
                 inMenus = !inMenus;
                 UpdateMenus();
+                return false;
             }
-            else if (!inMenus && context.action.name == "Console" && context.ReadValue<float>() == 1)
+            else if (!inMenus && context.action.name == "Console" && context.phase == InputActionPhase.Started)
             {
                 inConsole = !inConsole;
                 UpdateConsole();
+                return false;
             }
+            return true;
         }
         void UpdateConsole()
         {

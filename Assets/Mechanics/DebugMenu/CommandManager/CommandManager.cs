@@ -5,22 +5,18 @@ using System.Collections.Generic;
 public class CommandManager : ConsoleReceiver
 {
     public string[] startingCommands;
-
-    public Color32 IntColor = new Color32(174, 129, 255, 255);
+    const string tp = "tp";
+    const string time = "time";
+    const string give = "give";
+    const string level = "level";
+    const string giveQuest = "givequest";
 
     public readonly CommandStructure[] commands = {
-        new CommandStructure("tp",CommandArgument.Location),
-        new CommandStructure("time"),
-        new CommandStructure("give",CommandArgument.ItemName,CommandArgument.Int),
-        new CommandStructure("level",CommandArgument.LevelName),
-        new CommandStructure("givequest"),
-    };
-    public readonly Dictionary<string, int> commandIndexes = new Dictionary<string, int>{
-        {"tp",0},
-        {"time",1},
-        {"give",2},
-        {"level",3},
-        {"givequest",4},
+        new CommandStructure(tp,CommandArgument.Location),
+        new CommandStructure(time),
+        new CommandStructure(give,CommandArgument.ItemName,CommandArgument.Int),
+        new CommandStructure(level,CommandArgument.LevelName),
+        new CommandStructure(giveQuest),
     };
 
 
@@ -45,8 +41,6 @@ public class CommandManager : ConsoleReceiver
         }
     }
 
-    public string input;
-    public string output;
 
     private void Start()
     {
@@ -65,7 +59,7 @@ public class CommandManager : ConsoleReceiver
     {
         switch (command.func.ToLower())
         {
-            case "tp":
+            case tp:
                 DesiredInputs(command, 1);
                 if (TeleportWaypoints.singleton.waypoints.ContainsKey(command.values[0]))
                 {
@@ -73,22 +67,22 @@ public class CommandManager : ConsoleReceiver
                     PlayerController.Player_CharacterController.activePlayerController.transform.SetPositionAndRotation(t.position, t.rotation);
                 }
                 break;
-            case "time":
+            case time:
                 DesiredInputs(command, 1);
                 if (command.values[0] == "day")
                     print("Made day");
                 break;
-            case "give":
+            case give:
                 DesiredInputs(command, 2);
                 ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
                 uint count = uint.Parse(command.values[1]);
                 InventoryController.AddItem(item, count);
                 break;
-            case "level":
+            case level:
                 DesiredInputs(command, 1);
                 LevelController.ChangeToLevel((LevelName)Enum.Parse(typeof(LevelName), command.values[0]));
                 break;
-            case "givequest":
+            case giveQuest:
                 DesiredInputs(command, 1);
                 QuestManager.AddQuest(command.values[0]);
                 break;

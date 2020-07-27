@@ -14,6 +14,7 @@ public class BuyInventoryUI : MonoBehaviour
     System.Action onItemSelected;
     bool waitingForConfirmation = false;
     public string outOfStockAlert = "Out Of Stock";
+
     public void ShowInventory(BuyMenuItem[] inventory, ItemDatabase db, System.Action onItemSelected)
     {
         print("Showing Buy Menu");
@@ -34,7 +35,12 @@ public class BuyInventoryUI : MonoBehaviour
 
             buyMenuItem.stock.text = inventory[i].stock.ToString();
             buyMenuItem.thumbnail.sprite = db[inventory[i].item].sprite;
-            buyMenuItem.cost.text = inventory[i].cost.ToString();
+
+            buyMenuItem.UpdateCost(
+                inventory[i].cost,
+                InventoryController.singleton.currency.ItemCount(0)
+                );
+
             buyMenuItem.controller = this;
 
             buyMenuItem.index = i;
@@ -67,23 +73,38 @@ public class BuyInventoryUI : MonoBehaviour
         {
             print("Cannot purchase out of stock item");
         }
-        else
+        //Will return true if the currency is successfully removed
+        else if (InventoryController.TakeItem(ItemName.Currency, inventory[selected].cost))
         {
+
             inventory[selected].stock -= 1;
 
             InventoryController.AddItem(inventory[selected].item, inventory[selected].count);
+
             waitingForConfirmation = false;
             if (inventory[selected].stock == 0)
             {
-                print("Cannot purchase out of stock item");
-                inventoryDisplayHolder.GetChild(selected).GetComponent<Button>().interactable = false;
+                inventoryDisplayHolder.GetChild(selected).GetComponent<BuyInventoryUIItem>().selectButton.interactable = false;
                 inventoryDisplayHolder.GetChild(selected).GetComponent<BuyInventoryUIItem>().stock.text = outOfStockAlert;
             }
             else
             {
-
                 inventoryDisplayHolder.GetChild(selected).GetComponent<BuyInventoryUIItem>().stock.text = inventory[selected].stock.ToString();
             }
+            //Update all the currency displays
+            for (int i = 0; i < inventoryDisplayHolder.childCount; i++)
+            {
+                inventoryDisplayHolder.GetChild(i).GetComponent<BuyInventoryUIItem>().UpdateCost(
+                    inventory[i].cost,
+                    InventoryController.singleton.currency.ItemCount(0));
+
+
+            }
+        }
+        else
+        {
+            //Not enough money for transaction
+            Debug.LogWarning("Attempted to purchase item without required funds");
         }
 
     }

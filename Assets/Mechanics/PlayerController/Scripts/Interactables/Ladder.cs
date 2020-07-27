@@ -10,12 +10,12 @@ public class Ladder : MonoBehaviour, IInteractable
     public float ladderHeight = 12;
     public bool canInteract { get => enabled; set => enabled = value; }
 
-    public void Interact(Player_CharacterController c)
+    public void Interact(IInteractor c)
     {
         //Change to state ladder
 
         //Maybe change this to happen inside the player controller?
-        c.ChangeToState<LadderClimb>(this);
+        (c as PlayerController.Player_CharacterController).ChangeToState<LadderClimb>(this);
     }
     public Vector3 LadderPosAtHeight(float height, float radius)
     {

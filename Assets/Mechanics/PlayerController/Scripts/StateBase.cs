@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 namespace PlayerController
 {
-    
+
     [Serializable]
     public class AnimatorVariables
     {
@@ -82,11 +82,11 @@ namespace PlayerController
         public virtual void OnAnimatorIK(int layerIndex) { }
         public virtual void OnCollideGround(RaycastHit hit) { }
         public virtual void OnCollideCliff(RaycastHit hit) { }
-        public virtual void OnJump(float state) { }
-        public virtual void OnAttack(float state) { }
-        public virtual void OnAltAttack(float state) { }
-        public virtual void OnSprint(float state) { }
-        public virtual void OnInteract(float state) { }
+        public virtual void OnJump(InputActionPhase phase) { }
+        public virtual void OnAttack(InputActionPhase phase) { }
+        public virtual void OnAltAttack(InputActionPhase phase) { }
+        public virtual void OnSprint(InputActionPhase phase) { }
+        public virtual void OnInteract(InputActionPhase phase) { }
         public virtual void OnTriggerEnter(Collider other) { }
         public virtual void OnTriggerExit(Collider other) { }
         public virtual void OnGroundedChange() { }

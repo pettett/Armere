@@ -29,6 +29,18 @@ public class TimeDayController : MonoBehaviour
     [ReadOnly] public float weatherScaler;
 
     public CloudDrawer clouds;
+
+    public static readonly Dictionary<string, float> specialTimes = new Dictionary<string, float>
+    {
+        {"morning",4},
+        {"noon",12},
+        {"night",20},
+    };
+    public static void SetTime(string time)
+    {
+        if (specialTimes.ContainsKey(time))
+            singleton.hour = specialTimes[time];
+    }
     public static void SetTime(float hour)
     {
         hour = Mathf.Repeat(hour, 24);

@@ -9,7 +9,7 @@ namespace PlayerController
 
 
     [RequireComponent(typeof(Rigidbody))]
-    public class Player_CharacterController : MonoBehaviour, IAITarget, IWaterObject
+    public class Player_CharacterController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
     {
         [System.Serializable]
         public class PlayerSaveData
@@ -44,9 +44,10 @@ namespace PlayerController
         }
 
         // public event Action<Player_CharacterController> onDeath;
-        //public event Action<Player_CharacterController> onRepawn;
-
-        public event Action<InputAction.CallbackContext> onPlayerInput;
+        // public event Action<Player_CharacterController> onRepawn;
+        public delegate bool ProcessPlayerInputDelegate(InputAction.CallbackContext input);
+        ///<summary> Returns wether the input should still be processed</summary>
+        public event ProcessPlayerInputDelegate onPlayerInput;
 
         [Serializable]
         public struct InputStatus
@@ -59,6 +60,7 @@ namespace PlayerController
         public ItemDatabase db;
         public Transform cameraTransform;
         public Cinemachine.CinemachineFreeLook freeLook;
+        public Cinemachine.CinemachineFreeLook freeLookAim;
         public Cinemachine.CinemachineTargetGroup conversationGroup;
         public Cinemachine.CinemachineVirtualCamera cutsceneCamera;
         public Transform lookAtTarget;
@@ -79,7 +81,7 @@ namespace PlayerController
 
         public CameraControl cameraController;
 
-        MovementState[] allStates;
+        [SerializeReference, ReadOnly] MovementState[] allStates;
 
         [Header("State Properties")]
 
@@ -106,6 +108,9 @@ namespace PlayerController
         [HideInInspector] public float m_maxGroundDot = 0.3f;
         public bool onGround;
 
+        [Header("Weapons")]
+        public Transform arrowSpawn;
+        public Transform bowPivot;
 
         [Header("Other")]
 
@@ -138,7 +143,7 @@ namespace PlayerController
         [HideInInspector]
         public AnimationController animationController;
 
-
+        public LineRenderer projectileTrajectoryRenderer;
         //set capacity to 1 as it is common for the player to be touching the ground in at least one point
         [HideInInspector] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
 
@@ -157,7 +162,7 @@ namespace PlayerController
 
         public AnimatorVariables animatorVariables;
 
-        public List<PlayerRelativeObject> relativeObjects = new List<PlayerRelativeObject>();
+
 
         public WaterController currentWater;
 
@@ -268,7 +273,18 @@ namespace PlayerController
             _paused = false;
         }
 
+        public void SwitchCinemachineCameras(Cinemachine.CinemachineFreeLook from, Cinemachine.CinemachineFreeLook to)
+        {
+            //Switch priorities
 
+            from.Priority = 10;
+            to.Priority = 20;
+
+            to.m_XAxis.Value = from.m_XAxis.Value;
+            to.m_YAxis.Value = from.m_YAxis.Value;
+        }
+        public void SwitchToAimCamera() => SwitchCinemachineCameras(freeLook, freeLookAim);
+        public void SwitchToNormalCamera() => SwitchCinemachineCameras(freeLookAim, freeLook);
 
         public void UpdateModifier(bool enabled, MovementModifiers modifier)
         {
@@ -282,69 +298,64 @@ namespace PlayerController
             }
         }
         public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
-
+        const string selectWeaponPrefix = "SelectWeapon";
         public void OnActionTriggered(InputAction.CallbackContext action)
         {
-
-
-            if (action.phase == InputActionPhase.Disabled || action.phase == InputActionPhase.Started)
-                return;
-
-            string selectWeaponPrefix = "SelectWeapon";
-
             string actionName = action.action.name;
-
-            onPlayerInput?.Invoke(action);
-
-            if (actionName.StartsWith(selectWeaponPrefix) && action.ReadValue<float>() == 1)
+            //Convert nullable bool into bool - defaults to true
+            if (onPlayerInput?.Invoke(action) ?? true)
             {
-                var buttonNumber = int.Parse(actionName.Remove(0, selectWeaponPrefix.Length));
-                buttonNumber--;
-                if (buttonNumber == -1) buttonNumber = 9;
-                OnSelectWeapon(buttonNumber);
-            }
 
-            switch (actionName)
-            {
-                case "Walk":
-                    input.inputWalk = action.ReadValue<Vector2>();
-                    break;
-                case "Look":
-                    input.inputCamera = action.ReadValue<Vector2>();
-                    break;
-                case "Action":
-                    for (int i = 0; i < allStates.Length; i++)
-                        if (StateActive(i))
-                            allStates[i].OnInteract(action.ReadValue<float>());
-                    break;
-                case "Crouch":
-                    UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Crouching);
-                    break;
-                case "Sprint":
-                    UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Sprinting);
-                    for (int i = 0; i < allStates.Length; i++)
-                        if (StateActive(i))
-                            allStates[i].OnSprint(action.ReadValue<float>());
-                    break;
-                case "Jump":
-                    for (int i = 0; i < allStates.Length; i++)
-                        if (StateActive(i))
-                            allStates[i].OnJump(action.ReadValue<float>());
-                    break;
-                case "Attack":
-                    for (int i = 0; i < allStates.Length; i++)
-                        if (StateActive(i))
-                            allStates[i].OnAttack(action.ReadValue<float>());
-                    break;
-                case "AltAttack":
-                    for (int i = 0; i < allStates.Length; i++)
-                        if (StateActive(i))
-                            allStates[i].OnAltAttack(action.ReadValue<float>());
-                    break;
+                if (actionName.StartsWith(selectWeaponPrefix) && action.ReadValue<float>() == 1)
+                {
+                    var buttonNumber = int.Parse(actionName.Remove(0, selectWeaponPrefix.Length));
+                    buttonNumber--;
+                    if (buttonNumber == -1) buttonNumber = 9;
+                    OnSelectWeapon(buttonNumber);
+                }
 
-                default:
-                    currentState.OnCustomAction(action);
-                    break;
+                switch (actionName)
+                {
+                    case "Walk":
+                        input.inputWalk = action.ReadValue<Vector2>();
+                        break;
+                    case "Look":
+                        input.inputCamera = action.ReadValue<Vector2>();
+                        break;
+                    case "Action":
+                        for (int i = 0; i < allStates.Length; i++)
+                            if (StateActive(i))
+                                allStates[i].OnInteract(action.phase);
+                        break;
+                    case "Crouch":
+                        UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Crouching);
+                        break;
+                    case "Sprint":
+                        UpdateModifier(action.ReadValue<float>() == 1, MovementModifiers.Sprinting);
+                        for (int i = 0; i < allStates.Length; i++)
+                            if (StateActive(i))
+                                allStates[i].OnSprint(action.phase);
+                        break;
+                    case "Jump":
+                        for (int i = 0; i < allStates.Length; i++)
+                            if (StateActive(i))
+                                allStates[i].OnJump(action.phase);
+                        break;
+                    case "Attack":
+                        for (int i = 0; i < allStates.Length; i++)
+                            if (StateActive(i))
+                                allStates[i].OnAttack(action.phase);
+                        break;
+                    case "AltAttack":
+                        for (int i = 0; i < allStates.Length; i++)
+                            if (StateActive(i))
+                                allStates[i].OnAltAttack(action.phase);
+                        break;
+
+                    default:
+                        currentState.OnCustomAction(action);
+                        break;
+                }
             }
         }
         float sqrMagTemp;
@@ -362,19 +373,19 @@ namespace PlayerController
                     allStates[i].Animate(animatorVariables);
 
 
-            for (int i = 0; i < relativeObjects.Count; i++)
+            for (int i = 0; i < PlayerRelativeObject.relativeObjects.Count; i++)
             {
-                sqrMagTemp = (transform.position - relativeObjects[i].transform.position).sqrMagnitude;
-                if (relativeObjects[i].enabled && sqrMagTemp > relativeObjects[i].disableRange * relativeObjects[i].disableRange)
+                sqrMagTemp = (transform.position - PlayerRelativeObject.relativeObjects[i].transform.position).sqrMagnitude;
+                if (PlayerRelativeObject.relativeObjects[i].enabled && sqrMagTemp > PlayerRelativeObject.relativeObjects[i].disableRange * PlayerRelativeObject.relativeObjects[i].disableRange)
                 {
                     //Disable the object - disable range should be larger then enable range to stop object flickering
-                    relativeObjects[i].OnPlayerOutRange();
+                    PlayerRelativeObject.relativeObjects[i].OnPlayerOutRange();
                 }
                 //else, check if it is close enough to enable
-                else if (!relativeObjects[i].enabled && sqrMagTemp < relativeObjects[i].enableRange * relativeObjects[i].enableRange)
+                else if (!PlayerRelativeObject.relativeObjects[i].enabled && sqrMagTemp < PlayerRelativeObject.relativeObjects[i].enableRange * PlayerRelativeObject.relativeObjects[i].enableRange)
                 {
                     //Enable the object
-                    relativeObjects[i].OnPlayerInRange();
+                    PlayerRelativeObject.relativeObjects[i].OnPlayerInRange();
                 }
             }
 

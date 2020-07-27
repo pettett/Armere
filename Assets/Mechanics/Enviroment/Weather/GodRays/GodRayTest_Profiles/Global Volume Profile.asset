@@ -1311,7 +1311,7 @@ MonoBehaviour:
       - 0.5
       - 0.5
       - 0.5
---- !u!114 &-3041098648666657402
+--- !u!114 &-4693973191512916931
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1320,75 +1320,74 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 743183c0ec66aeb4d830cebfa3a58be9, type: 3}
-  m_Name: GodRays
+  m_Script: {fileID: 0}
+  m_Name: VolumetricLighting
+  m_EditorClassIdentifier: Assembly-CSharp::VolumetricLighting
+  active: 1
+  enabled:
+    overrideState: 1
+    value: 1
+  textureDownscale:
+    overrideState: 0
+    value: 1
+  debug:
+    overrideState: 1
+    value: 1
+  scattering:
+    overrideState: 1
+    value: 1.53
+  extinction:
+    overrideState: 1
+    value: 0.96
+  range:
+    overrideState: 1
+    value: 0
+  skyboxExtinction:
+    overrideState: 1
+    value: 0.19
+  MieG:
+    overrideState: 1
+    value: 0
+--- !u!114 &-2863989833303455785
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5301264d5b2f4241ad789aefc8bd052, type: 3}
+  m_Name: VolumetricLighting
   m_EditorClassIdentifier: 
   active: 1
   enabled:
     overrideState: 1
     value: 1
-  gInitDecay:
-    overrideState: 1
-    value: 0.04
-  gDistDecay:
-    overrideState: 1
-    value: 0.26
-  RayColor:
-    overrideState: 1
-    value: {r: 0.5471698, g: 0.46449405, b: 0.25035602, a: 1}
-  gMaxDeltaLen:
-    overrideState: 1
-    value: 1.02
   textureDownscale:
     overrideState: 1
-    value: 2
---- !u!114 &-2135812191847816275
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48a79b01ea5641d4aa6daa2e23605641, type: 3}
-  m_Name: Bloom
-  m_EditorClassIdentifier: 
-  active: 0
-  enabled:
+    value: 3
+  debug:
+    overrideState: 0
+    value: 0
+  scattering:
+    overrideState: 1
+    value: 0.048
+  extinction:
+    overrideState: 1
+    value: 0.1
+  skyboxExtinction:
     overrideState: 1
     value: 1
-  intensity:
-    overrideState: 1
-    value: 1
-  threshold:
-    overrideState: 1
-    value: 21.89
-  softKnee:
+  MieG:
     overrideState: 0
-    value: 0.5
-  clamp:
+    value: 0.23
+  noiseScale:
     overrideState: 0
-    value: 65472
-  diffusion:
+    value: 0.25
+  noiseOffset:
     overrideState: 0
-    value: 7
-  anamorphicRatio:
-    overrideState: 0
-    value: 0
-  color:
-    overrideState: 0
-    value: {r: 1, g: 1, b: 1, a: 1}
-  fastMode:
-    overrideState: 0
-    value: 0
-  dirtTexture:
-    overrideState: 0
-    value: {fileID: 0}
-    defaultState: 1
-  dirtIntensity:
-    overrideState: 0
-    value: 0
+    value: {x: 0, y: 0, z: 0}
 --- !u!114 &-1373126267389073200
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1437,6 +1436,5 @@ MonoBehaviour:
   m_Name: Global Volume Profile
   m_EditorClassIdentifier: 
   settings:
-  - {fileID: -3041098648666657402}
-  - {fileID: -2135812191847816275}
   - {fileID: -6234521289451628268}
+  - {fileID: -2863989833303455785}

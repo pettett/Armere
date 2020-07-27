@@ -188,6 +188,14 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "SwitchWeaponSet",
+                    "type": "Button",
+                    "id": "4f8ff449-85f4-48f1-850c-056b0cf5bbaa",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
                 }
             ],
             "bindings": [
@@ -573,6 +581,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Console",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dec51b40-5696-4e6e-a74d-71aa3956a9e6",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "SwitchWeaponSet",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

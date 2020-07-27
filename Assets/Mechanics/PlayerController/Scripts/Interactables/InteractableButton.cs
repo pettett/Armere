@@ -11,7 +11,7 @@ public class InteractableButton : MonoBehaviour, IInteractable
 
     public UnityEvent activateEvent;
     public UnityEvent deactivateEvent;
-    public void Interact(PlayerController.Player_CharacterController c)
+    public void Interact(IInteractor c)
     {
         isOn = !isOn;
         if (isOn && onlyTurnOn)

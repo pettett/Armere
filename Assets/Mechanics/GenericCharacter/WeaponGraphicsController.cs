@@ -23,65 +23,84 @@ public class WeaponGraphicsController : MonoBehaviour
         }
 
     }
-    public HoldPoint weaponHoldPoint;
-    public HoldPoint sheathedHoldPoint;
-    public HoldPoint sideArmHoldPoint;
+    [System.Serializable]
+    public class HoldableObject
+    {
+        public HoldPoint holdPoint;
+        public HoldPoint sheathedPoint;
+        public bool sheathed;
+        [HideInInspector] public GameObject gameObject;
+
+        public void Init(Animator a)
+        {
+            holdPoint.Init(a);
+            sheathedPoint.Init(a);
+        }
+
+        public void Anchor()
+        {
+            if (gameObject != null)
+                if (sheathed)
+                    sheathedPoint.Anchor(gameObject.transform);
+                else
+                    holdPoint.Anchor(gameObject.transform);
+        }
+
+        public void SetHeld(ItemName weapon, ItemDatabase db)
+        {
+            if (gameObject != null) Destroy(gameObject);
+            gameObject = CreateItem(weapon, db);
+        }
+        public void RemoveHeld()
+        {
+            if (gameObject != null)
+                Destroy(gameObject);
+        }
+
+        public GameObject CreateItem(ItemName weapon, ItemDatabase db)
+        {
+
+            //Spawn the item from the pool
+            var go = new GameObject(weapon.ToString(),
+                typeof(MeshRenderer),
+                typeof(MeshFilter));
+
+            go.GetComponent<MeshFilter>().mesh = db[weapon].mesh;
+
+            go.GetComponent<MeshRenderer>().materials = db[weapon].materials;
+
+            foreach (var p in db[weapon].properties)
+            {
+                p.CreatePlayerObject(go);
+            }
+
+            return go;
+            //go.transform.SetParent(handBoneTransform, false);
+        }
+
+    }
+
+    public HoldableObject weapon;
+    public HoldableObject bow;
+    public HoldableObject sidearm;
 
 
-    public GameObject heldWeapon;
 
-    public GameObject heldSidearm;
 
-    public bool swordSheathed;
     private void Start()
     {
         Animator a = GetComponent<Animator>();
-        weaponHoldPoint.Init(a);
-        sheathedHoldPoint.Init(a);
-        sideArmHoldPoint.Init(a);
-    }
-
-    public void SetHeldSidearm(ItemName s, ItemDatabase db) => SetHeld(ref heldSidearm, s, db);
-    public void SetHeldWeapon(ItemName weapon, ItemDatabase db) => SetHeld(ref heldWeapon, weapon, db);
-    public void RemoveSidearm() => Destroy(heldSidearm);
-    public void RemoveWeapon() => Destroy(heldWeapon);
-    void SetHeld(ref GameObject gameObject, ItemName weapon, ItemDatabase db)
-    {
-        if (gameObject != null) Destroy(gameObject);
-        gameObject = CreateItem(weapon, db);
-    }
-    public GameObject CreateItem(ItemName weapon, ItemDatabase db)
-    {
-
-        //Spawn the item from the pool
-        var go = new GameObject(weapon.ToString(),
-            typeof(MeshRenderer),
-            typeof(MeshFilter));
-
-        go.GetComponent<MeshFilter>().mesh = db[weapon].mesh;
-
-        go.GetComponent<MeshRenderer>().materials = db[weapon].materials;
-
-        foreach (var p in db[weapon].properties)
-        {
-            p.CreatePlayerObject(go);
-        }
-
-        return go;
-        //go.transform.SetParent(handBoneTransform, false);
+        weapon.Init(a);
+        bow.Init(a);
+        sidearm.Init(a);
     }
 
 
     private void Update()
     {
         //Only lock objects to anchors if they exist
-        if (heldWeapon != null)
-        {
-            if (swordSheathed)
-                sheathedHoldPoint.Anchor(heldWeapon.transform);
-            else
-                weaponHoldPoint.Anchor(heldWeapon.transform);
-        }
-        if (heldSidearm != null) sideArmHoldPoint.Anchor(heldSidearm.transform);
+        weapon.Anchor();
+        bow.Anchor();
+        sidearm.Anchor();
     }
 }

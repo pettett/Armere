@@ -13,9 +13,9 @@ public class InteractableSign : MonoBehaviour, IInteractable
         runner.AddCommandHandler("test", Test);
     }
     Player_CharacterController c;
-    public void Interact(Player_CharacterController c)
+    public void Interact(IInteractor interactor)
     {
-        this.c = c;
+        this.c = (interactor as Player_CharacterController);
         c.ChangeToState<Conversation>();
         runner.StartDialogue("Start");
         DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);

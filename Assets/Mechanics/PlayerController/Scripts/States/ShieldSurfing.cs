@@ -59,17 +59,17 @@ namespace PlayerController
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
 
         }
-        public override void OnJump(float state)
+        public override void OnJump(InputActionPhase phase)
         {
-            if (state == 1)
+            if (phase == InputActionPhase.Started)
             {
                 c.rb.AddForce(Vector3.up * c.jumpForce, ForceMode.Acceleration);
             }
         }
 
-        public override void OnSprint(float state)
+        public override void OnSprint(InputActionPhase phase)
         {
-            if (state == 1)
+            if (phase == InputActionPhase.Started)
             {
                 c.ChangeToState<Walking>();
             }

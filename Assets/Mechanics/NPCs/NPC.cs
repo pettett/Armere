@@ -222,7 +222,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             print("Sold Item");
 
             //TODO - Add amount control
+            //Pay the player for the item
+            InventoryController.AddItem(ItemName.Currency, InventoryController.singleton.db[InventoryController.ItemAt(itemIndex, type)].sellValue);
+            //Remove the item from the inventory
             InventoryController.TakeItem(itemIndex, type);
+
 
             ReEnableSellMenu();
         });
@@ -346,11 +350,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         return Quaternion.LookRotation(transform.position - c.transform.position).eulerAngles.y + 15f;
     }
 
-    public void Interact(Player_CharacterController c)
+    public void Interact(IInteractor interactor)
     {
         SetupRunner();
 
-        this.c = c;
+        this.c = (interactor as Player_CharacterController);
         currentConv = c.ChangeToState<Conversation>();
 
         //Probably quicker to overrite true with true then find the value and

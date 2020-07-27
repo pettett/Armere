@@ -241,6 +241,7 @@ GameObject:
   - component: {fileID: 1281026489242353390}
   - component: {fileID: 251537585109806162}
   - component: {fileID: 8194696403978631329}
+  - component: {fileID: 7041521183697539473}
   m_Layer: 5
   m_Name: Cost
   m_TagString: Untagged
@@ -386,6 +387,24 @@ MonoBehaviour:
   - {fileID: 0}
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7041521183697539473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6141287663413118907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b61cd9cf68c193a4cbe803a45cbb5d3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: {fileID: 8194696403978631329}
+  format: "{0}<size=150%><voffset=-0.105em>\xA4"
+  syncInventoryCurrency: 0
+  updateTime: 1.5
+  enoughMoneyColor: {r: 1, g: 1, b: 1, a: 1}
+  notEnoughMoneyColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &6507908986349701572
 GameObject:
   m_ObjectHideFlags: 0
@@ -502,12 +521,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   title: {fileID: 7577815446023796530}
-  cost: {fileID: 8194696403978631329}
+  cost: {fileID: 7041521183697539473}
   stock: {fileID: 6273709884347542669}
   thumbnail: {fileID: 8872518819915775845}
   selectButton: {fileID: 2160625066887689415}
   controller: {fileID: 0}
   index: 0
+  enoughMoneyColor: {r: 0, g: 0, b: 0, a: 1}
+  notEnoughMoneyColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &2160625066887689415
 MonoBehaviour:
   m_ObjectHideFlags: 0

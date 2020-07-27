@@ -85,9 +85,9 @@ namespace PlayerController
             animator.SetIKPositionWeight(goal, animator.GetFloat(curve));
             animator.SetIKPosition(goal, pos);
         }
-        public override void OnJump(float state)
+        public override void OnJump(InputActionPhase phase)
         {
-            if (state == 1)
+            if (phase == InputActionPhase.Started)
             {
                 //Jump off the ladder
                 c.rb.isKinematic = false;

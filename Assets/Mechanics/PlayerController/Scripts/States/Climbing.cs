@@ -84,9 +84,9 @@ namespace PlayerController
             c.animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
             c.animator.SetFloat("GroundDistance", c.currentHeight);
         }
-        public override void OnJump(float state)
+        public override void OnJump(InputActionPhase phase)
         {
-            if (state == 1)//make player jump away from 
+            if (phase == InputActionPhase.Started)//make player jump away from 
             {
                 c.rb.isKinematic = false;
                 c.rb.AddForce(currentCliffNormal * c.jumpForce, ForceMode.Acceleration);

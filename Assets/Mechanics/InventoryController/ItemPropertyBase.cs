@@ -9,11 +9,11 @@ public abstract class ItemPropertyBase : ScriptableObject
     {
 
     }
-    public virtual void OnItemEquip(Animator anim)
+    public virtual void OnItemEquip(Animator playerAnim)
     {
 
     }
-    public virtual void OnItemDeEquip(Animator anim)
+    public virtual void OnItemDeEquip(Animator playerAnim)
     {
 
     }

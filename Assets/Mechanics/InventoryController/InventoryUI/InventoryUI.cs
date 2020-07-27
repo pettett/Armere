@@ -15,7 +15,14 @@ public class InventoryUI : MonoBehaviour
     public ItemInfoDisplay selectedDisplay;
     public bool sellMenu;
     public System.Action<ItemType, int> onItemSelected;
+    public ScrollRect scroll;
+    GameObject contextMenu;
 
+    [System.Serializable]
+    public class BoolEvent : UnityEngine.Events.UnityEvent<bool> { }
+
+    public BoolEvent onContextMenuEnabled;
+    public BoolEvent onContextMenuDisabled;
     public void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
     {
         var go = Instantiate(template, itemGridPanel.GetChild(1));
@@ -35,14 +42,42 @@ public class InventoryUI : MonoBehaviour
 
         item.onSelect += () => OnItemSelected(panel[index].name);
 
-        if (!sellMenu)
-            item.optionDelegates = panel.options;
-        else
-            item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
+        item.inventoryUI = this;
+        // if (!sellMenu)
+        //     item.optionDelegates = panel.options;
+        // else
+        //     item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
 
         item.itemIndex = index;
         item.type = db[panel[index].name].type;
     }
+
+    public void ShowOptionMenu(ItemType type, int index, Vector2 mousePosition)
+    {
+        if (sellMenu)
+        {
+            OnSelectItem(type, index);
+        }
+        else
+        {
+            if (contextMenu != null) Destroy(contextMenu);
+            contextMenu = new GameObject("Menu", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            contextMenu.GetComponent<LayoutElement>().ignoreLayout = true;
+
+            contextMenu.transform.SetParent(gridPanelHolder);
+            (contextMenu.transform as RectTransform).pivot = new Vector2(0f, 1f);
+            (contextMenu.transform as RectTransform).position = mousePosition + new Vector2(-10, 10);
+
+            EnableContextMenu(true);
+        }
+    }
+    void EnableContextMenu(bool enabled)
+    {
+        onContextMenuEnabled.Invoke(enabled);
+        onContextMenuDisabled.Invoke(!enabled);
+    }
+
+
     public void CreateBlankSlotTemplate(Transform itemGridPanel)
     {
         var go = Instantiate(blankSlotTemplate, itemGridPanel.GetChild(1));
@@ -68,44 +103,39 @@ public class InventoryUI : MonoBehaviour
         selectedDisplay.ShowInfo(item, db);
     }
 
+    void AddItemGroup(InventoryController.InventoryPanel panel)
+    {
+        var grid = CreateGridPanelTemplate(panel);
+        //Add all the item readouts
+        for (int i = 0; i < panel.stackCount; i++)
+        {
+            CreateTemplate(grid, panel, i);
+        }
+        int blankCount;
+        if (panel.limit == int.MaxValue)
+            blankCount = 4 - (panel.stackCount % rowCount);
+        else
+            blankCount = panel.limit - panel.stackCount;
+
+        for (int i = 0; i < blankCount; i++)
+        {
+            CreateBlankSlotTemplate(grid);
+        }
+    }
+
     private void OnEnable()
     {
         for (int i = 0; i < gridPanelHolder.childCount; i++)
         {
             Destroy(gridPanelHolder.GetChild(i).gameObject);
         }
-        foreach (System.Tuple<ItemType, InventoryController.InventoryPanel> itemGroup in InventoryController.singleton.ItemPanels())
-        {
-            var grid = CreateGridPanelTemplate(itemGroup.Item2);
-            //Add all the item readouts
-            for (int i = 0; i < itemGroup.Item2.itemCount; i++)
-            {
-                CreateTemplate(grid, itemGroup.Item2, i);
-            }
-            int blankCount;
-            switch (itemGroup.Item2)
-            {
-                case InventoryController.StackPanel stack:
-                    blankCount = 4 - (stack.itemCount % rowCount);
-                    break;
-                case InventoryController.UniquesPanel uniques:
-
-                    if (uniques.maxItems == int.MaxValue)
-                        blankCount = 4 - (uniques.itemCount % rowCount);
-                    else
-                        blankCount = uniques.maxItems - uniques.itemCount;
-                    break;
-                default:
-                    blankCount = 0;
-                    break;
-            }
-
-            for (int i = 0; i < blankCount; i++)
-            {
-                CreateBlankSlotTemplate(grid);
-            }
-
-        }
+        //Currency if left for the currency display
+        AddItemGroup(InventoryController.singleton.common);
+        AddItemGroup(InventoryController.singleton.weapon);
+        AddItemGroup(InventoryController.singleton.sideArm);
+        AddItemGroup(InventoryController.singleton.bow);
+        AddItemGroup(InventoryController.singleton.ammo);
+        AddItemGroup(InventoryController.singleton.quest);
     }
 
 

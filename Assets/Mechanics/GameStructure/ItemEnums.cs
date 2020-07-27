@@ -10,8 +10,10 @@ public enum ItemName
     MagicTome = 7,
     DungeonKey = 8,
     BasicBow = 9,
-    Arrow = 10
+    Arrow = 10,
+    Currency = 11,
 }
+
 public enum ItemType
 {
     Common = 0,
@@ -20,4 +22,5 @@ public enum ItemType
     Ammo = 3,
     SideArm = 4,
     Quest = 5,
+    Currency = 6
 }

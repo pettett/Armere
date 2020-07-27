@@ -134,9 +134,9 @@ namespace PlayerController
             interactablesInRange.Remove(exit);
         }
 
-        public override void OnInteract(float state)
+        public override void OnInteract(InputActionPhase phase)
         {
-            if (state == 1)
+            if (phase == InputActionPhase.Started)
             {
                 //activate the interactable that is pointed most to the player
 

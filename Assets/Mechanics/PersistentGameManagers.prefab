@@ -135,6 +135,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingCommands:
   - give IronSword 1
+  - give BasicBow 1
+  - give Arrow 20
   - givequest Tutorial
 --- !u!114 &1254477659995837600
 MonoBehaviour:

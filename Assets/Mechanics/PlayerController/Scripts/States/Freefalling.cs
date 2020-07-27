@@ -56,17 +56,17 @@ namespace PlayerController
             animator.SetFloat(vars.groundDistance.id, c.currentHeight);
         }
 
-        public override void OnInteract(float state)
+        public override void OnInteract(InputActionPhase phase)
         {
-            if (state == 1)//shield surfing combo - shield, jump, interact
+            if (phase == InputActionPhase.Started)//shield surfing combo - shield, jump, interact
             {
                 ChangeToState<Shieldsurfing>();
             }
         }
 
-        public override void OnJump(float state)
+        public override void OnJump(InputActionPhase phase)
         {
-            if (airJumps > 0 && state == 1)
+            if (airJumps > 0 && phase == InputActionPhase.Started)
             {
                 airJumps--;
                 c.rb.AddForce(Vector3.up * (p.airJumpVelocity - c.rb.velocity.y), ForceMode.VelocityChange);

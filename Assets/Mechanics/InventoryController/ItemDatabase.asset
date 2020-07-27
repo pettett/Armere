@@ -35,11 +35,12 @@ MonoBehaviour:
       elementIcon: {fileID: 0}
     reqReferences: {fileID: 0}
     isExpanded: 1
-    _keyValues: 000000000100000002000000030000000400000005000000
-    _keys: 000000000100000002000000030000000400000005000000
+    _keyValues: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000
+    _keys: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000
     _values:
     - name: Stick
       description: Jeff like
+      sellValue: 1
       staticPickup: 0
       type: 0
       sprite: {fileID: 21300000, guid: 1f47375c58888fd45b1e33aad3e02ed5, type: 3}
@@ -50,6 +51,7 @@ MonoBehaviour:
       properties: []
     - name: Mine Deed
       description: Deed to the mines! Return to Diga
+      sellValue: 1
       staticPickup: 0
       type: 5
       sprite: {fileID: 21300000, guid: 1f47375c58888fd45b1e33aad3e02ed5, type: 3}
@@ -60,6 +62,7 @@ MonoBehaviour:
       properties: []
     - name: Iron Sword
       description: A trusty sword
+      sellValue: 1
       staticPickup: 0
       type: 1
       sprite: {fileID: 21300000, guid: 7c743814603b02a44826ad1efd7ddf21, type: 3}
@@ -71,6 +74,7 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 1a2faaa59ba0929469582f7af0a1e538, type: 2}
     - name: Lantern
       description: Create Light, without a sheild
+      sellValue: 1
       staticPickup: 0
       type: 4
       sprite: {fileID: 21300000, guid: 29216f2d47291b54d899c79ed55c650e, type: 3}
@@ -82,6 +86,7 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 3e4534d02e696274ea0ee70317a08c8e, type: 2}
     - name: Meat
       description: Tasty Snack
+      sellValue: 1
       staticPickup: 0
       type: 0
       sprite: {fileID: 21300000, guid: ac35566b90ee1ee44aa121ca0a1318ac, type: 3}
@@ -92,6 +97,7 @@ MonoBehaviour:
       properties: []
     - name: Herb
       description: Good with beef
+      sellValue: 1
       staticPickup: 1
       type: 0
       sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
@@ -99,4 +105,69 @@ MonoBehaviour:
         type: 3}
       materials:
       - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
+      properties: []
+    - name: Herb
+      description: Good with beef
+      sellValue: 1
+      staticPickup: 1
+      type: 0
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: -5495902117074765545, guid: 2b0446f3fd01da54180a4344648cd5e5,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
+      properties: []
+    - name: Herb
+      description: Good with beef
+      sellValue: 1
+      staticPickup: 1
+      type: 0
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: -5495902117074765545, guid: 2b0446f3fd01da54180a4344648cd5e5,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
+      properties: []
+    - name: Herb
+      description: Good with beef
+      sellValue: 1
+      staticPickup: 1
+      type: 0
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: -5495902117074765545, guid: 2b0446f3fd01da54180a4344648cd5e5,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
+      properties: []
+    - name: Basic Bow
+      description: Very Basic
+      sellValue: 1
+      staticPickup: 0
+      type: 2
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: -5518163057671977027, guid: eac43591f2ce73944b90980c854ab14d,
+        type: 3}
+      materials:
+      - {fileID: -876546973899608171, guid: eac43591f2ce73944b90980c854ab14d, type: 3}
+      properties:
+      - {fileID: 11400000, guid: 71fec796eca494a4a8ebf3a15483395b, type: 2}
+    - name: Arrow
+      description: basic Arrow
+      sellValue: 1
+      staticPickup: 0
+      type: 3
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: -5495902117074765545, guid: 32510e8d8a1ab8a4ba8e9c01d251f77a,
+        type: 3}
+      materials:
+      - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
+      properties: []
+    - name: Currency
+      description: Currency
+      sellValue: 1
+      staticPickup: 0
+      type: 6
+      sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
+      mesh: {fileID: 0}
+      materials: []
       properties: []

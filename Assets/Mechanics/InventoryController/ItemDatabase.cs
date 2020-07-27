@@ -11,6 +11,7 @@ public class ItemDatabase : ScriptableObject
         public string name;
         [TextArea]
         public string description;
+        public uint sellValue = 1;
         public bool staticPickup;
         public ItemType type;
         public Sprite sprite;

@@ -64,9 +64,13 @@ public sealed class GodRaysRenderer : PostProcessEffectRenderer<GodRays>
 
         context.command.BlitFullscreenTriangle(_occlusionMapID, _sampleMapID, godRaySamplePassSheet, 0);
 
+        context.command.ReleaseTemporaryRT(_occlusionMapID);
+
         var godRayAdditivePassSheet = context.propertySheets.Get(Shader.Find("Hidden/Custom/GodRayAdditivePass"));
         godRayAdditivePassSheet.properties.SetColor("_RayColor", settings.RayColor);
 
         context.command.BlitFullscreenTriangle(context.source, context.destination, godRayAdditivePassSheet, 0);
+
+        context.command.ReleaseTemporaryRT(_sampleMapID);
     }
 }

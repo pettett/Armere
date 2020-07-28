@@ -278,9 +278,9 @@ MonoBehaviour:
     gameObject: {fileID: 0}
   bow:
     holdPoint:
-      anchor: 0
-      posOffset: {x: 0, y: 0, z: 0}
-      rotOffset: {x: 0, y: 0, z: 0, w: 0}
+      anchor: 17
+      posOffset: {x: 4, y: 8.03, z: 5.35}
+      rotOffset: {x: 0.45129442, y: 0.6918644, z: -0.54836565, w: 0.13020024}
     sheathedPoint:
       anchor: 0
       posOffset: {x: 0, y: 0, z: 0}
@@ -298,18 +298,6 @@ MonoBehaviour:
       rotOffset: {x: 0.6341005, y: 0.57930356, z: -0.38992503, w: 0.33208805}
     sheathed: 0
     gameObject: {fileID: 0}
-  weaponHoldPoint:
-    anchor: 18
-    posOffset: {x: -2, y: 9.81, z: 3.95}
-    rotOffset: {x: 0.49999997, y: -0.49999997, z: -0.49999997, w: 0.49999997}
-  sheathedHoldPoint:
-    anchor: 0
-    posOffset: {x: -18.91, y: 0, z: 0}
-    rotOffset: {x: 0.63410056, y: 0.5793036, z: -0.38992488, w: 0.33208784}
-  sideArmHoldPoint:
-    anchor: 17
-    posOffset: {x: 0.19, y: 6.87, z: 7.74}
-    rotOffset: {x: 0, y: 0.9997366, z: 0, w: 0.022949068}
 --- !u!114 &8716322609640156541
 MonoBehaviour:
   m_ObjectHideFlags: 0

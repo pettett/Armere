@@ -64,8 +64,7 @@ namespace PlayerController
 
 
 
-        int meleeWeaponPropertyIndex = -1;
-        MeleeWeapon meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentWeapon].name].properties[meleeWeaponPropertyIndex] as MeleeWeapon;
+        MeleeWeapon meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentWeapon].name].properties as MeleeWeapon;
         public int currentWeapon = -1;
         public int currentBow = -1;
         public int currentAmmo = -1;
@@ -171,13 +170,11 @@ namespace PlayerController
             {
                 currentWeapon = index;
                 ItemName name = InventoryController.singleton.weapon.ItemAt(index);
-                for (int i = 0; i < c.db[name].properties.Length; i++)
-                {
-                    if (c.db[name].properties[i].GetType() == typeof(MeleeWeapon))
-                        meleeWeaponPropertyIndex = i;
-                }
-                if (meleeWeaponPropertyIndex == -1)
+
+                if (c.db[name].properties.GetType() != typeof(MeleeWeapon))
                     throw new System.Exception("Melee weapon requires appropriate data");
+
+
 
                 c.weaponGraphicsController.weapon.SetHeld(name, c.db);
             }
@@ -188,11 +185,10 @@ namespace PlayerController
             if (InventoryController.singleton.sideArm.items.Count > index)
             {
                 if (currentSidearm != -1)
-                    foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties)
-                        p.OnItemDeEquip(animator);
+                    c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
 
-                foreach (var p in c.db[InventoryController.singleton.sideArm.items[index].name].properties)
-                    p.OnItemEquip(animator);
+                c.db[InventoryController.singleton.sideArm.items[index].name].properties.OnItemEquip(animator);
+
                 currentSidearm = index;
                 c.weaponGraphicsController.sidearm.SetHeld(InventoryController.singleton.sideArm.items[index].name, c.db);
                 c.weaponGraphicsController.sidearm.sheathed = false;
@@ -206,6 +202,7 @@ namespace PlayerController
                 currentBow = index;
 
                 c.weaponGraphicsController.bow.SetHeld(InventoryController.ItemAt(index, ItemType.Bow), c.db);
+
             }
         }
 
@@ -225,8 +222,7 @@ namespace PlayerController
         {
             if (currentSidearm != -1)
             {
-                foreach (var p in c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties)
-                    p.OnItemDeEquip(animator);
+                c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
                 c.weaponGraphicsController.sidearm.sheathed = true;
             }
         }
@@ -266,6 +262,7 @@ namespace PlayerController
                 }
             }
         }
+        bool aimTorso = false;
         IEnumerator ChargeBow()
         {
 
@@ -274,10 +271,12 @@ namespace PlayerController
             forceForwardHeading = true;
             c.SwitchToAimCamera();
             c.animator.SetBool("Holding Bow", true);
+            aimTorso = true;
             var bowAC = c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>();
             while (true)
             {
                 yield return new WaitForEndOfFrame();
+
 
 
                 bowCharge += Time.deltaTime;
@@ -300,12 +299,25 @@ namespace PlayerController
                 c.projectileTrajectoryRenderer.SetPositions(points);
             }
         }
+        public override void OnAnimatorIK(int layerIndex)
+        {
+            if (aimTorso)
+            {
+                c.animator.SetLookAtPosition(c.cameraTransform.forward * 1000 + c.cameraTransform.position);
+                c.animator.SetLookAtWeight(1, 1, 1);
+            }
+            else
+            {
+                c.animator.SetLookAtWeight(0);
+            }
+        }
 
         void ReleaseBow()
         {
             c.projectileTrajectoryRenderer.enabled = false;
             c.SwitchToNormalCamera();
             forceForwardHeading = false;
+            aimTorso = false;
             c.animator.SetBool("Holding Bow", false);
             c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }

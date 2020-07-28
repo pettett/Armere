@@ -1,4 +1,5 @@
-public enum ItemName
+//I doubt that more then 65,536 items will be defined
+public enum ItemName : ushort
 {
     Stick = 0,
     MineDeed = 1,
@@ -13,8 +14,8 @@ public enum ItemName
     Arrow = 10,
     Currency = 11,
 }
-
-public enum ItemType
+//I doubt that more then 256 item types will be defined
+public enum ItemType : byte
 {
     Common = 0,
     Weapon = 1,

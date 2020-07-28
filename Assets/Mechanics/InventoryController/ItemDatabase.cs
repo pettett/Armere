@@ -8,6 +8,7 @@ public class ItemDatabase : ScriptableObject
     [System.Serializable]
     public class ItemData
     {
+        public ItemName itemName;
         public string name;
         [TextArea]
         public string description;
@@ -17,12 +18,11 @@ public class ItemDatabase : ScriptableObject
         public Sprite sprite;
         public Mesh mesh;
         public Material[] materials;
-        public ItemPropertyBase[] properties;
+        public ItemPropertyBase properties;
     }
-    [System.Serializable]
-    public class ItemDatabaseStructure : RotaryHeart.Lib.SerializableDictionary.SerializableDictionaryBase<ItemName, ItemData> { }
-    public ItemDatabaseStructure itemDatabase;
 
-    public ItemData this[ItemName key] => itemDatabase[key];
+    public ItemData this[ItemName key] => itemData[(int)key];
+
+    public ItemData[] itemData;
 
 }

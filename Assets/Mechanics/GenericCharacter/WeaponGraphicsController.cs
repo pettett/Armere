@@ -57,26 +57,7 @@ public class WeaponGraphicsController : MonoBehaviour
                 Destroy(gameObject);
         }
 
-        public GameObject CreateItem(ItemName weapon, ItemDatabase db)
-        {
-
-            //Spawn the item from the pool
-            var go = new GameObject(weapon.ToString(),
-                typeof(MeshRenderer),
-                typeof(MeshFilter));
-
-            go.GetComponent<MeshFilter>().mesh = db[weapon].mesh;
-
-            go.GetComponent<MeshRenderer>().materials = db[weapon].materials;
-
-            foreach (var p in db[weapon].properties)
-            {
-                p.CreatePlayerObject(go);
-            }
-
-            return go;
-            //go.transform.SetParent(handBoneTransform, false);
-        }
+        public GameObject CreateItem(ItemName weapon, ItemDatabase db) => db[weapon].properties.CreatePlayerObject(weapon, db);
 
     }
 

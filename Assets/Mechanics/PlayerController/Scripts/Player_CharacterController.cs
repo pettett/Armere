@@ -58,14 +58,11 @@ namespace PlayerController
 
         public MovementModifiers mod;
         public ItemDatabase db;
-        public Transform cameraTransform;
-        public Cinemachine.CinemachineFreeLook freeLook;
-        public Cinemachine.CinemachineFreeLook freeLookAim;
-        public Cinemachine.CinemachineTargetGroup conversationGroup;
-        public Cinemachine.CinemachineVirtualCamera cutsceneCamera;
+
+
         public Transform lookAtTarget;
         [HideInInspector] public PlayerInput playerInput;
-        Camera playerCamera;
+
 
         private MovementState currentState;
         public Type CurrentStateType => currentState?.GetType();
@@ -107,6 +104,8 @@ namespace PlayerController
         [Range(0, 90)] public float m_maxGroundAngle = 70;
         [HideInInspector] public float m_maxGroundDot = 0.3f;
         public bool onGround;
+        [Range(0, 1)]
+        public float dynamicFriction = 0.2f;
 
         [Header("Weapons")]
         public Transform arrowSpawn;
@@ -191,15 +190,6 @@ namespace PlayerController
                 health.onDeath += OnDeath;
 
             weaponGraphicsController = GetComponent<WeaponGraphicsController>();
-            if (cameraTransform == null)
-            {
-                playerCamera = Camera.main;
-                cameraTransform = playerCamera.transform;
-            }
-            else
-            {
-                playerCamera = cameraTransform.GetComponent<Camera>();
-            }
 
             m_maxGroundDot = Mathf.Cos(m_maxGroundAngle * Mathf.Deg2Rad);
 
@@ -221,7 +211,7 @@ namespace PlayerController
                 ChangeToState<Walking>();
             }
 
-
+            collider.material.dynamicFriction = dynamicFriction;
 
 
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
@@ -233,8 +223,7 @@ namespace PlayerController
 
         private void OnDestroy()
         {
-
-            currentState.End();
+            foreach (var s in allStates) s.End();
         }
 
         public void OnDeath(GameObject attacker, GameObject victim)
@@ -273,18 +262,7 @@ namespace PlayerController
             _paused = false;
         }
 
-        public void SwitchCinemachineCameras(Cinemachine.CinemachineFreeLook from, Cinemachine.CinemachineFreeLook to)
-        {
-            //Switch priorities
 
-            from.Priority = 10;
-            to.Priority = 20;
-
-            to.m_XAxis.Value = from.m_XAxis.Value;
-            to.m_YAxis.Value = from.m_YAxis.Value;
-        }
-        public void SwitchToAimCamera() => SwitchCinemachineCameras(freeLook, freeLookAim);
-        public void SwitchToNormalCamera() => SwitchCinemachineCameras(freeLookAim, freeLook);
 
         public void UpdateModifier(bool enabled, MovementModifiers modifier)
         {
@@ -298,24 +276,20 @@ namespace PlayerController
             }
         }
         public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
-        const string selectWeaponPrefix = "SelectWeapon";
+
         public void OnActionTriggered(InputAction.CallbackContext action)
         {
-            string actionName = action.action.name;
+
             //Convert nullable bool into bool - defaults to true
             if (onPlayerInput?.Invoke(action) ?? true)
             {
-
-                if (actionName.StartsWith(selectWeaponPrefix) && action.ReadValue<float>() == 1)
-                {
-                    var buttonNumber = int.Parse(actionName.Remove(0, selectWeaponPrefix.Length));
-                    buttonNumber--;
-                    if (buttonNumber == -1) buttonNumber = 9;
-                    OnSelectWeapon(buttonNumber);
-                }
+                string actionName = action.action.name;
 
                 switch (actionName)
                 {
+                    case "SelectWeapon":
+                        OnSelectWeapon((int)action.ReadValue<float>(), action.phase);
+                        break;
                     case "Walk":
                         input.inputWalk = action.ReadValue<Vector2>();
                         break;
@@ -425,13 +399,13 @@ namespace PlayerController
                 if (StateActive(i))
                     allStates[i].OnAnimatorIK(layerIndex);
         }
-        private void OnSelectWeapon(int index)
+        private void OnSelectWeapon(int index, InputActionPhase phase)
         {
             //print(String.Format("Switched to weapon {0}", index));
-
-            for (int i = 0; i < allStates.Length; i++)
-                if (StateActive(i))
-                    allStates[i].OnSelectWeapon(index);
+            if (phase == InputActionPhase.Started)
+                for (int i = 0; i < allStates.Length; i++)
+                    if (StateActive(i))
+                        allStates[i].OnSelectWeapon(index);
         }
 
 

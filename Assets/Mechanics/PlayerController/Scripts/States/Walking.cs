@@ -164,19 +164,23 @@ namespace PlayerController
             if (weaponSet == WeaponSet.BowArrow) SelectBow(index);
             if (weaponSet == WeaponSet.SwordSidearm) SelectMelee(index);
         }
+
+        public static bool EnforceType<T>(object o) => o != null && o is T;
+
+
+
         public void SelectMelee(int index)
         {
             if (InventoryController.singleton.weapon.items.Count > index)
             {
-                currentWeapon = index;
                 ItemName name = InventoryController.singleton.weapon.ItemAt(index);
-
-                if (c.db[name].properties.GetType() != typeof(MeleeWeapon))
+                if (!EnforceType<MeleeWeapon>(c.db[name].properties))
                     throw new System.Exception("Melee weapon requires appropriate data");
-
-
-
-                c.weaponGraphicsController.weapon.SetHeld(name, c.db);
+                else
+                {
+                    currentWeapon = index;
+                    c.weaponGraphicsController.weapon.SetHeld(name, c.db);
+                }
             }
         }
 
@@ -262,21 +266,29 @@ namespace PlayerController
                 }
             }
         }
-        bool aimTorso = false;
+
         IEnumerator ChargeBow()
         {
 
             bowCharge = 0;
             c.projectileTrajectoryRenderer.enabled = true;
             forceForwardHeading = true;
-            c.SwitchToAimCamera();
+            GameCameras.s.SwitchToAimCamera();
             c.animator.SetBool("Holding Bow", true);
-            aimTorso = true;
+
+            c.animationController.lookAtPositionWeight = 1;
+            c.animationController.headLookAtPositionWeight = 1;
+            c.animationController.eyesLookAtPositionWeight = 1;
+            c.animationController.bodyLookAtPositionWeight = 1;
+            c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
+
+
             var bowAC = c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>();
             while (true)
             {
                 yield return new WaitForEndOfFrame();
 
+                c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
 
 
                 bowCharge += Time.deltaTime;
@@ -284,7 +296,7 @@ namespace PlayerController
                 bowAC.SetFloat("Charge", bowCharge);
                 //Update trajectory (in local space)
                 Vector3 currentPoint = transform.InverseTransformPoint(c.arrowSpawn.position);
-                Vector3 velocity = transform.InverseTransformDirection(c.cameraTransform.forward) * bowSpeed;
+                Vector3 velocity = transform.InverseTransformDirection(GameCameras.s.cameraTransform.forward) * bowSpeed;
                 int pointCount = 10;
                 float dt = 0.2f;
                 Vector3[] points = new Vector3[pointCount];
@@ -299,25 +311,13 @@ namespace PlayerController
                 c.projectileTrajectoryRenderer.SetPositions(points);
             }
         }
-        public override void OnAnimatorIK(int layerIndex)
-        {
-            if (aimTorso)
-            {
-                c.animator.SetLookAtPosition(c.cameraTransform.forward * 1000 + c.cameraTransform.position);
-                c.animator.SetLookAtWeight(1, 1, 1);
-            }
-            else
-            {
-                c.animator.SetLookAtWeight(0);
-            }
-        }
 
         void ReleaseBow()
         {
             c.projectileTrajectoryRenderer.enabled = false;
-            c.SwitchToNormalCamera();
+            GameCameras.s.SwitchToNormalCamera();
             forceForwardHeading = false;
-            aimTorso = false;
+            c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
             c.animator.SetBool("Holding Bow", false);
             c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }
@@ -331,7 +331,7 @@ namespace PlayerController
                 ammoName.ToString(),
                 typeof(Arrow)); //Arrow automatically adds required components
             //Initialize arrow
-            arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, c.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
+            arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
 
             //Remove one of ammo used
             InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
@@ -353,9 +353,9 @@ namespace PlayerController
             //Check for triggers from the sword
             void OnTrigger(Collider other)
             {
-                if (other.TryGetComponent<IAttackable>(out IAttackable a))
+                if (other.TryGetComponent<Health>(out Health a))
                 {
-                    a.Attack(meleeWeapon.damage);
+                    a.Damage(meleeWeapon.damage, gameObject);
                 }
             }
 
@@ -510,7 +510,7 @@ namespace PlayerController
 
             if (forceForwardHeading)
             {
-                Vector3 forward = c.cameraTransform.forward;
+                Vector3 forward = GameCameras.s.cameraTransform.forward;
                 forward.y = 0;
                 transform.forward = forward;
                 float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);

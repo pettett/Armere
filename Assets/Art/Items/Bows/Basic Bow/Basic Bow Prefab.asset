@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Basic Bow
-  m_EditorClassIdentifier: Inventory::PlayerObjectFromPrefab
+  m_Script: {fileID: 11500000, guid: eff2633518466884bb45233541428c3d, type: 3}
+  m_Name: Basic Bow Prefab
+  m_EditorClassIdentifier: 
   prefab: {fileID: 6793492975979222588, guid: 0509b131f49cab549a5c9e2d263c9088, type: 3}

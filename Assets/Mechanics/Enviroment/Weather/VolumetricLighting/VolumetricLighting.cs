@@ -35,7 +35,7 @@ public sealed class VolumetricLightingRenderer : PostProcessEffectRenderer<Volum
 
     }
 
-    int _sampleMapID;
+    int _sampleMapID = 0;
 
     public override void Render(PostProcessRenderContext context)
     {

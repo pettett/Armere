@@ -24,10 +24,16 @@ public abstract class AIBase : MonoBehaviour
         agent.SetDestination(position);
         StartCoroutine(WaitForAgent(onComplete));
     }
-    IEnumerator WaitForAgent(System.Action onComplete)
+
+    public static IEnumerator WaitForAgent(NavMeshAgent agent, System.Action onComplete)
     {
         yield return new WaitUntil(() => !agent.pathPending && agent.remainingDistance < agent.stoppingDistance * 2 + 0.01f);
         onComplete?.Invoke();
+    }
+
+    IEnumerator WaitForAgent(System.Action onComplete)
+    {
+        yield return WaitForAgent(agent, onComplete);
     }
 
 

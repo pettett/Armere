@@ -19,29 +19,13 @@ MonoBehaviour:
   - name: swords
     value: 500
     type: 0
-  focusPoints:
-    reorderableList:
-      canAdd: 1
-      canRemove: 1
-      draggable: 1
-      expandable: 1
-      multipleSelection: 1
-      isExpanded: 0
-      label:
-        m_Text: Keys
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-      headerHeight: 18
-      footerHeight: 13
-      slideEasing: 0.15
-      verticalSpacing: 2
-      showDefaultBackground: 1
-      elementDisplayType: 0
-      elementNameProperty: 
-      elementNameOverride: 
-      elementIcon: {fileID: 0}
-    reqReferences: {fileID: 0}
-    isExpanded: 0
-    _keyValues: []
-    _keys: []
-    _values: []
+  buyMenuItems: []
+  routine:
+  - endTime: 6
+    activity: 0
+    location: hhhhhhh
+    conversationStartNode: Sleep
+  - endTime: 20
+    activity: 0
+    location: Here
+    conversationStartNode: Start

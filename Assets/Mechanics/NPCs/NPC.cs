@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using PlayerController;
 using Yarn.Unity;
-
 using Cinemachine;
 using Yarn;
-
+using TMPro;
+using System.Linq;
 public class NPC : AIBase, IInteractable, IVariableAddon
 {
-    public bool canInteract { get => enabled; set => enabled = value; }
-
-    public string prefix => "$NPC_";
-
-
-
-    public Value this[string name]
+    bool IInteractable.canInteract { get => enabled; set => enabled = value; }
+    string IVariableAddon.prefix => "$NPC_";
+    Value IVariableAddon.this[string name]
     {
         //Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved
         get => NPCManager.NPCVariable.ToYarnEquiv(NPCManager.singleton.data[npcName].variables[name]);
@@ -24,20 +20,37 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     public NPCName npcName;
     public Transform ambientThought;
+    public TextMeshPro ambientThoughtText;
     new Camera camera;
     NPCTemplate t;
     Transform[] conversationGroupOverride;
     Conversation currentConv;
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
-
     public Animator animator;
     bool hasSpeaker = false;
     NPCName speakingNPC;
-
     NPCSpawn spawn;
-
-
     public BuyMenuItem[] buyInventory;
+    DialogueRunner runner => NPCManager.singleton.dialogueRunner;
+
+    public const string GiveQuestCommand = "quest";
+    public const string DeliverQuestCommand = "DeliverQuest";
+    public const string TalkToQuestCommand = "TalkToQuest";
+    public const string CameraPanCommand = "cameraPan";
+    public const string GiveItemsCommand = "GiveItems";
+    public const string TurnPlayerToTargetCommand = "TurnPlayerToTarget";
+    public const string TurnNPCToTargetCommand = "TurnNPCToTarget";
+    public const string TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget";
+    public const string AnimateCommand = "Animate";
+    public const string OfferToSellCommand = "OfferToSell";
+    public const string OfferToBuyCommand = "OfferToBuy";
+    public const string GoToCommand = "GoTo";
+
+    public int currentRoutineStage;
+
+
+    BuyInventoryUI buyMenu;
+
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;
@@ -60,6 +73,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         this.conversationGroupOverride = conversationGroupOverride;
     }
 
+    private void Awake()
+    {
+        camera = Camera.main;
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -70,30 +88,93 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             //Only add this data if the NPC has not existed in the save before
             NPCManager.singleton.data[npcName] = new NPCManager.NPCData(t);
         }
-    }
 
-    private void Awake()
+        //Setup starting point for routine - instant so they start in the proper place
+        ChangeRoutineStage(GetRoutineIndex(TimeDayController.singleton.hour), true);
+    }
+    ///<summary>Get the current routine index that should be active at this time - use when time is not increasing linearly</summary>
+    int GetRoutineIndex(float time)
     {
-        camera = Camera.main;
+        int routineStage = -1;
+        for (int i = 0; i < t.routine.Length; i++)
+        {
+            //Go through every stage to find the current one
+            if (time < t.routine[i].endTime)
+            {
+                routineStage = i;
+                break;
+            }
+        }
+        //If no stage ends after hour, loop around to the first stage
+        if (routineStage == -1) routineStage = 0;
+
+        return routineStage;
     }
 
-    DialogueRunner runner => NPCManager.singleton.dialogueRunner;
 
-    public const string GiveQuestCommand = "quest";
-    public const string DeliverQuestCommand = "DeliverQuest";
-    public const string TalkToQuestCommand = "TalkToQuest";
-    public const string CameraPanCommand = "cameraPan";
-    public const string GiveItemsCommand = "GiveItems";
-    public const string TurnPlayerToTargetCommand = "TurnPlayerToTarget";
-    public const string TurnNPCToTargetCommand = "TurnNPCToTarget";
-    public const string TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget";
-    public const string AnimateCommand = "Animate";
-    public const string OfferToSellCommand = "OfferToSell";
-    public const string OfferToBuyCommand = "OfferToBuy";
-    public const string GoToCommand = "GoTo";
+    private void Update()
+    {
+        ambientThought.rotation = camera.transform.rotation;
+
+        //Test if we need to move to the next routine stage
+        //Only check for state change when before final end, as it will never change after that
+        if (TimeDayController.singleton.hour < t.routine[t.routine.Length - 1].endTime)
+        {
+            if (TimeDayController.singleton.hour > t.routine[currentRoutineStage].endTime)
+            {
+                ChangeRoutineStage(currentRoutineStage + 1);
+            }
+        }
+        else if (currentRoutineStage == t.routine.Length - 1)
+        {
+            ChangeRoutineStage(0);
+        }
+    }
+
+    public void ChangeRoutineStage(int newStage, bool instant = false)
+    {
+        currentRoutineStage = newStage;
+        ambientThoughtText.text = t.routine[currentRoutineStage].activity.ToString();
+
+        //Apply routine animation
+        animator.SetInteger("idle_state", (int)t.routine[currentRoutineStage].animation);
+
+        switch (t.routine[currentRoutineStage].activity)
+        {
+            case NPCTemplate.RoutineActivity.Stand:
+                ActivateStandRoutine(instant);
+                break;
+        }
+    }
+
+
+    public void ActivateStandRoutine(bool instant)
+    {
+        Transform target = GetTransform(spawn.walkingPoints, t.routine[currentRoutineStage].location);
+        if (target != null)
+        {
+            if (instant)
+            {
+                transform.SetPositionAndRotation(target.position, target.rotation);
+            }
+            else
+            {
+                //Rotate to target rotation on finish walking
+                GoToPosition(target.position, () => transform.rotation = target.rotation);
+            }
+        }
+        else
+        {
+            throw new System.Exception("Desired routine location not within walking points array");
+        }
+
+    }
+
+
+
     public void SetupRunner()
     {
-
+        //Add every command hander for dialogue usage
         runner.Add(t.dialogue);
         runner.AddCommandHandler(GiveQuestCommand, GiveQuest);
         runner.AddCommandHandler(DeliverQuestCommand, DeliverQuest);
@@ -142,7 +223,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     void GoTo(string[] arg, System.Action onComplete)
     {
         DisableDialogBox();
-        GoToPosition(spawn.walkingPoints[arg[0]].position,
+        GoToPosition(GetTransform(spawn.walkingPoints, arg[0]).position,
         () =>
         {
             //Re-enable the dialog box when the AI has finished walking
@@ -151,7 +232,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
         );
     }
-    BuyInventoryUI buyMenu;
+
     public void OfferToBuy(string[] arg)
     {
         buyMenu = UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>();
@@ -313,7 +394,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             //Make the camera look at this npc
             PointCameraToSpeaker(c);
         else
-            c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
+            GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
 
 
         //Point the player towards the currently speaking npc
@@ -328,10 +409,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     void PointCameraToSpeaker(Player_CharacterController c)
     {
         //Get an angle that looks from the player to the npc, at a slight offset
-        c.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(c), 0);
+        GameCameras.s.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(c), 0);
         //Setup the transposer to recenter
-        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
-        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
+        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
+        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
     }
 
 
@@ -362,31 +443,31 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         NPCManager.singleton.data[npcName].spokenTo = true;
 
 
-        c.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
+        GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
 
         int targets = Mathf.Max(2, conversationGroupOverride.Length + 1);
         //Add all targets including the player
-        c.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
-        c.conversationGroup.m_Targets[0] = GenerateTarget(c.transform);
+        GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
+        GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(c.transform);
         if (conversationGroupOverride.Length != 0)
         {
             for (int i = 0; i < conversationGroupOverride.Length; i++)
             {
-                c.conversationGroup.m_Targets[i + 1] = GenerateTarget(conversationGroupOverride[i]);
+                GameCameras.s.conversationGroup.m_Targets[i + 1] = GenerateTarget(conversationGroupOverride[i]);
             }
         }
         else
         {
-            c.conversationGroup.m_Targets[1] = GenerateTarget(transform);
+            GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(transform);
         }
 
-        c.conversationGroup.DoUpdate();
+        GameCameras.s.conversationGroup.DoUpdate();
 
         //Add the variables for this NPC
 
         (runner.variableStorage as InMemoryVariableStorage).addon = this;
 
-        c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
+        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
         //  c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
 
         StartCoroutine(TurnToPlayer(c.transform.position));
@@ -413,13 +494,13 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
 
 
-    Vector3 focusPoint;
+    Vector3 focusPoint = Vector3.zero;
     IEnumerator TurnToPlayer(Vector3 playerPosition)
     {
         DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
         DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
 
-        runner.StartDialogue("Start");
+        runner.StartDialogue(t.routine[currentRoutineStage].conversationStartNode);
 
         Quaternion desiredRot = Quaternion.LookRotation(playerPosition - transform.position);
         while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
@@ -462,9 +543,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     private void CameraPan(string[] arg, System.Action onComplete)
     {
-        if (spawn.focusPoints.ContainsKey(arg[0]))
+        Transform focus = GetFocusPoint(arg[0]);
+        if (focus != null)
             //pan the camera to the target destination
-            StartCoroutine(TurnCameraToTarget(spawn.focusPoints[arg[0]].position, onComplete));
+            StartCoroutine(TurnCameraToTarget(focus.position, onComplete));
         else
         {
             Debug.LogWarning("Lookat target not in dictionary");
@@ -472,26 +554,29 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
     }
 
+    public Transform GetTransform(Transform[] transforms, string name) => transforms.FirstOrDefault(t => t.name == name);
+    public Transform GetFocusPoint(string name) => GetTransform(spawn.focusPoints, name);
 
     void TurnPlayerToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = spawn.focusPoints[arg[0]].position;
+        Vector3 target = GetFocusPoint(arg[0]).position;
         target.y = c.transform.position.y;
         c.transform.LookAt(target);
         onComplete?.Invoke();
     }
     void TurnNPCToTarget(string[] arg, System.Action onComplete)
     {
-        Vector3 target = spawn.focusPoints[arg[0]].position;
+        Vector3 target = GetFocusPoint(arg[0]).position;
         target.y = transform.position.y;
         transform.LookAt(target);
         onComplete?.Invoke();
     }
     void TurnNPCAndPlayerToTarget(string[] arg, System.Action onComplete)
     {
-        if (spawn.focusPoints.ContainsKey(arg[0]))
+        Transform focus = GetFocusPoint(arg[0]);
+        if (focus != null)
         {
-            Vector3 target = spawn.focusPoints[arg[0]].position;
+            Vector3 target = focus.position;
             target.y = transform.position.y;
             transform.LookAt(target);
             target.y = c.transform.position.y;
@@ -527,7 +612,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
         //yield return LerpCameraToPositionAndRotation(pos, targetRotation, 0.3f);
 
-        c.cutsceneCamera.LookAt = c.lookAtTarget;
+        GameCameras.s.cutsceneCamera.LookAt = c.lookAtTarget;
         c.lookAtTarget.position = target;
 
         yield return new WaitForSeconds(0.5f);
@@ -537,7 +622,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     void ResetCamera()
     {
-        c.cutsceneCamera.LookAt = c.conversationGroup.Transform;
+        GameCameras.s.cutsceneCamera.LookAt = GameCameras.s.conversationGroup.Transform;
     }
 
 
@@ -568,10 +653,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     }
 
 
-    private void Update()
-    {
-        ambientThought.rotation = camera.transform.rotation;
-    }
 
     public void OnStartHighlight()
     {

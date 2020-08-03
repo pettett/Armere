@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Pivot: {fileID: 1643563081667678423}
-  Bob: {fileID: 4955361804673213596}
+  Bob: {fileID: 0}
   mass: 1
   angleOffset: {x: 0, y: 0, z: 0, w: 1}
 --- !u!1 &5129286649118197525
@@ -211,7 +211,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
         type: 3}
@@ -221,12 +221,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071067
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
         type: 3}
@@ -293,12 +293,6 @@ PrefabInstance:
 --- !u!4 &8322526388608317721 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
-    type: 3}
-  m_PrefabInstance: {fileID: 8427700391225679602}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4955361804673213596 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3472785022668814958, guid: 96c7f64def1a5bc498ccbbd2d57ec9cf,
     type: 3}
   m_PrefabInstance: {fileID: 8427700391225679602}
   m_PrefabAsset: {fileID: 0}

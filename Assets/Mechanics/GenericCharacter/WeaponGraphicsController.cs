@@ -49,6 +49,7 @@ public class WeaponGraphicsController : MonoBehaviour
         public void SetHeld(ItemName weapon, ItemDatabase db)
         {
             if (gameObject != null) Destroy(gameObject);
+            print(db);
             gameObject = CreateItem(weapon, db);
         }
         public void RemoveHeld()
@@ -56,8 +57,8 @@ public class WeaponGraphicsController : MonoBehaviour
             if (gameObject != null)
                 Destroy(gameObject);
         }
-
-        public GameObject CreateItem(ItemName weapon, ItemDatabase db) => db[weapon].properties.CreatePlayerObject(weapon, db);
+        //If the item has not properties, use the blank one
+        public GameObject CreateItem(ItemName weapon, ItemDatabase db) => (db[weapon].properties ?? ItemPropertyBase.blank).CreatePlayerObject(weapon, db);
 
     }
 

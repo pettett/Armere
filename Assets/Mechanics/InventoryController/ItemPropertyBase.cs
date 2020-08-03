@@ -3,8 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public abstract class ItemPropertyBase : ScriptableObject
+public class ItemPropertyBase : ScriptableObject
 {
+    static ItemPropertyBase _blank;
+    public static ItemPropertyBase blank
+    {
+        get
+        {
+            return _blank ?? (_blank = ScriptableObject.CreateInstance<ItemPropertyBase>());
+        }
+    }
+
     public virtual GameObject CreatePlayerObject(ItemName name, ItemDatabase db)
     {
         var go = new GameObject(name.ToString(),

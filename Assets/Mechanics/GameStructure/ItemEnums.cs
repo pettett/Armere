@@ -1,5 +1,5 @@
-//I doubt that more then 65,536 items will be defined
-public enum ItemName : ushort
+//This needs to be contiguous - values used as index
+public enum ItemName
 {
     Stick = 0,
     MineDeed = 1,
@@ -14,8 +14,8 @@ public enum ItemName : ushort
     Arrow = 10,
     Currency = 11,
 }
-//I doubt that more then 256 item types will be defined
-public enum ItemType : byte
+
+public enum ItemType
 {
     Common = 0,
     Weapon = 1,

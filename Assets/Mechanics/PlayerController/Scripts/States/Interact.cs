@@ -131,6 +131,7 @@ namespace PlayerController
 
         void ExitInteractable(IInteractable exit)
         {
+            exit.OnEndHighlight();
             interactablesInRange.Remove(exit);
         }
 
@@ -152,6 +153,8 @@ namespace PlayerController
             {
                 ExitInteractable(interactablesInRange[i]);
             }
+            //Remove the "Interact" prompt
+            UIPrompt.ResetPrompt();
         }
     }
 }

@@ -137,6 +137,7 @@ MonoBehaviour:
   - give IronSword 1
   - give BasicBow 1
   - give Arrow 20
+  - give Currency 60
   - givequest Tutorial
 --- !u!114 &1254477659995837600
 MonoBehaviour:

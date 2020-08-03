@@ -10,11 +10,11 @@ public class Arrow : MonoBehaviour
     bool initialized = false;
     ItemName ammoName;
     Rigidbody rb;
-    public void Initialize(ItemName item, Vector3 position, Vector3 velocity, ItemDatabase db)
+    public void Initialize(ItemName ammoName, Vector3 position, Vector3 velocity, ItemDatabase db)
     {
         //Calibrate components
-        ammoName = item;
-        if (db[ammoName].type != ItemType.Ammo)
+        this.ammoName = ammoName;
+        if (db[this.ammoName].type != ItemType.Ammo)
         {
             //Make sure the item fired is actually ammo
             Debug.LogError("Non - Ammo type fired as arrow");
@@ -24,8 +24,8 @@ public class Arrow : MonoBehaviour
 
         transform.position = position;
 
-        GetComponent<MeshFilter>().sharedMesh = db[item].mesh;
-        GetComponent<MeshRenderer>().materials = db[item].materials;
+        GetComponent<MeshFilter>().sharedMesh = db[ammoName].mesh;
+        GetComponent<MeshRenderer>().materials = db[ammoName].materials;
 
         rb = GetComponent<Rigidbody>();
         rb.velocity = velocity;
@@ -55,6 +55,10 @@ public class Arrow : MonoBehaviour
     private void OnCollisionEnter(Collision other)
     {
         print("Arrow hit");
+        if (other.gameObject.TryGetComponent<Health>(out var h))
+        {
+            h.Damage(10, gameObject);
+        }
         //Turn arrow into an item if it is permitted
         Items.SpawnItem(ammoName, transform.position, transform.rotation, InventoryController.singleton.db);
         Destroy(gameObject);

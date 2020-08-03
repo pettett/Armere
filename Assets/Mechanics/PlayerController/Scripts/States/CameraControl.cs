@@ -21,6 +21,7 @@ namespace PlayerController
 
             Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
         }
+
         public override void End()
         {
             DebugMenu.RemoveEntry(entry);
@@ -29,20 +30,20 @@ namespace PlayerController
         public Vector3 TransformInput(Vector2 input)
         {
             Vector3 direction = new Vector3(input.x, 0, input.y);
-            direction = Quaternion.Euler(0, c.cameraTransform.eulerAngles.y, 0) * direction;
+            direction = Quaternion.Euler(0, GameCameras.s.cameraTransform.eulerAngles.y, 0) * direction;
             return direction;
         }
 
         public void DisableControl()
         {
             controlling = false;
-            c.freeLook.Priority = 0;
+            GameCameras.s.freeLook.Priority = 0;
         }
         public void EnableControl()
         {
             //start the transition from free camare to game camera
             controlling = true;
-            c.freeLook.Priority = 10;
+            GameCameras.s.freeLook.Priority = 10;
         }
 
 
@@ -65,6 +66,10 @@ namespace PlayerController
                 mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
             Cursor.lockState = lockingMouse ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !lockingMouse;
+
+
+            CameraVolumeController.UpdateVolumeEffect(transform.position);
+
         }
 
     }

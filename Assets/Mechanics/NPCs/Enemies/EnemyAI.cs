@@ -3,18 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 [RequireComponent(typeof(Health))]
-public class EnemyAI : AIBase, IAttackable
+public class EnemyAI : AIBase
 {
-    public enum EnemyBehaviour
-    {
-        Guard,
-        Patrol,
-    }
-    public enum SightMode
-    {
-        View,
-        Range
-    }
+    public enum EnemyBehaviour { Guard, Patrol, }
+    public enum SightMode { View, Range }
 
 
     public EnemyBehaviour enemyBehaviour;
@@ -23,6 +15,7 @@ public class EnemyAI : AIBase, IAttackable
     [System.Serializable]
     public class PatrolData
     {
+        public float patrolSpeed = 3.5f;
         public float waitTime = 2;
         public Vector3[] path = new Vector3[0];
     }
@@ -35,6 +28,13 @@ public class EnemyAI : AIBase, IAttackable
     public Collider playerCollider;
     public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 
+    [Header("Player Engagement")]
+
+    public float engagementSpeed = 4;
+
+    public float approachDistance = 1;
+    float sqrApproachDistance => approachDistance * approachDistance;
+    public bool approachPlayer = true;
 
     [Header("UI")]
 
@@ -47,10 +47,9 @@ public class EnemyAI : AIBase, IAttackable
     bool investigateOnSight = false;
     bool engageOnAttack = true;
 
-    public void Attack(float damage)
+    public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
-        health.Damage(damage,gameObject);
         print("Hit Enemy");
         if (engageOnAttack)
             ChangeRoutine(EngagePlayer());
@@ -75,6 +74,7 @@ public class EnemyAI : AIBase, IAttackable
     protected override void Start()
     {
         health = GetComponent<Health>();
+        health.onTakeDamage += OnDamageTaken;
         base.Start();
         StartBaseRoutine();
     }
@@ -96,6 +96,7 @@ public class EnemyAI : AIBase, IAttackable
         int i = 0;
         //If the player is seen, switch out of this routine
         investigateOnSight = true;
+        agent.speed = patrolData.patrolSpeed;
         while (true)
         {
             yield return GoToPosition(patrolData.path[i]);
@@ -166,13 +167,20 @@ public class EnemyAI : AIBase, IAttackable
         //Once they player has attacked or been seen, do not stop engageing until circumstances change
         engageOnAttack = false;
         investigateOnSight = false;
-        Vector3 flatDir;
+
+        agent.isStopped = true;
+
+        Vector3 directionToPlayer;
         print("Engaged player");
         while (true)
         {
-            flatDir = playerCollider.transform.position - transform.position;
-            flatDir.y = 0;
-            transform.forward = flatDir;
+            directionToPlayer = playerCollider.transform.position - transform.position;
+            if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
+                agent.Move(directionToPlayer.normalized * Time.deltaTime * engagementSpeed);
+
+            directionToPlayer.y = 0;
+            transform.forward = directionToPlayer;
+
             yield return new WaitForEndOfFrame();
         }
     }

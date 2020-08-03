@@ -2,6 +2,11 @@ title: Start
 ---
 Kraki: Have you seen that cliff?
 Kraki: I honestly can't believe it's that tall
-<<TurnNPCAndPlayerToTarget cliff>>
-<<cameraPan cliff>>
+<<TurnNPCAndPlayerToTarget lookat>>
+<<cameraPan lookat>>
+===
+
+title: Night
+---
+Kraki: Feel free to cook your food by my fire
 ===

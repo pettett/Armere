@@ -45,7 +45,7 @@ MonoBehaviour:
     mesh: {fileID: -7486298912302941878, guid: 268ceb1e3136cf944a9e57474d522fae, type: 3}
     materials:
     - {fileID: 2100000, guid: 08c14b86ac3b6e14eb13d217af96ac61, type: 2}
-    properties: {fileID: 0}
+    properties: {fileID: 11400000, guid: 1a2faaa59ba0929469582f7af0a1e538, type: 2}
   - itemName: 3
     name: Lantern
     description: Create Light, without a shield
@@ -119,7 +119,7 @@ MonoBehaviour:
     mesh: {fileID: -5518163057671977027, guid: eac43591f2ce73944b90980c854ab14d, type: 3}
     materials:
     - {fileID: -876546973899608171, guid: eac43591f2ce73944b90980c854ab14d, type: 3}
-    properties: {fileID: 11400000, guid: 0e7c01a42ad5e07448d5b539bb92991d, type: 2}
+    properties: {fileID: 11400000, guid: b088f7524702a4f4aa5bca695c90b945, type: 2}
   - itemName: 10
     name: Arrow
     description: Arrow

@@ -110,92 +110,20 @@
                     "interactions": ""
                 },
                 {
-                    "name": "SelectWeapon1",
-                    "type": "Button",
-                    "id": "cce44b51-8074-4d08-b4c3-be374f2d4d0d",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon2",
-                    "type": "Button",
-                    "id": "17f1e2f1-c0b5-4e08-a8c6-9253d274a556",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon3",
-                    "type": "Button",
-                    "id": "b26bad9a-61e6-476e-acde-e8ac01dd2658",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon4",
-                    "type": "Button",
-                    "id": "86150fed-2aa2-4613-a975-f0ae63e79989",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon5",
-                    "type": "Button",
-                    "id": "8d3e978a-22ee-491f-8c9e-dc2db27b90db",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon6",
-                    "type": "Button",
-                    "id": "1ceb0133-eeec-4749-8562-f64bcc0752cf",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon7",
-                    "type": "Button",
-                    "id": "d930ab14-de65-48a0-bfaa-a43bae7f2642",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon8",
-                    "type": "Button",
-                    "id": "5576a78a-d0f0-4b94-8f81-d799c6f0f077",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon9",
-                    "type": "Button",
-                    "id": "03634365-b1b7-45ea-86b1-8a1fb1873f88",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "SelectWeapon10",
-                    "type": "Button",
-                    "id": "87724a0e-db3f-45cb-8469-b860ae933384",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
                     "name": "SwitchWeaponSet",
                     "type": "Button",
                     "id": "4f8ff449-85f4-48f1-850c-056b0cf5bbaa",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "SelectWeapon",
+                    "type": "Value",
+                    "id": "08949489-2e63-45e8-b72a-7891e6e7f714",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
@@ -443,116 +371,6 @@
                 },
                 {
                     "name": "",
-                    "id": "01cc50df-0496-4ce6-8b0d-334b9145427a",
-                    "path": "<Keyboard>/1",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon1",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "ae2ba1cc-79c3-42ae-9475-7850c316e1aa",
-                    "path": "<Keyboard>/2",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon2",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a636815e-29d5-4447-bdfe-fbc808adb0ae",
-                    "path": "<Keyboard>/3",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon3",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "6057f689-f2ae-40e3-9237-1053428c6b7c",
-                    "path": "<Keyboard>/4",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon4",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "4cfb342a-2de3-4ee7-ada5-07d9209b41d2",
-                    "path": "<Keyboard>/5",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon5",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1348de39-4f96-4fd3-8481-4bf19a0bcde6",
-                    "path": "<Keyboard>/6",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon6",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "217140e4-f275-4cc3-9c51-c2f960d6925c",
-                    "path": "<Keyboard>/7",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon7",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "aad1b932-ee78-42f4-8416-5fa640f643f8",
-                    "path": "<Keyboard>/8",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon8",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "9e13cadc-c56b-42ad-9b96-cc0f7e503623",
-                    "path": "<Keyboard>/9",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon9",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "6f405b50-7880-4914-b957-1451f56ee82e",
-                    "path": "<Keyboard>/0",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SelectWeapon10",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "cf5ae496-e7ea-4fcb-a842-5a4c7360bfd3",
                     "path": "<Mouse>/delta",
                     "interactions": "",
@@ -592,6 +410,116 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "SwitchWeaponSet",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "74178720-e353-43e7-bce0-babb9bfc2210",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "Scale(factor=0)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7d1b4800-0654-48fd-b6f4-9e61a010aafa",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "Scale",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "39baec3a-3bd1-4755-a8e0-c7fbe7502769",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "Scale(factor=2)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2a75b0f8-c76f-4d69-89c1-bf9c2799fbac",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "Scale(factor=3)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "57da548d-df76-4003-befe-3d107a20ba43",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "Scale(factor=4)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "42613d7e-3a8f-4154-94fa-86e828ad61e4",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "Scale(factor=5)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7b5e75c0-4af3-46db-bc4b-dad5adb5bcaa",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "Scale(factor=6)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3c897bdd-ead6-4188-a57e-653bb3491e1e",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "Scale(factor=7)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c1d09be-bd5d-4517-8bed-e078bb0196f9",
+                    "path": "<Keyboard>/9",
+                    "interactions": "",
+                    "processors": "Scale(factor=8)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "929c8315-01dc-445f-beb3-1fd8fb408b77",
+                    "path": "<Keyboard>/0",
+                    "interactions": "",
+                    "processors": "Scale(factor=9)",
+                    "groups": "KeyboardMouse",
+                    "action": "SelectWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

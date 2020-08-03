@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-public class Animal : MonoBehaviour, IAttackable
+public class Animal : MonoBehaviour
 {
-    enum State
+    enum State : byte
     {
         Idle,
         Scared

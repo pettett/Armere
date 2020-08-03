@@ -13,9 +13,9 @@ public class NPCSpawn : MonoBehaviour
 
     public Transform[] conversationGroupTargetsOverride = new Transform[0];
 
-    [System.Serializable] public class PositionDict : RotaryHeart.Lib.SerializableDictionary.SerializableDictionaryBase<string, Transform> { }
-    public PositionDict focusPoints;
-    public PositionDict walkingPoints;
+
+    public Transform[] focusPoints;
+    public Transform[] walkingPoints;
 
 
     // Start is called before the first frame update

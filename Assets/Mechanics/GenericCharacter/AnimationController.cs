@@ -66,8 +66,8 @@ public class AnimationController : MonoBehaviour
     Animator anim;
 
 
-    public float headLookAtPositionWeight;
-    public Vector3 headLookAtPosition;
+    public float lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight = 0;
+    public Vector3 lookAtPosition;
 
     public GameObject mesh;
 
@@ -155,8 +155,8 @@ public class AnimationController : MonoBehaviour
                 anim.SetIKRotation(point.goal, point.gripPoint.rotation);
             }
 
-            anim.SetLookAtWeight(headLookAtPositionWeight);
-            anim.SetLookAtPosition(headLookAtPosition);
+            anim.SetLookAtWeight(lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight);
+            anim.SetLookAtPosition(lookAtPosition);
 
         }
     }

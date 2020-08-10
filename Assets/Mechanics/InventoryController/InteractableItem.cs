@@ -6,6 +6,8 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
 {
     public bool canInteract { get => enabled; set => enabled = value; }
 
+    public float requiredLookDot => -1;
+
     public System.Action<InteractableItem> onItemDestroy;
 
     ItemSpawner.SpawnType type;

@@ -11,6 +11,10 @@ public class InteractableButton : MonoBehaviour, IInteractable
 
     public UnityEvent activateEvent;
     public UnityEvent deactivateEvent;
+
+    [Range(0, 360)]
+    public float requiredLookAngle = 180;
+    public float requiredLookDot => Mathf.Cos(requiredLookAngle);
     public void Interact(IInteractor c)
     {
         isOn = !isOn;

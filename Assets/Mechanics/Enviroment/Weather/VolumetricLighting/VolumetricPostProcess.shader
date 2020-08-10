@@ -126,6 +126,7 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
         float Frag(VaryingsDefault i) : SV_Target
         {
+            
             float3 background = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord).rgb;
 
             // Transform the camera origin to world space

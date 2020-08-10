@@ -10,4 +10,5 @@ public interface IInteractable
     void OnStartHighlight();
     void OnEndHighlight();
     GameObject gameObject { get; }
+    float requiredLookDot { get; }
 }

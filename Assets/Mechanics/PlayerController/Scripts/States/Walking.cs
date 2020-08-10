@@ -80,6 +80,7 @@ namespace PlayerController
             c.animationController.enableFeetIK = true;
             c.rb.isKinematic = false;
             InventoryController.singleton.OnSelectItemEvent += OnSelectItem;
+            animator.applyRootMotion = false;
 
 
             c.onPlayerInput += OnInput;
@@ -96,6 +97,9 @@ namespace PlayerController
             //make sure the collider is left correctly
             c.collider.height = p.walkingHeight;
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
+
+
+
             InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
             InventoryController.singleton.onItemAdded -= OnItemAdded;
         }
@@ -446,9 +450,8 @@ namespace PlayerController
                 //Buffer of two: One for water surface, one for water base
                 RaycastHit[] waterHits = new RaycastHit[2];
                 float heightOffset = 2;
-                float maxStrideDepth = 1;
-                int hits = Physics.RaycastNonAlloc(transform.position + new Vector3(0, heightOffset, 0), Vector3.down, waterHits, maxStrideDepth + heightOffset, c.m_groundLayerMask, QueryTriggerInteraction.Collide);
-                print(hits.ToString());
+
+                int hits = Physics.RaycastNonAlloc(transform.position + new Vector3(0, heightOffset, 0), Vector3.down, waterHits, c.maxWaterStrideDepth + heightOffset, c.m_groundLayerMask, QueryTriggerInteraction.Collide);
 
                 if (hits == 2)
                 {
@@ -456,14 +459,14 @@ namespace PlayerController
                     if (w != null)
                     {
                         //Hit water and ground
-                        print("Hit water and ground");
                         float depth = waterHits[0].distance - waterHits[1].distance;
 
-                        float scaledDepth = depth / maxStrideDepth;
+                        float scaledDepth = depth / c.maxWaterStrideDepth;
                         if (scaledDepth > 1)
                         {
                             //Start swimming
                             print("Too deep to walk");
+                            c.ChangeToState<Swimming>();
                         }
                         else if (scaledDepth >= 0)
                         {
@@ -471,7 +474,6 @@ namespace PlayerController
                             //Slow speed of walk
                             //Full depth walks at half speed
                             speedScalar = scaledDepth * 0.5f + 0.5f;
-                            print("Striding in water");
                         }
 
                     }
@@ -482,6 +484,7 @@ namespace PlayerController
 
                     //Start swimming
                     print("Too deep to walk");
+                    c.ChangeToState<Swimming>();
                 }
             }
 

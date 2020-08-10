@@ -78,13 +78,15 @@ namespace PlayerController
 
         public CameraControl cameraController;
 
-        [SerializeReference, ReadOnly] MovementState[] allStates;
+        MovementState[] allStates;
+
+        public Room currentRoom;
 
         [Header("State Properties")]
 
         public Walking.WalkingProperties m_walkingProperties = new Walking.WalkingProperties();
         public Freefalling.FreefallingProperties m_freefallingProperties = new Freefalling.FreefallingProperties();
-        public Climbing.ClimbingProperties m_climbingProperties = new Climbing.ClimbingProperties();
+        //public Climbing.ClimbingProperties m_climbingProperties = new Climbing.ClimbingProperties();
         public Shieldsurfing.ShieldsurfingProperties m_shieldsurfingProperties = new Shieldsurfing.ShieldsurfingProperties();
 
         public float jumpForce = 1000f;
@@ -104,8 +106,16 @@ namespace PlayerController
         [Range(0, 90)] public float m_maxGroundAngle = 70;
         [HideInInspector] public float m_maxGroundDot = 0.3f;
         public bool onGround;
+        [Header("Movement")]
         [Range(0, 1)]
         public float dynamicFriction = 0.2f;
+        public float maxWaterStrideDepth = 1;
+        public float waterDrag = 1;
+        public float waterMovementForce = 1;
+        [Header("Climbing")]
+        public float climbingColliderHeight = 1.6f;
+        public float climbingSpeed = 4f;
+        public float transitionTime = 4f;
 
         [Header("Weapons")]
         public Transform arrowSpawn;
@@ -119,6 +129,7 @@ namespace PlayerController
 
         [HideInInspector]
         public Animator animator;
+
         public TMPro.TextMeshProUGUI currentStateText;
         [SerializeField] public InputStatus input = new InputStatus(); //current player input
 
@@ -166,6 +177,8 @@ namespace PlayerController
         public WaterController currentWater;
 
 
+
+        bool loadedStates = false;
         // Start is called before the first frame update
         /// <summary>
         /// Awake is called when the script instance is being loaded.
@@ -176,7 +189,6 @@ namespace PlayerController
             animationController = GetComponent<AnimationController>();
         }
 
-        bool loadedStates = false;
         private void Start()
         {
             animatorVariables.UpdateIDs();
@@ -217,8 +229,13 @@ namespace PlayerController
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
             GetComponent<Ragdoller>().RagdollEnabled = false;
+        }
 
+        public void EnterRoom(Room room)
+        {
+            currentRoom = room;
 
+            StartCoroutine(CameraVolumeController.s.ApplyOverrideProfile(room == null ? null : room.overrideProfile, 3f));
         }
 
         private void OnDestroy()

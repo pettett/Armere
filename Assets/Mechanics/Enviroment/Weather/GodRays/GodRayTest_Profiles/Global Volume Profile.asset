@@ -1366,19 +1366,19 @@ MonoBehaviour:
     value: 1
   textureDownscale:
     overrideState: 1
-    value: 3
+    value: 1
   debug:
     overrideState: 0
     value: 0
   scattering:
     overrideState: 1
-    value: 0.048
+    value: 0.066
   extinction:
     overrideState: 1
     value: 0.1
   skyboxExtinction:
     overrideState: 1
-    value: 1
+    value: 0
   MieG:
     overrideState: 0
     value: 0.23

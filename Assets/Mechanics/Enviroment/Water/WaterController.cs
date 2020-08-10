@@ -12,6 +12,9 @@ public class WaterController : MonoBehaviour
         public float waterWidth = 5;
     }
     public WaterPathNode[] path = new WaterPathNode[0];
+
+    public Collider waterVolume;
+
     Vector2 Flatten(Vector3 p)
     {
         return new Vector2(p.x, p.z);

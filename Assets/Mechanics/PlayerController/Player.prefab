@@ -121,18 +121,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mod: 0
   db: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
-  cameraTransform: {fileID: 0}
-  freeLook: {fileID: 0}
-  freeLookAim: {fileID: 0}
-  conversationGroup: {fileID: 0}
-  cutsceneCamera: {fileID: 0}
   lookAtTarget: {fileID: 0}
   playerInput: {fileID: 0}
   cameraController:
     updateWhilePaused: 0
     canBeTargeted: 1
     lockingMouse: 1
-  allStates: []
+  currentRoom: {fileID: 0}
   m_walkingProperties:
     walkingSpeed: 2
     runningSpeed: 5
@@ -151,9 +146,6 @@ MonoBehaviour:
     airJumps: 1
     airJumpVelocity: 0
     airJumpAngleFromVertical: 0
-  m_climbingProperties:
-    speed: 1
-    distanceFromCliffFace: 0
   m_shieldsurfingProperties:
     turningTorqueForce: 0
     minSurfingSpeed: 0
@@ -170,6 +162,12 @@ MonoBehaviour:
   m_maxGroundAngle: 53.4
   m_maxGroundDot: 0.3
   onGround: 0
+  dynamicFriction: 0.2
+  maxWaterStrideDepth: 1
+  waterDrag: 1
+  waterMovementForce: 500
+  climbingColliderHeight: 1.5
+  transitionTime: 3.83
   arrowSpawn: {fileID: 4702159432844938880}
   bowPivot: {fileID: 368902570246789374}
   m_groundLayerMask:
@@ -210,8 +208,6 @@ MonoBehaviour:
       name: GroundDistance
       id: 0
   currentWater: {fileID: 0}
-  references:
-    version: 1
 --- !u!114 &368902570172568861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,8 +244,12 @@ MonoBehaviour:
     gripPoint: {fileID: 0}
     positionWeight: 1
     rotationWeight: 1
+  lookAtPositionWeight: 0
+  bodyLookAtPositionWeight: 0
   headLookAtPositionWeight: 0
-  headLookAtPosition: {x: 0, y: 0, z: 0}
+  eyesLookAtPositionWeight: 0
+  clampLookAtPositionWeight: 0
+  lookAtPosition: {x: 0, y: 0, z: 0}
   mesh: {fileID: 8975383740080960357}
   useAnimationHook: 0
   velocityScaler: 1
@@ -691,7 +691,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3488904309535504199}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.493, y: 0, z: 0}
+  m_LocalPosition: {x: 0.715, y: 0.369, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 368902570172234606}

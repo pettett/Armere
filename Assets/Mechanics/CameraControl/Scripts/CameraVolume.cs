@@ -2,23 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
-[RequireComponent(typeof(Collider))]
 public class CameraVolume : MonoBehaviour
 {
     [HideInInspector] public Collider c;
+    public bool global = false;
 
     public float blendDistance = 1;
-    public CinemachineFreeLook.Orbit topRig;
-    public CinemachineFreeLook.Orbit middleRig;
-    public CinemachineFreeLook.Orbit bottomRig;
-
+    public CameraProfile profile;
     private void OnEnable()
     {
-        CameraVolumeController.Register(this);
-        c = GetComponent<Collider>();
+
+        CameraVolumeController.Register(this, global);
+        if (!global)
+            c = GetComponent<Collider>();
+
     }
     private void OnDisable()
     {
-        CameraVolumeController.UnRegister(this);
+
+        CameraVolumeController.UnRegister(this, global);
+
     }
 }

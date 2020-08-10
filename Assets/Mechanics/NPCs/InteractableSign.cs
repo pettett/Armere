@@ -6,6 +6,10 @@ using Yarn.Unity;
 public class InteractableSign : MonoBehaviour, IInteractable
 {
     public bool canInteract { get => enabled; set => enabled = value; }
+
+    [Range(0, 360)]
+    public float requiredLookAngle = 180;
+    public float requiredLookDot => Mathf.Cos(requiredLookAngle);
     DialogueRunner runner;
     private void Start()
     {

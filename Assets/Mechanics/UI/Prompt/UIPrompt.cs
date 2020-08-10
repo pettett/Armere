@@ -40,6 +40,7 @@ public class UIPrompt : MonoBehaviour
 
     public static void ResetPrompt()
     {
+        if (singleton == null) return;
         singleton.promptText.enabled = false;
         singleton.keybindPromptText1.enabled = false;
         singleton.keybindPromptText2.enabled = false;

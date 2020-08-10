@@ -75,6 +75,7 @@ namespace PlayerController
             Vector3 interactableDir;
             float dot;
             float bestDot = -1;
+            currentLookAt = -1;
 
             for (int i = 0; i < interactablesInRange.Count; i++)
             {
@@ -88,7 +89,8 @@ namespace PlayerController
                     interactableDir = (interactablesInRange[i].gameObject.transform.position - transform.position).normalized;
 
                     dot = Vector3.Dot(direction, interactableDir);
-                    if (dot > bestDot)
+                    //Needs to be within interactable look dot
+                    if (dot > bestDot && dot > interactablesInRange[i].requiredLookDot)
                     {
                         bestDot = dot;
                         currentLookAt = i;
@@ -97,31 +99,32 @@ namespace PlayerController
                 }
             }
 
-            if (interactablesInRange.Count == 0)
+
+            if (currentLookAt == -1)
+            {
+                //Not looking at any targets or no targets exist
+                RemovePrevTarget();
+            }
+            else if (prevTarget != interactablesInRange[currentLookAt])
             {
                 if (prevTarget != null)
-                {
                     prevTarget.OnEndHighlight();
-                    prevTarget = null;
-                    UIPrompt.ResetPrompt();
-                }
+                else //no target before this, start applying the prompt
+                    UIPrompt.ApplyPrompt("Interact", c.playerInput.actions.FindAction("Action").controls[0].displayName);
+
+                interactablesInRange[currentLookAt].OnStartHighlight();
+                prevTarget = interactablesInRange[currentLookAt];
             }
-            else
+
+        }
+        void RemovePrevTarget()
+        {
+            if (prevTarget != null)
             {
-                if (prevTarget != interactablesInRange[currentLookAt])
-                {
-                    if (prevTarget != null)
-                        prevTarget.OnEndHighlight();
-                    else //no target before this, start applying the prompt
-                        UIPrompt.ApplyPrompt("Interact", c.playerInput.actions.FindAction("Action").controls[0].displayName);
-
-                    interactablesInRange[currentLookAt].OnStartHighlight();
-                    prevTarget = interactablesInRange[currentLookAt];
-                }
+                prevTarget.OnEndHighlight();
+                prevTarget = null;
+                UIPrompt.ResetPrompt();
             }
-
-
-
         }
         void OnInteractableRemoved(IInteractable interactable)
         {
@@ -141,7 +144,7 @@ namespace PlayerController
             {
                 //activate the interactable that is pointed most to the player
 
-                if (interactablesInRange.Count != 0)
+                if (currentLookAt != -1)
                 {
                     interactablesInRange[currentLookAt].Interact(c);
                 }

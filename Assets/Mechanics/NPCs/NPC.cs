@@ -17,7 +17,9 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         get => NPCManager.NPCVariable.ToYarnEquiv(NPCManager.singleton.data[npcName].variables[name]);
         set => NPCManager.singleton.data[npcName].variables[name] = NPCManager.NPCVariable.FromYarnEquiv(value);
     }
-
+    [Range(0, 360)]
+    public float requiredLookAngle = 180;
+    public float requiredLookDot => Mathf.Cos(requiredLookAngle);
     public NPCName npcName;
     public Transform ambientThought;
     public TextMeshPro ambientThoughtText;

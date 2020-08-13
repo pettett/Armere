@@ -10,6 +10,9 @@ public class SettingsConfig
     [SliderUI(0.0001f, 100, 0.5f)]
     public float sensitivity = 10;
 
+    [SliderUI(10f, 360, 0.5f)]
+    public float controllerSensitivity = 180;
+
 }
 
 public static class SettingsManager

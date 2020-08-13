@@ -52,8 +52,9 @@ namespace PlayerController
         [Serializable]
         public struct InputStatus
         {
-            public Vector2 inputWalk;
-            public Vector2 inputCamera;
+            public Vector2 horizontal;
+            public Vector2 camera;
+            public float vertical;
         }
 
         public MovementModifiers mod;
@@ -296,7 +297,6 @@ namespace PlayerController
 
         public void OnActionTriggered(InputAction.CallbackContext action)
         {
-
             //Convert nullable bool into bool - defaults to true
             if (onPlayerInput?.Invoke(action) ?? true)
             {
@@ -308,11 +308,15 @@ namespace PlayerController
                         OnSelectWeapon((int)action.ReadValue<float>(), action.phase);
                         break;
                     case "Walk":
-                        input.inputWalk = action.ReadValue<Vector2>();
+                        input.horizontal = action.ReadValue<Vector2>();
                         break;
                     case "Look":
-                        input.inputCamera = action.ReadValue<Vector2>();
+                        input.camera = action.ReadValue<Vector2>();
                         break;
+                    case "VerticalMovement":
+                        input.vertical = action.ReadValue<float>();
+                        break;
+
                     case "Action":
                         for (int i = 0; i < allStates.Length; i++)
                             if (StateActive(i))

@@ -7,19 +7,27 @@
             "actions": [
                 {
                     "name": "Look",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "8882bad0-c251-459d-925e-e07d73fcfa63",
-                    "expectedControlType": "",
+                    "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "Press(behavior=2)"
+                    "interactions": ""
                 },
                 {
                     "name": "Walk",
                     "type": "Value",
                     "id": "d1e16abe-efb5-4620-820b-d91946a48675",
-                    "expectedControlType": "",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "VerticalMovement",
+                    "type": "Value",
+                    "id": "7c3b1d65-fa87-4660-9da5-1646436bb786",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "Press"
                 },
                 {
                     "name": "Sprint",
@@ -370,12 +378,67 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "cf5ae496-e7ea-4fcb-a842-5a4c7360bfd3",
-                    "path": "<Mouse>/delta",
+                    "name": "ArrowKeys",
+                    "id": "7d3b6718-f72d-4df3-be78-52e3ac35adf8",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "fbfac4da-6b6c-497b-bed4-b607813859cb",
+                    "path": "<Keyboard>/upArrow",
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "186ef6b3-c312-4640-ac54-24ca8624f2fd",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "64cfe621-deaf-48c3-a30a-225d7b32740f",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "d6b94f08-0908-41e4-b2fe-8d2a37ff3031",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "d2461737-3151-49fa-a122-7a8776ce5c33",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "InvertVector2",
+                    "groups": "Gamepad",
                     "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -522,6 +585,39 @@
                     "action": "SelectWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "daa6c3cc-4adc-4c0a-9e49-91a4f921279f",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VerticalMovement",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "db0fd616-696b-425d-9928-09e6e3a53bfd",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "VerticalMovement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "933d51b4-f74e-4374-a841-a4bc6cd61060",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "VerticalMovement",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },

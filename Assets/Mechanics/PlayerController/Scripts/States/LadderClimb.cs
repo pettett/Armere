@@ -126,7 +126,7 @@ namespace PlayerController
             switch (ladder.surfaceType)
             {
                 case Climbable.ClimbableSurface.Line:
-                    height += c.input.inputWalk.y * Time.deltaTime * c.climbingSpeed;
+                    height += c.input.horizontal.y * Time.deltaTime * c.climbingSpeed;
                     height = Mathf.Clamp(height, 0, ladder.ladderHeight);
 
                     transform.position = GetLadderPos(height);
@@ -139,8 +139,11 @@ namespace PlayerController
                     break;
                 case Climbable.ClimbableSurface.Mesh:
                     //Move with input on the mesh
-                    Vector3 left = -Vector3.Cross(Vector3.up, currentNormal);
-                    Vector3 deltaPos = (left * c.input.inputWalk.x + Vector3.up * c.input.inputWalk.y) * Time.deltaTime * c.climbingSpeed;
+                    Vector3 leftTangent = -Vector3.Cross(Vector3.up, currentNormal).normalized;
+                    Vector3 upTangent = Vector3.Cross(leftTangent, currentNormal);
+
+
+                    Vector3 deltaPos = (leftTangent * c.input.horizontal.x + upTangent * c.input.horizontal.y) * Time.deltaTime * c.climbingSpeed;
                     currentPosition += deltaPos;
 
                     var point = ladder.GetClosestPointOnMesh(currentPosition);
@@ -167,18 +170,25 @@ namespace PlayerController
                     currentPosition = point.point;
                     currentNormal = point.normal;
 
-                    //Test if were the head of the player is
-
-                    var headPoint = ladder.GetClosestPointOnMesh(currentPosition + Vector3.up * c.collider.height);
-                    var headPos = headPoint.point;
 
                     //Head position should be above center point, distance of collider away
                     Quaternion rotation = Quaternion.LookRotation(currentNormal);
+
+                    //Test if were the head of the player is
+                    var headPoint = ladder.GetClosestPointOnMesh(currentPosition + upTangent * c.collider.height);
+                    var headPos = headPoint.point;
                     Vector3 localHeadPos = rotation * (headPos - currentPosition);
-                    print("Local head pos : {0}", localHeadPos);
+
+
+
+
+                    float sqrHeadDistance = localHeadPos.y * localHeadPos.y + localHeadPos.z * localHeadPos.z;
+
                     bool dirtyPosition = false;
-                    if (headPos.y - currentPosition.y < c.collider.height)
+                    if (sqrHeadDistance < c.collider.height * c.collider.height)
                     {
+                        float headDistance = Mathf.Sqrt(sqrHeadDistance);
+                        //print("Local head pos : {0} distance: {1}", localHeadPos.ToString("F3"), headDistance);
                         //Cannot go this way, go back down or jump up to top surface
 
                         Vector3 origin = currentPosition + Vector3.up * (oldColliderHeight + c.collider.height) - currentNormal * c.collider.radius * 2;
@@ -194,23 +204,23 @@ namespace PlayerController
                         else
                         {
                             //Go back down
-                            var offset = Vector3.up * (c.collider.height - headPos.y + currentPosition.y);
+                            var offset = upTangent * (c.collider.height - headDistance);
+
                             currentPosition -= offset;
-                            headPos -= offset;
 
                             dirtyPosition = true;
                         }
-
                     }
+
                     //measure from current point so we dont double- apply the limits
                     if (Mathf.Abs(localHeadPos.x) > 0.01f)
                     {
                         //Go back on the player's x axis
-                        Vector3 diff = Quaternion.LookRotation(left) * Vector3.forward * -localHeadPos.x;
+                        Vector3 diff = Quaternion.LookRotation(leftTangent) * Vector3.forward * -localHeadPos.x;
                         currentPosition += diff;
-                        headPos += diff;
                         dirtyPosition = true;
                     }
+
                     if (dirtyPosition)
                     {
                         //refind the point for updated normal
@@ -227,7 +237,7 @@ namespace PlayerController
 
         public override void Animate(AnimatorVariables vars)
         {
-            animator.SetFloat(vars.vertical.id, c.input.inputWalk.y * c.climbingSpeed);
+            animator.SetFloat(vars.vertical.id, c.input.horizontal.y * c.climbingSpeed);
             animator.SetFloat(vars.horizontal.id, 0f);
         }
 

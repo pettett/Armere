@@ -42,19 +42,19 @@ namespace PlayerController
                 c.ChangeToState<Walking>();
             }
 
-            turning = c.input.inputWalk.x * Time.fixedDeltaTime * p.turningTorqueForce;
+            turning = c.input.horizontal.x * Time.fixedDeltaTime * p.turningTorqueForce;
 
             c.rb.velocity = Quaternion.Euler(0, turning, 0) * c.rb.velocity;
 
             //set player orientation
             transform.forward = c.rb.velocity;
-            transform.rotation *= Quaternion.Euler(0, 0, c.input.inputWalk.x * -p.turningAngle);
+            transform.rotation *= Quaternion.Euler(0, 0, c.input.horizontal.x * -p.turningAngle);
         }
         public override void Animate(AnimatorVariables vars)
         {
             animator.SetBool("IsSurfing", true);
             animator.SetBool("IsGrounded", c.onGround);
-            animator.SetFloat("InputHorizontal", c.cameraController.TransformInput(c.input.inputWalk).x);
+            animator.SetFloat("InputHorizontal", c.cameraController.TransformInput(c.input.horizontal).x);
             animator.SetFloat("InputVertical", c.cameraController.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
 

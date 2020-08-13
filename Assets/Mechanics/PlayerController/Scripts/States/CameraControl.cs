@@ -17,7 +17,7 @@ namespace PlayerController
 
         public override void Start()
         {
-            entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) Recoil ({2:0.0} / {3:0.0})", 180, 0, 0, 0);
+            entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180, 0);
 
             Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
         }
@@ -52,9 +52,9 @@ namespace PlayerController
             switch (axisName)
             {
                 case "Mouse X":
-                    return -mouseDelta.x;
+                    return -mouseDelta.x + c.input.camera.x * Time.deltaTime * SettingsManager.settings.controllerSensitivity;
                 case "Mouse Y":
-                    return -mouseDelta.y;
+                    return -mouseDelta.y + c.input.camera.y * Time.deltaTime * SettingsManager.settings.controllerSensitivity;
                 default:
                     return 0;
             }

@@ -29,7 +29,7 @@ namespace PlayerController
 
         public override void FixedUpdate()
         {
-            desiredVelocity = c.cameraController.TransformInput(c.input.inputWalk);
+            desiredVelocity = c.cameraController.TransformInput(c.input.horizontal);
 
             c.rb.AddForce(desiredVelocity);
 
@@ -50,7 +50,7 @@ namespace PlayerController
         public override void Animate(AnimatorVariables vars)
         {
             animator.SetBool(vars.surfing.id, false);
-            animator.SetFloat(vars.vertical.id, c.input.inputWalk.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? c.m_walkingProperties.runningSpeed : c.m_walkingProperties.walkingSpeed));
+            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? c.m_walkingProperties.runningSpeed : c.m_walkingProperties.walkingSpeed));
             animator.SetBool(vars.isGrounded.id, c.onGround);
             animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);
             animator.SetFloat(vars.groundDistance.id, c.currentHeight);

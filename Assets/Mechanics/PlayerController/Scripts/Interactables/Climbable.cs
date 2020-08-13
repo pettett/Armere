@@ -24,6 +24,33 @@ public class Climbable : MonoBehaviour, IInteractable
     public float requiredLookDot => Mathf.Cos(requiredLookAngle);
 
 
+    [SerializeField] Vector3[] vertices;
+    [SerializeField] Vector3[] normals;
+    [SerializeField] int[] triangles;
+
+    public void SyncMesh(MeshFilter mesh)
+    {
+        var vertices = mesh.sharedMesh.vertices.ToList();
+        var normals = mesh.sharedMesh.normals.ToList();
+        triangles = mesh.sharedMesh.triangles;
+        //filter out repeats that exist for some reason
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            for (int j = 0; j < vertices.Count; j++)
+            {
+                if (i != j && vertices[i] == vertices[j])
+                {
+                    vertices.RemoveAt(j);
+                    normals.RemoveAt(j);
+                    for (int index = 0; index < triangles.Length; index++)
+                        if (triangles[index] == j) triangles[index] = i;//Replace 
+                        else if (triangles[index] > j) triangles[index]--;//above this, shuffle down
+                }
+            }
+        }
+        this.vertices = vertices.ToArray();
+        this.normals = normals.ToArray();
+    }
 
     public void Interact(IInteractor c)
     {
@@ -67,6 +94,7 @@ public class Climbable : MonoBehaviour, IInteractable
     {
         public Vector3 point;
         public Vector3 normal;
+        public int closestVert;
     }
 
     Vector3 GetBarycentricCoords(Vector2 p, Vector2 p0, Vector2 p1, Vector2 p2)
@@ -97,12 +125,11 @@ public class Climbable : MonoBehaviour, IInteractable
 
         int closestVert = 0;
         float sqrDist;
-        Vector3[] vertices = mesh.sharedMesh.vertices;
         Vector3 localPoint = mesh.transform.InverseTransformPoint(point);
         float bestSqrDistance = (vertices[closestVert] - localPoint).sqrMagnitude;
 
         //Dont need to check first vertex
-        for (int i = 1; i < mesh.sharedMesh.vertexCount; i++)
+        for (int i = 1; i < vertices.Length; i++)
         {
             sqrDist = (vertices[i] - localPoint).sqrMagnitude;
             if (sqrDist < bestSqrDistance)
@@ -117,9 +144,10 @@ public class Climbable : MonoBehaviour, IInteractable
 
         //Find triangles containing closest vertex
         List<int> tris = new List<int>();
-        for (int i = 0; i < mesh.sharedMesh.triangles.Length; i += 3)
+        for (int i = 0; i < triangles.Length; i += 3)
         {
-            if (mesh.sharedMesh.triangles[i] == closestVert || mesh.sharedMesh.triangles[i + 1] == closestVert || mesh.sharedMesh.triangles[i + 2] == closestVert)
+            // Debug.LogFormat("{0} {1} {2} Search {3}", mesh.sharedMesh.triangles[i], mesh.sharedMesh.triangles[i + 1], mesh.sharedMesh.triangles[i + 2], closestVert);
+            if (triangles[i] == closestVert || triangles[i + 1] == closestVert || triangles[i + 2] == closestVert)
                 tris.Add(i);
         }
 
@@ -138,11 +166,12 @@ public class Climbable : MonoBehaviour, IInteractable
             }
         }
 
+
         for (int i = 0; i < tris.Count; i++)
         {
-            int aIndex = mesh.sharedMesh.triangles[tris[i]];
-            int bIndex = mesh.sharedMesh.triangles[tris[i] + 2];
-            int cIndex = mesh.sharedMesh.triangles[tris[i] + 1];
+            int aIndex = triangles[tris[i]];
+            int bIndex = triangles[tris[i] + 2];
+            int cIndex = triangles[tris[i] + 1];
 
             Vector3 a = vertices[aIndex];
             Vector3 b = vertices[bIndex];
@@ -205,9 +234,9 @@ public class Climbable : MonoBehaviour, IInteractable
 
             Vector3 bary = GetBarycentricCoords(P, A, B, C);
 
-            Vector3 na = mesh.sharedMesh.normals[aIndex];
-            Vector3 nb = mesh.sharedMesh.normals[bIndex];
-            Vector3 nc = mesh.sharedMesh.normals[cIndex];
+            Vector3 na = normals[aIndex];
+            Vector3 nb = normals[bIndex];
+            Vector3 nc = normals[cIndex];
 
             if (InsideTri(bary))
             {
@@ -224,6 +253,8 @@ public class Climbable : MonoBehaviour, IInteractable
             {
                 //Also test all the lines on the triangle
                 //Should not bother testing the line not attached to the closest point
+                //Nope that was wrong
+
 
                 float t1 = InverseLerp(a, b, localPoint);
                 float t2 = InverseLerp(b, c, localPoint);
@@ -239,7 +270,8 @@ public class Climbable : MonoBehaviour, IInteractable
         return new ClosestPointData
         {
             point = mesh.transform.TransformPoint(closestPointOnMesh),
-            normal = mesh.transform.TransformDirection(closestNormalOnMesh)
+            normal = mesh.transform.TransformDirection(closestNormalOnMesh),
+            closestVert = closestVert,
         };
     }
 
@@ -258,15 +290,25 @@ public class Climbable : MonoBehaviour, IInteractable
         }
         else if (surfaceType == ClimbableSurface.Mesh)
         {
-            Gizmos.DrawWireMesh(mesh.sharedMesh, mesh.transform.position, mesh.transform.rotation, mesh.transform.lossyScale);
+
             var closestPoint = GetClosestPointOnMesh(localTestPos);
 
-
-
-            Gizmos.DrawWireSphere(localTestPos, 0.05f);
-
+            Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(closestPoint.point, 0.05f);
             Gizmos.DrawLine(closestPoint.point, closestPoint.point + closestPoint.normal * 0.25f);
+
+
+            Gizmos.color = Color.red;
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.DrawWireSphere(vertices[closestPoint.closestVert], 0.05f);
+
+
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                Gizmos.DrawLine(vertices[triangles[i]], vertices[triangles[i + 1]]);
+                Gizmos.DrawLine(vertices[triangles[i + 2]], vertices[triangles[i + 1]]);
+                Gizmos.DrawLine(vertices[triangles[i]], vertices[triangles[i + 2]]);
+            }
         }
     }
 }

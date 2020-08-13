@@ -409,7 +409,7 @@ namespace PlayerController
             if (!inControl) return; //currently being controlled by some other movement coroutine
 
             Vector3 velocity = c.rb.velocity;
-            Vector3 playerDirection = c.cameraController.TransformInput(c.input.inputWalk);
+            Vector3 playerDirection = c.cameraController.TransformInput(c.input.horizontal);
 
             grounded = FindGround(out groundCP, out currentGroundNormal, c.allCPs);
 
@@ -738,7 +738,7 @@ namespace PlayerController
         {
             animator.SetBool(vars.surfing.id, false);
 
-            animator.SetFloat(vars.vertical.id, c.input.inputWalk.magnitude);
+            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
             //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
             animator.SetFloat("WalkingSpeed", WalkingRunningCrouching(0.5f, 1f, 0.7f));
             animator.SetBool("IsGrounded", true);

@@ -147,6 +147,13 @@ namespace PlayerController
                 if (currentLookAt != -1)
                 {
                     interactablesInRange[currentLookAt].Interact(c);
+                    //Somehow this needs to be improved
+                    switch (interactablesInRange[currentLookAt])
+                    {
+                        case NPC npc:
+                            c.ChangeToState<Conversation>(npc);
+                            break;
+                    }
                 }
             }
         }

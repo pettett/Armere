@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PlayerController;
 using Yarn.Unity;
 using Cinemachine;
 using Yarn;
 using TMPro;
 using System.Linq;
+
+
 public class NPC : AIBase, IInteractable, IVariableAddon
 {
     bool IInteractable.canInteract { get => enabled; set => enabled = value; }
@@ -24,34 +25,21 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public Transform ambientThought;
     public TextMeshPro ambientThoughtText;
     new Camera camera;
-    NPCTemplate t;
+    public NPCTemplate t;
     Transform[] conversationGroupOverride;
-    Conversation currentConv;
+    //Conversation currentConv;
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
     public Animator animator;
-    bool hasSpeaker = false;
-    NPCName speakingNPC;
+    public bool hasSpeaker = false;
+    public NPCName speakingNPC;
     NPCSpawn spawn;
     public BuyMenuItem[] buyInventory;
-    DialogueRunner runner => NPCManager.singleton.dialogueRunner;
 
-    public const string GiveQuestCommand = "quest";
-    public const string DeliverQuestCommand = "DeliverQuest";
-    public const string TalkToQuestCommand = "TalkToQuest";
-    public const string CameraPanCommand = "cameraPan";
-    public const string GiveItemsCommand = "GiveItems";
-    public const string TurnPlayerToTargetCommand = "TurnPlayerToTarget";
-    public const string TurnNPCToTargetCommand = "TurnNPCToTarget";
-    public const string TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget";
-    public const string AnimateCommand = "Animate";
-    public const string OfferToSellCommand = "OfferToSell";
-    public const string OfferToBuyCommand = "OfferToBuy";
-    public const string GoToCommand = "GoTo";
+    public Transform headPosition;
 
     public int currentRoutineStage;
 
-
-    BuyInventoryUI buyMenu;
+    Transform playerTransform;
 
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
@@ -113,7 +101,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         return routineStage;
     }
 
-
+    public void GoToWalkingPoint(string name, System.Action onComplete = null)
+    {
+        GoToPosition(GetTransform(spawn.walkingPoints, name).position, onComplete);
+    }
     private void Update()
     {
         ambientThought.rotation = camera.transform.rotation;
@@ -167,185 +158,14 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
         else
         {
-            throw new System.Exception("Desired routine location not within walking points array");
+            throw new System.Exception(string.Format("Desired routine location {0} not within walking points array", t.routine[currentRoutineStage].location));
         }
 
     }
 
+    public string ConversationStartNode => t.routine[currentRoutineStage].conversationStartNode;
 
 
-    public void SetupRunner()
-    {
-        //Add every command hander for dialogue usage
-        runner.Add(t.dialogue);
-        runner.AddCommandHandler(GiveQuestCommand, GiveQuest);
-        runner.AddCommandHandler(DeliverQuestCommand, DeliverQuest);
-        runner.AddCommandHandler(TalkToQuestCommand, TalkToQuest);
-        runner.AddCommandHandler(CameraPanCommand, CameraPan);
-        runner.AddCommandHandler(GiveItemsCommand, GiveItems);
-        runner.AddCommandHandler(TurnPlayerToTargetCommand, TurnPlayerToTarget);
-        runner.AddCommandHandler(TurnNPCToTargetCommand, TurnNPCToTarget);
-        runner.AddCommandHandler(TurnNPCAndPlayerToTargetCommand, TurnNPCAndPlayerToTarget);
-        runner.AddCommandHandler(AnimateCommand, Animate);
-        runner.AddCommandHandler(OfferToSellCommand, OfferToSell);
-        runner.AddCommandHandler(OfferToBuyCommand, OfferToBuy);
-        runner.AddCommandHandler(GoToCommand, GoTo);
-    }
-
-    public void CleanUpRunner()
-    {
-        print("Cleaning up dialogue runner after dialogue");
-        //Remove all commands from the runner as well as removing dialogue
-        runner.Clear();
-        runner.ClearStringTable();
-        runner.Stop();
-        runner.RemoveCommandHandler(GiveQuestCommand);
-        runner.RemoveCommandHandler(DeliverQuestCommand);
-        runner.RemoveCommandHandler(TalkToQuestCommand);
-        runner.RemoveCommandHandler(CameraPanCommand);
-        runner.RemoveCommandHandler(GiveItemsCommand);
-        runner.RemoveCommandHandler(TurnPlayerToTargetCommand);
-        runner.RemoveCommandHandler(TurnNPCToTargetCommand);
-        runner.RemoveCommandHandler(TurnNPCAndPlayerToTargetCommand);
-        runner.RemoveCommandHandler(AnimateCommand);
-        runner.RemoveCommandHandler(OfferToSellCommand);
-        runner.RemoveCommandHandler(OfferToBuyCommand);
-        runner.RemoveCommandHandler(GoToCommand);
-
-        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-        DialogueUI.singleton.onLineStart.RemoveListener(StartNPCSpeaking);
-
-        (runner.variableStorage as InMemoryVariableStorage).addon = null;
-    }
-
-    void SetDialogBoxActive(bool active) => DialogueInstances.singleton.dialogueUI.dialogueContainer.SetActive(active);
-    void EnableDialogBox() => SetDialogBoxActive(true);
-    void DisableDialogBox() => SetDialogBoxActive(false);
-
-    void GoTo(string[] arg, System.Action onComplete)
-    {
-        DisableDialogBox();
-        GoToPosition(GetTransform(spawn.walkingPoints, arg[0]).position,
-        () =>
-        {
-            //Re-enable the dialog box when the AI has finished walking
-            EnableDialogBox();
-            onComplete?.Invoke();
-        }
-        );
-    }
-
-    public void OfferToBuy(string[] arg)
-    {
-        buyMenu = UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>();
-        print("Opening Buy Menu");
-        runner.AddCommandHandler("StopBuy", (a) =>
-        {
-            runner.RemoveCommandHandler("ConfirmBuy");
-            runner.RemoveCommandHandler("CancelBuy");
-            runner.RemoveCommandHandler("StopBuy");
-            //Apply the changes made to the buy menu to the inventory
-            buyMenu.CloseInventory();
-        });
-
-        UIController.singleton.buyMenu.SetActive(true);
-        //Wait for a buy
-        buyMenu.ShowInventory(buyInventory, InventoryController.singleton.db, OnBuyMenuItemSelected);
-    }
-
-    void OnBuyMenuItemSelected()
-    {
-        void ResetBuyCommands()
-        {
-            runner.RemoveCommandHandler("ConfirmBuy");
-            runner.RemoveCommandHandler("CancelBuy");
-        }
-        //Buy the item
-        runner.AddCommandHandler("ConfirmBuy", (string[] arg) =>
-        {
-            //Buy the item
-            buyMenu.ConfirmBuy();
-            ResetBuyCommands();
-        });
-        //Do not buy the item
-        runner.AddCommandHandler("CancelBuy", (string[] arg) =>
-        {
-            //Go back to selecting
-            buyMenu.CancelBuy();
-            ResetBuyCommands();
-        });
-
-        //update the buy menu with revised amounts
-
-        //Restart the dialog
-        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-        runner.Stop();
-        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-        runner.StartDialogue("Buy");
-    }
-
-    public void OfferToSell(string[] arg)
-    {
-        print("Selling");
-
-        runner.AddCommandHandler("StopSell", StopSell);
-        //Show the Inventory UI
-        currentConv.RunSellMenu(OnSellMenuItemSelected);
-        //Wait for the player to select an item
-    }
-
-
-    void OnSellMenuItemSelected(ItemType type, int itemIndex)
-    {
-
-        //Buy the item
-        runner.AddCommandHandler("ConfirmSell", (string[] arg) =>
-        {
-            //Buy the item
-            print("Sold Item");
-
-            //TODO - Add amount control
-            //Pay the player for the item
-            InventoryController.AddItem(ItemName.Currency, InventoryController.singleton.db[InventoryController.ItemAt(itemIndex, type)].sellValue);
-            //Remove the item from the inventory
-            InventoryController.TakeItem(itemIndex, type);
-
-
-            ReEnableSellMenu();
-        });
-
-        runner.AddCommandHandler("CancelSell", (string[] arg) =>
-        {
-            //Go back to selecting
-            print("Cancelled selection");
-            ReEnableSellMenu();
-        });
-
-        print("Selected item " + type.ToString());
-
-
-        //update the buy menu with revised amounts
-
-        //Restart the dialog
-        DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-        runner.Stop();
-        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-        runner.StartDialogue("Sell");
-    }
-    void ReEnableSellMenu()
-    {
-        runner.RemoveCommandHandler("ConfirmSell");
-        runner.RemoveCommandHandler("CancelSell");
-        // runner.StartDialogue("WaitForSell");
-    }
-
-    void StopSell(string[] arg)
-    {
-        runner.RemoveCommandHandler("ConfirmSell");
-        runner.RemoveCommandHandler("CancelSell");
-        runner.RemoveCommandHandler("StopSell");
-        currentConv.CloseSellMenu();
-    }
 
 
     public void StartNPCSpeaking(string line)
@@ -365,23 +185,29 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
         if (!hasSpeaker)
         {
-            activeNPCs[currentSpeaker].StartSpeaking(c, true);
+            activeNPCs[currentSpeaker].StartSpeaking(playerTransform.transform, true);
             hasSpeaker = true;
         }
         else if (speakingNPC != currentSpeaker)
         {
             activeNPCs[speakingNPC].StopSpeaking();
-            activeNPCs[currentSpeaker].StartSpeaking(c, false);
+            activeNPCs[currentSpeaker].StartSpeaking(playerTransform.transform, false);
         }
         speakingNPC = currentSpeaker;
     }
 
 
-
+    public void FinishSpeaking()
+    {
+        activeNPCs[speakingNPC].StopSpeaking();
+        hasSpeaker = false;
+    }
 
     IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
     {
-        Quaternion desiredRot = Quaternion.LookRotation(transform.position - playerTransform.position);
+        var dir = (transform.position - playerTransform.position);
+        dir.y = 0;
+        Quaternion desiredRot = Quaternion.LookRotation(dir);
         while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
         {
             playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);
@@ -390,17 +216,17 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     }
 
 
-    public void StartSpeaking(Player_CharacterController c, bool first)
+    public void StartSpeaking(Transform player, bool first)
     {
         if (!first)
             //Make the camera look at this npc
-            PointCameraToSpeaker(c);
+            PointCameraToSpeaker(player);
         else
-            GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
+            GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(playerTransform);
 
 
         //Point the player towards the currently speaking npc
-        StartCoroutine(RotatePlayerTowardsNPC(c.transform));
+        StartCoroutine(RotatePlayerTowardsNPC(player));
 
 
         foreach (var r in GetComponentsInChildren<Renderer>())
@@ -408,10 +234,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon
                 mat.color = Color.blue;
     }
     ///<summary>Point the player's conversation camera to this npc</summary>
-    void PointCameraToSpeaker(Player_CharacterController c)
+    void PointCameraToSpeaker(Transform player)
     {
         //Get an angle that looks from the player to the npc, at a slight offset
-        GameCameras.s.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(c), 0);
+        GameCameras.s.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(player), 0);
         //Setup the transposer to recenter
         GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
         GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
@@ -426,31 +252,33 @@ public class NPC : AIBase, IInteractable, IVariableAddon
                 mat.color = Color.red;
     }
 
-    Player_CharacterController c;
 
-    public float GetCameraAngle(Player_CharacterController c)
+
+    public float GetCameraAngle(Transform target)
     {
-        return Quaternion.LookRotation(transform.position - c.transform.position).eulerAngles.y + 15f;
+        return Quaternion.LookRotation(transform.position - target.position).eulerAngles.y + 15f;
     }
 
     public void Interact(IInteractor interactor)
     {
-        SetupRunner();
 
-        this.c = (interactor as Player_CharacterController);
-        currentConv = c.ChangeToState<Conversation>();
+
+        //currentConv = (interactor as Player_CharacterController).ChangeToState<Conversation>();
+        playerTransform = interactor.transform;
+
 
         //Probably quicker to overrite true with true then find the value and
         //check if it is true then find it again to set it
         NPCManager.singleton.data[npcName].spokenTo = true;
 
 
-        GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(c.transform.position, transform.position, 0.5f);
+        GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(playerTransform.transform.position, transform.position, 0.5f);
 
         int targets = Mathf.Max(2, conversationGroupOverride.Length + 1);
         //Add all targets including the player
         GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
-        GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(c.transform);
+        GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(playerTransform.transform);
+
         if (conversationGroupOverride.Length != 0)
         {
             for (int i = 0; i < conversationGroupOverride.Length; i++)
@@ -467,26 +295,14 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
         //Add the variables for this NPC
 
-        (runner.variableStorage as InMemoryVariableStorage).addon = this;
+
 
         GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
         //  c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
 
-        StartCoroutine(TurnToPlayer(c.transform.position));
+        StartCoroutine(TurnToPlayer(playerTransform.transform.position));
     }
 
-
-    void OnDialogueComplete()
-    {
-        //Conversation over - clean up
-        activeNPCs[speakingNPC].StopSpeaking();
-        hasSpeaker = false;
-        c.ChangeToState<Walking>();
-
-        ResetCamera();
-
-        CleanUpRunner();
-    }
 
 
     CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
@@ -496,131 +312,29 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
 
 
-    Vector3 focusPoint = Vector3.zero;
     IEnumerator TurnToPlayer(Vector3 playerPosition)
     {
-        DialogueUI.singleton.onLineStart.AddListener(StartNPCSpeaking);
-        DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+        var dir = playerPosition - transform.position;
+        dir.y = 0;
 
-        runner.StartDialogue(t.routine[currentRoutineStage].conversationStartNode);
-
-        Quaternion desiredRot = Quaternion.LookRotation(playerPosition - transform.position);
+        Quaternion desiredRot = Quaternion.LookRotation(dir);
         while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRot, Time.deltaTime * 800);
             yield return new WaitForEndOfFrame();
         }
 
+        print("Finished rotating");
 
     }
 
 
 
-    void Animate(string[] arg, System.Action onComplete)
-    {
-        string animName = arg[0];
-        if (arg.Length > 1)
-        {
-            bool wait = bool.Parse(arg[1]);
-        }
-        animator.SetTrigger(animName);
-        onComplete?.Invoke();
-    }
-
-    void GiveQuest(string[] arg)
-    {
-        string questName = arg[0];
-        for (int i = 0; i < t.quests.Length; i++)
-        {
-            if (t.quests[i].name == questName)
-            {
-                QuestManager.AddQuest(t.quests[i]);
-            }
-        }
-    }
-    void DeliverQuest(string[] arg) => QuestManager.ForfillDeliverQuest(arg[0]);
-
-    void TalkToQuest(string[] arg) => QuestManager.ForfillTalkToQuest(arg[0]);
-
-
-    private void CameraPan(string[] arg, System.Action onComplete)
-    {
-        Transform focus = GetFocusPoint(arg[0]);
-        if (focus != null)
-            //pan the camera to the target destination
-            StartCoroutine(TurnCameraToTarget(focus.position, onComplete));
-        else
-        {
-            Debug.LogWarning("Lookat target not in dictionary");
-            onComplete?.Invoke();
-        }
-    }
 
     public Transform GetTransform(Transform[] transforms, string name) => transforms.FirstOrDefault(t => t.name == name);
     public Transform GetFocusPoint(string name) => GetTransform(spawn.focusPoints, name);
 
-    void TurnPlayerToTarget(string[] arg, System.Action onComplete)
-    {
-        Vector3 target = GetFocusPoint(arg[0]).position;
-        target.y = c.transform.position.y;
-        c.transform.LookAt(target);
-        onComplete?.Invoke();
-    }
-    void TurnNPCToTarget(string[] arg, System.Action onComplete)
-    {
-        Vector3 target = GetFocusPoint(arg[0]).position;
-        target.y = transform.position.y;
-        transform.LookAt(target);
-        onComplete?.Invoke();
-    }
-    void TurnNPCAndPlayerToTarget(string[] arg, System.Action onComplete)
-    {
-        Transform focus = GetFocusPoint(arg[0]);
-        if (focus != null)
-        {
-            Vector3 target = focus.position;
-            target.y = transform.position.y;
-            transform.LookAt(target);
-            target.y = c.transform.position.y;
-            c.transform.LookAt(target);
-        }
-        else
-        {
-            Debug.LogWarning("Lookat target not in dictionary");
-        }
-        onComplete?.Invoke();
-    }
 
-    void GiveItems(string[] arg, System.Action onComplete)
-    {
-        ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), arg[0]);
-        uint count;
-        if (arg.Length == 1)
-            count = 1;
-        else
-            count = uint.Parse(arg[1]);
-
-        //give [count] items of type [item]
-        NewItemPrompt.singleton.ShowPrompt(item, count, onComplete);
-    }
-
-    IEnumerator TurnCameraToTarget(Vector3 target, System.Action onComplete)
-    {
-        //Orbit around the focus point
-        //
-        Quaternion targetRotation = Quaternion.LookRotation((target - focusPoint + Vector3.up));
-
-        //Vector3 pos = focusPoint + Vector3.up + targetRotation * Vector3.back * 2;
-
-        //yield return LerpCameraToPositionAndRotation(pos, targetRotation, 0.3f);
-
-        GameCameras.s.cutsceneCamera.LookAt = c.lookAtTarget;
-        c.lookAtTarget.position = target;
-
-        yield return new WaitForSeconds(0.5f);
-
-        onComplete?.Invoke();
-    }
 
     void ResetCamera()
     {

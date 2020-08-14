@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 4832598259131234591}
   - component: {fileID: 6225402510337564490}
   - component: {fileID: 1254477659995837600}
+  - component: {fileID: 7523643276535000266}
   m_Layer: 0
   m_Name: PersistentGameManagers
   m_TagString: Untagged
@@ -163,3 +164,30 @@ MonoBehaviour:
   onDialogueComplete:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7523643276535000266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71942df36eee05248813725d630e703e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weather: 0
+  maxSunnyScaler: 0.4
+  maxCloudyScaler: 0.6
+  maxWindyScaler: 0.8
+  sun: {fileID: 0}
+  hour: 12
+  hoursPerSecond: 0
+  weatherOverTime:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  weatherScaler: 0
+  clouds: {fileID: 0}

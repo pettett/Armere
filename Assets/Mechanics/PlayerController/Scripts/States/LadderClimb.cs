@@ -176,6 +176,8 @@ namespace PlayerController
 
                     //Test if were the head of the player is
                     var headPoint = ladder.GetClosestPointOnMesh(currentPosition + upTangent * c.collider.height);
+
+
                     var headPos = headPoint.point;
                     Vector3 localHeadPos = rotation * (headPos - currentPosition);
 

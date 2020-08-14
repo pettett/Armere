@@ -58,6 +58,7 @@ namespace PlayerController
         }
 
         public MovementModifiers mod;
+
         public ItemDatabase db;
 
 
@@ -78,6 +79,8 @@ namespace PlayerController
         private ParallelState[] parallelStates = new ParallelState[0];
 
         public CameraControl cameraController;
+
+        public Yarn.Unity.DialogueRunner runner;
 
         MovementState[] allStates;
 
@@ -160,8 +163,7 @@ namespace PlayerController
 
         DebugMenu.DebugEntry entry;
 
-        void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
-        void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
+
 
         Collider IAITarget.collider => collider;
         public bool canBeTargeted => currentState != null && currentState.canBeTargeted;
@@ -175,7 +177,7 @@ namespace PlayerController
 
 
 
-        public WaterController currentWater;
+        [HideInInspector] public WaterController currentWater;
 
 
 
@@ -189,9 +191,11 @@ namespace PlayerController
             activePlayerController = this;
             animationController = GetComponent<AnimationController>();
         }
-
+        void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
+        void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
         private void Start()
         {
+
             animatorVariables.UpdateIDs();
 
             playerInput = GetComponent<PlayerInput>();
@@ -230,6 +234,9 @@ namespace PlayerController
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
             GetComponent<Ragdoller>().RagdollEnabled = false;
+
+
+
         }
 
         public void EnterRoom(Room room)
@@ -353,6 +360,7 @@ namespace PlayerController
                 }
             }
         }
+
         float sqrMagTemp;
         // Update is called once per frame
         private void Update()
@@ -383,9 +391,9 @@ namespace PlayerController
                     PlayerRelativeObject.relativeObjects[i].OnPlayerInRange();
                 }
             }
-
-
         }
+
+
         private void LateUpdate()
         {
             for (int i = 0; i < allStates.Length; i++)

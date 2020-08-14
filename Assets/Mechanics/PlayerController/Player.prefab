@@ -127,6 +127,7 @@ MonoBehaviour:
     updateWhilePaused: 0
     canBeTargeted: 1
     lockingMouse: 1
+  runner: {fileID: 0}
   currentRoom: {fileID: 0}
   m_walkingProperties:
     walkingSpeed: 2
@@ -167,6 +168,7 @@ MonoBehaviour:
   waterDrag: 1
   waterMovementForce: 500
   climbingColliderHeight: 1.5
+  climbingSpeed: 2
   transitionTime: 3.83
   arrowSpawn: {fileID: 4702159432844938880}
   bowPivot: {fileID: 368902570246789374}
@@ -178,8 +180,9 @@ MonoBehaviour:
   animator: {fileID: 0}
   currentStateText: {fileID: 0}
   input:
-    inputWalk: {x: 0, y: 0}
-    inputCamera: {x: 0, y: 0}
+    horizontal: {x: 0, y: 0}
+    camera: {x: 0, y: 0}
+    vertical: 0
   health: {fileID: 0}
   currentHeight: 0
   weaponGraphicsController: {fileID: 368902570172568862}
@@ -221,7 +224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableFeetIK: 1
-  heightFromGroundRaycast: 1.14
+  heightFromGroundRaycast: 0.25
   raycastDownDistance: 0.41
   groundLayer:
     serializedVersion: 2

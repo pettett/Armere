@@ -1,7 +1,6 @@
 {
     "name": "Game.NPCs",
     "references": [
-        "GUID:b82d9132bd5a865498bf65f07d1b65eb",
         "GUID:34aa492b82754644eac2f903cd496268",
         "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
         "GUID:0b8ee1c6b9a46ab46af3d777fc895125",

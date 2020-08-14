@@ -78,7 +78,8 @@ public class TimeDayController : MonoBehaviour
 
         hour = Mathf.Repeat(hour, 24);
         //take 90 so the 0th hour is pointing straight down (-90)
-        sun.rotation = Quaternion.Euler(hour * degreesPerHour - 90, -90, 0);
+        if (sun != null)
+            sun.rotation = Quaternion.Euler(hour * degreesPerHour - 90, -90, 0);
 
         entry.values[0] = Mathf.Floor(hour);
         entry.values[1] = 60 * (hour - Mathf.Floor(hour));

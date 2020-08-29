@@ -12,3 +12,4 @@ public interface IInteractable
     GameObject gameObject { get; }
     float requiredLookDot { get; }
 }
+

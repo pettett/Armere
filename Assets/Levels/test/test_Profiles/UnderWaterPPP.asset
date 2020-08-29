@@ -1329,7 +1329,7 @@ MonoBehaviour:
     value: 1
   textureDownscale:
     overrideState: 1
-    value: 2
+    value: 1
   debug:
     overrideState: 0
     value: 0

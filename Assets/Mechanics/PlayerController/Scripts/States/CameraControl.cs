@@ -10,14 +10,14 @@ namespace PlayerController
         public override string StateName => "Camera Control";
 
         //used to change how the height of the camera will change for a short time
-        [System.NonSerialized] DebugMenu.DebugEntry entry;
+        [System.NonSerialized] DebugMenu.DebugEntry<float, float> entry;
         bool controlling = true;
         public bool lockingMouse = true;
         Vector2 mouseDelta;
 
         public override void Start()
         {
-            entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180, 0);
+            entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
             Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
         }

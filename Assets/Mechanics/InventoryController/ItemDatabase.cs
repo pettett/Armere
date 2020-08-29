@@ -19,6 +19,9 @@ public class ItemDatabase : ScriptableObject
         public Mesh mesh;
         public Material[] materials;
         public ItemPropertyBase properties;
+
+
+
     }
 
     public ItemData this[ItemName key] => itemData[(int)key];

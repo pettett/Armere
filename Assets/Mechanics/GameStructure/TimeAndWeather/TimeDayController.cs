@@ -20,7 +20,7 @@ public class TimeDayController : MonoBehaviour
 
 
     public Transform sun;
-    DebugMenu.DebugEntry entry;
+    DebugMenu.DebugEntry<float, float> entry;
     [ReadOnly] public float hour = 12;
     public float hoursPerSecond = 1;
     const float degreesPerHour = 360 / 24;
@@ -53,7 +53,7 @@ public class TimeDayController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", "0", "0");
+        entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
     }
 
     // Update is called once per frame
@@ -81,8 +81,8 @@ public class TimeDayController : MonoBehaviour
         if (sun != null)
             sun.rotation = Quaternion.Euler(hour * degreesPerHour - 90, -90, 0);
 
-        entry.values[0] = Mathf.Floor(hour);
-        entry.values[1] = 60 * (hour - Mathf.Floor(hour));
+        entry.value0 = Mathf.Floor(hour);
+        entry.value1 = 60f * (hour - Mathf.Floor(hour));
 
     }
 }

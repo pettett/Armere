@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PlayerController;
 
 public class PlayerDoor : MonoBehaviour, IInteractable
 {
@@ -20,7 +21,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 
     public void Interact(IInteractor interactor)
     {
-        if (interactor is PlayerController.Player_CharacterController player)
+        if (interactor is Player_CharacterController player)
         {
             StartCoroutine(DoorUseageRoutine(player));
         }
@@ -39,7 +40,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
         doorPivot.localRotation = to;
     }
 
-    IEnumerator DoorUseageRoutine(PlayerController.Player_CharacterController player)
+    IEnumerator DoorUseageRoutine(Player_CharacterController player)
     {
         //Work out what side of the door the player is on
         //Unlikely to equal 0 
@@ -64,7 +65,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
             doorPivot = leftDoor ? leftDoorPivot : rightDoorPivot;
         }
 
-        var autowalk = player.ChangeToState<PlayerController.AutoWalking>();
+        var autowalk = player.ChangeToState<AutoWalking>();
 
         //Needs to go to the left if using the right door pivot
         Vector3 doorCenter = transform.TransformPoint(doorPivot.localPosition + Vector3.right * doorWidth * 0.5f * (leftDoor ? 1 : -1));
@@ -92,7 +93,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
         yield return ChangeDoorRotation(doorPivot, Quaternion.identity);
 
         //Return control
-        player.ChangeToState<PlayerController.Walking>();
+        player.ChangeToState<Walking>();
     }
 
     public void OnEndHighlight()

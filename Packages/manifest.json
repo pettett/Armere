@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.mybox": "https://github.com/Deadcows/MyBox.git",
+    "com.unity.addressables": "1.8.4",
     "com.unity.cinemachine": "2.6.0",
     "com.unity.ide.vscode": "1.2.1",
     "com.unity.inputsystem": "1.0.0",

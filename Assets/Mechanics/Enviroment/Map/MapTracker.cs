@@ -26,7 +26,7 @@ public class MapTracker : MonoBehaviour
     }
 
     public Map map;
-    DebugMenu.DebugEntry entry;
+    DebugMenu.DebugEntry<string> entry;
     // Start is called before the first frame update
     void Start()
     {
@@ -140,7 +140,7 @@ public class MapTracker : MonoBehaviour
 
 
 
-        entry.values[0] = regionInfluences.Count == 0 ?
+        entry.value0 = regionInfluences.Count == 0 ?
             "Wilderness" :
             string.Join(" ", regionInfluences.Select((RegionInfluence r) => string.Format("{0} : {1}", map.regions[r.region].name, r.influence)));
     }

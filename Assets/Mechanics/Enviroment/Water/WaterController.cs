@@ -15,15 +15,56 @@ public class WaterController : MonoBehaviour
 
     public Collider waterVolume;
 
-    Vector2 Flatten(Vector3 p)
+    public ParticleSystem splashSystem;
+
+    static void DrawCross(Vector3 center, float size)
+    {
+        const float time = 2f;
+        Debug.DrawLine(center + Vector3.up * size, center - Vector3.up * size, Color.green, time);
+        Debug.DrawLine(center + Vector3.right * size, center - Vector3.right * size, Color.green, time);
+        Debug.DrawLine(center + Vector3.forward * size, center - Vector3.forward * size, Color.green, time);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
+
+        CreateSplash(other.transform.position);
+
+    }
+
+
+    private void OnTriggerExit(Collider other)
+    {
+        other.GetComponent<IWaterObject>()?.OnWaterExit(this);
+
+        CreateSplash(other.transform.position);
+    }
+
+    public void CreateSplash(Vector3 otherCenter)
+    {
+        Vector3 collisionEstimate = waterVolume.ClosestPoint(otherCenter + Vector3.up);
+        // collisionEstimate = other.ClosestPoint(collisionEstimate);
+        //  collisionEstimate = waterVolume.ClosestPoint(collisionEstimate);
+        collisionEstimate.y += 0.03f;
+
+        DrawCross(collisionEstimate, 0.1f);
+
+        splashSystem.transform.position = collisionEstimate;
+        splashSystem.Emit(1);
+    }
+
+
+
+    static Vector2 Flatten(Vector3 p)
     {
         return new Vector2(p.x, p.z);
     }
-    Vector2 Normal(Vector2 p1, Vector2 p2)
+    static Vector2 Normal(Vector2 p1, Vector2 p2)
     {
         return Vector2.Perpendicular(p1 - p2).normalized;
     }
-    Vector2 PointNormal(Vector2 p1, Vector2 p2, Vector2 p3)
+    static Vector2 PointNormal(Vector2 p1, Vector2 p2, Vector2 p3)
     {
         return (Normal(p1, p2) + Normal(p2, p3)).normalized;
     }
@@ -80,13 +121,6 @@ public class WaterController : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
-    }
-    private void OnTriggerExit(Collider other)
-    {
-        other.GetComponent<IWaterObject>()?.OnWaterExit(this);
-    }
+
 
 }

@@ -257,7 +257,7 @@ namespace Yarn.Unity
                     return new Value(-1);
             }
 
-            else if (variableName.StartsWith(addon.prefix))
+            else if (addon != null && variableName.StartsWith(addon.prefix))
             {
                 return addon[variableName.Substring(addon.prefix.Length)];
             }

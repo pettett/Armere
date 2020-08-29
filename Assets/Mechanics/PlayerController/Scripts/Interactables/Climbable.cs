@@ -58,7 +58,9 @@ public class Climbable : MonoBehaviour, IInteractable
 
         //Maybe change this to happen inside the player controller?
         //Yes past me, that sounds like a good idea for later-er. But instead Im going to expand this to include climbable walls
-        (c as PlayerController.Player_CharacterController).ChangeToState<LadderClimb>(this);
+        //Okay i did it but badly
+
+        //(c as PlayerController.Player_CharacterController).ChangeToState<LadderClimb>(this);
     }
 
     public Vector3 LadderPosAtHeight(float height, float radius)
@@ -122,6 +124,7 @@ public class Climbable : MonoBehaviour, IInteractable
     ///<summary>Operates in local space </summary>
     public ClosestPointData GetClosestPointOnMesh(Vector3 point)
     {
+        if (vertices.Length < 3) throw new System.Exception("Climbable has no mesh loaded");
 
         int closestVert = 0;
         float sqrDist;

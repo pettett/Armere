@@ -56,7 +56,6 @@ namespace PlayerController
 
         bool forceForwardHeading = false;
         bool grounded;
-
         bool crouching;
         bool inControl = true;
         [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
@@ -86,6 +85,14 @@ namespace PlayerController
             c.onPlayerInput += OnInput;
             InventoryController.singleton.onItemAdded += OnItemAdded;
 
+
+            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) currentWeapon = (int)o1;
+            if (c.persistentStateData.TryGetValue("currentBow", out object o2)) currentBow = (int)o2;
+            if (c.persistentStateData.TryGetValue("currentAmmo", out object o3)) currentAmmo = (int)o3;
+            if (c.persistentStateData.TryGetValue("currentSidearm", out object o4)) currentSidearm = (int)o4;
+
+
+
             //Try to force any ammo type to be selected
             SelectAmmo(0);
         }
@@ -99,303 +106,15 @@ namespace PlayerController
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
+            //Save state data
+            c.persistentStateData["currentWeapon"] = currentWeapon;
+            c.persistentStateData["currentBow"] = currentBow;
+            c.persistentStateData["currentAmmo"] = currentAmmo;
+            c.persistentStateData["currentSidearm"] = currentSidearm;
+
 
             InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
             InventoryController.singleton.onItemAdded -= OnItemAdded;
-        }
-
-        public void OnItemAdded(ItemName item)
-        {
-            //If this is ammo and none is equipped, equip it
-            if (currentAmmo == -1 && InventoryController.singleton.db[item].type == ItemType.Ammo)
-            {
-                //Ammo is only allowed to be -1 if none is left
-                SelectAmmo(0);
-            }
-        }
-
-
-        bool OnInput(InputAction.CallbackContext c)
-        {
-            if (c.phase == InputActionPhase.Started)
-                switch (c.action.name)
-                {
-                    case "SwitchWeaponSet":
-                        SwitchWeaponSet();
-                        return false; //Do not continue to process input
-                }
-            return true;
-        }
-        void SwitchWeaponSet()
-        {
-            if (weaponSet == WeaponSet.BowArrow) weaponSet = WeaponSet.SwordSidearm;
-            else weaponSet = WeaponSet.BowArrow;
-        }
-
-
-        public void OnSelectItem(ItemType type, int index)
-        {
-            switch (type)
-            {
-                case ItemType.Weapon:
-                    SelectMelee(index);
-                    break;
-                case ItemType.SideArm:
-                    SelectSidearm(index);
-                    break;
-                case ItemType.Bow:
-                    SelectBow(index);
-                    break;
-                case ItemType.Ammo:
-                    SelectAmmo(index);
-                    break;
-            }
-        }
-
-
-        float WalkingRunningCrouching(float crouchingSpeed, float runningSpeed, float walkingSpeed)
-        {
-            if (crouching)
-                return crouchingSpeed;
-            else if (c.mod.HasFlag(MovementModifiers.Sprinting))
-                return runningSpeed;
-            else
-                return walkingSpeed;
-        }
-
-        public override void OnSelectWeapon(int index)
-        {
-            if (weaponSet == WeaponSet.BowArrow) SelectBow(index);
-            if (weaponSet == WeaponSet.SwordSidearm) SelectMelee(index);
-        }
-
-        public static bool EnforceType<T>(object o) => o != null && o is T;
-
-
-
-        public void SelectMelee(int index)
-        {
-            if (InventoryController.singleton.weapon.items.Count > index)
-            {
-                ItemName name = InventoryController.singleton.weapon.ItemAt(index);
-                if (!EnforceType<MeleeWeapon>(c.db[name].properties))
-                    throw new System.Exception("Melee weapon requires appropriate data");
-                else
-                {
-                    currentWeapon = index;
-                    c.weaponGraphicsController.weapon.SetHeld(name, c.db);
-                }
-            }
-        }
-
-        public void SelectSidearm(int index)
-        {
-            if (InventoryController.singleton.sideArm.items.Count > index)
-            {
-                if (currentSidearm != -1)
-                    c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
-
-                c.db[InventoryController.singleton.sideArm.items[index].name].properties.OnItemEquip(animator);
-
-                currentSidearm = index;
-                c.weaponGraphicsController.sidearm.SetHeld(InventoryController.singleton.sideArm.items[index].name, c.db);
-                c.weaponGraphicsController.sidearm.sheathed = false;
-            }
-        }
-
-        public void SelectBow(int index)
-        {
-            if (InventoryController.singleton.bow.items.Count > index)
-            {
-                currentBow = index;
-
-                c.weaponGraphicsController.bow.SetHeld(InventoryController.ItemAt(index, ItemType.Bow), c.db);
-
-            }
-        }
-
-        public void SelectAmmo(int index)
-        {
-            if (InventoryController.singleton.ammo.items.Count > index && index >= 0)
-            {
-                currentAmmo = index;
-            }
-            else
-            {
-                currentAmmo = -1;
-            }
-        }
-
-        public void DeEquipSidearm()
-        {
-            if (currentSidearm != -1)
-            {
-                c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
-                c.weaponGraphicsController.sidearm.sheathed = true;
-            }
-        }
-
-        bool requestedSwordSwing = false;
-        Coroutine bowChargingRoutine;
-        float bowCharge = 0;
-        float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
-        public override void OnAttack(InputActionPhase phase)
-        {
-            if (weaponSet == WeaponSet.SwordSidearm && phase == InputActionPhase.Started && currentWeapon != -1)
-            {
-                if (inControl)
-                {
-                    c.weaponGraphicsController.weapon.sheathed = false;
-                    c.StartCoroutine(SwingSword());
-                }
-                else
-                {
-                    requestedSwordSwing = true;
-                }
-            }
-            else if (weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
-            {
-                if (phase == InputActionPhase.Started)
-                {
-                    //Button down - start charge
-                    bowChargingRoutine = c.StartCoroutine(ChargeBow());
-                }
-                else if (phase == InputActionPhase.Canceled)
-                {
-                    //button up - end charge
-                    c.StopCoroutine(bowChargingRoutine);
-                    ReleaseBow();
-                    if (bowCharge > 0.2f)
-                        FireBow();
-                }
-            }
-        }
-
-        IEnumerator ChargeBow()
-        {
-
-            bowCharge = 0;
-            c.projectileTrajectoryRenderer.enabled = true;
-            forceForwardHeading = true;
-            GameCameras.s.SwitchToAimCamera();
-            c.animator.SetBool("Holding Bow", true);
-
-            c.animationController.lookAtPositionWeight = 1;
-            c.animationController.headLookAtPositionWeight = 1;
-            c.animationController.eyesLookAtPositionWeight = 1;
-            c.animationController.bodyLookAtPositionWeight = 1;
-            c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
-
-
-            var bowAC = c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>();
-            while (true)
-            {
-                yield return new WaitForEndOfFrame();
-
-                c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
-
-
-                bowCharge += Time.deltaTime;
-                bowCharge = Mathf.Clamp01(bowCharge);
-                bowAC.SetFloat("Charge", bowCharge);
-                //Update trajectory (in local space)
-                Vector3 currentPoint = transform.InverseTransformPoint(c.arrowSpawn.position);
-                Vector3 velocity = transform.InverseTransformDirection(GameCameras.s.cameraTransform.forward) * bowSpeed;
-                int pointCount = 10;
-                float dt = 0.2f;
-                Vector3[] points = new Vector3[pointCount];
-                points[0] = currentPoint;
-                for (int i = 1; i < pointCount; i++)
-                {
-                    velocity += Physics.gravity * dt;
-                    currentPoint += velocity * dt;
-                    points[i] = currentPoint;
-                }
-                c.projectileTrajectoryRenderer.positionCount = pointCount;
-                c.projectileTrajectoryRenderer.SetPositions(points);
-            }
-        }
-
-        void ReleaseBow()
-        {
-            c.projectileTrajectoryRenderer.enabled = false;
-            GameCameras.s.SwitchToNormalCamera();
-            forceForwardHeading = false;
-            c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
-            c.animator.SetBool("Holding Bow", false);
-            c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
-        }
-
-        void FireBow()
-        {
-            print("Charged bow to {0}", bowCharge);
-            //Fire ammo
-            ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
-            GameObject arrow = new GameObject(
-                ammoName.ToString(),
-                typeof(Arrow)); //Arrow automatically adds required components
-            //Initialize arrow
-            arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
-
-            //Remove one of ammo used
-            InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
-            //Test if ammo left for shooting
-            if (InventoryController.ItemCount(ammoName) == 0)
-            {
-                print("Run out of arrow type");
-                //Keep current ammo within range of avalibles
-                SelectAmmo(currentAmmo);
-            }
-        }
-        IEnumerator SwingSword()
-        {
-            inControl = false;
-            //swing the sword
-
-            animator.SetTrigger("Swing Sword");
-            requestedSwordSwing = false;
-            //Check for triggers from the sword
-            void OnTrigger(Collider other)
-            {
-                if (other.TryGetComponent<Health>(out Health a))
-                {
-                    a.Damage(meleeWeapon.damage, gameObject);
-                }
-            }
-
-            var ccc = c.weaponGraphicsController.weapon.gameObject.AddComponent<MeshCollider>();
-            ccc.convex = true;
-            ccc.isTrigger = true;
-            var trig = c.weaponGraphicsController.weapon.gameObject.AddComponent<WeaponTrigger>();
-            trig.onTriggerEnter = OnTrigger;
-            //Make the player take a step forward
-            yield return new WaitForSeconds(0.583f);
-
-
-            //If the player has clicked again in the time of the first swing, 
-            if (requestedSwordSwing == true)
-            {
-                //Swing the sword back
-                animator.SetTrigger("Swing Sword");
-                yield return new WaitForSeconds(0.583f);
-            }
-            //Clean up the trigger detection of the sword
-            MonoBehaviour.Destroy(ccc);
-            MonoBehaviour.Destroy(trig);
-
-            inControl = true;
-
-        }
-
-        public override void OnAltAttack(InputActionPhase phase)
-        {
-            if (inControl && phase == InputActionPhase.Started)
-            {
-                if (c.weaponGraphicsController.sidearm.sheathed)
-                {
-                    SelectSidearm(currentSidearm);
-                }
-            }
         }
 
         public override void FixedUpdate()
@@ -417,7 +136,7 @@ namespace PlayerController
 
             if (c.mod.HasFlag(MovementModifiers.Sprinting))
             {
-                c.weaponGraphicsController.weapon.sheathed = true;
+                SheathSword();
                 //Will only operate if sidearm exists
                 DeEquipSidearm();
             }
@@ -451,7 +170,12 @@ namespace PlayerController
                 RaycastHit[] waterHits = new RaycastHit[2];
                 float heightOffset = 2;
 
-                int hits = Physics.RaycastNonAlloc(transform.position + new Vector3(0, heightOffset, 0), Vector3.down, waterHits, c.maxWaterStrideDepth + heightOffset, c.m_groundLayerMask, QueryTriggerInteraction.Collide);
+                int hits = Physics.RaycastNonAlloc(
+                    transform.position + new Vector3(0, heightOffset, 0),
+                    Vector3.down, waterHits,
+                    c.maxWaterStrideDepth + heightOffset,
+                    c.m_groundLayerMask | c.m_waterLayerMask,
+                    QueryTriggerInteraction.Collide);
 
                 if (hits == 2)
                 {
@@ -574,6 +298,351 @@ namespace PlayerController
             entry.values[1] = c.allCPs.Count;
             entry.values[3] = grounded;
         }
+
+
+        public void OnItemAdded(ItemName item)
+        {
+            //If this is ammo and none is equipped, equip it
+            if (currentAmmo == -1 && InventoryController.singleton.db[item].type == ItemType.Ammo)
+            {
+                //Ammo is only allowed to be -1 if none is left
+                SelectAmmo(0);
+            }
+        }
+
+
+        bool OnInput(InputAction.CallbackContext c)
+        {
+            if (c.phase == InputActionPhase.Started)
+                switch (c.action.name)
+                {
+                    case "SwitchWeaponSet":
+                        SwitchWeaponSet();
+                        return false; //Do not continue to process input
+                }
+            return true;
+        }
+        void SwitchWeaponSet()
+        {
+            if (weaponSet == WeaponSet.BowArrow) weaponSet = WeaponSet.SwordSidearm;
+            else weaponSet = WeaponSet.BowArrow;
+        }
+
+
+        public void OnSelectItem(ItemType type, int index)
+        {
+            switch (type)
+            {
+                case ItemType.Weapon:
+                    SelectMelee(index);
+                    break;
+                case ItemType.SideArm:
+                    SelectSidearm(index);
+                    break;
+                case ItemType.Bow:
+                    SelectBow(index);
+                    break;
+                case ItemType.Ammo:
+                    SelectAmmo(index);
+                    break;
+            }
+        }
+
+
+        float WalkingRunningCrouching(float crouchingSpeed, float runningSpeed, float walkingSpeed)
+        {
+            if (crouching)
+                return crouchingSpeed;
+            else if (c.mod.HasFlag(MovementModifiers.Sprinting))
+                return runningSpeed;
+            else
+                return walkingSpeed;
+        }
+
+        public override void OnSelectWeapon(int index)
+        {
+            if (weaponSet == WeaponSet.BowArrow) SelectBow(index);
+            if (weaponSet == WeaponSet.SwordSidearm) SelectMelee(index);
+        }
+
+        public static bool EnforceType<T>(object o) => o != null && o is T;
+
+
+
+        public void SelectMelee(int index)
+        {
+            if (InventoryController.singleton.weapon.items.Count > index)
+            {
+                ItemName name = InventoryController.singleton.weapon.ItemAt(index);
+                if (!EnforceType<MeleeWeapon>(c.db[name].properties))
+                    throw new System.Exception("Melee weapon requires appropriate data");
+                else
+                {
+                    currentWeapon = index;
+                    c.weaponGraphicsController.weapon.sheathed = true;
+                    c.weaponGraphicsController.weapon.SetHeld(name, c.db);
+
+                }
+            }
+        }
+
+        public void SelectSidearm(int index)
+        {
+            if (InventoryController.singleton.sideArm.items.Count > index)
+            {
+                if (currentSidearm != -1)
+                    c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
+
+                c.db[InventoryController.singleton.sideArm.items[index].name].properties.OnItemEquip(animator);
+
+                currentSidearm = index;
+                c.weaponGraphicsController.sidearm.SetHeld(InventoryController.singleton.sideArm.items[index].name, c.db);
+                c.weaponGraphicsController.sidearm.sheathed = false;
+            }
+        }
+
+        public void SelectBow(int index)
+        {
+            if (InventoryController.singleton.bow.items.Count > index)
+            {
+                currentBow = index;
+
+                c.weaponGraphicsController.bow.SetHeld(InventoryController.ItemAt(index, ItemType.Bow), c.db);
+
+            }
+        }
+
+        public void SelectAmmo(int index)
+        {
+            if (InventoryController.singleton.ammo.items.Count > index && index >= 0)
+            {
+                currentAmmo = index;
+            }
+            else
+            {
+                currentAmmo = -1;
+            }
+        }
+
+        public void DeEquipSidearm()
+        {
+            if (currentSidearm != -1)
+            {
+                c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
+                c.weaponGraphicsController.sidearm.sheathed = true;
+            }
+        }
+
+        bool requestedSwordSwing = false;
+        bool holdingSecondary = false;
+        Coroutine bowChargingRoutine;
+        float bowCharge = 0;
+        float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
+
+        bool swordCanBeUsed = false;
+
+        public override void OnAttack(InputActionPhase phase)
+        {
+            if (weaponSet == WeaponSet.SwordSidearm && phase == InputActionPhase.Started && currentWeapon != -1)
+            {
+                if (inControl)
+                {
+                    if (c.weaponGraphicsController.weapon.sheathed == true)
+                    {
+                        c.StartCoroutine(UnSheathSword());
+                    }
+                    else if (swordCanBeUsed)
+                    {
+                        SwingSword();
+                    }
+                }
+                else
+                {
+                    requestedSwordSwing = true;
+                }
+            }
+            else if (weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
+            {
+                if (phase == InputActionPhase.Started)
+                {
+                    //Button down - start charge
+                    bowChargingRoutine = c.StartCoroutine(ChargeBow());
+                }
+                else if (phase == InputActionPhase.Canceled)
+                {
+                    //button up - end charge
+                    c.StopCoroutine(bowChargingRoutine);
+                    ReleaseBow();
+                    if (bowCharge > 0.2f)
+                        FireBow();
+                }
+            }
+        }
+
+        IEnumerator ChargeBow()
+        {
+
+            bowCharge = 0;
+            c.projectileTrajectoryRenderer.enabled = true;
+            forceForwardHeading = true;
+            GameCameras.s.SwitchToAimCamera();
+            c.animator.SetBool("Holding Bow", true);
+
+            c.animationController.lookAtPositionWeight = 1;
+            c.animationController.headLookAtPositionWeight = 1;
+            c.animationController.eyesLookAtPositionWeight = 1;
+            c.animationController.bodyLookAtPositionWeight = 1;
+            c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
+
+
+            var bowAC = c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>();
+            while (true)
+            {
+                yield return new WaitForEndOfFrame();
+
+                c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
+
+
+                bowCharge += Time.deltaTime;
+                bowCharge = Mathf.Clamp01(bowCharge);
+                bowAC.SetFloat("Charge", bowCharge);
+                //Update trajectory (in local space)
+                Vector3 currentPoint = transform.InverseTransformPoint(c.arrowSpawn.position);
+                Vector3 velocity = transform.InverseTransformDirection(GameCameras.s.cameraTransform.forward) * bowSpeed;
+                int pointCount = 10;
+                float dt = 0.2f;
+                Vector3[] points = new Vector3[pointCount];
+                points[0] = currentPoint;
+                for (int i = 1; i < pointCount; i++)
+                {
+                    velocity += Physics.gravity * dt;
+                    currentPoint += velocity * dt;
+                    points[i] = currentPoint;
+                }
+                c.projectileTrajectoryRenderer.positionCount = pointCount;
+                c.projectileTrajectoryRenderer.SetPositions(points);
+            }
+        }
+
+        void ReleaseBow()
+        {
+            c.projectileTrajectoryRenderer.enabled = false;
+            GameCameras.s.SwitchToNormalCamera();
+            forceForwardHeading = false;
+            c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
+            c.animator.SetBool("Holding Bow", false);
+            c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
+        }
+
+        void FireBow()
+        {
+            print("Charged bow to {0}", bowCharge);
+            //Fire ammo
+            ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
+            GameObject arrow = new GameObject(
+                ammoName.ToString(),
+                typeof(Arrow)); //Arrow automatically adds required components
+            //Initialize arrow
+            arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
+
+            //Remove one of ammo used
+            InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
+            //Test if ammo left for shooting
+            if (InventoryController.ItemCount(ammoName) == 0)
+            {
+                print("Run out of arrow type");
+                //Keep current ammo within range of avalibles
+                SelectAmmo(currentAmmo);
+            }
+        }
+        IEnumerator UnSheathSword()
+        {
+            animator.SetBool("Holding Sword", true);
+            yield return new WaitForSeconds(0.5f);
+            c.weaponGraphicsController.weapon.sheathed = false;
+            yield return new WaitForSeconds(0.5f);
+            swordCanBeUsed = true;
+        }
+
+
+        void SheathSword()
+        {
+            animator.SetBool("Holding Sword", false);
+            c.weaponGraphicsController.weapon.sheathed = true;
+            swordCanBeUsed = false;
+        }
+
+        void SwingSword()
+        {
+            c.rb.velocity = Vector3.zero; //Stop the player moving
+            inControl = false;
+            swordCanBeUsed = false;
+            //swing the sword
+
+            animator.SetTrigger("Swing Sword");
+
+            MeshCollider collider = null;
+            WeaponTrigger trigger = null;
+
+            //Check for triggers from the sword
+            void OnTrigger(Collider other)
+            {
+                if (other.TryGetComponent<Health>(out Health a))
+                {
+                    if (a != c.health)
+                        a.Damage(meleeWeapon.damage, gameObject);
+                }
+                else if (other.TryGetComponent<CuttableTree>(out var tree))
+                {
+                    tree.CutTree(Vector2.one);
+                }
+            }
+
+            void AddTrigger()
+            {
+                collider = c.weaponGraphicsController.weapon.gameObject.AddComponent<MeshCollider>();
+                collider.convex = true;
+                collider.isTrigger = true;
+                trigger = c.weaponGraphicsController.weapon.gameObject.AddComponent<WeaponTrigger>();
+                trigger.onTriggerEnter = OnTrigger;
+            }
+
+            void RemoveTrigger()
+            {
+                //Clean up the trigger detection of the sword
+                MonoBehaviour.Destroy(collider);
+                MonoBehaviour.Destroy(trigger);
+
+                c.onSwingStateChanged = null;
+                inControl = true;
+                swordCanBeUsed = true;
+            }
+
+            c.onSwingStateChanged = (bool on) =>
+            {
+                if (on) AddTrigger();
+                else RemoveTrigger();
+            };
+
+        }
+
+        public override void OnAltAttack(InputActionPhase phase)
+        {
+            if (inControl && phase == InputActionPhase.Started)
+            {
+                //Equip the sidearm if it wasnt
+                if (c.weaponGraphicsController.sidearm.sheathed)
+                {
+                    SelectSidearm(currentSidearm);
+                }
+                holdingSecondary = true;
+            }
+            else if (inControl && phase == InputActionPhase.Canceled)
+            {
+                holdingSecondary = false;
+            }
+        }
+
 
         /// Finds the MOST grounded (flattest y component) ContactPoint
         /// \param allCPs List to search
@@ -738,13 +807,21 @@ namespace PlayerController
         {
             animator.SetBool(vars.surfing.id, false);
 
-            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
+            float speed = c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? 1.5f : 1);
+
+            animator.SetBool("Idle", speed == 0);
+
+            animator.SetFloat(vars.vertical.id, speed);
             //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
-            animator.SetFloat("WalkingSpeed", WalkingRunningCrouching(0.5f, 1f, 0.7f));
+            animator.SetFloat("WalkingSpeed", speed);
             animator.SetBool("IsGrounded", true);
+
+            animator.SetBool("EngagingSecondary", holdingSecondary);
+
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
             animator.SetFloat("GroundDistance", c.currentHeight);
             animator.SetBool("Crouching", crouching);
+            animator.SetBool("IsStrafing", true);
         }
 
         public override void OnJump(InputActionPhase phase)

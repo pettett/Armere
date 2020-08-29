@@ -13,6 +13,7 @@ namespace PlayerController
         public override void Start(params object[] args)
         {
             c.StartCoroutine(MoveToNext((float)args[0]));
+            c.rb.velocity = Vector3.zero;
         }
         IEnumerator MoveToNext(float time)
         {

@@ -18,5 +18,9 @@ public class PlayerRelativeObject : MonoBehaviour
     }
     public virtual void OnPlayerInRange() { enabled = true; }
     public virtual void OnPlayerOutRange() { enabled = false; }
+
+    private void OnDestroy() {
+        RemoveFromRegister();
+    }
 }
 

@@ -7,7 +7,7 @@ namespace PlayerController
 {
     [System.Serializable]
     //class to allow player interactions with the environment through IInteractable scripts
-    public class Interact : ParallelState
+    public class Interact : MovementState
     {
         public override string StateName => "Interact";
         int currentLookAt;
@@ -147,11 +147,18 @@ namespace PlayerController
                 if (currentLookAt != -1)
                 {
                     interactablesInRange[currentLookAt].Interact(c);
+
                     //Somehow this needs to be improved
                     switch (interactablesInRange[currentLookAt])
                     {
                         case NPC npc:
                             c.ChangeToState<Conversation>(npc);
+                            break;
+                        case Climbable climbable:
+                            c.ChangeToState<LadderClimb>(climbable);
+                            break;
+                        case IDialogue dialogue:
+                            c.ChangeToState<Dialogue>(dialogue);
                             break;
                     }
                 }

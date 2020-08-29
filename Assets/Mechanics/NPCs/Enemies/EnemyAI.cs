@@ -71,10 +71,16 @@ public class EnemyAI : AIBase
         }
     }
 
+    public void Die(GameObject attacker, GameObject victim)
+    {
+        Destroy(gameObject);
+    }
+
     protected override void Start()
     {
         health = GetComponent<Health>();
         health.onTakeDamage += OnDamageTaken;
+        health.onDeath += Die;
         base.Start();
         StartBaseRoutine();
     }

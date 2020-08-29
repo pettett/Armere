@@ -1,7 +1,8 @@
 {
     "name": "enviroment.water",
     "references": [
-        "GUID:01f049d3077c4ff44935ea92b73d3dc0"
+        "GUID:01f049d3077c4ff44935ea92b73d3dc0",
+        "GUID:48c9f6afdac61634db0e0f241c7d4d51"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

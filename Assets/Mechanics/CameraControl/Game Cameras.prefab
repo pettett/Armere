@@ -360,8 +360,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8691208063540805596}
-  m_LocalRotation: {x: 0.133019, y: -0.000000028355988, z: 0.0000000038057046, w: 0.9911135}
-  m_LocalPosition: {x: -16.96, y: 57.280758, z: -16.348595}
+  m_LocalRotation: {x: 0.13301903, y: 0.0000000039176857, z: -5.2579985e-10, w: 0.9911135}
+  m_LocalPosition: {x: 49.1, y: 51.40076, z: -73.488594}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8691208063589736731}
@@ -489,6 +489,7 @@ GameObject:
   - component: {fileID: 8691208063589736728}
   - component: {fileID: 8691208063589736729}
   - component: {fileID: 8691208063589736730}
+  - component: {fileID: 6787445997354477452}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -656,6 +657,18 @@ MonoBehaviour:
   m_AfterStackBundles:
   - assemblyQualifiedName: GodRays, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
+--- !u!114 &6787445997354477452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8691208063589736732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45e67f5d7905d944f80ce6ef9bd2084e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8691208063681260482
 GameObject:
   m_ObjectHideFlags: 0
@@ -2220,7 +2233,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8691208065082933238}
-  m_LocalRotation: {x: -0.15598175, y: 0.000000024012097, z: -0.000000009463246, w: 0.98776}
+  m_LocalRotation: {x: -0.15598175, y: 0.000000008004031, z: -0.0000000031544154,
+    w: 0.98776}
   m_LocalPosition: {x: 55.505253, y: -51.305958, z: -76.05432}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -2420,7 +2434,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8691208065227378370}
-  m_LocalRotation: {x: -0.1199985, y: 0.000000033397868, z: -0.000000014585121, w: 0.9927741}
+  m_LocalRotation: {x: -0.1199985, y: -0.0000000018611974, z: 8.127996e-10, w: 0.9927741}
   m_LocalPosition: {x: 55.505253, y: -51.305958, z: -76.05432}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:

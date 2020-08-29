@@ -27,6 +27,7 @@ namespace PlayerController
         {
             yield return WaitForAgent(agent.stoppingDistance * 2 + 0.01f);
         }
+
         public IEnumerator WaitForAgent(float targetDistance)
         {
             yield return new WaitUntil(() => !agent.pathPending && agent.remainingDistance < targetDistance);

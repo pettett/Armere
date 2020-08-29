@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 75675cf8617d77a4c83fbf1cf70d3e38
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - SceneChangeDialogue-Start-0
+  - SceneChangeDialogue-Start-1
+  - SceneChangeDialogue-Start-2
+  - SceneChangeDialogue-Start-3
+  - SceneChangeDialogue-Start-4
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {fileID: 7128917941130120860, guid: 75675cf8617d77a4c83fbf1cf70d3e38,
+    type: 3}
+  localizations: []

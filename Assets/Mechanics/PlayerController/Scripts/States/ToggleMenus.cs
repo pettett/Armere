@@ -5,7 +5,7 @@ namespace PlayerController
 {
     //allow the player to access the menu system if tab is pressed
     [System.Serializable]
-    public class ToggleMenus : ParallelState
+    public class ToggleMenus : MovementState
     {
 
 

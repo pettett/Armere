@@ -49,7 +49,7 @@ public class WeaponGraphicsController : MonoBehaviour
         public void SetHeld(ItemName weapon, ItemDatabase db)
         {
             if (gameObject != null) Destroy(gameObject);
-            print(db);
+
             gameObject = CreateItem(weapon, db);
         }
         public void RemoveHeld()

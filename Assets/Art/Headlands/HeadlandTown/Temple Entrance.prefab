@@ -90,7 +90,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 781878044382103222}
-  m_LocalRotation: {x: -0, y: 0.99485046, z: -0, w: -0.10135356}
+  m_LocalRotation: {x: 0, y: 0.9948507, z: -0, w: -0.10135134}
   m_LocalPosition: {x: -126.95313, y: 57.63, z: 29.867464}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -272,7 +272,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6498255126386808716}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.000000007450581}
-  m_LocalPosition: {x: 0.2999971, y: 0.39, z: 11.59999}
+  m_LocalPosition: {x: 0, y: 0.39, z: 11.59999}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 781878044382103223}
@@ -440,11 +440,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97116e338d23cd249942af92a4a74c35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  onceOff: 0
+  minTimeBetweenTriggers: 1
   onTriggerEnter:
     m_PersistentCalls:
       m_Calls: []
-  fired: 0
   activatorTag: Player
   transitionToCamera: {fileID: 8693445959153776678}
   dollyTime: 4

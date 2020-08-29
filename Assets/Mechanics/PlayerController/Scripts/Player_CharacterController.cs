@@ -11,13 +11,13 @@ namespace PlayerController
     [RequireComponent(typeof(Rigidbody))]
     public class Player_CharacterController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
     {
-        [System.Serializable]
-        public class PlayerSaveData
+        [Serializable]
+        public readonly struct PlayerSaveData
         {
-            public MovementState currentState;
-            public ParallelState[] parallels;
-            public Vector3 position;
-            public Quaternion rotation;
+            public readonly MovementState currentState;
+            public readonly MovementState[] parallels;
+            public readonly Vector3 position;
+            public readonly Quaternion rotation;
 
             public PlayerSaveData(Player_CharacterController c)
             {
@@ -65,10 +65,7 @@ namespace PlayerController
         public Transform lookAtTarget;
         [HideInInspector] public PlayerInput playerInput;
 
-
-        private MovementState currentState;
-        public Type CurrentStateType => currentState?.GetType();
-        public Type lastStateType = null;
+        [NonSerialized] public MovementState currentState;
 
         //Parallel state list:
 
@@ -76,13 +73,13 @@ namespace PlayerController
         //Weapons - DONE
         //Interaction with objects - DONE
 
-        private ParallelState[] parallelStates = new ParallelState[0];
+        [NonSerialized] private MovementState[] parallelStates = new MovementState[0];
 
         public CameraControl cameraController;
 
         public Yarn.Unity.DialogueRunner runner;
 
-        MovementState[] allStates;
+        [NonSerialized] MovementState[] allStates;
 
         public Room currentRoom;
 
@@ -95,12 +92,6 @@ namespace PlayerController
 
         public float jumpForce = 1000f;
 
-
-        public float cliffScanningDistance = 0.31f;
-        [Range(0, 90)]
-        public float minAngleForCliff = 70;
-        public Vector3 cliffTopScanOffset = Vector3.up;
-        public Vector3 m_cliffScanOffset = Vector3.up * .3f;
 
         [Header("Ground detection")]
 
@@ -116,10 +107,16 @@ namespace PlayerController
         public float maxWaterStrideDepth = 1;
         public float waterDrag = 1;
         public float waterMovementForce = 1;
+
+        public float waterMovementSpeed = 1;
+        public float waterSittingDepth = 1;
+
+        public GameObject waterTrailPrefab;
         [Header("Climbing")]
         public float climbingColliderHeight = 1.6f;
         public float climbingSpeed = 4f;
         public float transitionTime = 4f;
+        [Range(0, 180)] public float maxHeadBodyRotationDifference = 5f;
 
         [Header("Weapons")]
         public Transform arrowSpawn;
@@ -128,6 +125,7 @@ namespace PlayerController
         [Header("Other")]
 
         public LayerMask m_groundLayerMask;
+        public LayerMask m_waterLayerMask;
         public Rigidbody rb;
         [HideInInspector] public new CapsuleCollider collider;
 
@@ -136,7 +134,6 @@ namespace PlayerController
 
         public TMPro.TextMeshProUGUI currentStateText;
         [SerializeField] public InputStatus input = new InputStatus(); //current player input
-
 
 
 
@@ -149,7 +146,6 @@ namespace PlayerController
 
         public WeaponGraphicsController weaponGraphicsController;
 
-        public RaycastHit hit;
 
 
         public static Player_CharacterController activePlayerController;
@@ -161,7 +157,7 @@ namespace PlayerController
         //set capacity to 1 as it is common for the player to be touching the ground in at least one point
         [HideInInspector] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
 
-        DebugMenu.DebugEntry entry;
+        DebugMenu.DebugEntry<string> entry;
 
 
 
@@ -174,8 +170,6 @@ namespace PlayerController
 
 
         public AnimatorVariables animatorVariables;
-
-
 
         [HideInInspector] public WaterController currentWater;
 
@@ -193,6 +187,15 @@ namespace PlayerController
         }
         void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
         void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
+
+
+        public System.Action<bool> onSwingStateChanged;
+
+        public void SwingStart() => onSwingStateChanged?.Invoke(true);
+
+        public void SwingEnd() => onSwingStateChanged?.Invoke(false);
+
+
         private void Start()
         {
 
@@ -234,9 +237,6 @@ namespace PlayerController
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
             GetComponent<Ragdoller>().RagdollEnabled = false;
-
-
-
         }
 
         public void EnterRoom(Room room)
@@ -366,7 +366,6 @@ namespace PlayerController
         private void Update()
         {
             RaycastGround();
-            RaycastCliff();
             for (int i = 0; i < allStates.Length; i++)
                 if (StateActive(i))
                     allStates[i].Update();
@@ -464,18 +463,17 @@ namespace PlayerController
         }
         public MovementState ChangeToState(Type type, params object[] parameters)
         {
-            lastStateType = CurrentStateType;
             currentState?.End(); // state specific end method
             currentState = Activator.CreateInstance(type) as MovementState;
 
 
 
             //update f3 information
-            entry.values[0] = currentState.StateName;
+            entry.value0 = currentState.StateName;
 
             //test to see if this state requires any parallel states to be started
             RequiresParallelState[] attributes = type.GetCustomAttributes(typeof(RequiresParallelState), true) as RequiresParallelState[];
-            ParallelState[] newStates = new ParallelState[attributes.Length];
+            MovementState[] newStates = new MovementState[attributes.Length];
 
             for (int i = 0; i < attributes.Length; i++)
             {
@@ -483,7 +481,7 @@ namespace PlayerController
                 newStates[i] = GetParallelState(attributes[i].state);
                 if (newStates[i] == null)
                 {
-                    newStates[i] = Activator.CreateInstance(attributes[i].state) as ParallelState;
+                    newStates[i] = Activator.CreateInstance(attributes[i].state) as MovementState;
                 }
             }
 
@@ -491,6 +489,7 @@ namespace PlayerController
             for (int i = 0; i < parallelStates.Length; i++)
             {
                 bool continues = false;
+
                 for (int j = 0; j < attributes.Length; j++)
                 {
                     if (parallelStates[i].GetType() == attributes[j].state)
@@ -503,6 +502,7 @@ namespace PlayerController
                     parallelStates[i].End();
                 }
             }
+
             parallelStates = newStates;
 
             if (currentStateText != null)
@@ -517,6 +517,7 @@ namespace PlayerController
 
             return currentState;
         }
+
         public void FillAllStates()
         {
             allStates = new MovementState[parallelStates.Length + 2];
@@ -541,11 +542,9 @@ namespace PlayerController
             }
             // start all the states after everything has been constructed
             currentState.Start(parameters);
-
-
         }
 
-        public ParallelState GetParallelState(Type t)
+        public MovementState GetParallelState(Type t)
         {
             for (int i = 0; i < parallelStates.Length; i++)
             {
@@ -556,7 +555,7 @@ namespace PlayerController
             }
             return null;
         }
-        public bool TryGetParallelState<T>(out T state) where T : ParallelState
+        public bool TryGetParallelState<T>(out T state) where T : MovementState
         {
             for (int i = 0; i < parallelStates.Length; i++)
             {
@@ -607,16 +606,7 @@ namespace PlayerController
             }
         }
 
-        private void RaycastCliff()
-        {
-            if (Physics.Raycast(transform.position + m_cliffScanOffset, transform.forward, out cliffRaycastHit, cliffScanningDistance, m_groundLayerMask, QueryTriggerInteraction.Ignore))
-            {
-                if (hit.rigidbody == null) // do not climb on moveable objects
-                {
-                    currentState.OnCollideCliff(cliffRaycastHit);
-                }
-            }
-        }
+
         void OnDrawGizmos()
         {
             if (currentState != null)

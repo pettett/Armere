@@ -1,6 +1,8 @@
 using UnityEngine;
 using Yarn.Unity;
 using System.Collections;
+using Cinemachine;
+
 
 namespace PlayerController
 {
@@ -9,10 +11,8 @@ namespace PlayerController
     //Converstation base class - runs dialogue, only requires player controller
 
     [System.Serializable]
-    public class Conversation : MovementState
+    public class Conversation : Dialogue
     {
-
-
         public const string GiveQuestCommand = "quest";
         public const string DeliverQuestCommand = "DeliverQuest";
         public const string TalkToQuestCommand = "TalkToQuest";
@@ -25,17 +25,15 @@ namespace PlayerController
         public const string OfferToSellCommand = "OfferToSell";
         public const string OfferToBuyCommand = "OfferToBuy";
         public const string GoToCommand = "GoTo";
-
         public override string StateName => "In Conversation";
-        DialogueRunner runner => c.runner;
-
-
         public NPC talkingTarget;
 
         BuyInventoryUI buyMenu;
+        bool hasSpeaker;
+        NPCName speakingNPC;
+
         public override void Start(params object[] args)
         {
-
             if (args[0] is NPC npc)
             {
                 talkingTarget = npc;
@@ -45,30 +43,46 @@ namespace PlayerController
                 throw new System.Exception("First arg must be npc");
             }
 
-            //Setup PlayerController for static conversation
-            c.cameraController.lockingMouse = false;
-            c.rb.velocity = Vector3.zero;
-            c.cameraController.DisableControl();
-            c.rb.isKinematic = true;
-            GameCameras.s.cutsceneCamera.Priority = 50;
-
             //Set up ik weights
             c.animationController.headLookAtPositionWeight = 1;
             c.animationController.lookAtPositionWeight = 1;
             c.animationController.clampLookAtPositionWeight = 0.5f; //Half rotation away
-
-
             c.animationController.lookAtPosition = talkingTarget.headPosition.position;
 
-            SetupRunner();
+            //Setup camera
+            int targets = Mathf.Max(2, talkingTarget.conversationGroupOverride.Length + 1);
+            //Add all targets including the player
+            GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
+            GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(transform);
+
+            if (talkingTarget.conversationGroupOverride.Length != 0)
+            {
+                for (int i = 0; i < talkingTarget.conversationGroupOverride.Length; i++)
+                {
+                    GameCameras.s.conversationGroup.m_Targets[i + 1] = GenerateTarget(talkingTarget.conversationGroupOverride[i]);
+                }
+            }
+            else
+            {
+                GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(talkingTarget.transform);
+            }
+
+            GameCameras.s.conversationGroup.DoUpdate();
+
+            //Add the variables for this NPC
+
+            GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
+
+
+            StartDialogue(talkingTarget);
         }
+
+
+
         public override void End()
         {
-            CleanUpRunner();
-            c.cameraController.lockingMouse = true;
-            c.rb.isKinematic = false;
-            c.cameraController.EnableControl();
-            GameCameras.s.cutsceneCamera.Priority = 0;
+            base.End();
+
 
             c.animationController.headLookAtPositionWeight = 0;
             c.animationController.lookAtPositionWeight = 0;
@@ -109,15 +123,11 @@ namespace PlayerController
         void EnableDialogBox() => SetDialogBoxActive(true);
         void DisableDialogBox() => SetDialogBoxActive(false);
 
-        public void SetupRunner()
+        public override void SetupRunner()
         {
             //Add every command hander for dialogue usage
-            runner.Add(talkingTarget.t.dialogue);
 
-            DialogueUI.singleton.onLineStart.AddListener(talkingTarget.StartNPCSpeaking);
-            DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-
-            runner.StartDialogue(talkingTarget.ConversationStartNode);
+            base.SetupRunner();
 
             runner.AddCommandHandler(GiveQuestCommand, GiveQuest);
             runner.AddCommandHandler(DeliverQuestCommand, DeliverQuest);
@@ -135,13 +145,12 @@ namespace PlayerController
             (runner.variableStorage as InMemoryVariableStorage).addon = talkingTarget;
         }
 
-        public void CleanUpRunner()
+        public override void CleanUpRunner()
         {
             print("Cleaning up dialogue runner after dialogue");
             //Remove all commands from the runner as well as removing dialogue
-            runner.Clear();
-            runner.ClearStringTable();
-            runner.Stop();
+            base.CleanUpRunner();
+
             runner.RemoveCommandHandler(GiveQuestCommand);
             runner.RemoveCommandHandler(DeliverQuestCommand);
             runner.RemoveCommandHandler(TalkToQuestCommand);
@@ -155,11 +164,47 @@ namespace PlayerController
             runner.RemoveCommandHandler(OfferToBuyCommand);
             runner.RemoveCommandHandler(GoToCommand);
 
-            DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-            DialogueUI.singleton.onLineStart.RemoveListener(talkingTarget.StartNPCSpeaking);
 
             (runner.variableStorage as InMemoryVariableStorage).addon = null;
         }
+
+
+
+        public override void OnLineStart(string line)
+        {
+
+            if (line == null) return;
+
+            NPCName currentSpeaker;
+            try
+            {
+                currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
+            }
+            catch (System.Exception ex)
+            {
+                print(line);
+                throw ex;
+            }
+
+            if (!hasSpeaker)
+            {
+                GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(NPC.activeNPCs[currentSpeaker].transform);
+                NPC.activeNPCs[currentSpeaker].StartSpeaking(transform);
+                hasSpeaker = true;
+            }
+            else if (speakingNPC != currentSpeaker)
+            {
+                NPC.activeNPCs[speakingNPC].StopSpeaking();
+                NPC.activeNPCs[currentSpeaker].StartSpeaking(transform);
+                //Re-target camera to point to the new speaker
+                PointCameraToSpeaker(NPC.activeNPCs[currentSpeaker].transform);
+            }
+            speakingNPC = currentSpeaker;
+
+        }
+
+
+
         #region Yarn Commands
         void Animate(string[] arg, System.Action onComplete)
         {
@@ -219,16 +264,18 @@ namespace PlayerController
             onComplete?.Invoke();
         }
 
-        void OnDialogueComplete()
+
+
+        public override void OnDialogueComplete()
         {
             //Conversation over - clean up
-            talkingTarget.FinishSpeaking();
+            NPC.activeNPCs[speakingNPC].StopSpeaking();
 
             //playerTransform.ChangeToState<Walking>();
 
             ResetCamera();
 
-            ChangeToState<Walking>();
+            base.OnDialogueComplete();
         }
 
         void GoTo(string[] arg, System.Action onComplete)
@@ -289,6 +336,7 @@ namespace PlayerController
             //Restart the dialog
             DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
             runner.Stop();
+            HideAllDialogueButtons();
             DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
             runner.StartDialogue("Buy");
         }
@@ -338,9 +386,19 @@ namespace PlayerController
             //Restart the dialog
             DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
             runner.Stop();
+            HideAllDialogueButtons();
             DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
             runner.StartDialogue("Sell");
         }
+
+        void HideAllDialogueButtons()
+        {
+            foreach (var button in DialogueUI.singleton.optionButtons)
+            {
+                button.gameObject.SetActive(false);
+            }
+        }
+
         void ReEnableSellMenu()
         {
             runner.RemoveCommandHandler("ConfirmSell");

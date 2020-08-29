@@ -51,12 +51,6 @@ namespace PlayerController
     }
 
     [Serializable]
-    public abstract class ParallelState : MovementState
-    {
-
-    }
-
-    [Serializable]
     public abstract class MovementState : State
     {
         public bool updateWhilePaused = false;
@@ -81,7 +75,6 @@ namespace PlayerController
         public virtual void Animate(AnimatorVariables vars) { }
         public virtual void OnAnimatorIK(int layerIndex) { }
         public virtual void OnCollideGround(RaycastHit hit) { }
-        public virtual void OnCollideCliff(RaycastHit hit) { }
         public virtual void OnJump(InputActionPhase phase) { }
         public virtual void OnAttack(InputActionPhase phase) { }
         public virtual void OnAltAttack(InputActionPhase phase) { }
@@ -98,10 +91,10 @@ namespace PlayerController
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class RequiresParallelState : Attribute
     {
-        public Type state { get; private set; }
+        public readonly Type state;
         public RequiresParallelState(Type state)
         {
-            if (!state.IsSubclassOf(typeof(ParallelState)))
+            if (!state.IsSubclassOf(typeof(MovementState)))
                 throw new Exception("Must use a parallel State");
             this.state = state;
         }

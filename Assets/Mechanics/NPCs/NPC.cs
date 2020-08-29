@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Yarn.Unity;
-using Cinemachine;
 using Yarn;
 using TMPro;
 using System.Linq;
 
 
-public class NPC : AIBase, IInteractable, IVariableAddon
+public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
 {
     bool IInteractable.canInteract { get => enabled; set => enabled = value; }
     string IVariableAddon.prefix => "$NPC_";
@@ -26,12 +25,11 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public TextMeshPro ambientThoughtText;
     new Camera camera;
     public NPCTemplate t;
-    Transform[] conversationGroupOverride;
+    public Transform[] conversationGroupOverride;
     //Conversation currentConv;
     public static Dictionary<NPCName, NPC> activeNPCs = new Dictionary<NPCName, NPC>();
     public Animator animator;
-    public bool hasSpeaker = false;
-    public NPCName speakingNPC;
+
     NPCSpawn spawn;
     public BuyMenuItem[] buyInventory;
 
@@ -40,6 +38,9 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     public int currentRoutineStage;
 
     Transform playerTransform;
+
+    public YarnProgram Dialogue => t.dialogue;
+    public string StartNode => t.routine[currentRoutineStage].conversationStartNode;
 
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
@@ -56,10 +57,9 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             buyInventory[i].count = t.buyMenuItems[i].count;
             buyInventory[i].stock = t.buyMenuItems[i].stock;
         }
-
         npcName = spawn.spawnedNPCName;
         activeNPCs[npcName] = this;
-        speakingNPC = npcName;
+
         this.conversationGroupOverride = conversationGroupOverride;
     }
 
@@ -140,7 +140,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
     }
 
-
     public void ActivateStandRoutine(bool instant)
     {
         Transform target = GetTransform(spawn.walkingPoints, t.routine[currentRoutineStage].location);
@@ -160,47 +159,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         {
             throw new System.Exception(string.Format("Desired routine location {0} not within walking points array", t.routine[currentRoutineStage].location));
         }
-
-    }
-
-    public string ConversationStartNode => t.routine[currentRoutineStage].conversationStartNode;
-
-
-
-
-    public void StartNPCSpeaking(string line)
-    {
-        if (line == null) return;
-
-        NPCName currentSpeaker;
-        try
-        {
-            currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
-        }
-        catch (System.Exception ex)
-        {
-            print(line);
-            throw ex;
-        }
-
-        if (!hasSpeaker)
-        {
-            activeNPCs[currentSpeaker].StartSpeaking(playerTransform.transform, true);
-            hasSpeaker = true;
-        }
-        else if (speakingNPC != currentSpeaker)
-        {
-            activeNPCs[speakingNPC].StopSpeaking();
-            activeNPCs[currentSpeaker].StartSpeaking(playerTransform.transform, false);
-        }
-        speakingNPC = currentSpeaker;
-    }
-
-
-    public void FinishSpeaking()
-    {
-        activeNPCs[speakingNPC].StopSpeaking();
-        hasSpeaker = false;
     }
 
     IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
@@ -215,16 +173,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         }
     }
 
-
-    public void StartSpeaking(Transform player, bool first)
+    public void StartSpeaking(Transform player)
     {
-        if (!first)
-            //Make the camera look at this npc
-            PointCameraToSpeaker(player);
-        else
-            GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(playerTransform);
-
-
         //Point the player towards the currently speaking npc
         StartCoroutine(RotatePlayerTowardsNPC(player));
 
@@ -233,16 +183,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
             foreach (var mat in r.materials)
                 mat.color = Color.blue;
     }
-    ///<summary>Point the player's conversation camera to this npc</summary>
-    void PointCameraToSpeaker(Transform player)
-    {
-        //Get an angle that looks from the player to the npc, at a slight offset
-        GameCameras.s.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(player), 0);
-        //Setup the transposer to recenter
-        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
-        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
-    }
-
 
     public void StopSpeaking()
     {
@@ -250,13 +190,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         foreach (var r in GetComponentsInChildren<Renderer>())
             foreach (var mat in r.materials)
                 mat.color = Color.red;
-    }
-
-
-
-    public float GetCameraAngle(Transform target)
-    {
-        return Quaternion.LookRotation(transform.position - target.position).eulerAngles.y + 15f;
     }
 
     public void Interact(IInteractor interactor)
@@ -272,44 +205,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon
         NPCManager.singleton.data[npcName].spokenTo = true;
 
 
-        GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(playerTransform.transform.position, transform.position, 0.5f);
-
-        int targets = Mathf.Max(2, conversationGroupOverride.Length + 1);
-        //Add all targets including the player
-        GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
-        GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(playerTransform.transform);
-
-        if (conversationGroupOverride.Length != 0)
-        {
-            for (int i = 0; i < conversationGroupOverride.Length; i++)
-            {
-                GameCameras.s.conversationGroup.m_Targets[i + 1] = GenerateTarget(conversationGroupOverride[i]);
-            }
-        }
-        else
-        {
-            GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(transform);
-        }
-
-        GameCameras.s.conversationGroup.DoUpdate();
-
-        //Add the variables for this NPC
-
-
-
-        GameCameras.s.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
-        //  c.cutsceneCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(c);
-
         StartCoroutine(TurnToPlayer(playerTransform.transform.position));
     }
-
-
-
-    CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
-    {
-        return new CinemachineTargetGroup.Target() { target = transform, weight = weight, radius = radius };
-    }
-
 
 
     IEnumerator TurnToPlayer(Vector3 playerPosition)
@@ -328,45 +225,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon
 
     }
 
-
-
-
     public Transform GetTransform(Transform[] transforms, string name) => transforms.FirstOrDefault(t => t.name == name);
     public Transform GetFocusPoint(string name) => GetTransform(spawn.focusPoints, name);
-
-
-
-    void ResetCamera()
-    {
-        GameCameras.s.cutsceneCamera.LookAt = GameCameras.s.conversationGroup.Transform;
-    }
-
-
-    IEnumerator LerpCameraToPositionAndRotation(Vector3 targetPosition, Quaternion targetRotation, float time)
-    {
-        //Orbit around the focus point
-        Vector3 vel = Vector3.zero;
-        float angleVel = 0;
-        float delta;
-        float t = 0;
-        float elapsedTime = 0;
-        Quaternion startRot = camera.transform.rotation;
-        do
-        {
-            elapsedTime += Time.deltaTime * 0.25f;
-            delta = Quaternion.Angle(camera.transform.rotation, targetRotation);
-            t = Mathf.SmoothDampAngle(t, 1, ref angleVel, time, Mathf.Infinity, Time.deltaTime);
-
-            camera.transform.SetPositionAndRotation(
-                Vector3.SmoothDamp(camera.transform.position, targetPosition, ref vel, time, Mathf.Infinity, Time.deltaTime),
-                Quaternion.Slerp(startRot, targetRotation, t)
-            );
-
-            yield return new WaitForEndOfFrame();
-        } while ((delta > 0.1 || (camera.transform.position - targetPosition).sqrMagnitude > 0.01f) && elapsedTime < time);
-
-        camera.transform.SetPositionAndRotation(targetPosition, targetRotation);
-    }
 
 
 
@@ -383,5 +243,15 @@ public class NPC : AIBase, IInteractable, IVariableAddon
     {
         //remove arrow
         UIController.singleton.npcIndicator.EndIndication();
+    }
+
+    public void SetupCommands(DialogueRunner runner)
+    {
+
+    }
+
+    public void RemoveCommands(DialogueRunner runner)
+    {
+
     }
 }

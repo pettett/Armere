@@ -153,10 +153,6 @@ MonoBehaviour:
     turningAngle: 0
     surfPhysicMat: {fileID: 0}
   jumpForce: 250
-  cliffScanningDistance: 0.31
-  minAngleForCliff: 70
-  cliffTopScanOffset: {x: 0, y: 1, z: 0}
-  m_cliffScanOffset: {x: 0, y: 0.3, z: 0}
   m_maxGroundDistance: 0.1
   m_groundSphereRadius: 0.3
   m_groundScanningOffset: 1
@@ -167,14 +163,22 @@ MonoBehaviour:
   maxWaterStrideDepth: 1
   waterDrag: 1
   waterMovementForce: 500
+  waterMovementSpeed: 0.3
+  waterSittingDepth: 1.37
+  waterTrailPrefab: {fileID: 1375365528983848770, guid: e5bc7736d3d8e6a489650872298098d6,
+    type: 3}
   climbingColliderHeight: 1.5
   climbingSpeed: 2
   transitionTime: 3.83
+  maxHeadBodyRotationDifference: 5
   arrowSpawn: {fileID: 4702159432844938880}
   bowPivot: {fileID: 368902570246789374}
   m_groundLayerMask:
     serializedVersion: 2
     m_Bits: 513
+  m_waterLayerMask:
+    serializedVersion: 2
+    m_Bits: 2049
   rb: {fileID: 0}
   collider: {fileID: 0}
   animator: {fileID: 0}

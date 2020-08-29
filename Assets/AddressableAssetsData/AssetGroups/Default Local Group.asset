@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 375d3ebaca4b7104cb498dc0a3d28d95
+  m_SerializeEntries:
+  - m_GUID: 2b0446f3fd01da54180a4344648cd5e5
+    m_Address: Assets/Art/Items/Herb/herb.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 919132149155446097, guid: 2b0446f3fd01da54180a4344648cd5e5,
+      type: 3}
+    m_TargetAsset: {fileID: 919132149155446097, guid: 2b0446f3fd01da54180a4344648cd5e5,
+      type: 3}
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 075b7809b07f7344b96a35dd866fd860, type: 2}
+    - {fileID: 11400000, guid: 7f135633f2206744380d957a7ce70f1f, type: 2}

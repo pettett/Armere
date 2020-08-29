@@ -1,0 +1,10 @@
+title: Start
+---
+Sign:Are you sure you wish to travel to {$Scene_ToLevel}
+-> Yes
+    Sign: Ok
+    <<ConfirmLoad>>
+-> No
+    <<CancelLoad>>
+    <<Exit>>
+===

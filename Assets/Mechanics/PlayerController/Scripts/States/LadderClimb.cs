@@ -181,8 +181,19 @@ namespace PlayerController
                     var headPos = headPoint.point;
                     Vector3 localHeadPos = rotation * (headPos - currentPosition);
 
+                    Vector3 flatHeadNormal = headPoint.normal;
+                    flatHeadNormal.y = 0;
 
+                    Vector3 flatBodyNormal = point.normal;
+                    flatBodyNormal.y = 0;
 
+                    float bodyHeadRotationDifference = Vector3.SignedAngle(flatHeadNormal, flatBodyNormal, Vector3.up);
+                    if (Mathf.Abs(bodyHeadRotationDifference) > c.maxHeadBodyRotationDifference)
+                    {
+                        //go back left / right
+                        currentPosition.x -= deltaPos.x;
+                        currentPosition.z -= deltaPos.z;
+                    }
 
                     float sqrHeadDistance = localHeadPos.y * localHeadPos.y + localHeadPos.z * localHeadPos.z;
 

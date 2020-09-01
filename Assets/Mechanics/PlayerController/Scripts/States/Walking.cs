@@ -594,7 +594,8 @@ namespace PlayerController
                 }
                 else if (other.TryGetComponent<CuttableTree>(out var tree))
                 {
-                    tree.CutTree(Vector2.one);
+                    //TODO - find point of impact exactly
+                    tree.CutTree(collider.bounds.center);
                 }
             }
 

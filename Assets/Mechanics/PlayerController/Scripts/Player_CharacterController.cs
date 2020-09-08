@@ -83,14 +83,6 @@ namespace PlayerController
 
         public Room currentRoom;
 
-        [Header("State Properties")]
-
-        public Walking.WalkingProperties m_walkingProperties = new Walking.WalkingProperties();
-        public Freefalling.FreefallingProperties m_freefallingProperties = new Freefalling.FreefallingProperties();
-        //public Climbing.ClimbingProperties m_climbingProperties = new Climbing.ClimbingProperties();
-        public Shieldsurfing.ShieldsurfingProperties m_shieldsurfingProperties = new Shieldsurfing.ShieldsurfingProperties();
-
-        public float jumpForce = 1000f;
 
 
         [Header("Ground detection")]
@@ -102,6 +94,19 @@ namespace PlayerController
         [HideInInspector] public float m_maxGroundDot = 0.3f;
         public bool onGround;
         [Header("Movement")]
+        public float walkingSpeed = 2f;
+        public float runningSpeed = 5f;
+        public float crouchingSpeed = 1f;
+        public float walkingHeight = 1.8f;
+        public float crouchingHeight = 0.9f;
+        public float groundClamp = 1f;
+        public float maxAcceleration = 20f;
+        public float maxStepHeight = 1f;
+        public float maxStepDown = 0.25f;
+        public float stepSearchOvershoot = 0.3f;
+        public float steppingTime = 0.1f;
+        public float jumpForce = 1000f;
+
         [Range(0, 1)]
         public float dynamicFriction = 0.2f;
         public float maxWaterStrideDepth = 1;
@@ -117,6 +122,12 @@ namespace PlayerController
         public float climbingSpeed = 4f;
         public float transitionTime = 4f;
         [Range(0, 180)] public float maxHeadBodyRotationDifference = 5f;
+        [Header("Shield Surfing")]
+        public float turningTorqueForce;
+        public float minSurfingSpeed;
+        public float turningAngle;
+
+        public PhysicMaterial surfPhysicMat;
 
         [Header("Weapons")]
         public Transform arrowSpawn;
@@ -139,7 +150,7 @@ namespace PlayerController
 
         public Health health;
 
-        public float currentHeight = 0;
+        [HideInInspector] public float currentHeight = 0;
         //raycast hit cached
         private RaycastHit groundRaycastHit;
         private RaycastHit cliffRaycastHit;

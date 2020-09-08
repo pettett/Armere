@@ -21,10 +21,14 @@ MonoBehaviour:
     m_Address: Assets/Art/Items/Herb/herb.blend
     m_ReadOnly: 0
     m_SerializedLabels: []
-    m_MainAsset: {fileID: 919132149155446097, guid: 2b0446f3fd01da54180a4344648cd5e5,
-      type: 3}
-    m_TargetAsset: {fileID: 919132149155446097, guid: 2b0446f3fd01da54180a4344648cd5e5,
-      type: 3}
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 745611a658ea239428daa177de123490
+    m_Address: Trees/DefaultTree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

@@ -3,27 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
+
 [ExecuteAlways]
 public class CuttableTree : MonoBehaviour
 {
-    public MeshFilter meshFilter;
-    public Mesh originalMesh;
-
-
-
-    public float cutHeight = 1;
-    public float cutSize = 0.2f;
-
-    public Vector3 cutCenter;
-    public bool mergeFaces = false;
-
-    public float subdivisionScalar = 5;
-    [Range(2, 5)]
-    public int minSubdivisions = 2;
-    [Range(2, 5)]
-    public int maxSubdivisions = 3;
-    public TriangleCutMode testCutMode;
-
 
     [System.Serializable]
     public struct CutVector
@@ -38,23 +21,86 @@ public class CuttableTree : MonoBehaviour
             this.intensity = intensity;
         }
     }
-    public List<CutVector> activeCutVectors = new List<CutVector>();
 
-    public bool gizmos = false;
-    public void CutTree(Vector3 hitPoint)
+    public readonly struct Triangle
     {
-        if (!originalMesh.isReadable) throw new System.Exception("Tree mesh is not marked as readable");
+        public readonly int a;
+        public readonly int b;
+        public readonly int c;
+        public readonly int index;
+        public readonly int spawnCase;
+        public readonly bool pointingUpwards;
 
-        print("Hit Tree");
-        activeCutVectors.Add(new CutVector(Vector3.SignedAngle(Vector3.forward, (hitPoint - transform.position).normalized, Vector3.up) * Mathf.Deg2Rad, 0.2f));
-        UpdateMeshFilter();
+        public Triangle(int a, int b, int c, int index, bool pointingUpwards, int spawnCase)
+        {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.index = index;
+            this.spawnCase = spawnCase;
+            this.pointingUpwards = pointingUpwards;
+        }
     }
 
-    Triangle[] cylinderTriangles;
+    public enum TriangleCutMode { Full, Top, Base }
+
+    [Header("References")]
+    public MeshFilter meshFilter;
+    public MeshCollider meshCollider;
+    public MeshRenderer meshRenderer;
+    public AudioSource audioSource;
+    public Mesh originalMesh;
+    [Header("Cutting")]
+    public float cutHeight = 1;
+    public float cutSize = 0.2f;
+    public Vector3 cutCenter;
+    public bool mergeFaces = false;
+    public float subdivisionScalar = 5;
+    [Range(1, 5)]
+    public int minSubdivisions = 2;
+    [Range(1, 5)]
+    public int maxSubdivisions = 3;
+    [Range(0, 1)]
+    public float intensityCutoff = 0.05f;
+    [Range(0, 1)]
+    public float minSeveredIntensity = 0.1f;
+    public float bevelProfile = 1;
+    public float bevelDistribution = 1;
+    public List<CutVector> activeCutVectors = new List<CutVector>();
+    public bool gizmos = false;
+    float totalDamage = 0;
+    public float damageToCut = 1;
+
+    [Header("Log Felling")]
+    public float logDensity = 700f;
+    public float logEstimateHeight = 3f;
+    public float logEstimateRadius = 0.15f;
+    public float logKnockingForce = 70f;
+    public Material logMaterial;
+    public Material crosssectionMaterial;
+
+    [Header("Texturing")]
+    [Range(0, 1)]
+    public float crossSectionScale = 0.9f;
+
+    [Header("Impact")]
+    public AudioClip[] impactClips;
+
+    public Triangle[] cylinderTriangles;
+    BitArray vertsAboveCut = null;
+    BitArray trianglesAboveCut = null;
+    BitArray trianglesBelowCut = null;
 
 
 
-    [MyBox.ButtonMethod]
+    public float LogMass => Mathf.PI * logEstimateRadius * logEstimateRadius * logEstimateHeight * logDensity;
+
+
+
+
+
+
+
     public void FindCenterPoint()
     {
         List<(int start, int end)> cutRing = new List<(int, int)>();
@@ -106,63 +152,189 @@ public class CuttableTree : MonoBehaviour
         cutCenter /= cutRing.Count * 2;
     }
 
-    public readonly struct Triangle
+    private void Start()
     {
-
-        public readonly int a;
-        public readonly int b;
-        public readonly int c;
-        public readonly int index;
-        public readonly int spawnCase;
-        public readonly bool pointingUpwards;
-
-        public Triangle(int a, int b, int c, int index, bool pointingUpwards, int spawnCase)
-        {
-
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.index = index;
-            this.spawnCase = spawnCase;
-            this.pointingUpwards = pointingUpwards;
-        }
+        activeCutVectors = new List<CutVector>();
+        meshFilter.sharedMesh = originalMesh;
     }
 
-    public enum TriangleCutMode { Full, Top, Base }
+
+
+    public void CutTree(Vector3 hitPoint, Vector3 hitterPosition)
+    {
+        if (!originalMesh.isReadable) throw new System.Exception("Tree mesh is not marked as readable");
+        if (totalDamage >= damageToCut)
+        {
+            return;
+        }
+
+
+        float intensity = 0.2f;
+        Vector3 direction = (hitPoint - transform.position);
+        direction.y = 0;
+        direction.Normalize();
+
+        activeCutVectors.Add(new CutVector(Vector3.SignedAngle(Vector3.forward, direction, Vector3.up) * Mathf.Deg2Rad, intensity));
+        totalDamage += intensity;
+
+        if (impactClips.Length != 0)
+            audioSource.PlayOneShot(impactClips[Random.Range(0, impactClips.Length)]);
+
+
+        if (totalDamage < damageToCut) UpdateMeshFilter(TriangleCutMode.Full);
+        else SplitTree(hitterPosition);
+    }
+
+    public void SplitTree(Vector3 hitterPosition)
+    {
+        if (meshCollider == null) throw new System.Exception("Mesh collider required");
+
+        Mesh stump = CreateCutMesh(TriangleCutMode.Base);
+        meshFilter.sharedMesh = stump;
+        meshCollider.sharedMesh = stump;
+        Mesh trunkMesh = CreateCutMesh(TriangleCutMode.Top);
+        GameObject log = new GameObject("Tree trunk", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider), typeof(Rigidbody));
+        log.transform.SetPositionAndRotation(transform.position, transform.rotation);
+
+        MeshCollider logCollider = log.GetComponent<MeshCollider>();
+        Rigidbody logRB = log.GetComponent<Rigidbody>();
+        MeshFilter logFilter = log.GetComponent<MeshFilter>();
+        MeshRenderer logRenderer = log.GetComponent<MeshRenderer>();
+
+        logCollider.convex = true;
+        logCollider.sharedMesh = trunkMesh;
+        logFilter.sharedMesh = trunkMesh;
+        logRenderer.materials = new Material[] { logMaterial, crosssectionMaterial };
+
+        //Calculate the direction the log should fall in
+        Vector3 playerDirection = transform.position - hitterPosition;
+        playerDirection.y = 0;
+        playerDirection.Normalize();
+
+        logRB.AddForceAtPosition(playerDirection * logKnockingForce,
+                                transform.position + Vector3.up * (logEstimateHeight + cutHeight) - playerDirection * logEstimateRadius);
+    }
+
+
+
+    //Fill the bitarray with trues and false depending on if the things are above the cut lines
+    public void TestForVerticesAboveCut()
+    {
+        Vector3[] verts = originalMesh.vertices;
+        int[] tris = originalMesh.triangles;
+
+        vertsAboveCut = new BitArray(verts.Length);
+        //Triangles can be above, below or both if they span so two arrays are required
+        trianglesAboveCut = new BitArray(tris.Length / 3);
+        trianglesBelowCut = new BitArray(tris.Length / 3);
+
+
+        for (int i = 0; i < verts.Length; i++)
+        {
+            if (verts[i].y > cutHeight)
+            {
+                vertsAboveCut[i] = true;
+
+                for (int t = 0; t < tris.Length / 3; t += 1)
+                {
+                    //Remove all triangles with this vert
+                    if (tris[t * 3] == i || tris[t * 3 + 1] == i || tris[t * 3 + 2] == i)
+                    {
+                        trianglesAboveCut[t] = true;
+                    }
+                }
+            }
+            else if (verts[i].y < cutHeight)
+            {
+                for (int t = 0; t < tris.Length / 3; t += 1)
+                {
+                    //Remove all triangles with this vert
+                    if (tris[t * 3] == i || tris[t * 3 + 1] == i || tris[t * 3 + 2] == i)
+                    {
+                        trianglesBelowCut[t] = true;
+                    }
+                }
+            }
+        }
+
+    }
 
 
     static float InverseHeightLerp(Vector3 start, Vector3 end, float height) => Mathf.InverseLerp(start.y, end.y, height);
 
     public static Vector3 TriangleNormal(Vector3 a, Vector3 b, Vector3 c) => Vector3.Cross(b - a, c - a);
 
+
+
+
     void CreateLineCut(int offset, int a, int other, float bottom, float top, float intensity,
-                        int subDivisions, Vector3 cutCenter, Vector3[] meshVerts, Vector3[] meshNormals,
-                        Vector2[] meshUV, TriangleCutMode cutMode, bool pointingUp)
+                      int subDivisions, Vector3 cutCenter, Vector3[] meshVerts, Vector3[] meshNormals,
+                      Vector2[] meshUV, TriangleCutMode cutMode, bool pointingUp)
     {
         float bottomCut = InverseHeightLerp(meshVerts[a], meshVerts[other], bottom);
         float topCut = InverseHeightLerp(meshVerts[a], meshVerts[other], top);
 
 
+        float rangeBottom = cutMode == TriangleCutMode.Top ? (bottom + top) * 0.5f : bottom;
+        float rangeTop = cutMode == TriangleCutMode.Base ? (bottom + top) * 0.5f : top;
+
+
+        float lerpRangeBottom = cutMode == TriangleCutMode.Top ? 0.5f : 0;
+        float lerpRangeSize = cutMode == TriangleCutMode.Full ? 1 : 0.5f;
+
+
         //Top vertices
-        int verticesCount = cutMode == TriangleCutMode.Full ? subDivisions : subDivisions * 2;
-        float lerpOffset = cutMode == TriangleCutMode.Top ? 0.5f : 0;
+        float invTotalDivisions = 1f / subDivisions;
 
         for (int i = 0; i <= subDivisions; i++)
         {
-            float progress = i / (float)(verticesCount) + lerpOffset;
-            float t = Mathf.Lerp(bottomCut, topCut, progress);
-            float depth = (1 - Mathf.Abs(progress - 0.5f) * 2) * intensity;
+            //Progress in range 0 to 1
+            float progress = i * invTotalDivisions * lerpRangeSize + lerpRangeBottom;
+            //X should be in range of -1 to 1
+            float x = progress * 2 - 1;
+            //Power x to bevel distribution to space out points
+            x = Mathf.Pow(Mathf.Abs(x), 1f / bevelDistribution) * Mathf.Sign(x);
+            //Apply this power to the progress
+            progress = (x + 1) * 0.5f;
+
+            float depth = Mathf.Pow(1 - Mathf.Pow(Mathf.Abs(x), bevelProfile), 1f / bevelProfile) * intensity;
+
+            Vector3 p1 = Vector3.Lerp(
+                Vector3.Lerp(meshVerts[a], meshVerts[other], bottomCut),
+                Vector3.Lerp(meshVerts[a], meshVerts[other], topCut), progress);
+            Vector3 pos = Vector3.Lerp(p1, cutCenter, depth);
+
             //Every set of 2 points is identical as they do not share normals
-            meshVerts[offset + i * 2] = meshVerts[offset + i * 2 + 1] = Vector3.Lerp(Vector3.Lerp(meshVerts[a], meshVerts[other], t), cutCenter, depth);
+            //Vector3 pos = Vector3.Lerp(Vector3.Lerp(meshVerts[a], meshVerts[other], t), cutCenter, depth);
+
+            pos.y = Mathf.Clamp(pos.y, rangeBottom, rangeTop);
+            meshVerts[offset + i * 2] = meshVerts[offset + i * 2 + 1] = pos;
+
+            Vector2 dir = new Vector2(pos.x - cutCenter.x, pos.z - cutCenter.z).normalized;
+            meshUV[offset + i * 2] = meshUV[offset + i * 2 + 1] = Vector2.one * 0.5f + dir * (1 - depth) * crossSectionScale * 0.5f;
         }
+        //Only change these uvs if they are not supposed to be a part of a flat trunk 
+        if (cutMode != TriangleCutMode.Top)
+            meshUV[offset] = Vector2.Lerp(meshUV[a], meshUV[other], bottomCut);
+        if (cutMode != TriangleCutMode.Base)
+            meshUV[offset + subDivisions * 2 + 1] = Vector2.Lerp(meshUV[a], meshUV[other], topCut);
 
         if (cutMode == TriangleCutMode.Base || cutMode == TriangleCutMode.Full)
         {
             meshNormals[offset] = Vector3.Slerp(meshNormals[a], meshNormals[other], bottom);
         }
+        else
+        {
+            meshNormals[offset] = Vector3.down;
+        }
+
         if (cutMode == TriangleCutMode.Top || cutMode == TriangleCutMode.Full)
         {
             meshNormals[offset + subDivisions * 2 + 1] = Vector3.Slerp(meshNormals[a], meshNormals[other], top);
+        }
+        else
+        {
+            meshNormals[offset + subDivisions * 2 + 1] = Vector3.up;
         }
 
 
@@ -177,13 +349,13 @@ public class CuttableTree : MonoBehaviour
 
 
 
+
+
         // meshNormals[offset + 3] = meshNormals[offset + cutLines * 2] = -Vector3.Cross(meshVerts[offset + cutLines * 2] - meshVerts[offset + 3], leftDirection);
 
         // meshNormals[offset] = Vector3.Slerp(meshNormals[a], meshNormals[other], bottomCut);
         // meshNormals[offset + cutLines * 2 + 1] = Vector3.Slerp(meshNormals[a], meshNormals[other], topCut);
 
-        // meshUV[offset] = Vector2.Lerp(meshUV[a], meshUV[other], bottomCut);
-        // meshUV[offset + cutLines * 2 + 1] = Vector2.Lerp(meshUV[a], meshUV[other], topCut);
 
 
     }
@@ -192,25 +364,23 @@ public class CuttableTree : MonoBehaviour
 
     public int FindFullSubdivisions(float intensity)
     {
-        //Base of 2
-        return Mathf.Clamp(Mathf.FloorToInt(subdivisionScalar * intensity) + minSubdivisions, minSubdivisions, maxSubdivisions);
-    }
-    public int FindHalfSubdivisions(float intensity)
-    {
-        return Mathf.CeilToInt(FindFullSubdivisions(intensity) * 0.5f);
+        //Base of 2 - intensity of 0 should have no subdivisions
+        return intensity == 0 ? 1 : Mathf.Clamp(Mathf.FloorToInt(subdivisionScalar * intensity) + minSubdivisions, minSubdivisions, maxSubdivisions);
     }
 
     public int FindSubdivisions(TriangleCutMode cutMode, float intensity) => cutMode == TriangleCutMode.Full ?
-                                                    FindFullSubdivisions(intensity) :
-                                                    FindHalfSubdivisions(intensity);
+                                                    FindFullSubdivisions(intensity) * 2 :
+                                                    FindFullSubdivisions(intensity);
+
+
 
 
     public int LinePointCount(TriangleCutMode cutMode, float intensity) => FindSubdivisions(cutMode, intensity) * 2 + 2;
 
 
 
-    public void CutTriangle(Triangle t, bool connectLeft, Vector3[] meshVerts, Vector3[] meshNormals, Vector2[] meshUV,
-                            List<int> triangles, int triOffset, float cutHeight, float cutSize, float leftIntensity, float rightIntensity,
+    public void CutTriangle(in Triangle t, bool connectLeft, Vector3[] meshVerts, Vector3[] meshNormals, Vector2[] meshUV,
+                            List<int> cutTriangles, List<int> meshTriangles, int triOffset, float cutHeight, float cutSize, float leftIntensity, float rightIntensity,
                             Vector3 cutCenter, TriangleCutMode cutMode)
     {
         //Cut the mesh
@@ -218,7 +388,6 @@ public class CuttableTree : MonoBehaviour
         int leftSubdivisions = FindSubdivisions(cutMode, leftIntensity);
         int rightPointCount = LinePointCount(cutMode, rightIntensity);
         int rightSubdivisions = FindSubdivisions(cutMode, rightIntensity);
-
 
 
         int left = 0;
@@ -230,11 +399,7 @@ public class CuttableTree : MonoBehaviour
         // uv = new Vector2[verts];
 
 
-        //Calculate which parts will connect to the a b and c key vertices
-        int connectA1 = t.pointingUpwards ? left + leftPointCount - 1 : right;
-        int connectA2 = t.pointingUpwards ? right + rightPointCount - 1 : left;
-        int connectBC1 = t.pointingUpwards ? left : right + rightPointCount - 1;
-        int connectBC2 = t.pointingUpwards ? right : left + leftPointCount - 1;
+
 
 
         // for (int i = 0; i < verts; i++)
@@ -261,20 +426,52 @@ public class CuttableTree : MonoBehaviour
                             meshVerts, meshNormals, meshUV, cutMode, t.pointingUpwards);
         }
 
-
         if (connectLeft) //Make right start from 0
             triOffset -= right;
 
         //Setup triangles - add all the triangles for top and bottom parts
         //Add top triangle
         if (t.pointingUpwards && cutMode != TriangleCutMode.Base || !t.pointingUpwards && cutMode != TriangleCutMode.Top)
-            triangles.AddRange(new int[3] { triOffset + connectA1, t.a, triOffset + connectA2 });
+        {
+            //Calculate which parts will connect to the a b and c key vertices
+            int connectA1 = t.pointingUpwards ? left + leftPointCount - 1 : right;
+            int connectA2 = t.pointingUpwards ? right + rightPointCount - 1 : left;
+
+            meshTriangles.Add(triOffset + connectA1);
+            meshTriangles.Add(t.a);
+            meshTriangles.Add(triOffset + connectA2);
+        }
 
         if (!t.pointingUpwards && cutMode != TriangleCutMode.Base || t.pointingUpwards && cutMode != TriangleCutMode.Top)
-            triangles.AddRange(new int[6] {
-                    t.b,                triOffset+connectBC1,     triOffset+connectBC2,
-                    t.b,                 t.c,   triOffset+ connectBC1
-                });
+        {
+            //Calculate which parts will connect to the a b and c key vertices
+            int connectBC1 = t.pointingUpwards ? left : right + rightPointCount - 1;
+            int connectBC2 = t.pointingUpwards ? right : left + leftPointCount - 1;
+
+            meshTriangles.Add(t.b);
+            meshTriangles.Add(triOffset + connectBC1);
+            meshTriangles.Add(triOffset + connectBC2);
+
+            meshTriangles.Add(t.b);
+            meshTriangles.Add(t.c);
+            meshTriangles.Add(triOffset + connectBC1);
+        }
+
+        if (cutMode == TriangleCutMode.Base)
+        {
+            //Add triangle to cap piece
+            cutTriangles.Add(triOffset + right + rightPointCount - 1);
+            cutTriangles.Add(triOffset + left + leftPointCount - 1);
+            cutTriangles.Add(meshVerts.Length);
+        }
+        if (cutMode == TriangleCutMode.Top)
+        {
+            //Add triangle to cap piece
+            cutTriangles.Add(triOffset + left);
+            cutTriangles.Add(triOffset + right);
+            cutTriangles.Add(meshVerts.Length);
+        }
+
 
         bool reverseTriangles = leftSubdivisions < rightSubdivisions;
 
@@ -286,37 +483,51 @@ public class CuttableTree : MonoBehaviour
         {
 
             //Triangle 1
-            triangles.Add(triOffset + left + 1 + i * 2);
-            triangles.Add(triOffset + left + 2 + i * 2);
-            triangles.Add(triOffset + right + addRight + i * 2);
+            cutTriangles.Add(triOffset + left + 1 + i * 2);
+            cutTriangles.Add(triOffset + left + 2 + i * 2);
+            cutTriangles.Add(triOffset + right + addRight + i * 2);
             //Triangle 2
-            triangles.Add(triOffset + left + addLeft + i * 2);
-            triangles.Add(triOffset + right + 2 + i * 2);
-            triangles.Add(triOffset + right + 1 + i * 2);
+            cutTriangles.Add(triOffset + left + addLeft + i * 2);
+            cutTriangles.Add(triOffset + right + 2 + i * 2);
+            cutTriangles.Add(triOffset + right + 1 + i * 2);
         }
-        if (leftSubdivisions < rightSubdivisions)
+        if (rightSubdivisions > leftSubdivisions)
         {
-            //Add final additional triangle
-            triangles.Add(triOffset + left + leftPointCount - 2);
-            triangles.Add(triOffset + right + rightPointCount - 2);
-            triangles.Add(triOffset + right + rightPointCount - 3);
+            int requiredTriangles = rightSubdivisions - leftSubdivisions;
+            //Add final additional triangles
+            for (int i = 0; i < requiredTriangles; i++)
+            {
+                cutTriangles.Add(triOffset + left + leftPointCount - 2);
+                cutTriangles.Add(triOffset + right + rightPointCount - 2 - i * 2);
+                cutTriangles.Add(triOffset + right + rightPointCount - 3 - i * 2);
+            }
         }
 
-        if (leftSubdivisions > rightSubdivisions)
+        else if (leftSubdivisions > rightSubdivisions)
         {
-            //Add final additional triangle
-            triangles.Add(triOffset + left + leftPointCount - 3);
-            triangles.Add(triOffset + left + leftPointCount - 2);
-            triangles.Add(triOffset + right + rightPointCount - 2);
+            //Add final additional triangles
+
+            int requiredTriangles = leftSubdivisions - rightSubdivisions;
+            for (int i = 0; i < requiredTriangles; i++)
+            {
+
+                cutTriangles.Add(triOffset + left + leftPointCount - 3 - i * 2);
+                cutTriangles.Add(triOffset + left + leftPointCount - 2 - i * 2);
+                cutTriangles.Add(triOffset + right + rightPointCount - 2);
+            }
+
         }
+
+
     }
 
 
 
-    [MyBox.ButtonMethod]
-    public void UpdateMeshFilter()
+    public void UpdateMeshFilter(TriangleCutMode cutMode)
     {
-        meshFilter.sharedMesh = CreateCutMesh();
+        if (meshFilter == null) throw new System.Exception("No mesh filter set to update");
+        meshFilter.sharedMesh = CreateCutMesh(cutMode);
+        meshRenderer.materials = new Material[] { logMaterial, crosssectionMaterial };
     }
 
 
@@ -433,8 +644,10 @@ public class CuttableTree : MonoBehaviour
                     !triUp && !lastSortedUp && verts[triangles[i].a] == verts[lastTri.a] && verts[triangles[i].b] == verts[lastTri.c]  //DOWN-DOWN 
                     )
                 {
+
                     sortedCylinderTriangles.Add(triangles[i]);
                     triangles.RemoveAt(i);
+
                 }
                 //Do not bother searching for triangles attached to the front, adding to the start of the list takes too long
             }
@@ -452,7 +665,7 @@ public class CuttableTree : MonoBehaviour
 
 
 
-    public Mesh CreateCutMesh(System.Action<Vector3, string> label = null, System.Action<Vector3, Vector3> line = null)
+    public Mesh CreateCutMesh(TriangleCutMode cutMode, System.Action<Vector3, string> label = null, System.Action<Vector3, Vector3> line = null)
     {
         if (!originalMesh.isReadable) throw new System.Exception("Tree mesh is not marked as readable");
 
@@ -463,8 +676,7 @@ public class CuttableTree : MonoBehaviour
         originalMesh.GetVertices(verts);
         List<Vector3> normals = new List<Vector3>();
         originalMesh.GetNormals(normals);
-        List<int> tris = new List<int>();
-        originalMesh.GetTriangles(tris, 0);
+
         List<Vector2> uv = new List<Vector2>();
         originalMesh.GetUVs(0, uv);
 
@@ -490,12 +702,6 @@ public class CuttableTree : MonoBehaviour
 
         Profiler.BeginSample("Create weights");
 
-        Vector3 TriangleNormal(Triangle t, bool left)
-        {
-            if (!t.pointingUpwards) left = !left;
-            int other = left ? t.c : t.b;
-            return Vector3.Slerp(normals[t.a], normals[other], Mathf.InverseLerp(verts[t.a].y, verts[other].y, cutHeight));
-        }
         if (cylinderTriangles == null)
             FindCylinderTriangles();
 
@@ -503,15 +709,33 @@ public class CuttableTree : MonoBehaviour
 
         //Calculate all the intensities for the triangles
         float[] cutIntensities = new float[cylinderTriangles.Length];
+        Vector3 rightNormal;
+
+        Profiler.BeginSample("Find cut vectors");
+        Vector3[] cutVectors = new Vector3[activeCutVectors.Count];
+        for (int i = 0; i < activeCutVectors.Count; i++)
+        {
+            cutVectors[i] = new Vector3(Mathf.Sin(activeCutVectors[i].angle), 0, Mathf.Cos(activeCutVectors[i].angle)) * activeCutVectors[i].intensity;
+        }
+        Profiler.EndSample();
+        Profiler.BeginSample("Process cut vectors");
         for (int i = 0; i < cylinderTriangles.Length; i++)
         {
-            Vector3 rightNormal = TriangleNormal(cylinderTriangles[i], false);
-            for (int j = 0; j < activeCutVectors.Count; j++)
+            int other = cylinderTriangles[i].pointingUpwards ? cylinderTriangles[i].b : cylinderTriangles[i].c;
+            rightNormal = Vector3.SlerpUnclamped(normals[cylinderTriangles[i].a], normals[other], Mathf.InverseLerp(verts[cylinderTriangles[i].a].y, verts[other].y, cutHeight));
+
+            for (int j = 0; j < cutVectors.Length; j++)
             {
-                Vector3 cutDirection = new Vector3(Mathf.Sin(activeCutVectors[j].angle), 0, Mathf.Cos(activeCutVectors[j].angle));
-                cutIntensities[i] += Mathf.Clamp01(Vector3.Dot(rightNormal, cutDirection)) * activeCutVectors[j].intensity;
+                cutIntensities[i] += Mathf.Clamp01(Vector3.Dot(rightNormal, cutVectors[j]));
             }
+            //Add a bevel effect to the stump
+            if (cutMode != TriangleCutMode.Full)
+                cutIntensities[i] = Mathf.Clamp(cutIntensities[i], minSeveredIntensity, float.MaxValue);
+            else
+                if (cutIntensities[i] < intensityCutoff) cutIntensities[i] = 0;
         }
+        Profiler.EndSample();
+        Profiler.BeginSample("Calculate required vertices");
         int additionalVertices = 0;
         int cutTrianglesCount = 0;
         bool chainToLeft = false;
@@ -520,10 +744,10 @@ public class CuttableTree : MonoBehaviour
         {
             int leftTriangle = i - 1;
             if (leftTriangle == -1) leftTriangle = cylinderTriangles.Length - 1;
-            if (!(cutIntensities[leftTriangle] == 0 && cutIntensities[i] == 0))
+            if (!(cutIntensities[leftTriangle] == 0 && cutIntensities[i] == 0) || cutMode != TriangleCutMode.Full)
             {
-                additionalVertices += chainToLeft ? LinePointCount(testCutMode, cutIntensities[i]) :
-                                                    LinePointCount(testCutMode, cutIntensities[leftTriangle]) + LinePointCount(testCutMode, cutIntensities[i]);
+                additionalVertices += chainToLeft ? LinePointCount(cutMode, cutIntensities[i]) :
+                                                    LinePointCount(cutMode, cutIntensities[leftTriangle]) + LinePointCount(cutMode, cutIntensities[i]);
                 cutTrianglesCount++;
                 chainToLeft = mergeFaces;
             }
@@ -532,13 +756,13 @@ public class CuttableTree : MonoBehaviour
                 chainToLeft = false;
             }
         }
-
+        Profiler.EndSample();
         //DEBUG - draw sorted indexes
-        for (int i = 0; i < cylinderTriangles.Length; i++)
-        {
-            Vector3 avg = (verts[cylinderTriangles[i].a] + verts[cylinderTriangles[i].b] + verts[cylinderTriangles[i].c]) / 3f + transform.position;
-            label?.Invoke(avg, string.Format("t:{0} up:{1}", i, cylinderTriangles[i].pointingUpwards));
-        }
+        // for (int i = 0; i < cylinderTriangles.Length; i++)
+        // {
+        //     Vector3 avg = (verts[cylinderTriangles[i].a] + verts[cylinderTriangles[i].b] + verts[cylinderTriangles[i].c]) / 3f + transform.position;
+        //     label?.Invoke(avg, string.Format("t:{0} up:{1}", i, cylinderTriangles[i].pointingUpwards));
+        // }
 
 
 
@@ -564,32 +788,64 @@ public class CuttableTree : MonoBehaviour
         chainToLeft = false;
         float halfCutSize = cutSize / 2;
         int triangleOffset = totalVertices - additionalVertices;
-        int[] triangleIndices = cylinderTriangles.Select(x => x.index).ToArray();
+
+        int[] triangleIndices = null;
+        if (cutMode == TriangleCutMode.Full) // Otherwise every triangle will be removed
+            triangleIndices = cylinderTriangles.Select(x => x.index).ToArray();
+
+        //Get the triangles
+        List<int> meshTriangles = new List<int>();
+        originalMesh.GetTriangles(meshTriangles, 0);
+        List<int> cutTriangles = new List<int>();
+
+        //Remove the triangles that will not be needed
+
+        if (vertsAboveCut == null)
+            TestForVerticesAboveCut();
+
+
+        if (cutMode != TriangleCutMode.Full)
+        {
+            //remove the triangles above
+            int removedTriOffset = 0;
+            for (int i = 0; i < trianglesAboveCut.Length; i++)
+            {
+                if (cutMode == TriangleCutMode.Base && trianglesAboveCut[i] || cutMode == TriangleCutMode.Top && trianglesBelowCut[i])
+                {
+                    int triIndex = (i - removedTriOffset) * 3;
+                    meshTriangles.RemoveRange(triIndex, 3);
+                    removedTriOffset++;
+                }
+            }
+        }
+
 
         //Use this data to finally create the cuts
         for (int i = 0; i < cylinderTriangles.Length; i++)
         {
-            Triangle t = cylinderTriangles[i];
             //Blend between triangles on the left (-1) and the right (+1)
             int leftTriangle = i - 1;
             if (leftTriangle == -1) leftTriangle = cylinderTriangles.Length - 1;
 
-            if (!(cutIntensities[leftTriangle] == 0 && cutIntensities[i] == 0))
+            if (!(cutIntensities[leftTriangle] == 0 && cutIntensities[i] == 0) || cutMode != TriangleCutMode.Full)
             {
-                CutTriangle(t, chainToLeft, newVertices, newNormals, newUVs,
-                            tris, triangleOffset, cutHeight, halfCutSize,
-                            cutIntensities[leftTriangle], cutIntensities[i], cutCenter, testCutMode);
+                CutTriangle(in cylinderTriangles[i], chainToLeft, newVertices, newNormals, newUVs,
+                            cutTriangles, meshTriangles, triangleOffset, cutHeight, halfCutSize,
+                            cutIntensities[leftTriangle], cutIntensities[i], cutCenter, cutMode);
 
 
-                //Remove this triangle from the mesh
-                tris.RemoveRange(triangleIndices[i], 3);
-                for (int otherTriIndex = 0; otherTriIndex < triangleIndices.Length; otherTriIndex++)
+                //Remove this triangle from the mesh - if it hasn't been removed before
+                if (cutMode == TriangleCutMode.Full)
                 {
-                    if (triangleIndices[otherTriIndex] > triangleIndices[i]) triangleIndices[otherTriIndex] -= 3;
+                    meshTriangles.RemoveRange(triangleIndices[i], 3);
+                    for (int j = 0; j < triangleIndices.Length; j++)
+                    {
+                        if (triangleIndices[j] > triangleIndices[i]) triangleIndices[j] -= 3;
+                    }
                 }
 
                 //Track number of total verts (again)
-                triangleOffset += chainToLeft ? LinePointCount(testCutMode, cutIntensities[i]) : LinePointCount(testCutMode, cutIntensities[leftTriangle]) + LinePointCount(testCutMode, cutIntensities[i]);
+                triangleOffset += chainToLeft ? LinePointCount(cutMode, cutIntensities[i]) : LinePointCount(cutMode, cutIntensities[leftTriangle]) + LinePointCount(cutMode, cutIntensities[i]);
                 //This triangle will be the first in a chain sharing vertices
 
                 chainToLeft = mergeFaces;
@@ -605,46 +861,53 @@ public class CuttableTree : MonoBehaviour
 
         Mesh cutMesh = new Mesh();
         //Before locking in the vert counts for the cutting, remove all vertices not encompassed by the cut mode
-        if (testCutMode != TriangleCutMode.Full)
+        if (cutMode != TriangleCutMode.Full)
         {
-            Profiler.BeginSample("Remove tall vertices");
+            Profiler.BeginSample("Copy to new lists");
             List<Vector3> cutVerts = newVertices.ToList();
             List<Vector3> cutNormals = newNormals.ToList();
             List<Vector2> cutUVs = newUVs.ToList();
+            Profiler.EndSample();
+            //Add the vert for the cap / base part
+
+            cutVerts.Add(cutCenter);
+            cutNormals.Add(Vector3.up);
+            //This should be in the center
+            cutUVs.Add(Vector2.one * 0.5f);
 
 
-            for (int i = cutVerts.Count - 1; i >= 0; i--)
+            Profiler.BeginSample("Remove tall vertices");
+            for (int i = vertsAboveCut.Length - 1; i >= 0; i--)
             {
-                if (testCutMode == TriangleCutMode.Base && cutVerts[i].y > cutHeight + 0.05f || testCutMode == TriangleCutMode.Top && cutVerts[i].y + 0.05f < cutHeight)
+                if (cutMode == TriangleCutMode.Base && vertsAboveCut[i] ||
+                    cutMode == TriangleCutMode.Top && !vertsAboveCut[i])
                 {
                     cutVerts.RemoveAt(i);
                     cutNormals.RemoveAt(i);
                     cutUVs.RemoveAt(i);
 
-                    for (int t = 0; t < tris.Count; t += 3)
+                    for (int t = 0; t < meshTriangles.Count; t += 3)
                     {
-                        //Remove all triangles with this vert
-                        if (tris[t] == i || tris[t + 1] == i || tris[t + 2] == i)
-                        {
-                            tris.RemoveRange(t, 3);
-                            t -= 3;
-                        }
-                        else
-                        {
-                            if (tris[t] > i) tris[t]--;
-                            if (tris[t + 1] > i) tris[t + 1]--;
-                            if (tris[t + 2] > i) tris[t + 2]--;
-                        }
+                        if (meshTriangles[t] > i) meshTriangles[t]--;
+                        if (meshTriangles[t + 1] > i) meshTriangles[t + 1]--;
+                        if (meshTriangles[t + 2] > i) meshTriangles[t + 2]--;
                     }
-                    i++;
+                    for (int t = 0; t < cutTriangles.Count; t += 3)
+                    {
+                        if (cutTriangles[t] > i) cutTriangles[t]--;
+                        if (cutTriangles[t + 1] > i) cutTriangles[t + 1]--;
+                        if (cutTriangles[t + 2] > i) cutTriangles[t + 2]--;
+                    }
                 }
             }
 
             Profiler.EndSample();
+
             Profiler.BeginSample("Create Mesh");
             cutMesh.SetVertices(cutVerts);
             cutMesh.SetNormals(cutNormals);
             cutMesh.SetUVs(0, cutUVs);
+            cutMesh.SetUVs(1, cutUVs);
         }
         else
         {
@@ -652,9 +915,13 @@ public class CuttableTree : MonoBehaviour
             cutMesh.SetVertices(newVertices);
             cutMesh.SetNormals(newNormals);
             cutMesh.SetUVs(0, newUVs);
+            cutMesh.SetUVs(1, newUVs);
         }
 
-        cutMesh.SetTriangles(tris, 0);
+        cutMesh.subMeshCount = 2;
+
+        cutMesh.SetTriangles(meshTriangles, 0);
+        cutMesh.SetTriangles(cutTriangles, 1);
 
         cutMesh.UploadMeshData(true);
         Profiler.EndSample();
@@ -668,17 +935,50 @@ public class CuttableTree : MonoBehaviour
         return cutMesh;
     }
 
+
+
+
+    public static System.Int32 GetCardinality(BitArray bitArray)
+    {
+
+        System.Int32[] ints = new System.Int32[(bitArray.Count >> 5) + 1];
+
+        bitArray.CopyTo(ints, 0);
+
+        System.Int32 count = 0;
+
+        // fix for not truncated bits in last integer that may have been set to true with SetAll()
+        ints[ints.Length - 1] &= ~(-1 << (bitArray.Count % 32));
+
+        for (System.Int32 i = 0; i < ints.Length; i++)
+        {
+
+            System.Int32 c = ints[i];
+
+            // magic (http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel)
+            unchecked
+            {
+                c = c - ((c >> 1) & 0x55555555);
+                c = (c & 0x33333333) + ((c >> 2) & 0x33333333);
+                c = ((c + (c >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+            }
+            count += c;
+        }
+        return count;
+    }
+
     private void OnDrawGizmos()
     {
+
+
         if (!gizmos) return;
 
         Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
 
         //Find the edges that will be cut by the cutting
 
-        Mesh mesh = CreateCutMesh(UnityEditor.Handles.Label);
-        Gizmos.DrawWireMesh(mesh);
-
-
+        //Mesh mesh = CreateCutMesh(testCutMode, UnityEditor.Handles.Label);
+        //Gizmos.DrawWireMesh(mesh);
     }
+
 }

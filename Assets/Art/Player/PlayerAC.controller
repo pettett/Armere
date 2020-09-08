@@ -120,9 +120,9 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.07
-  m_TransitionOffset: 0
-  m_ExitTime: 0.79571986
+  m_TransitionDuration: 0.15639997
+  m_TransitionOffset: 0.12160001
+  m_ExitTime: 0.7616146
   m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
@@ -204,7 +204,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SwordSheild_Slash
-  m_Speed: 1
+  m_Speed: 1.54
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -6798030915542803014}
@@ -9690,7 +9690,7 @@ AnimatorStateMachine:
     m_Position: {x: -300, y: -360, z: 0}
   - serializedVersion: 1
     m_StateMachine: {fileID: 5546745127066338917}
-    m_Position: {x: -530, y: -270, z: 0}
+    m_Position: {x: -540, y: -300, z: 0}
   - serializedVersion: 1
     m_StateMachine: {fileID: -2054113981796717376}
     m_Position: {x: -50, y: -340, z: 0}

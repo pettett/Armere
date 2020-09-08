@@ -10,17 +10,7 @@ namespace PlayerController
     public class Freefalling : MovementState
     {
 
-        [System.Serializable]
-        public struct FreefallingProperties
-        {
-            public int airJumps;
-            public float airJumpVelocity;
-            public float airJumpAngleFromVertical;
-        }
 
-
-
-        FreefallingProperties p => c.m_freefallingProperties;
 
         Vector3 desiredVelocity;
 
@@ -50,7 +40,7 @@ namespace PlayerController
         public override void Animate(AnimatorVariables vars)
         {
             animator.SetBool(vars.surfing.id, false);
-            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? c.m_walkingProperties.runningSpeed : c.m_walkingProperties.walkingSpeed));
+            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? c.runningSpeed : c.walkingSpeed));
             animator.SetBool(vars.isGrounded.id, c.onGround);
             animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);
             animator.SetFloat(vars.groundDistance.id, c.currentHeight);
@@ -69,7 +59,7 @@ namespace PlayerController
             if (airJumps > 0 && phase == InputActionPhase.Started)
             {
                 airJumps--;
-                c.rb.AddForce(Vector3.up * (p.airJumpVelocity - c.rb.velocity.y), ForceMode.VelocityChange);
+                c.rb.AddForce(Vector3.up * (10 - c.rb.velocity.y), ForceMode.VelocityChange);
             }
         }
         // public override void OnCollideCliff(RaycastHit hit)
@@ -83,7 +73,7 @@ namespace PlayerController
 
         public override void Start()
         {
-            airJumps = p.airJumps;
+            airJumps = 0;
             c.animationController.enableFeetIK = false;
         }
     }

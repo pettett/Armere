@@ -15,20 +15,10 @@ namespace PlayerController
         public override void Start()
         {
             originalMaterial = c.collider.material;
-            c.collider.material = p.surfPhysicMat;
+            c.collider.material = c.surfPhysicMat;
 
         }
         public override string StateName => "Shield Surfing";
-        [System.Serializable]
-        public struct ShieldsurfingProperties
-        {
-            public float turningTorqueForce;
-            public float minSurfingSpeed;
-            public float turningAngle;
-
-            public PhysicMaterial surfPhysicMat;
-        }
-        ShieldsurfingProperties p => c.m_shieldsurfingProperties;
         float turning;
 
         PhysicMaterial originalMaterial;
@@ -37,18 +27,18 @@ namespace PlayerController
         public override void FixedUpdate()
         {
             currentSpeed = c.rb.velocity.magnitude;
-            if (currentSpeed <= p.minSurfingSpeed)
+            if (currentSpeed <= c.minSurfingSpeed)
             {
                 c.ChangeToState<Walking>();
             }
 
-            turning = c.input.horizontal.x * Time.fixedDeltaTime * p.turningTorqueForce;
+            turning = c.input.horizontal.x * Time.fixedDeltaTime * c.turningTorqueForce;
 
             c.rb.velocity = Quaternion.Euler(0, turning, 0) * c.rb.velocity;
 
             //set player orientation
             transform.forward = c.rb.velocity;
-            transform.rotation *= Quaternion.Euler(0, 0, c.input.horizontal.x * -p.turningAngle);
+            transform.rotation *= Quaternion.Euler(0, 0, c.input.horizontal.x * -c.turningAngle);
         }
         public override void Animate(AnimatorVariables vars)
         {

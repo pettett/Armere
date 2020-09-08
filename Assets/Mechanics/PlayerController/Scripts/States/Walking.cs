@@ -14,25 +14,6 @@ namespace PlayerController
     public class Walking : MovementState
     {
         public override string StateName => "Walking";
-        [System.Serializable]
-        public struct WalkingProperties
-        {
-            public float walkingSpeed;
-            public float runningSpeed;
-            public float crouchingSpeed;
-
-            public float walkingHeight;
-            public float crouchingHeight;
-
-            public float groundClamp;
-            public float maxAcceleration;
-            public float maxStepHeight;
-            public float maxStepDown;
-            public float stepSearchOvershoot;
-            public float steppingTime;
-            public float jumpForce;
-            public GameObject playerWeapons;
-        }
 
         public enum WeaponSet
         {
@@ -41,7 +22,6 @@ namespace PlayerController
         }
         public WeaponSet weaponSet;
 
-        WalkingProperties p => c.m_walkingProperties;
         Vector3 currentGroundNormal = new Vector3();
 
         Vector3 requiredForce;
@@ -102,7 +82,7 @@ namespace PlayerController
             DebugMenu.RemoveEntry(entry);
 
             //make sure the collider is left correctly
-            c.collider.height = p.walkingHeight;
+            c.collider.height = c.walkingHeight;
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
@@ -215,14 +195,14 @@ namespace PlayerController
             //c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
             if (c.mod.HasFlag(MovementModifiers.Crouching))
             {
-                c.collider.height = p.crouchingHeight;
+                c.collider.height = c.crouchingHeight;
                 crouching = true;
             }
             else if (crouching)
             {
                 //crouch button not pressed but still crouching
-                Vector3 p1 = transform.position + Vector3.up * p.walkingHeight * 0.05F;
-                Vector3 p2 = transform.position + Vector3.up * p.walkingHeight;
+                Vector3 p1 = transform.position + Vector3.up * c.walkingHeight * 0.05F;
+                Vector3 p2 = transform.position + Vector3.up * c.walkingHeight;
                 Physics.OverlapCapsuleNonAlloc(p1, p2, c.collider.radius, crouchTestColliders, c.m_groundLayerMask, QueryTriggerInteraction.Ignore);
                 if (crouchTestColliders[1] == null)
                     //There is no collider intersecting other then the player
@@ -231,7 +211,7 @@ namespace PlayerController
             }
 
             if (!crouching)
-                c.collider.height = p.walkingHeight;
+                c.collider.height = c.walkingHeight;
 
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
@@ -240,7 +220,7 @@ namespace PlayerController
                 Vector3 forward = GameCameras.s.cameraTransform.forward;
                 forward.y = 0;
                 transform.forward = forward;
-                float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);
+                float speed = WalkingRunningCrouching(c.crouchingSpeed, c.runningSpeed, c.walkingSpeed);
                 //Include speed scalar from water
                 desiredVelocity = playerDirection * speed * speedScalar;
                 //Rotate the velocity based on ground
@@ -265,7 +245,7 @@ namespace PlayerController
 
                     //scale required velocity by current speed
                     //only allow sprinting if the play is moving forward
-                    float speed = WalkingRunningCrouching(p.crouchingSpeed, p.runningSpeed, p.walkingSpeed);
+                    float speed = WalkingRunningCrouching(c.crouchingSpeed, c.runningSpeed, c.walkingSpeed);
                     //Include speed scalar from water
                     desiredVelocity = playerDirection * speed * speedScalar;
                     //Rotate the velocity based on ground
@@ -282,13 +262,13 @@ namespace PlayerController
             requiredForce = desiredVelocity - c.rb.velocity;
             requiredForce.y = 0;
 
-            requiredForce = Vector3.ClampMagnitude(requiredForce, p.maxAcceleration * Time.fixedDeltaTime);
+            requiredForce = Vector3.ClampMagnitude(requiredForce, c.maxAcceleration * Time.fixedDeltaTime);
 
             //rotate the target based on the ground the player is standing on
 
 
             if (grounded)
-                requiredForce -= currentGroundNormal * p.groundClamp;
+                requiredForce -= currentGroundNormal * c.groundClamp;
 
             c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
 
@@ -595,7 +575,11 @@ namespace PlayerController
                 else if (other.TryGetComponent<CuttableTree>(out var tree))
                 {
                     //TODO - find point of impact exactly
-                    tree.CutTree(collider.bounds.center);
+                    tree.CutTree(collider.bounds.center, transform.position);
+                }
+                else
+                {
+                    other.GetComponentInParent<CuttableTree>()?.CutTree(collider.bounds.center, transform.position);
                 }
             }
 
@@ -730,7 +714,7 @@ namespace PlayerController
             }
 
             //( 2 ) Make sure the contact point is low enough to be a step
-            if (!(stepTestCP.point.y - groundCP.point.y < p.maxStepHeight))
+            if (!(stepTestCP.point.y - groundCP.point.y < c.maxStepHeight))
             {
                 if (debugStep) print("Contact to high");
                 return false;
@@ -748,22 +732,22 @@ namespace PlayerController
             //( 3 ) Check to see if there's actually a place to step in front of us
             //Fires one Raycast
             RaycastHit hitInfo;
-            float stepHeight = groundCP.point.y + p.maxStepHeight + 0.0001f;
+            float stepHeight = groundCP.point.y + c.maxStepHeight + 0.0001f;
 
             Vector3 stepTestInvDir = velocity.normalized; // new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
 
             //check forward based off the direction the player is walking
 
-            Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * p.stepSearchOvershoot);
+            Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * c.stepSearchOvershoot);
             Vector3 direction = Vector3.down;
-            if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, p.maxStepHeight + p.maxStepDown))
+            if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, c.maxStepHeight + c.maxStepDown))
             {
                 if (debugStep) print("Nothing to step to");
                 return false;
             }
 
             //We have enough info to calculate the points
-            Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * p.stepSearchOvershoot);
+            Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * c.stepSearchOvershoot);
             Vector3 stepUpPointOffset = stepUpPoint - new Vector3(stepTestCP.point.x, groundCP.point.y, stepTestCP.point.z);
 
             //We passed all the checks! Calculate and return the point!
@@ -784,7 +768,7 @@ namespace PlayerController
 
             while (t < 1)
             {
-                t += Time.deltaTime / p.steppingTime;
+                t += Time.deltaTime / c.steppingTime;
                 entry.values[2] = t;
                 t = Mathf.Clamp01(t);
                 //lerp y values
@@ -830,9 +814,10 @@ namespace PlayerController
             if (phase == InputActionPhase.Started && grounded)
             {
                 //use acceleration to give constant upwards force regardless of mass
-                Vector3 v = c.rb.velocity;
-                v.y = c.m_walkingProperties.jumpForce;
-                c.rb.velocity = v;
+                // Vector3 v = c.rb.velocity;
+                // v.y = c.jumpForce;
+                // c.rb.velocity = v;
+                c.rb.AddForce(Vector3.up * c.jumpForce);
 
                 //ChangeToState<Freefalling>();
             }
@@ -895,10 +880,10 @@ namespace PlayerController
             Gizmos.DrawLine(transform.position, transform.position + requiredForce.normalized);
             Gizmos.DrawLine(transform.position, transform.position + currentGroundNormal.normalized * 0.5f);
 
-            Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * c.m_walkingProperties.maxStepHeight, Quaternion.identity, new Vector3(1, 0, 1));
+            Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * c.maxStepHeight, Quaternion.identity, new Vector3(1, 0, 1));
             Gizmos.color = Color.yellow;
             //draw a place to reprosent max step height
-            Gizmos.DrawWireSphere(Vector3.zero, c.m_walkingProperties.stepSearchOvershoot + 0.25f);
+            Gizmos.DrawWireSphere(Vector3.zero, c.stepSearchOvershoot + 0.25f);
         }
     }
 }

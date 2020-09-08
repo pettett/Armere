@@ -15,7 +15,7 @@ public class ItemDatabaseEditor : Editor
 
         if (t.itemData.Length != names.Length)
         {
-            var newArray = new ItemDatabase.ItemData[names.Length];
+            var newArray = new ItemData[names.Length];
 
             t.itemData.CopyTo(newArray, 0);
             t.itemData = newArray;

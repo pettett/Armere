@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using Armere.AddressableTypes;
 
 [ExecuteAlways]
 public class CuttableTree : MonoBehaviour
@@ -21,15 +24,15 @@ public class CuttableTree : MonoBehaviour
             this.intensity = intensity;
         }
     }
-
-    public readonly struct Triangle
+    [System.Serializable]
+    public struct Triangle
     {
-        public readonly int a;
-        public readonly int b;
-        public readonly int c;
-        public readonly int index;
-        public readonly int spawnCase;
-        public readonly bool pointingUpwards;
+        public int a;
+        public int b;
+        public int c;
+        public int index;
+        public int spawnCase;
+        public bool pointingUpwards;
 
         public Triangle(int a, int b, int c, int index, bool pointingUpwards, int spawnCase)
         {
@@ -155,7 +158,7 @@ public class CuttableTree : MonoBehaviour
     private void Start()
     {
         activeCutVectors = new List<CutVector>();
-        meshFilter.sharedMesh = originalMesh;
+        UpdateMeshFilter(TriangleCutMode.Full);
     }
 
 
@@ -515,10 +518,7 @@ public class CuttableTree : MonoBehaviour
                 cutTriangles.Add(triOffset + left + leftPointCount - 2 - i * 2);
                 cutTriangles.Add(triOffset + right + rightPointCount - 2);
             }
-
         }
-
-
     }
 
 
@@ -526,9 +526,18 @@ public class CuttableTree : MonoBehaviour
     public void UpdateMeshFilter(TriangleCutMode cutMode)
     {
         if (meshFilter == null) throw new System.Exception("No mesh filter set to update");
-        meshFilter.sharedMesh = CreateCutMesh(cutMode);
-        meshRenderer.materials = new Material[] { logMaterial, crosssectionMaterial };
+        if (activeCutVectors.Count > 0) //Cut into the mesh
+        {
+            meshFilter.sharedMesh = CreateCutMesh(cutMode);
+            meshRenderer.materials = new Material[] { logMaterial, crosssectionMaterial };
+        }
+        else //Do not cut into the mesh
+        {
+            meshFilter.sharedMesh = originalMesh;
+            meshRenderer.materials = new Material[] { logMaterial };
+        }
     }
+
 
 
     public void FindCylinderTriangles()

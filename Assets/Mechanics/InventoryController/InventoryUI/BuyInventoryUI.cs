@@ -15,7 +15,7 @@ public class BuyInventoryUI : MonoBehaviour
     bool waitingForConfirmation = false;
     public string outOfStockAlert = "Out Of Stock";
 
-    public void ShowInventory(BuyMenuItem[] inventory, ItemDatabase db, System.Action onItemSelected)
+    public async void ShowInventory(BuyMenuItem[] inventory, ItemDatabase db, System.Action onItemSelected)
     {
         print("Showing Buy Menu");
         this.inventory = inventory;
@@ -34,7 +34,7 @@ public class BuyInventoryUI : MonoBehaviour
                 buyMenuItem.title.text = string.Format("{0} x{1}", db[inventory[i].item].name, inventory[i].count);
 
             buyMenuItem.stock.text = inventory[i].stock.ToString();
-            buyMenuItem.thumbnail.sprite = db[inventory[i].item].sprite;
+
 
             buyMenuItem.UpdateCost(
                 inventory[i].cost,
@@ -46,6 +46,8 @@ public class BuyInventoryUI : MonoBehaviour
             buyMenuItem.index = i;
             //Inject the index of the button into the callback
             buyMenuItem.selectButton.onClick.AddListener(() => SelectItem(buyMenuItem.index));
+
+            buyMenuItem.thumbnail.sprite = await db[inventory[i].item].displaySprite.LoadAssetAsync().Task;
         }
     }
 

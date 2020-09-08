@@ -17,14 +17,134 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 375d3ebaca4b7104cb498dc0a3d28d95
   m_SerializeEntries:
+  - m_GUID: 0361b74eb55e2704ba04d423c38bae77
+    m_Address: Enviroment/Trees/Models/PACK V3/palm_trunk.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 0509b131f49cab549a5c9e2d263c9088
+    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow Player Prefab.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 0591115b4d9ddef47baed987f7523191
+    m_Address: InventoryController/ItemDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 1a2faaa59ba0929469582f7af0a1e538
+    m_Address: IronSword
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 1f47375c58888fd45b1e33aad3e02ed5
+    m_Address: Assets/Art/Items/Stick/Stick.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 268ceb1e3136cf944a9e57474d522fae
+    m_Address: Assets/Art/Items/Iron Sword/Short Sword.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 286deab20111cc04fac341f0d3da40da
+    m_Address: Assets/Art/Items/Lantern/lantern.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 2b0446f3fd01da54180a4344648cd5e5
-    m_Address: Assets/Art/Items/Herb/herb.blend
+    m_Address: herb
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 32510e8d8a1ab8a4ba8e9c01d251f77a
+    m_Address: Assets/Art/Items/Arrows/Arrow/arrow.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 6b6d49fa816b0c54fbb96a21a7fd0270
+    m_Address: Assets/Art/Items/IronOre/ironOre.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 73b0e1048d6aa7e459695833860f103b
+    m_Address: noimage
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
   - m_GUID: 745611a658ea239428daa177de123490
-    m_Address: Trees/DefaultTree
+    m_Address: Enviroment/Trees/DefaultTree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 79a5eab03a63f9f498cb405349d6f995
+    m_Address: Assets/Art/Items/Bows/Basic Bow/basic_bow.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 7c743814603b02a44826ad1efd7ddf21
+    m_Address: Assets/Art/Items/Iron Sword/ironswordthumb.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 88c89e70d2281024aafcd933afa944a4
+    m_Address: Assets/Art/Items/Meat/meat.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 894583d895d58b444b8e8b67169bd2a4
+    m_Address: LowPolyTreePack/Materials/Dry.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: a62e8da5194101042a4d89028ef6f912
+    m_Address: LowPolyTreePack/Materials/Fall.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: ac35566b90ee1ee44aa121ca0a1318ac
+    m_Address: Assets/Art/Items/Meat/meatthumb.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: b32317c7b58b11d4bbb63baf2262ce44
+    m_Address: Assets/Art/Items/Stick/Stick.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: d7a2417f37d4bcb498c7efb0305e0c09
+    m_Address: Enviroment/Trees/Models/PACK V3/palm_crosssection.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: d945c681c4504df439962c1a6f33d8af
+    m_Address: LowPolyTreePack/Materials/Cold.mat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: fe3e3b8ebc1a32647b48b7ea88f534a8
+    m_Address: LowPolyTreePack/Materials/Normal
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

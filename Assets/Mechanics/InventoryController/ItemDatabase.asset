@@ -20,10 +20,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 0
     sprite: {fileID: 21300000, guid: 1f47375c58888fd45b1e33aad3e02ed5, type: 3}
-    mesh: {fileID: -5495902117074765545, guid: b32317c7b58b11d4bbb63baf2262ce44, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 29acb9d0606ef7f46a6b8b6a2e061788, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: b32317c7b58b11d4bbb63baf2262ce44
+      m_SubObjectName: Stick
   - itemName: 1
     name: Mine Deed
     description: Deed to the mines! Return to Diga
@@ -31,10 +31,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 5
     sprite: {fileID: 21300000, guid: 1f47375c58888fd45b1e33aad3e02ed5, type: 3}
-    mesh: {fileID: -5495902117074765545, guid: b32317c7b58b11d4bbb63baf2262ce44, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 29acb9d0606ef7f46a6b8b6a2e061788, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 
+      m_SubObjectName: 
   - itemName: 2
     name: Iron Sword
     description: A trusty sword
@@ -42,10 +42,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 1
     sprite: {fileID: 21300000, guid: 7c743814603b02a44826ad1efd7ddf21, type: 3}
-    mesh: {fileID: -7486298912302941878, guid: 268ceb1e3136cf944a9e57474d522fae, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 08c14b86ac3b6e14eb13d217af96ac61, type: 2}
     properties: {fileID: 11400000, guid: 1a2faaa59ba0929469582f7af0a1e538, type: 2}
+    spawnedGameobject:
+      m_AssetGUID: 268ceb1e3136cf944a9e57474d522fae
+      m_SubObjectName: Short Sword
   - itemName: 3
     name: Lantern
     description: Create Light, without a shield
@@ -53,10 +53,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 4
     sprite: {fileID: 21300000, guid: 29216f2d47291b54d899c79ed55c650e, type: 3}
-    mesh: {fileID: -5420149580168298667, guid: 286deab20111cc04fac341f0d3da40da, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 8560556ce2df113499650333949e3784, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 286deab20111cc04fac341f0d3da40da
+      m_SubObjectName: Lantern
   - itemName: 4
     name: Meat
     description: Tasty Snack
@@ -64,10 +64,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 0
     sprite: {fileID: 21300000, guid: ac35566b90ee1ee44aa121ca0a1318ac, type: 3}
-    mesh: {fileID: -5023624866596571984, guid: 88c89e70d2281024aafcd933afa944a4, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 011af645ed1946c40933a11f199d0b51, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 88c89e70d2281024aafcd933afa944a4
+      m_SubObjectName: Meat
   - itemName: 5
     name: Herb
     description: Good with beef
@@ -75,10 +75,10 @@ MonoBehaviour:
     staticPickup: 1
     type: 0
     sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
-    mesh: {fileID: -5495902117074765545, guid: 2b0446f3fd01da54180a4344648cd5e5, type: 3}
-    materials:
-    - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 2b0446f3fd01da54180a4344648cd5e5
+      m_SubObjectName: 
   - itemName: 6
     name: Iron Ore
     description: Refine to make Iron
@@ -86,9 +86,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 0
     sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
-    mesh: {fileID: -5495902117074765545, guid: 2b0446f3fd01da54180a4344648cd5e5, type: 3}
-    materials: []
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 6b6d49fa816b0c54fbb96a21a7fd0270
+      m_SubObjectName: Iron Ore
   - itemName: 0
     name: 
     description: 
@@ -96,9 +97,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 0
     sprite: {fileID: 0}
-    mesh: {fileID: 0}
-    materials: []
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 
+      m_SubObjectName: 
   - itemName: 0
     name: 
     description: 
@@ -106,9 +108,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 0
     sprite: {fileID: 0}
-    mesh: {fileID: 0}
-    materials: []
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 
+      m_SubObjectName: 
   - itemName: 9
     name: Basic Bow
     description: Very Basic
@@ -116,10 +119,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 2
     sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
-    mesh: {fileID: -5518163057671977027, guid: eac43591f2ce73944b90980c854ab14d, type: 3}
-    materials:
-    - {fileID: -876546973899608171, guid: eac43591f2ce73944b90980c854ab14d, type: 3}
     properties: {fileID: 11400000, guid: b088f7524702a4f4aa5bca695c90b945, type: 2}
+    spawnedGameobject:
+      m_AssetGUID: 79a5eab03a63f9f498cb405349d6f995
+      m_SubObjectName: 
   - itemName: 10
     name: Arrow
     description: Arrow
@@ -127,10 +130,10 @@ MonoBehaviour:
     staticPickup: 0
     type: 3
     sprite: {fileID: 21300000, guid: 76d08d996a288451a9644f52ba7cbf74, type: 3}
-    mesh: {fileID: -5495902117074765545, guid: 32510e8d8a1ab8a4ba8e9c01d251f77a, type: 3}
-    materials:
-    - {fileID: 2100000, guid: a76bd18483671f247abe003df79125db, type: 2}
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 32510e8d8a1ab8a4ba8e9c01d251f77a
+      m_SubObjectName: 
   - itemName: 11
     name: Currency
     description: 
@@ -138,6 +141,7 @@ MonoBehaviour:
     staticPickup: 0
     type: 6
     sprite: {fileID: 0}
-    mesh: {fileID: 0}
-    materials: []
     properties: {fileID: 0}
+    spawnedGameobject:
+      m_AssetGUID: 
+      m_SubObjectName: 

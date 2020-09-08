@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60fc06959602cb24aa1b98e68d579e74, type: 3}
+  m_Name: Item_Iron Sword
+  m_EditorClassIdentifier: 
+  itemName: 2
+  itemType: 1
+  displaySprite:
+    m_AssetGUID: 7c743814603b02a44826ad1efd7ddf21
+    m_SubObjectName: ironswordthumb
+  displayName: Iron Sword
+  description: Basic Iron Sword
+  sellable: 1
+  sellValue: 1
+  staticPickup: 0
+  spawnedGameobject:
+    m_AssetGUID: 268ceb1e3136cf944a9e57474d522fae
+    m_SubObjectName: Short Sword
+  damage: 0

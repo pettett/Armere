@@ -1,7 +1,9 @@
 {
     "name": "enviroment.trees",
     "references": [
-        "GUID:48c9f6afdac61634db0e0f241c7d4d51"
+        "GUID:af18d5a567c9eec4bbbb8b60fd474ddb",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
+        "GUID:84651a3751eca9349aac36a66bba901b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

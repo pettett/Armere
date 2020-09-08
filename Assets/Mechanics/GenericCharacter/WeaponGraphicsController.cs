@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
+using System.Threading.Tasks;
+
 public class WeaponGraphicsController : MonoBehaviour
 {
     //Class to sort out locking objects to parts of the body
@@ -46,11 +48,11 @@ public class WeaponGraphicsController : MonoBehaviour
                     holdPoint.Anchor(gameObject.transform);
         }
 
-        public void SetHeld(ItemName weapon, ItemDatabase db)
+        public async void SetHeld(ItemName weapon, ItemDatabase db)
         {
             if (gameObject != null) Destroy(gameObject);
 
-            gameObject = CreateItem(weapon, db);
+            gameObject = await CreateItem(weapon, db);
         }
         public void RemoveHeld()
         {
@@ -58,7 +60,7 @@ public class WeaponGraphicsController : MonoBehaviour
                 Destroy(gameObject);
         }
         //If the item has not properties, use the blank one
-        public GameObject CreateItem(ItemName weapon, ItemDatabase db) => (db[weapon].properties ?? ItemPropertyBase.blank).CreatePlayerObject(weapon, db);
+        public async Task<GameObject> CreateItem(ItemName weapon, ItemDatabase db) => await (db[weapon].properties ?? ItemPropertyBase.blank).CreatePlayerObject(weapon, db);
 
     }
 

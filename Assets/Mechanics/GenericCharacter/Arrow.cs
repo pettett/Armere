@@ -24,8 +24,8 @@ public class Arrow : MonoBehaviour
 
         transform.position = position;
 
-        GetComponent<MeshFilter>().sharedMesh = db[ammoName].mesh;
-        GetComponent<MeshRenderer>().materials = db[ammoName].materials;
+        // GetComponent<MeshFilter>().sharedMesh = db[ammoName].mesh;
+        // GetComponent<MeshRenderer>().materials = db[ammoName].materials;
 
         rb = GetComponent<Rigidbody>();
         rb.velocity = velocity;

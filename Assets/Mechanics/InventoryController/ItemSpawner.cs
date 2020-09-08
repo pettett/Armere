@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Threading.Tasks;
 
 public static class Items
 {
@@ -10,53 +13,49 @@ public static class Items
     public static Queue<GameObject> itemStaticPool = new Queue<GameObject>();
 
 
-    public static InteractableItem SpawnItem(ItemName item, Vector3 position, Quaternion rotation, ItemDatabase db)
+    public static async Task<InteractableItem> SpawnItem(PhysicsItemData physicsItem, Vector3 position, Quaternion rotation)
     {
-        GameObject go;
-        //Spawn the item from the pool
-        if (db[item].staticPickup)
+        AsyncOperationHandle<GameObject> asyncLoad = physicsItem.spawnedGameobject.InstantiateAsync(position, rotation);
+        await asyncLoad.Task;
+        GameObject go = asyncLoad.Result;
+        var interactable = go.AddComponent<InteractableItem>();
+        var sphere = go.AddComponent<SphereCollider>();
+
+        if (!physicsItem.staticPickup)
         {
-            go = Spawner.Spawn(ref itemStaticPool, item.ToString(),
-                typeof(MeshRenderer),
-                typeof(MeshFilter),
-                typeof(InteractableItem),
-                typeof(SphereCollider));
+            var meshCollider = go.AddComponent<MeshCollider>();
+            var rb = go.AddComponent<Rigidbody>();
+
+            //Set up the collider for this mesh
+            meshCollider.sharedMesh = go.GetComponent<MeshFilter>().sharedMesh;
+            meshCollider.convex = true;
+            rb.velocity = Vector3.zero;
+        }
+
+        sphere.radius = 2;
+        sphere.isTrigger = true;
+
+        interactable.Init(ItemSpawner.SpawnType.Item, physicsItem.itemName, 1);
+        return interactable;
+    }
+
+    public static void DeSpawnItem(InteractableItem item)
+    {
+        if (item.type == ItemSpawner.SpawnType.Item)
+        {
+            Addressables.ReleaseInstance(item.gameObject);
         }
         else
         {
-            go = Spawner.Spawn(ref itemPhysicsPool, item.ToString(),
-                typeof(MeshRenderer),
-                typeof(MeshFilter),
-                typeof(Rigidbody),
-                typeof(MeshCollider),
-                typeof(InteractableItem),
-                typeof(SphereCollider));
-
-            //Set up the collider for this mesh
-            go.GetComponent<MeshCollider>().sharedMesh = db[item].mesh;
-            go.GetComponent<MeshCollider>().convex = true;
+            MonoBehaviour.Destroy(item.gameObject);
         }
-
-        go.GetComponent<MeshRenderer>().materials = db[item].materials;
-        go.GetComponent<MeshFilter>().mesh = db[item].mesh;
-
-        go.transform.SetPositionAndRotation(position, rotation);
-
-        go.GetComponent<SphereCollider>().radius = 2;
-        go.GetComponent<SphereCollider>().isTrigger = true;
-
-        //go.GetComponent<InteractableItem>().type = item;
-        //re-enable the item in case it came from a pool
-        var i = go.GetComponent<InteractableItem>();
-        i.enabled = true;
-        i.Init(ItemSpawner.SpawnType.Item, item, 1, db);
-        return i;
     }
+
     public static InteractableItem SpawnChest(GameObject prefab, ItemName item, uint count, Vector3 position, Quaternion rotation, ItemDatabase db)
     {
         var go = MonoBehaviour.Instantiate(prefab, position, rotation);
         var i = go.GetComponent<InteractableItem>();
-        i.Init(ItemSpawner.SpawnType.Chest, item, count, db);
+        i.Init(ItemSpawner.SpawnType.Chest, item, count);
         return i;
     }
     public static void OnSceneChange()
@@ -79,7 +78,7 @@ public class ItemSpawner : PlayerRelativeObject
     public ItemName item;
     [MyBox.ConditionalField("spawnType", false, SpawnType.Chest)] public uint chestItemCount;
     [MyBox.ConditionalField("spawnType", false, SpawnType.Chest)] public GameObject prefab;
-    GameObject spawned;
+
     private void Start()
     {
         SpawnItem();
@@ -90,23 +89,21 @@ public class ItemSpawner : PlayerRelativeObject
         SpawnItem();
         base.OnPlayerInRange();
     }
-
-    void SpawnItem()
+    [MyBox.ButtonMethod]
+    async void SpawnItem()
     {
         if (spawnType == SpawnType.Item)
         {
-            var c = Items.SpawnItem(item, transform.position, transform.rotation, database);
+            var c = await Items.SpawnItem(database[item] as PhysicsItemData, transform.position, transform.rotation);
             c.onItemDestroy = DestroyItem;
-            spawned = c.gameObject;
         }
         else
         {
             var c = Items.SpawnChest(prefab, item, chestItemCount, transform.position, transform.rotation, database);
             c.onItemDestroy = DestroyItem;
-            spawned = c.gameObject;
         }
-
     }
+
     public void DestroyItem(InteractableItem gameObject)
     {
         if (spawnType == SpawnType.Item)

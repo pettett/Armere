@@ -10,16 +10,16 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
 
     public System.Action<InteractableItem> onItemDestroy;
 
-    ItemSpawner.SpawnType type;
+    public ItemSpawner.SpawnType type;
     ItemName item;
     uint count;
-    ItemDatabase database;
-    public void Init(ItemSpawner.SpawnType type, ItemName item, uint count, ItemDatabase database)
+
+    public void Init(ItemSpawner.SpawnType type, ItemName item, uint count)
     {
         this.type = type;
         this.item = item;
         this.count = count;
-        this.database = database;
+
         AddToRegister();
     }
 
@@ -58,18 +58,8 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
     void DestroyItem()
     {
         RemoveFromRegister();
-        if (type == ItemSpawner.SpawnType.Item)
-        {
-            enabled = false;
-            if (database[item].staticPickup)
-                Spawner.DeSpawn(gameObject, ref Items.itemStaticPool);
-            else
-                Spawner.DeSpawn(gameObject, ref Items.itemPhysicsPool);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        Items.DeSpawnItem(this);
+
     }
 
     public override void OnPlayerOutRange()

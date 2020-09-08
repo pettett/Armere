@@ -23,10 +23,10 @@ public class InventoryUI : MonoBehaviour
 
     public BoolEvent onContextMenuEnabled;
     public BoolEvent onContextMenuDisabled;
-    public void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
+    public async void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
     {
         var go = Instantiate(template, itemGridPanel.GetChild(1));
-        go.transform.GetChild(0).GetComponent<Image>().sprite = db[panel[index].name].sprite;
+        go.transform.GetChild(0).GetComponent<Image>().sprite = await db[panel[index].name].displaySprite.LoadAssetAsync().Task;
 
         switch (panel[index])
         {

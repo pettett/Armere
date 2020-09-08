@@ -56,6 +56,7 @@ public class CuttableTreeEditor : Editor
         {
             t.FindCylinderTriangles();
             t.TestForVerticesAboveCut();
+            EditorUtility.SetDirty(t);
         }
 
 

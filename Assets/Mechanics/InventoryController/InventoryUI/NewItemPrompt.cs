@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.AddressableAssets;
 public class NewItemPrompt : MonoBehaviour
 {
     public static NewItemPrompt singleton;
@@ -13,7 +14,7 @@ public class NewItemPrompt : MonoBehaviour
     public TextMeshProUGUI title;
     public TextMeshProUGUI description;
 
-    public void ShowPrompt(ItemName item, uint count, System.Action onPromptRemoved)
+    public async void ShowPrompt(ItemName item, uint count, System.Action onPromptRemoved)
     {
         if (count == 0)
         {
@@ -30,11 +31,11 @@ public class NewItemPrompt : MonoBehaviour
 
         description.text = db[item].description;
 
-        thumbnail.sprite = db[item].sprite;
+
 
         InventoryController.AddItem(item, count);
 
-
+        thumbnail.sprite = await db[item].displaySprite.LoadAssetAsync().Task;
 
         StartCoroutine(WaitForClosePrompt(onPromptRemoved));
     }
@@ -50,6 +51,7 @@ public class NewItemPrompt : MonoBehaviour
         continueAction.performed += (context) =>
         {
             //Remove the prompt
+            Addressables.Release(thumbnail.sprite);
             continueAction.Dispose();
             holder.SetActive(false);
             onPromptRemoved?.Invoke();

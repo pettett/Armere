@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bae145e8e1f8c524eb619104b66fb2aa, type: 3}
+  m_Name: Item_Basic Bow
+  m_EditorClassIdentifier: 
+  itemName: 9
+  itemType: 2
+  displaySprite:
+    m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
+    m_SubObjectName: 
+  displayName: Basic Bow
+  description: This item has no description
+  sellable: 1
+  sellValue: 25
+  staticPickup: 0
+  spawnedGameobject:
+    m_AssetGUID: 0509b131f49cab549a5c9e2d263c9088
+    m_SubObjectName: 
+  damage: 0

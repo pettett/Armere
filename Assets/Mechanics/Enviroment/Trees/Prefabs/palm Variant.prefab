@@ -140,7 +140,7 @@ MonoBehaviour:
   intensityCutoff: 0.341
   minSeveredIntensity: 0.203
   bevelProfile: 5.1
-  bevelDistribution: 4
+  bevelDistribution: 3.98
   activeCutVectors: []
   gizmos: 1
   damageToCut: 1
@@ -151,8 +151,9 @@ MonoBehaviour:
   logMaterial: {fileID: 2100000, guid: 0361b74eb55e2704ba04d423c38bae77, type: 2}
   crosssectionMaterial: {fileID: 2100000, guid: d7a2417f37d4bcb498c7efb0305e0c09,
     type: 2}
-  crossSectionScale: 0.393
+  crossSectionScale: 0.421
   impactClips: []
+  cylinderTriangles: []
 --- !u!64 &3721827439910078611
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -233,8 +234,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4253622970154928428, guid: bca1d90624cf6cb4dbbb4714e5415dc3,
-        type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: -952234134363265557, guid: bca1d90624cf6cb4dbbb4714e5415dc3,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -248,7 +248,7 @@ PrefabInstance:
     - target: {fileID: 3116424114842514508, guid: bca1d90624cf6cb4dbbb4714e5415dc3,
         type: 3}
       propertyPath: m_Materials.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3116424114842514508, guid: bca1d90624cf6cb4dbbb4714e5415dc3,
         type: 3}

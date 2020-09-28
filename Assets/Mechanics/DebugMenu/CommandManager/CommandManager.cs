@@ -64,7 +64,7 @@ public class CommandManager : ConsoleReceiver
                 if (TeleportWaypoints.singleton.waypoints.ContainsKey(command.values[0]))
                 {
                     var t = TeleportWaypoints.singleton.waypoints[command.values[0]];
-                    PlayerController.Player_CharacterController.activePlayerController.transform.SetPositionAndRotation(t.position, t.rotation);
+                    Armere.PlayerController.PlayerController.activePlayerController.transform.SetPositionAndRotation(t.position, t.rotation);
                 }
                 break;
             case time:

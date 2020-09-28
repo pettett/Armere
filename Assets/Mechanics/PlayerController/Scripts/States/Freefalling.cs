@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
     [Serializable]
     public class Freefalling : MovementState
@@ -40,7 +40,7 @@ namespace PlayerController
         public override void Animate(AnimatorVariables vars)
         {
             animator.SetBool(vars.surfing.id, false);
-            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? c.runningSpeed : c.walkingSpeed));
+            animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude * (c.holdingSprintKey ? c.sprintingSpeed : c.walkingSpeed));
             animator.SetBool(vars.isGrounded.id, c.onGround);
             animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);
             animator.SetFloat(vars.groundDistance.id, c.currentHeight);

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Arrow
   m_EditorClassIdentifier: 
   itemName: 10
-  itemType: 3
+  type: 3
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
     m_SubObjectName: 
@@ -24,4 +24,4 @@ MonoBehaviour:
   staticPickup: 0
   spawnedGameobject:
     m_AssetGUID: 32510e8d8a1ab8a4ba8e9c01d251f77a
-    m_SubObjectName: Cube
+    m_SubObjectName: 

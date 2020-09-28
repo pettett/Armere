@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
-namespace PlayerController
+namespace Armere.PlayerController
 {
     //allow the player to access the menu system if tab is pressed
     [System.Serializable]

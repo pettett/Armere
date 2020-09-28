@@ -249,7 +249,7 @@ public class InventoryController : MonoBehaviour
 
     public ItemDatabase db;
 
-    public InventoryPanel items(ItemType t)
+    public InventoryPanel GetPanelFor(ItemType t)
     {
         switch (t)
         {
@@ -299,12 +299,13 @@ public class InventoryController : MonoBehaviour
     public UniquesPanel bow;
     public StackPanel ammo;
     public UniquesPanel sideArm;
-
     public StackPanel currency;
+
 
 
     public static InventoryController singleton;
     public event OptionDelegate OnSelectItemEvent;
+    public event OptionDelegate OnDropItemEvent;
 
 
     public void OnSelectItem(ItemType type, int itemIndex)
@@ -315,6 +316,7 @@ public class InventoryController : MonoBehaviour
     public void OnDropItem(ItemType type, int itemIndex)
     {
         print("Dropped " + itemIndex.ToString());
+        OnDropItemEvent?.Invoke(type, itemIndex);
     }
 
     private void Awake()
@@ -333,24 +335,24 @@ public class InventoryController : MonoBehaviour
 
     public static bool AddItem(ItemName n, uint count)
     {
-        var b = singleton.items(singleton.db[n].type).AddItem(n, count);
+        var b = singleton.GetPanelFor(singleton.db[n].type).AddItem(n, count);
         if (b)
             singleton.onItemAdded?.Invoke(n);
         return b;
     }
 
 
-    public static bool TakeItem(ItemName n, uint count = 1) => singleton.items(singleton.db[n].type).TakeItem(n, count);
+    public static bool TakeItem(ItemName n, uint count = 1) => singleton.GetPanelFor(singleton.db[n].type).TakeItem(n, count);
 
     public static bool AddItem(int index, ItemType type, uint count)
     {
-        var b = singleton.items(type).AddItem(index, count);
+        var b = singleton.GetPanelFor(type).AddItem(index, count);
         if (b) //Use itemat command to find the type of item that was added
-            singleton.onItemAdded?.Invoke(singleton.items(type).ItemAt(index));
+            singleton.onItemAdded?.Invoke(singleton.GetPanelFor(type).ItemAt(index));
         return b;
     }
-    public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.items(type).TakeItem(index, count);
-    public static uint ItemCount(ItemName n) => singleton.items(singleton.db[n].type).ItemCount(n);
-    public static uint ItemCount(int index, ItemType type) => singleton.items(type).ItemCount(index);
-    public static ItemName ItemAt(int index, ItemType type) => singleton.items(type)[index].name;
+    public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.GetPanelFor(type).TakeItem(index, count);
+    public static uint ItemCount(ItemName n) => singleton.GetPanelFor(singleton.db[n].type).ItemCount(n);
+    public static uint ItemCount(int index, ItemType type) => singleton.GetPanelFor(type).ItemCount(index);
+    public static ItemName ItemAt(int index, ItemType type) => singleton.GetPanelFor(type)[index].name;
 }

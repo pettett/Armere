@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PlayerController;
+using Armere.PlayerController;
 using Yarn;
 using Yarn.Unity;
 
@@ -33,9 +33,9 @@ public class PromptedSceneChangeTrigger : SceneChangeTrigger, IDialogue, Yarn.Un
 
     string IDialogue.StartNode => startNode;
 
-    Player_CharacterController p;
+    PlayerController p;
     Dialogue d;
-    public override void OnPlayerTrigger(Player_CharacterController player)
+    public override void OnPlayerTrigger(PlayerController player)
     {
         d = player.ChangeToState<Dialogue>(this);
         p = player; //hold for if player confirms

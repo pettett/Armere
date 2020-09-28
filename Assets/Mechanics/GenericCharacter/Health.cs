@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-public class Health : MonoBehaviour
+public class Health : MonoBehaviour, IAttackable
 {
     float _health;
     //so you can see health in inspector
@@ -74,4 +74,10 @@ public class Health : MonoBehaviour
         //ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
     }
 
+    public void Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    {
+        WeaponItemData weaponData = (WeaponItemData)InventoryController.singleton.db[weapon];
+        print(weaponData.damage);
+        Damage(weaponData.damage, controller);
+    }
 }

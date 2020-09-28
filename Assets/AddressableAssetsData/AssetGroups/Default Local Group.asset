@@ -33,14 +33,8 @@ MonoBehaviour:
     m_Address: InventoryController/ItemDatabase
     m_ReadOnly: 0
     m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 1a2faaa59ba0929469582f7af0a1e538
-    m_Address: IronSword
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
+    m_MainAsset: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
+    m_TargetAsset: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
   - m_GUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_Address: Assets/Art/Items/Stick/Stick.png
     m_ReadOnly: 0
@@ -147,8 +141,8 @@ MonoBehaviour:
     m_Address: LowPolyTreePack/Materials/Normal
     m_ReadOnly: 0
     m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
+    m_MainAsset: {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
+    m_TargetAsset: {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

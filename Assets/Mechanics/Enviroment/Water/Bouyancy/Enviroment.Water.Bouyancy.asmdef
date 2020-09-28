@@ -1,0 +1,15 @@
+{
+    "name": "Enviroment.Bouyancy",
+    "references": [
+        "GUID:bd129fd6ad1744049bb14775f6fddad2"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

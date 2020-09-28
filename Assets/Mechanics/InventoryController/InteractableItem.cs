@@ -8,6 +8,8 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
 
     public float requiredLookDot => -1;
 
+    public string interactionDescription => $"Pickup {InventoryController.singleton.db[item].displayName}";
+
     public System.Action<InteractableItem> onItemDestroy;
 
     public ItemSpawner.SpawnType type;
@@ -19,6 +21,7 @@ public class InteractableItem : PlayerRelativeObject, IInteractable
         this.type = type;
         this.item = item;
         this.count = count;
+
 
         AddToRegister();
     }

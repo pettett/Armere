@@ -3,43 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(SphereCollider))]
 [RequireComponent(typeof(Rigidbody))]
-public class BuoyantSphere : MonoBehaviour
+public class BuoyantSphere : BuoyantBody
 {
-    SphereCollider collider;
-    Rigidbody rb;
-    BuoyancyVolume volume;
+    new SphereCollider collider;
 
-    public void OnTriggerEnter(Collider other)
+
+    float drag;
+
+
+    public static float SphereVolume(float r)
     {
-        if (other.gameObject.TryGetComponent(out BuoyancyVolume v))
-        {
-            volume = v;
-        }
-    }
-    public void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.TryGetComponent(out BuoyancyVolume v))
-        {
-            if (volume == v)
-            {
-                volume = null;
-            }
-        }
+        return (4f / 3f) * Mathf.PI * r * r * r;
     }
 
     public void Start()
     {
         collider = GetComponent<SphereCollider>();
         rb = GetComponent<Rigidbody>();
+
+        drag = rb.drag;
+        rb.mass = SphereVolume(collider.radius) * density;
     }
+
     public void FixedUpdate()
     {
         if (volume != null)
         {
-            rb.drag = volume.drag;
-            float hDiff = volume.bounds.max.y - transform.position.y + collider.radius;
+
+            float hDiff = Mathf.Clamp(volume.bounds.max.y - transform.position.y + collider.radius, 0, collider.radius * 2);
             float v = (Mathf.PI * hDiff * hDiff / 3f) * (3f * collider.radius - hDiff);
+
             Vector3 volumeWeight = Physics.gravity * volume.density * v;
+
+            rb.drag = Mathf.Lerp(drag, waterDrag, hDiff / (collider.radius * 2));
             rb.AddForce(-volumeWeight);
 
         }
@@ -48,4 +44,6 @@ public class BuoyantSphere : MonoBehaviour
             rb.drag = 0;
         }
     }
+
+
 }

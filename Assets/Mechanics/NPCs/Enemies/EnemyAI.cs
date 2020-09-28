@@ -11,6 +11,8 @@ public class EnemyAI : AIBase
 
     public EnemyBehaviour enemyBehaviour;
     public SightMode sightMode;
+    public ItemName meleeWeapon;
+
 
     [System.Serializable]
     public class PatrolData
@@ -46,11 +48,15 @@ public class EnemyAI : AIBase
     Coroutine currentRoutine;
     bool investigateOnSight = false;
     bool engageOnAttack = true;
+    public AnimationTransitionSet transitionSet;
+    WeaponGraphicsController weaponGraphics;
+    AnimationController animationController;
+    Matrix4x4 viewMatrix;
+    Plane[] viewPlanes = new Plane[6];
 
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
-        print("Hit Enemy");
         if (engageOnAttack)
             ChangeRoutine(EngagePlayer());
     }
@@ -73,16 +79,37 @@ public class EnemyAI : AIBase
 
     public void Die(GameObject attacker, GameObject victim)
     {
+        weaponGraphics.weapon.RemoveHeld();
+        weaponGraphics.bow.RemoveHeld();
+        weaponGraphics.sidearm.RemoveHeld();
+
         Destroy(gameObject);
     }
 
     protected override void Start()
     {
         health = GetComponent<Health>();
+        weaponGraphics = GetComponent<WeaponGraphicsController>();
+        animationController = GetComponent<AnimationController>();
+
         health.onTakeDamage += OnDamageTaken;
         health.onDeath += Die;
+
+
         base.Start();
         StartBaseRoutine();
+
+        EquipMelee();
+    }
+    void EquipMelee()
+    {
+        MeleeWeaponItemData melee = (MeleeWeaponItemData)InventoryController.singleton.db[meleeWeapon];
+
+        weaponGraphics.weapon.SetHeld(melee);
+
+
+        animationController.TriggerTransition(transitionSet.drawSword);
+        animationController.TriggerTransition(transitionSet.swordWalking);
     }
 
     void StartBaseRoutine()
@@ -182,8 +209,15 @@ public class EnemyAI : AIBase
         {
             directionToPlayer = playerCollider.transform.position - transform.position;
             if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
+            {
                 agent.Move(directionToPlayer.normalized * Time.deltaTime * engagementSpeed);
-
+            }
+            else
+            {
+                //Within sword range of player
+                //Swing sword
+                yield return SwingSword();
+            }
             directionToPlayer.y = 0;
             transform.forward = directionToPlayer;
 
@@ -191,8 +225,53 @@ public class EnemyAI : AIBase
         }
     }
 
-    Matrix4x4 viewMatrix;
-    Plane[] viewPlanes = new Plane[6];
+
+    IEnumerator SwingSword()
+    {
+        agent.isStopped = true; //Stop the player moving
+        //swing the sword
+
+        //This is easier. Animation graphs suck
+        animationController.TriggerTransition(transitionSet.swingSword);
+
+        MeshCollider collider = null;
+        WeaponTrigger trigger = null;
+
+
+
+        void AddTrigger()
+        {
+            collider = weaponGraphics.weapon.gameObject.AddComponent<MeshCollider>();
+            collider.convex = true;
+            collider.isTrigger = true;
+            trigger = weaponGraphics.weapon.gameObject.AddComponent<WeaponTrigger>();
+            trigger.weaponItem = meleeWeapon;
+            trigger.controller = gameObject;
+        }
+
+        void RemoveTrigger()
+        {
+            //Clean up the trigger detection of the sword
+            Destroy(collider);
+            Destroy(trigger);
+
+            onSwingStateChanged = null;
+        }
+
+        onSwingStateChanged = (bool on) =>
+        {
+            if (on) AddTrigger();
+            else RemoveTrigger();
+        };
+
+        yield return new WaitForSeconds(1);
+    }
+    //Triggered by animations
+    public System.Action<bool> onSwingStateChanged;
+    public void SwingStart() => onSwingStateChanged?.Invoke(true);
+    public void SwingEnd() => onSwingStateChanged?.Invoke(false);
+
+
     void ChangeRoutine(IEnumerator newRoutine)
     {
         if (currentRoutine != null)
@@ -232,6 +311,11 @@ public class EnemyAI : AIBase
                 ChangeRoutine(Investigate());
             }
         }
+
+        float speed = Mathf.Sign(agent.speed);
+
+        anim.SetBool("Idle", speed == 0);
+        anim.SetFloat("InputVertical", speed, 0.2f, Time.deltaTime);
     }
 
     private void OnAnimatorIK(int layerIndex)
@@ -248,22 +332,25 @@ public class EnemyAI : AIBase
             }
             Gizmos.DrawLine(patrolData.path[0], patrolData.path[patrolData.path.Length - 1]);
         }
-        var b = playerCollider.bounds;
-        if (CanSeeBounds(b))
+        if (playerCollider != null)
         {
-            Gizmos.color = Color.red;
-        }
-        Gizmos.DrawWireCube(b.center, b.size);
-        if (sightMode == SightMode.View)
-        {
-            Gizmos.color = Color.white;
-            Gizmos.matrix = eye.localToWorldMatrix;
-            Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.y, clippingPlanes.x, 1f);
-        }
-        else if (sightMode == SightMode.Range)
-        {
-            Gizmos.DrawWireSphere(eye.position, clippingPlanes.x);
-            Gizmos.DrawWireSphere(eye.position, clippingPlanes.y);
+            var b = playerCollider.bounds;
+            if (CanSeeBounds(b))
+            {
+                Gizmos.color = Color.red;
+            }
+            Gizmos.DrawWireCube(b.center, b.size);
+            if (sightMode == SightMode.View)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.matrix = eye.localToWorldMatrix;
+                Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.y, clippingPlanes.x, 1f);
+            }
+            else if (sightMode == SightMode.Range)
+            {
+                Gizmos.DrawWireSphere(eye.position, clippingPlanes.x);
+                Gizmos.DrawWireSphere(eye.position, clippingPlanes.y);
+            }
         }
     }
 }

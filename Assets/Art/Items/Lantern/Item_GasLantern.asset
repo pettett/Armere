@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5d946417bcaada46b3ca8228d36ecf2, type: 3}
   m_Name: Item_GasLantern
   m_EditorClassIdentifier: 
-  itemName: 0
-  itemType: 4
+  itemName: 3
+  type: 4
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
     m_SubObjectName: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   staticPickup: 0
   spawnedGameobject:
     m_AssetGUID: 286deab20111cc04fac341f0d3da40da
-    m_SubObjectName: Lantern
+    m_SubObjectName: 
   color: {r: 0, g: 0, b: 0, a: 0}
   range: 15
   intensity: 3

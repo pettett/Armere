@@ -1,7 +1,7 @@
 using UnityEngine;
 using Cinemachine;
 using System.Collections;
-using PlayerController;
+using Armere.PlayerController;
 public class SceneChangeTrigger : PlayerTrigger
 {
     public CinemachineVirtualCamera transitionToCamera;
@@ -9,12 +9,13 @@ public class SceneChangeTrigger : PlayerTrigger
     AutoWalking walker;
     public Transform endTransform;
     public LevelName changeToLevel;
-    public override void OnPlayerTrigger(Player_CharacterController player)
+    public override void OnPlayerTrigger(PlayerController player)
     {
         StartSceneChange(player);
     }
-    
-    public void StartSceneChange(Player_CharacterController player){
+
+    public void StartSceneChange(PlayerController player)
+    {
         transitionToCamera.Priority = 20;
         walker = player.ChangeToState<AutoWalking>();
         walker.WalkTo(endTransform.position);

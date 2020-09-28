@@ -17,7 +17,7 @@ Properties {
 	_UnderlayOffsetX 	("Border OffsetX", Range(-1,1)) = 0
 	_UnderlayOffsetY 	("Border OffsetY", Range(-1,1)) = 0
 	_UnderlayDilate		("Border Dilate", Range(-1,1)) = 0
-	_UnderlaySoftness 	("Border Softness", Range(0,1)) = 0
+	_UnderlaySoftness 	("Border Softness", Range(-1,1)) = 0
 
 	_WeightNormal		("Weight Normal", float) = 0
 	_WeightBold			("Weight Bold", float) = .5
@@ -154,6 +154,8 @@ SubShader {
 			opacity = 1.0;
 			#endif
 
+			//if (opacity == 0) discard;
+
 			fixed4 faceColor = fixed4(input.color.rgb, opacity) * _FaceColor;
 			faceColor.rgb *= faceColor.a;
 
@@ -226,7 +228,7 @@ SubShader {
 			#endif
 
 			#if UNITY_UI_ALPHACLIP
-			clip(c.a - 0.001);
+			clip(c.a -0.1);
 			#endif
 
 			return c;

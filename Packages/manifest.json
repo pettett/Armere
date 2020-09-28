@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.malee.reorderablelist": "https://github.com/cfoulston/Unity-Reorderable-List.git",
     "com.mybox": "https://github.com/Deadcows/MyBox.git",
     "com.unity.addressables": "1.8.4",
     "com.unity.cinemachine": "2.6.0",

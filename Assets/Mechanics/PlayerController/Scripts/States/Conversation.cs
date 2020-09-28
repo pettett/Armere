@@ -4,7 +4,7 @@ using System.Collections;
 using Cinemachine;
 
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
 
     //Conversation - specific for talking to an NPC

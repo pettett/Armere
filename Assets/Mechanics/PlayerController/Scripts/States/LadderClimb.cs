@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
-namespace PlayerController
+namespace Armere.PlayerController
 {
 
     /// <summary> Climb climbable objects

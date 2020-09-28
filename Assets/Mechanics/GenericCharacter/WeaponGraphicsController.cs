@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 using System.Threading.Tasks;
-
+using UnityEngine.AddressableAssets;
 public class WeaponGraphicsController : MonoBehaviour
 {
     //Class to sort out locking objects to parts of the body
@@ -48,19 +48,16 @@ public class WeaponGraphicsController : MonoBehaviour
                     holdPoint.Anchor(gameObject.transform);
         }
 
-        public async void SetHeld(ItemName weapon, ItemDatabase db)
+        public async void SetHeld(HoldableItemData holdable)
         {
             if (gameObject != null) Destroy(gameObject);
-
-            gameObject = await CreateItem(weapon, db);
+            gameObject = await holdable.CreatePlayerObject();
         }
         public void RemoveHeld()
         {
             if (gameObject != null)
-                Destroy(gameObject);
+                Addressables.ReleaseInstance(gameObject);
         }
-        //If the item has not properties, use the blank one
-        public async Task<GameObject> CreateItem(ItemName weapon, ItemDatabase db) => await (db[weapon].properties ?? ItemPropertyBase.blank).CreatePlayerObject(weapon, db);
 
     }
 

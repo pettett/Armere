@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace PlayerController
+namespace Armere.PlayerController
 {
     public class Diving : MovementState
     {
@@ -53,7 +53,7 @@ namespace PlayerController
             transform.position = c.currentWater.waterVolume.ClosestPoint(transform.position);
 
             //Transition to dive if space pressed
-            if (c.mod.HasFlag(MovementModifiers.Crouching))
+            if (c.holdingCrouchKey)
             {
 
             }

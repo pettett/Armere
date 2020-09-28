@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: SwordSheild_RaiseSheild
+    second: SwordShield_RaiseSheild
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: SwordSheild_RaiseSheild
+      name: SwordShield_RaiseSheild
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0

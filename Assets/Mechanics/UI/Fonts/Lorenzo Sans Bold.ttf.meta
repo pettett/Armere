@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 8b74f7ba7bbfb8b4580cb2333cc87ada
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Lorenzo Sans
+  fontNames:
+  - Lorenzo Sans
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: d61a75079da1a8740873041d5df4f386, type: 3}
+  - {fileID: 12800000, guid: 84f4c5f8bab7cdd41a85a294098ae8c6, type: 3}
+  - {fileID: 12800000, guid: 8b31373bb33fa444a90c4d9047706c77, type: 3}
+  - {fileID: 12800000, guid: 37f4900df832f154f96ef0b45d142085, type: 3}
+  - {fileID: 12800000, guid: 5030b14ea7fa14049bbd792c24454211, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

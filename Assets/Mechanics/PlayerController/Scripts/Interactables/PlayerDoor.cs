@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PlayerController;
+using Armere.PlayerController;
 
 public class PlayerDoor : MonoBehaviour, IInteractable
 {
@@ -16,12 +16,14 @@ public class PlayerDoor : MonoBehaviour, IInteractable
     public float requiredLookAngle = 180;
     public float requiredLookDot => Mathf.Cos(requiredLookAngle);
 
+    public string interactionDescription => "Open Door";
+
     public Room forwardRoom;
     public Room backwardRoom;
 
     public void Interact(IInteractor interactor)
     {
-        if (interactor is Player_CharacterController player)
+        if (interactor is PlayerController player)
         {
             StartCoroutine(DoorUseageRoutine(player));
         }
@@ -40,7 +42,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
         doorPivot.localRotation = to;
     }
 
-    IEnumerator DoorUseageRoutine(Player_CharacterController player)
+    IEnumerator DoorUseageRoutine(PlayerController player)
     {
         //Work out what side of the door the player is on
         //Unlikely to equal 0 

@@ -52,15 +52,17 @@ public class Arrow : MonoBehaviour
         }
         transform.forward = rb.velocity;
     }
-    private void OnCollisionEnter(Collision other)
+    private async void OnCollisionEnter(Collision other)
     {
         print("Arrow hit");
         if (other.gameObject.TryGetComponent<Health>(out var h))
         {
             h.Damage(10, gameObject);
         }
-        //Turn arrow into an item if it is permitted
-        Items.SpawnItem(ammoName, transform.position, transform.rotation, InventoryController.singleton.db);
+
         Destroy(gameObject);
+
+        //Turn arrow into an item if it is permitted
+        await Items.SpawnItem(InventoryController.singleton.db[ammoName] as PhysicsItemData, transform.position, transform.rotation);
     }
 }

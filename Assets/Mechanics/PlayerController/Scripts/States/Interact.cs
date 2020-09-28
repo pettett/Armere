@@ -2,9 +2,12 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using System;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
+
+
     [System.Serializable]
     //class to allow player interactions with the environment through IInteractable scripts
     public class Interact : MovementState
@@ -12,12 +15,16 @@ namespace PlayerController
         public override string StateName => "Interact";
         int currentLookAt;
         List<IInteractable> interactablesInRange = new List<IInteractable>();
-
         IInteractable prevTarget;
+        public bool enabled = true;
+
+
+
 
         public override void Start()
         {
-
+            interactablesInRange = new List<IInteractable>();
+            enabled = true;
             ScanForInteractables();
         }
         ///<summary>Perform an overlap capsule to check for interactables, returning whether it did or not</summary>
@@ -42,6 +49,7 @@ namespace PlayerController
 
         public override void OnTriggerEnter(Collider other)
         {
+            if (!enabled) return;
             TestForInteractable(other);
         }
 
@@ -63,6 +71,8 @@ namespace PlayerController
 
         public override void OnTriggerExit(Collider interactable)
         {
+            if (!enabled) return;
+
             //if this was the interactable, remove it
             if (interactable.TryGetComponent<IInteractable>(out var i))
             {
@@ -71,6 +81,8 @@ namespace PlayerController
         }
         public override void Update()
         {
+            if (!enabled) return;
+
             Vector3 direction = transform.forward;
             Vector3 interactableDir;
             float dot;
@@ -109,14 +121,15 @@ namespace PlayerController
             {
                 if (prevTarget != null)
                     prevTarget.OnEndHighlight();
-                else //no target before this, start applying the prompt
-                    UIPrompt.ApplyPrompt("Interact", c.playerInput.actions.FindAction("Action").controls[0].displayName);
+                //no target before this, start applying the prompt
+                UIPrompt.ApplyPrompt(interactablesInRange[currentLookAt].interactionDescription, c.playerInput.actions.FindAction("Action").controls[0].displayName);
 
                 interactablesInRange[currentLookAt].OnStartHighlight();
                 prevTarget = interactablesInRange[currentLookAt];
             }
 
         }
+
         void RemovePrevTarget()
         {
             if (prevTarget != null)
@@ -126,6 +139,7 @@ namespace PlayerController
                 UIPrompt.ResetPrompt();
             }
         }
+
         void OnInteractableRemoved(IInteractable interactable)
         {
             //Test to see if there is another interactable. If not, exit
@@ -140,36 +154,43 @@ namespace PlayerController
 
         public override void OnInteract(InputActionPhase phase)
         {
-            if (phase == InputActionPhase.Started)
+
+
+            if (enabled && phase == InputActionPhase.Started)
             {
                 //activate the interactable that is pointed most to the player
 
                 if (currentLookAt != -1)
                 {
-                    interactablesInRange[currentLookAt].Interact(c);
+                    IInteractable i = interactablesInRange[currentLookAt];
+                    i.Interact(c);
 
-                    //Somehow this needs to be improved
-                    switch (interactablesInRange[currentLookAt])
-                    {
-                        case NPC npc:
-                            c.ChangeToState<Conversation>(npc);
-                            break;
-                        case Climbable climbable:
-                            c.ChangeToState<LadderClimb>(climbable);
-                            break;
-                        case IDialogue dialogue:
-                            c.ChangeToState<Dialogue>(dialogue);
-                            break;
-                    }
+                    if (i.canInteract)
+                        //Somehow this needs to be improved
+                        switch (i)
+                        {
+                            case NPC npc:
+                                c.ChangeToState<Conversation>(npc);
+                                break;
+                            case Climbable climbable:
+                                c.ChangeToState<LadderClimb>(climbable);
+                                break;
+                            case IDialogue dialogue:
+                                c.ChangeToState<Dialogue>(dialogue);
+                                break;
+                        }
                 }
             }
         }
+
         public override void End()
         {
+            enabled = false;
             for (int i = 0; i < interactablesInRange.Count; i++)
             {
                 ExitInteractable(interactablesInRange[i]);
             }
+            interactablesInRange = null;
             //Remove the "Interact" prompt
             UIPrompt.ResetPrompt();
         }

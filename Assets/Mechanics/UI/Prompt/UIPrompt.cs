@@ -10,7 +10,7 @@ public class UIPrompt : MonoBehaviour
 
     public TMPro.TextMeshProUGUI keybindPromptText1;
 
-    public TMPro.TextMeshProUGUI keybindPromptText2;
+
 
     public static void ApplyPrompt(string prompt, float retension = 0)
     {
@@ -27,10 +27,10 @@ public class UIPrompt : MonoBehaviour
     {
         singleton.promptText.enabled = true;
         singleton.keybindPromptText1.enabled = true;
-        singleton.keybindPromptText2.enabled = true;
+
         singleton.promptText.text = prompt;
         singleton.keybindPromptText1.text = keybind;
-        singleton.keybindPromptText2.text = keybind;
+
 
         if (retension != 0)
         {
@@ -43,7 +43,7 @@ public class UIPrompt : MonoBehaviour
         if (singleton == null) return;
         singleton.promptText.enabled = false;
         singleton.keybindPromptText1.enabled = false;
-        singleton.keybindPromptText2.enabled = false;
+
     }
     private void Start()
     {

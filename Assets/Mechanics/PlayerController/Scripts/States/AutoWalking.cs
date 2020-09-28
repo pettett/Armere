@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.AI;
 using System.Collections;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
 
     /// <summary> Same as walking except uses a navmeshagent to control the player

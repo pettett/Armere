@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: OutdoorCamera
   m_EditorClassIdentifier: 
   topRig:
-    m_Height: 5.24
-    m_Radius: 0.89
+    m_Height: 6.2
+    m_Radius: 0.8
   middleRig:
-    m_Height: 2.86
-    m_Radius: 4
+    m_Height: 3.2
+    m_Radius: 5
   bottomRig:
-    m_Height: 0.19
-    m_Radius: 0.94
+    m_Height: 0.2
+    m_Radius: 0.8

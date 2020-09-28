@@ -42,6 +42,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
     public YarnProgram Dialogue => t.dialogue;
     public string StartNode => t.routine[currentRoutineStage].conversationStartNode;
 
+    public string interactionDescription => "Talk";
+
     public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
     {
         t = template;

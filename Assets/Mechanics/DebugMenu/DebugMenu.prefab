@@ -53,12 +53,12 @@ MonoBehaviour:
     m_Name: screenToggle
     m_Type: 1
     m_ExpectedControlType: 
-    m_Id: 6ea0f33c-82a6-4526-b10d-503def45c7af
+    m_Id: d0f4dbf2-6f34-4d08-949e-06db6b6f47a2
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings:
     - m_Name: 
-      m_Id: a4bef687-cce7-479c-b561-1804d993c074
+      m_Id: e11cf715-94e6-44f4-acb2-43341e19d649
       m_Path: <Keyboard>/f3
       m_Interactions: 
       m_Processors: 
@@ -131,30 +131,17 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'awdawdawd
+  m_text: '
 
-    awdawdawdawd
-
-
-
-    awdawdawd
-
-    awdawdawdawd
-
-    awdawdawddaw
-
-    awdwadwad
-
-    wdaawd
-
-
-    awdwadwaddwawadwad'
+'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 239b399676287df40a61c90e02e13e83, type: 2}
+  m_sharedMaterial: {fileID: -57164230079202175, guid: 239b399676287df40a61c90e02e13e83,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -220,12 +207,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 3545571840188536221}
-    characterCount: 97
+    characterCount: 1
     spriteCount: 0
-    spaceCount: 10
-    wordCount: 8
+    spaceCount: 1
+    wordCount: 1
     linkCount: 0
-    lineCount: 11
+    lineCount: 1
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0

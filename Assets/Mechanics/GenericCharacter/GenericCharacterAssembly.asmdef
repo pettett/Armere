@@ -4,7 +4,9 @@
         "UtilityAssembly",
         "Unity.TextMeshPro",
         "Game.Structure",
-        "Inventory"
+        "Inventory",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

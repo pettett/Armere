@@ -1,0 +1,535 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2cf308cc4fb2aa45b56ac83f0f314a5, type: 3}
+  m_Name: Oak Tree
+  m_EditorClassIdentifier: 
+  mergeFaces: 1
+  subdivisionScalar: 5
+  minSubdivisions: 2
+  maxSubdivisions: 3
+  intensityCutoff: 0.05
+  minSeveredIntensity: 0.1
+  bevelProfile: 1
+  bevelDistribution: 1
+  damageToCut: 1
+  treeMesh:
+    mesh: {fileID: 2494185979427425891, guid: ded2fd439afac0748a6d28024050a5e8, type: 3}
+    cutCylinder:
+    - a: 119
+      b: 106
+      c: 108
+      index: 357
+      pointingUpwards: 0
+    - a: 108
+      b: 122
+      c: 119
+      index: 372
+      pointingUpwards: 1
+    - a: 122
+      b: 108
+      c: 123
+      index: 375
+      pointingUpwards: 0
+    - a: 123
+      b: 147
+      c: 122
+      index: 489
+      pointingUpwards: 1
+    - a: 147
+      b: 123
+      c: 155
+      index: 522
+      pointingUpwards: 0
+    - a: 155
+      b: 154
+      c: 147
+      index: 525
+      pointingUpwards: 1
+    - a: 154
+      b: 155
+      c: 168
+      index: 585
+      pointingUpwards: 0
+    - a: 168
+      b: 171
+      c: 154
+      index: 594
+      pointingUpwards: 1
+    - a: 171
+      b: 168
+      c: 177
+      index: 621
+      pointingUpwards: 0
+    - a: 177
+      b: 176
+      c: 171
+      index: 624
+      pointingUpwards: 1
+    - a: 176
+      b: 177
+      c: 187
+      index: 666
+      pointingUpwards: 0
+    - a: 187
+      b: 180
+      c: 176
+      index: 663
+      pointingUpwards: 1
+    - a: 180
+      b: 187
+      c: 189
+      index: 678
+      pointingUpwards: 0
+    - a: 189
+      b: 184
+      c: 180
+      index: 675
+      pointingUpwards: 1
+    - a: 184
+      b: 189
+      c: 192
+      index: 690
+      pointingUpwards: 0
+    - a: 192
+      b: 185
+      c: 184
+      index: 687
+      pointingUpwards: 1
+    - a: 185
+      b: 192
+      c: 190
+      index: 693
+      pointingUpwards: 0
+    - a: 190
+      b: 186
+      c: 185
+      index: 681
+      pointingUpwards: 1
+    - a: 186
+      b: 190
+      c: 191
+      index: 684
+      pointingUpwards: 0
+    - a: 162
+      b: 158
+      c: 161
+      index: 555
+      pointingUpwards: 1
+    - a: 158
+      b: 162
+      c: 163
+      index: 558
+      pointingUpwards: 0
+    - a: 163
+      b: 151
+      c: 158
+      index: 561
+      pointingUpwards: 1
+    - a: 151
+      b: 163
+      c: 148
+      index: 564
+      pointingUpwards: 0
+    - a: 148
+      b: 142
+      c: 151
+      index: 504
+      pointingUpwards: 1
+    - a: 142
+      b: 148
+      c: 132
+      index: 492
+      pointingUpwards: 0
+    - a: 132
+      b: 130
+      c: 142
+      index: 465
+      pointingUpwards: 1
+    - a: 130
+      b: 132
+      c: 107
+      index: 417
+      pointingUpwards: 0
+    - a: 107
+      b: 121
+      c: 130
+      index: 408
+      pointingUpwards: 1
+    - a: 121
+      b: 107
+      c: 105
+      index: 369
+      pointingUpwards: 0
+    - a: 105
+      b: 120
+      c: 121
+      index: 366
+      pointingUpwards: 1
+    - a: 120
+      b: 105
+      c: 106
+      index: 363
+      pointingUpwards: 0
+    - a: 106
+      b: 119
+      c: 120
+      index: 360
+      pointingUpwards: 1
+    centerPoint: {x: 0.043575216, y: 1.32, z: -0.0037697244}
+  stumpMesh:
+    mesh: {fileID: -3727755857921736763, guid: ded2fd439afac0748a6d28024050a5e8, type: 3}
+    cutCylinder:
+    - a: 25
+      b: 24
+      c: 21
+      index: 66
+      pointingUpwards: 1
+    - a: 24
+      b: 25
+      c: 26
+      index: 69
+      pointingUpwards: 0
+    - a: 26
+      b: 27
+      c: 24
+      index: 72
+      pointingUpwards: 1
+    - a: 27
+      b: 26
+      c: 28
+      index: 78
+      pointingUpwards: 0
+    - a: 28
+      b: 31
+      c: 27
+      index: 90
+      pointingUpwards: 1
+    - a: 31
+      b: 28
+      c: 32
+      index: 96
+      pointingUpwards: 0
+    - a: 32
+      b: 35
+      c: 31
+      index: 108
+      pointingUpwards: 1
+    - a: 35
+      b: 32
+      c: 36
+      index: 114
+      pointingUpwards: 0
+    - a: 36
+      b: 39
+      c: 35
+      index: 126
+      pointingUpwards: 1
+    - a: 39
+      b: 36
+      c: 40
+      index: 132
+      pointingUpwards: 0
+    - a: 40
+      b: 43
+      c: 39
+      index: 144
+      pointingUpwards: 1
+    - a: 43
+      b: 40
+      c: 44
+      index: 150
+      pointingUpwards: 0
+    - a: 44
+      b: 47
+      c: 43
+      index: 162
+      pointingUpwards: 1
+    - a: 47
+      b: 44
+      c: 48
+      index: 168
+      pointingUpwards: 0
+    - a: 48
+      b: 51
+      c: 47
+      index: 180
+      pointingUpwards: 1
+    - a: 51
+      b: 48
+      c: 52
+      index: 186
+      pointingUpwards: 0
+    - a: 52
+      b: 55
+      c: 51
+      index: 198
+      pointingUpwards: 1
+    - a: 55
+      b: 52
+      c: 56
+      index: 204
+      pointingUpwards: 0
+    - a: 56
+      b: 59
+      c: 55
+      index: 216
+      pointingUpwards: 1
+    - a: 59
+      b: 56
+      c: 60
+      index: 222
+      pointingUpwards: 0
+    - a: 60
+      b: 63
+      c: 59
+      index: 234
+      pointingUpwards: 1
+    - a: 63
+      b: 60
+      c: 64
+      index: 240
+      pointingUpwards: 0
+    - a: 64
+      b: 67
+      c: 63
+      index: 252
+      pointingUpwards: 1
+    - a: 67
+      b: 64
+      c: 68
+      index: 258
+      pointingUpwards: 0
+    - a: 68
+      b: 71
+      c: 67
+      index: 270
+      pointingUpwards: 1
+    - a: 71
+      b: 68
+      c: 72
+      index: 276
+      pointingUpwards: 0
+    - a: 72
+      b: 75
+      c: 71
+      index: 288
+      pointingUpwards: 1
+    - a: 75
+      b: 72
+      c: 76
+      index: 294
+      pointingUpwards: 0
+    - a: 76
+      b: 80
+      c: 75
+      index: 309
+      pointingUpwards: 1
+    - a: 80
+      b: 76
+      c: 81
+      index: 318
+      pointingUpwards: 0
+    - a: 81
+      b: 82
+      c: 80
+      index: 324
+      pointingUpwards: 1
+    - a: 82
+      b: 81
+      c: 83
+      index: 327
+      pointingUpwards: 0
+    centerPoint: {x: 0.043575212, y: 1.32, z: -0.0037697095}
+  logMesh:
+    mesh: {fileID: -293502825896984990, guid: ded2fd439afac0748a6d28024050a5e8, type: 3}
+    cutCylinder:
+    - a: 13
+      b: 12
+      c: 11
+      index: 36
+      pointingUpwards: 0
+    - a: 75
+      b: 74
+      c: 76
+      index: 300
+      pointingUpwards: 1
+    - a: 74
+      b: 75
+      c: 73
+      index: 297
+      pointingUpwards: 0
+    - a: 73
+      b: 66
+      c: 74
+      index: 294
+      pointingUpwards: 1
+    - a: 66
+      b: 73
+      c: 65
+      index: 291
+      pointingUpwards: 0
+    - a: 65
+      b: 61
+      c: 66
+      index: 270
+      pointingUpwards: 1
+    - a: 61
+      b: 65
+      c: 59
+      index: 267
+      pointingUpwards: 0
+    - a: 59
+      b: 57
+      c: 61
+      index: 255
+      pointingUpwards: 1
+    - a: 57
+      b: 59
+      c: 56
+      index: 246
+      pointingUpwards: 0
+    - a: 56
+      b: 54
+      c: 57
+      index: 237
+      pointingUpwards: 1
+    - a: 54
+      b: 56
+      c: 53
+      index: 231
+      pointingUpwards: 0
+    - a: 53
+      b: 50
+      c: 54
+      index: 222
+      pointingUpwards: 1
+    - a: 50
+      b: 53
+      c: 49
+      index: 216
+      pointingUpwards: 0
+    - a: 49
+      b: 46
+      c: 50
+      index: 204
+      pointingUpwards: 1
+    - a: 46
+      b: 49
+      c: 45
+      index: 198
+      pointingUpwards: 0
+    - a: 45
+      b: 35
+      c: 46
+      index: 186
+      pointingUpwards: 1
+    - a: 35
+      b: 45
+      c: 34
+      index: 180
+      pointingUpwards: 0
+    - a: 34
+      b: 31
+      c: 35
+      index: 135
+      pointingUpwards: 1
+    - a: 31
+      b: 34
+      c: 30
+      index: 132
+      pointingUpwards: 0
+    - a: 30
+      b: 29
+      c: 31
+      index: 117
+      pointingUpwards: 1
+    - a: 29
+      b: 30
+      c: 28
+      index: 114
+      pointingUpwards: 0
+    - a: 28
+      b: 26
+      c: 29
+      index: 111
+      pointingUpwards: 1
+    - a: 26
+      b: 28
+      c: 25
+      index: 105
+      pointingUpwards: 0
+    - a: 25
+      b: 22
+      c: 26
+      index: 96
+      pointingUpwards: 1
+    - a: 22
+      b: 25
+      c: 21
+      index: 90
+      pointingUpwards: 0
+    - a: 21
+      b: 18
+      c: 22
+      index: 78
+      pointingUpwards: 1
+    - a: 18
+      b: 21
+      c: 17
+      index: 72
+      pointingUpwards: 0
+    - a: 17
+      b: 16
+      c: 18
+      index: 60
+      pointingUpwards: 1
+    - a: 16
+      b: 17
+      c: 15
+      index: 54
+      pointingUpwards: 0
+    - a: 15
+      b: 14
+      c: 16
+      index: 51
+      pointingUpwards: 1
+    - a: 14
+      b: 15
+      c: 12
+      index: 45
+      pointingUpwards: 0
+    - a: 12
+      b: 13
+      c: 14
+      index: 39
+      pointingUpwards: 1
+    centerPoint: {x: 0.04357524, y: 1.32, z: -0.003769692}
+  canopyMesh: {fileID: 2728963856613279042, guid: ded2fd439afac0748a6d28024050a5e8,
+    type: 3}
+  cutHeight: 1.32
+  cutSize: 0.49
+  cutClips:
+  - {fileID: 8300000, guid: e736c27d03904c3439146943d3e20366, type: 3}
+  - {fileID: 8300000, guid: 910e7d7f6cf4f95498def07e693ee4c6, type: 3}
+  - {fileID: 8300000, guid: 523fa33a0b2d32649a69f38242afee66, type: 3}
+  - {fileID: 8300000, guid: 4a29258849eaecb4b975f98bbf55e21a, type: 3}
+  - {fileID: 8300000, guid: af7826b8aa3740d49b867571a3b17d5e, type: 3}
+  - {fileID: 8300000, guid: 61f10f80cab0512479df0ff464631937, type: 3}
+  - {fileID: 8300000, guid: 23595ec2f4ca51f4b8da955a61fc60c5, type: 3}
+  logDensity: 700
+  logEstimateHeight: 3
+  logEstimateRadius: 0.46
+  logKnockingForce: 70000
+  crossSectionScale: 0.9
+  logMaterial: {fileID: 2100000, guid: 745611a658ea239428daa177de123490, type: 2}
+  crosssectionMaterial: {fileID: 2100000, guid: d7a2417f37d4bcb498c7efb0305e0c09,
+    type: 2}

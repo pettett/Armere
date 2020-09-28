@@ -26,6 +26,8 @@ public class InteractableDialogue : MonoBehaviour, IInteractable, IDialogue
     public float requiredLookAngle = 180;
     public float requiredLookDot => Mathf.Cos(requiredLookAngle);
 
+    public string interactionDescription => "Read";
+
     public YarnProgram dialogue;
     public string startNode = "Start";
     public void Interact(IInteractor interactor)

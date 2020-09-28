@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
 
     [Serializable]
@@ -18,7 +18,6 @@ namespace PlayerController
             canBeTargeted = false;
             c.cameraController.EnableControl();
             c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = true;
-            c.GetComponent<AnimationController>().thirdPerson = true;
             c.StartCoroutine(WaitForRespawn());
         }
 
@@ -33,7 +32,6 @@ namespace PlayerController
             //transform.position = LevelController.respawnPoint.position;
             //transform.rotation = LevelController.respawnPoint.rotation;
             c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = false;
-            c.GetComponent<AnimationController>().thirdPerson = false;
             c.health?.Respawn();
             //go back to the spawn point
             ChangeToState<Walking>();

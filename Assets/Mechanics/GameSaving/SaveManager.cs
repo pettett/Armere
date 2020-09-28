@@ -50,14 +50,14 @@ public class SaveManager : MonoBehaviour
     {
         LevelName level;
         InventoryController.InventorySave inventory;
-        PlayerController.Player_CharacterController.PlayerSaveData player;
+        Armere.PlayerController.PlayerController.PlayerSaveData player;
         NPCManager.NPCSaveData npc;
         public void GatherSaveData()
         {
             level = LevelController.currentLevel;
             inventory = InventoryController.singleton.CreateSave();
             npc = NPCManager.singleton.data;
-            player = PlayerController.Player_CharacterController.activePlayerController.CreateSaveData();
+            player = Armere.PlayerController.PlayerController.activePlayerController.CreateSaveData();
         }
 
         public void RestoreGameState()
@@ -73,7 +73,7 @@ public class SaveManager : MonoBehaviour
             Items.OnSceneChange();
 
             InventoryController.singleton.RestoreSave(inventory);
-            PlayerController.Player_CharacterController.activePlayerController.RestoreSave(player);
+            Armere.PlayerController.PlayerController.activePlayerController.RestoreSave(player);
             NPCManager.singleton.data = npc;
 
             Time.timeScale = 1;
@@ -121,7 +121,7 @@ public class SaveManager : MonoBehaviour
         {
             this.thumbnail = thumbnail;
             //Save the name of the current region for more context for the player
-            regionName = PlayerController.Player_CharacterController.activePlayerController.GetComponent<MapTracker>().currentRegion;
+            regionName = Armere.PlayerController.PlayerController.activePlayerController.GetComponent<MapTracker>().currentRegion;
         }
     }
 

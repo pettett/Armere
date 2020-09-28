@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-public class InventoryUI : MonoBehaviour
+using UnityEngine.EventSystems;
+
+public class InventoryUI : MonoBehaviour, IPointerClickHandler
 {
     public int rowCount = 4;
     public GameObject gridPanelTemplate;
@@ -23,22 +25,25 @@ public class InventoryUI : MonoBehaviour
 
     public BoolEvent onContextMenuEnabled;
     public BoolEvent onContextMenuDisabled;
-    public async void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
+    public void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
     {
         var go = Instantiate(template, itemGridPanel.GetChild(1));
-        go.transform.GetChild(0).GetComponent<Image>().sprite = await db[panel[index].name].displaySprite.LoadAssetAsync().Task;
+
+
+        InventoryUIItem item = go.GetComponent<InventoryUIItem>();
 
         switch (panel[index])
         {
             case InventoryController.StackPanel.ItemStack stack:
-                go.GetComponentInChildren<TextMeshProUGUI>().text = stack.count == 1 ? "" : stack.count.ToString();
+                item.countText.text = stack.count == 1 ? "" : stack.count.ToString();
                 break;
             default:
-                Destroy(go.GetComponentInChildren<TextMeshProUGUI>());
+                Destroy(item.countText);
                 break;
         }
 
-        InventoryUIItem item = go.GetComponent<InventoryUIItem>();
+
+        item.SetupItem(db[panel[index].name]);
 
         item.onSelect += () => OnItemSelected(panel[index].name);
 
@@ -49,10 +54,22 @@ public class InventoryUI : MonoBehaviour
         //     item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
 
         item.itemIndex = index;
-        item.type = db[panel[index].name].type;
+
     }
 
-    public void ShowOptionMenu(ItemType type, int index, Vector2 mousePosition)
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        //If the user has clicked on the background, they do not want to use the context menu
+        if (contextMenu != null) RemoveContextMenu();
+    }
+
+    public void RemoveContextMenu()
+    {
+        Destroy(contextMenu);
+        EnableContextMenu(false);
+    }
+
+    public void ShowContextMenu(ItemType type, int index, Vector2 mousePosition)
     {
         if (sellMenu)
         {
@@ -60,13 +77,41 @@ public class InventoryUI : MonoBehaviour
         }
         else
         {
-            if (contextMenu != null) Destroy(contextMenu);
-            contextMenu = new GameObject("Menu", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            if (contextMenu != null) RemoveContextMenu();
+
+            contextMenu = new GameObject("Menu", typeof(RectTransform), typeof(Image), typeof(LayoutElement), typeof(VerticalLayoutGroup));
             contextMenu.GetComponent<LayoutElement>().ignoreLayout = true;
 
             contextMenu.transform.SetParent(gridPanelHolder);
             (contextMenu.transform as RectTransform).pivot = new Vector2(0f, 1f);
             (contextMenu.transform as RectTransform).position = mousePosition + new Vector2(-10, 10);
+
+            ItemData item = db[InventoryController.ItemAt(index, type)];
+            InventoryController.InventoryPanel p = InventoryController.singleton.GetPanelFor(type);
+            for (int i = 0; i < p.options.Length; i++)
+            {
+                //Add the buttons
+                var button = new GameObject(p.options[i].Method.Name, typeof(Image), typeof(Button));
+                button.transform.SetParent(contextMenu.transform);
+                int callbackIndex = i;
+                //When this button is clicked, apply it and close the menu
+                button.GetComponent<Button>().onClick.AddListener(() => p.options[callbackIndex](type, index));
+                button.GetComponent<Button>().onClick.AddListener(RemoveContextMenu);
+
+                var textObject = new GameObject("Text", typeof(TextMeshProUGUI));
+                textObject.transform.SetParent(button.transform);
+
+                //Make the text occupy the entire button (Very annoying)
+                (textObject.transform as RectTransform).anchorMin = Vector2.zero;
+                (textObject.transform as RectTransform).anchorMax = Vector2.one;
+                (textObject.transform as RectTransform).anchoredPosition = Vector2.zero;
+                (textObject.transform as RectTransform).sizeDelta = Vector2.zero;
+                textObject.GetComponent<TextMeshProUGUI>().text = p.options[i].Method.Name;
+                textObject.GetComponent<TextMeshProUGUI>().fontSize = 12;
+                textObject.GetComponent<TextMeshProUGUI>().color = Color.black;
+
+
+            }
 
             EnableContextMenu(true);
         }
@@ -81,6 +126,8 @@ public class InventoryUI : MonoBehaviour
     public void CreateBlankSlotTemplate(Transform itemGridPanel)
     {
         var go = Instantiate(blankSlotTemplate, itemGridPanel.GetChild(1));
+        //Blank slots should not interrupt raycasts
+        go.GetComponent<Graphic>().raycastTarget = false;
     }
 
 
@@ -123,12 +170,17 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    public void CleanUpInventory()
     {
         for (int i = 0; i < gridPanelHolder.childCount; i++)
         {
             Destroy(gridPanelHolder.GetChild(i).gameObject);
         }
+    }
+
+    private void OnEnable()
+    {
+        CleanUpInventory();
         //Currency if left for the currency display
         AddItemGroup(InventoryController.singleton.common);
         AddItemGroup(InventoryController.singleton.weapon);
@@ -137,7 +189,5 @@ public class InventoryUI : MonoBehaviour
         AddItemGroup(InventoryController.singleton.ammo);
         AddItemGroup(InventoryController.singleton.quest);
     }
-
-
 
 }

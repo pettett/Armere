@@ -11,7 +11,7 @@ public class ItemInfoDisplay : MonoBehaviour
     AsyncOperationHandle<Sprite> sprite;
     public async void ShowInfo(ItemName item, ItemDatabase db)
     {
-        title.text = db[item].name;
+        title.text = db[item].displayName;
         description.text = db[item].description;
         //Load the sprite
         sprite = db[item].displaySprite.LoadAssetAsync();
@@ -20,6 +20,7 @@ public class ItemInfoDisplay : MonoBehaviour
 
     private void OnDestroy()
     {
-        Addressables.Release(sprite);
+        if (sprite.IsValid())
+            Addressables.Release(sprite);
     }
 }

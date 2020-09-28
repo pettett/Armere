@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace PlayerController
+namespace Armere.PlayerController
 {
     public class Swimming : MovementState
     {
@@ -46,7 +46,8 @@ namespace PlayerController
 
             DebugMenu.RemoveEntry(entry);
 
-            MonoBehaviour.Destroy(waterTrail);
+            waterTrailController.StopTrail();
+            waterTrailController.DestroyOnFinish();
         }
 
 
@@ -168,7 +169,7 @@ namespace PlayerController
                 transform.position = c.currentWater.waterVolume.ClosestPoint(transform.position);
 
             //Transition to dive if space pressed
-            if (onSurface && c.mod.HasFlag(MovementModifiers.Crouching))
+            if (onSurface && c.holdingCrouchKey)
             {
                 ChangeDive(true);
                 transform.position -= Vector3.up * c.maxWaterStrideDepth;

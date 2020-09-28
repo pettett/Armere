@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
     [
         Serializable,
@@ -15,17 +15,14 @@ namespace PlayerController
     {
         public override string StateName => "Walking";
 
-        public enum WeaponSet
-        {
-            SwordSidearm,
-            BowArrow
-        }
+        public enum WeaponSet { SwordSidearm, BowArrow }
+        enum WalkingType { Walking, Sprinting, Crouching }
+
         public WeaponSet weaponSet;
 
         Vector3 currentGroundNormal = new Vector3();
 
-        Vector3 requiredForce;
-        Vector3 desiredVelocity;
+
         //used to continue momentum when the controller hits a stair
         Vector3 lastVelocity;
         Vector3 groundVelocity;
@@ -36,22 +33,53 @@ namespace PlayerController
 
         bool forceForwardHeading = false;
         bool grounded;
-        bool crouching;
+
+
+
+        bool crouching { get => walkingType == WalkingType.Crouching; }
+        bool sprinting { get => walkingType == WalkingType.Sprinting; }
+
+
+        WalkingType walkingType = WalkingType.Walking;
+        Dictionary<WalkingType, float> walkingSpeeds;
         bool inControl = true;
         [NonSerialized] Collider[] crouchTestColliders = new Collider[2];
         [NonSerialized] ContactPoint groundCP;
 
 
 
-        MeleeWeapon meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentWeapon].name].properties as MeleeWeapon;
-        public int currentWeapon = -1;
+        MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentMelee].name] as MeleeWeaponItemData;
+        public int currentMelee = -1;
         public int currentBow = -1;
         public int currentAmmo = -1;
         public int currentSidearm = -1;
+        public bool movingHoldable;
+        public bool holdingBody;
+        public HoldableBody holding;
+        FixedJoint joint;
+
+        //WEAPONS
+        bool holdingSecondary = false;
+        Coroutine bowChargingRoutine;
+        float bowCharge = 0;
+        float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
+
+        bool swordCanBeUsed = false;
+
+        bool equippingSword;
+        bool sheathingSword;
+
+
 
         public override void Start()
         {
             entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false);
+
+            walkingSpeeds = new Dictionary<WalkingType, float>(){
+                {WalkingType.Walking , c.walkingSpeed},
+                {WalkingType.Crouching , c.crouchingSpeed},
+                {WalkingType.Sprinting , c.sprintingSpeed},
+            };
 
             //c.controllingCamera = false; // debug for camera parallel state
 
@@ -66,7 +94,7 @@ namespace PlayerController
             InventoryController.singleton.onItemAdded += OnItemAdded;
 
 
-            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) currentWeapon = (int)o1;
+            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) currentMelee = (int)o1;
             if (c.persistentStateData.TryGetValue("currentBow", out object o2)) currentBow = (int)o2;
             if (c.persistentStateData.TryGetValue("currentAmmo", out object o3)) currentAmmo = (int)o3;
             if (c.persistentStateData.TryGetValue("currentSidearm", out object o4)) currentSidearm = (int)o4;
@@ -76,6 +104,63 @@ namespace PlayerController
             //Try to force any ammo type to be selected
             SelectAmmo(0);
         }
+
+        public void HoldHoldable(HoldableBody body)
+        {
+            UnEquipAll();
+
+            holding = body;
+            //Keep body attached to top of player;
+            holding.transform.position = (transform.position + Vector3.up * (c.walkingHeight + holding.heightOffset));
+
+            holding.joint.connectedBody = c.rb;
+
+            holdingBody = true;
+
+            UIKeyPromptGroup.singleton.ShowPrompts(
+                c.playerInput,
+                "Ground Action Map",
+                new UIKeyPromptGroup.KeyPrompt("Drop", "Attack"),
+                new UIKeyPromptGroup.KeyPrompt("Throw", "AltAttack")
+                );
+
+            (c.GetParallelState(typeof(Interact)) as Interact).End();
+
+            c.StartCoroutine(PickupHoldable());
+        }
+
+        IEnumerator PickupHoldable()
+        {
+            movingHoldable = true;
+            yield return new WaitForSeconds(0.1f);
+            movingHoldable = false;
+        }
+
+        public void PlaceHoldable()
+        {
+            RemoveHoldable(Vector3.zero);
+        }
+        public void DropHoldable()
+        {
+            RemoveHoldable(Vector3.zero);
+        }
+        public void ThrowHoldable()
+        {
+            RemoveHoldable((transform.forward + Vector3.up).normalized * c.throwForce);
+        }
+
+        void RemoveHoldable(Vector3 acceleration)
+        {
+            holding.OnDropped();
+            holding.rb.AddForce(acceleration, ForceMode.Acceleration);
+
+            holding = null;
+            holdingBody = false;
+            UIKeyPromptGroup.singleton.RemovePrompts();
+
+            (c.GetParallelState(typeof(Interact)) as Interact).Start();
+        }
+
         public override void End()
         {
             transform.SetParent(null, true);
@@ -87,7 +172,7 @@ namespace PlayerController
 
 
             //Save state data
-            c.persistentStateData["currentWeapon"] = currentWeapon;
+            c.persistentStateData["currentWeapon"] = currentMelee;
             c.persistentStateData["currentBow"] = currentBow;
             c.persistentStateData["currentAmmo"] = currentAmmo;
             c.persistentStateData["currentSidearm"] = currentSidearm;
@@ -97,6 +182,103 @@ namespace PlayerController
             InventoryController.singleton.onItemAdded -= OnItemAdded;
         }
 
+        public void MoveThroughWater(ref float speedScalar)
+        {
+            //Find depth of water
+            //Buffer of two: One for water surface, one for water base
+            RaycastHit[] waterHits = new RaycastHit[2];
+            float heightOffset = 2;
+
+            int hits = Physics.RaycastNonAlloc(
+                transform.position + new Vector3(0, heightOffset, 0),
+                Vector3.down, waterHits,
+                c.maxWaterStrideDepth + heightOffset,
+                c.m_groundLayerMask | c.m_waterLayerMask,
+                QueryTriggerInteraction.Collide);
+
+            if (hits == 2)
+            {
+                WaterController w = waterHits[1].collider.GetComponentInParent<WaterController>();
+                if (w != null)
+                {
+                    //Hit water and ground
+                    float depth = waterHits[0].distance - waterHits[1].distance;
+
+                    float scaledDepth = depth / c.maxWaterStrideDepth;
+                    if (scaledDepth > 1)
+                    {
+                        //Start swimming
+                        print("Too deep to walk");
+                        c.ChangeToState<Swimming>();
+                    }
+                    else if (scaledDepth >= 0)
+                    {
+                        //Striding through water
+                        //Slow speed of walk
+                        //Full depth walks at half speed
+                        speedScalar = scaledDepth * 0.5f + 0.5f;
+                    }
+
+                }
+
+            }
+            else if (hits == 1)
+            {
+
+                //Start swimming
+                print("Too deep to walk");
+                c.ChangeToState<Swimming>();
+            }
+        }
+
+        public void GetDesiredVelocity(Vector3 playerDirection, float movementSpeed, float speedScalar, out Vector3 desiredVelocity)
+        {
+            if (forceForwardHeading)
+            {
+                Vector3 forward = GameCameras.s.cameraTransform.forward;
+                forward.y = 0;
+                transform.forward = forward;
+
+                //Include speed scalar from water
+                desiredVelocity = playerDirection * movementSpeed * speedScalar;
+                //Rotate the velocity based on ground
+                desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
+            }
+            else if (playerDirection.sqrMagnitude > 0.1f)
+            {
+                Quaternion walkingAngle = Quaternion.LookRotation(playerDirection);
+
+                //If not forcing heading, rotate towards walking
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * 800);
+
+                if (Quaternion.Angle(transform.rotation, walkingAngle) > 30f)
+                {
+                    //Only allow the player to walk forward if they have finished turning to the direction
+                    //But do allow the player to run at a slight angle
+                    desiredVelocity = Vector3.zero;
+                }
+                else
+                {
+                    //Let the player move in the direction they are pointing
+
+                    //scale required velocity by current speed
+                    //only allow sprinting if the play is moving forward
+
+                    //Include speed scalar from water
+                    desiredVelocity = playerDirection * movementSpeed * speedScalar;
+                    //Rotate the velocity based on ground
+                    desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
+                }
+
+            }
+            else
+            {
+                //No movement
+                desiredVelocity = Vector3.zero;
+            }
+        }
+
+
         public override void FixedUpdate()
         {
             // if (c.onGround == false)
@@ -105,21 +287,37 @@ namespace PlayerController
             //     return;
             // }
 
+
+
+
             if (!inControl) return; //currently being controlled by some other movement coroutine
 
             Vector3 velocity = c.rb.velocity;
             Vector3 playerDirection = c.cameraController.TransformInput(c.input.horizontal);
 
-            grounded = FindGround(out groundCP, out currentGroundNormal, c.allCPs);
+            grounded = FindGround(out groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
             c.animationController.enableFeetIK = grounded;
 
-            if (c.mod.HasFlag(MovementModifiers.Sprinting))
+            if (c.holdingSprintKey)
             {
-                SheathSword();
+                if (!sheathingSword)
+                {
+                    if (!c.weaponGraphicsController.weapon.sheathed)
+                    {
+                        //Will only operate is sword exists
+                        c.StartCoroutine(SheathSword());
+                    }
+                    else
+                    {
+                        walkingType = WalkingType.Sprinting;
+                    }
+                }
+
                 //Will only operate if sidearm exists
                 DeEquipSidearm();
-            }
+            }//If no longer pressing the button return to normal movement
+            else if (sprinting) walkingType = WalkingType.Walking;
 
             //List<ContactPoint> groundCPs = new List<ContactPoint>();
 
@@ -143,60 +341,19 @@ namespace PlayerController
                 }
             }
             float speedScalar = 1;
+
+            //Test for water
+
             if (c.currentWater != null)
             {
-                //Find depth of water
-                //Buffer of two: One for water surface, one for water base
-                RaycastHit[] waterHits = new RaycastHit[2];
-                float heightOffset = 2;
-
-                int hits = Physics.RaycastNonAlloc(
-                    transform.position + new Vector3(0, heightOffset, 0),
-                    Vector3.down, waterHits,
-                    c.maxWaterStrideDepth + heightOffset,
-                    c.m_groundLayerMask | c.m_waterLayerMask,
-                    QueryTriggerInteraction.Collide);
-
-                if (hits == 2)
-                {
-                    WaterController w = waterHits[1].collider.GetComponentInParent<WaterController>();
-                    if (w != null)
-                    {
-                        //Hit water and ground
-                        float depth = waterHits[0].distance - waterHits[1].distance;
-
-                        float scaledDepth = depth / c.maxWaterStrideDepth;
-                        if (scaledDepth > 1)
-                        {
-                            //Start swimming
-                            print("Too deep to walk");
-                            c.ChangeToState<Swimming>();
-                        }
-                        else if (scaledDepth >= 0)
-                        {
-                            //Striding through water
-                            //Slow speed of walk
-                            //Full depth walks at half speed
-                            speedScalar = scaledDepth * 0.5f + 0.5f;
-                        }
-
-                    }
-
-                }
-                else if (hits == 1)
-                {
-
-                    //Start swimming
-                    print("Too deep to walk");
-                    c.ChangeToState<Swimming>();
-                }
+                MoveThroughWater(ref speedScalar);
             }
 
             //c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
-            if (c.mod.HasFlag(MovementModifiers.Crouching))
+            if (c.holdingCrouchKey)
             {
                 c.collider.height = c.crouchingHeight;
-                crouching = true;
+                walkingType = WalkingType.Crouching;
             }
             else if (crouching)
             {
@@ -206,7 +363,7 @@ namespace PlayerController
                 Physics.OverlapCapsuleNonAlloc(p1, p2, c.collider.radius, crouchTestColliders, c.m_groundLayerMask, QueryTriggerInteraction.Ignore);
                 if (crouchTestColliders[1] == null)
                     //There is no collider intersecting other then the player
-                    crouching = false;
+                    walkingType = WalkingType.Walking;
                 else crouchTestColliders[1] = null;
             }
 
@@ -215,51 +372,11 @@ namespace PlayerController
 
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
-            if (forceForwardHeading)
-            {
-                Vector3 forward = GameCameras.s.cameraTransform.forward;
-                forward.y = 0;
-                transform.forward = forward;
-                float speed = WalkingRunningCrouching(c.crouchingSpeed, c.runningSpeed, c.walkingSpeed);
-                //Include speed scalar from water
-                desiredVelocity = playerDirection * speed * speedScalar;
-                //Rotate the velocity based on ground
-                desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
-            }
-            else if (playerDirection.sqrMagnitude > 0.1f)
-            {
-                Quaternion walkingAngle = Quaternion.LookRotation(playerDirection);
+            float currentMovementSpeed = walkingSpeeds[walkingType];
 
-                //If not forcing heading, rotate towards walking
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * 800);
+            GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
 
-                if (Quaternion.Angle(transform.rotation, walkingAngle) > 30f)
-                {
-                    //Only allow the player to walk forward if they have finished turning to the direction
-                    //But do allow the player to run at a slight angle
-                    desiredVelocity = Vector3.zero;
-                }
-                else
-                {
-                    //Let the player move in the direction they are pointing
-
-                    //scale required velocity by current speed
-                    //only allow sprinting if the play is moving forward
-                    float speed = WalkingRunningCrouching(c.crouchingSpeed, c.runningSpeed, c.walkingSpeed);
-                    //Include speed scalar from water
-                    desiredVelocity = playerDirection * speed * speedScalar;
-                    //Rotate the velocity based on ground
-                    desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
-                }
-
-            }
-            else
-            {
-                //No movement
-                desiredVelocity = Vector3.zero;
-            }
-
-            requiredForce = desiredVelocity - c.rb.velocity;
+            Vector3 requiredForce = desiredVelocity - c.rb.velocity;
             requiredForce.y = 0;
 
             requiredForce = Vector3.ClampMagnitude(requiredForce, c.maxAcceleration * Time.fixedDeltaTime);
@@ -279,6 +396,10 @@ namespace PlayerController
             entry.values[3] = grounded;
         }
 
+        public override void OnInteract(InputActionPhase phase)
+        {
+            if (holdingBody && !movingHoldable) PlaceHoldable();
+        }
 
         public void OnItemAdded(ItemName item)
         {
@@ -311,6 +432,7 @@ namespace PlayerController
 
         public void OnSelectItem(ItemType type, int index)
         {
+            Debug.Log($"Selected Item Type {type} #{index}");
             switch (type)
             {
                 case ItemType.Weapon:
@@ -329,15 +451,6 @@ namespace PlayerController
         }
 
 
-        float WalkingRunningCrouching(float crouchingSpeed, float runningSpeed, float walkingSpeed)
-        {
-            if (crouching)
-                return crouchingSpeed;
-            else if (c.mod.HasFlag(MovementModifiers.Sprinting))
-                return runningSpeed;
-            else
-                return walkingSpeed;
-        }
 
         public override void OnSelectWeapon(int index)
         {
@@ -351,16 +464,16 @@ namespace PlayerController
 
         public void SelectMelee(int index)
         {
-            if (InventoryController.singleton.weapon.items.Count > index)
+            if (InventoryController.singleton.weapon.items.Count > index && index != currentMelee)
             {
                 ItemName name = InventoryController.singleton.weapon.ItemAt(index);
-                if (!EnforceType<MeleeWeapon>(c.db[name].properties))
+                if (!EnforceType<MeleeWeaponItemData>(c.db[name]))
                     throw new System.Exception("Melee weapon requires appropriate data");
                 else
                 {
-                    currentWeapon = index;
+                    currentMelee = index;
                     c.weaponGraphicsController.weapon.sheathed = true;
-                    c.weaponGraphicsController.weapon.SetHeld(name, c.db);
+                    c.weaponGraphicsController.weapon.SetHeld(meleeWeapon);
 
                 }
             }
@@ -371,12 +484,12 @@ namespace PlayerController
             if (InventoryController.singleton.sideArm.items.Count > index)
             {
                 if (currentSidearm != -1)
-                    c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
+                    ((SideArmItemData)c.db[InventoryController.singleton.sideArm.items[currentSidearm].name]).OnItemDeEquip(animator);
 
-                c.db[InventoryController.singleton.sideArm.items[index].name].properties.OnItemEquip(animator);
+                ((SideArmItemData)c.db[InventoryController.singleton.sideArm.items[index].name]).OnItemEquip(animator);
 
                 currentSidearm = index;
-                c.weaponGraphicsController.sidearm.SetHeld(InventoryController.singleton.sideArm.items[index].name, c.db);
+                c.weaponGraphicsController.sidearm.SetHeld(c.db[InventoryController.singleton.sideArm.items[index].name] as SideArmItemData);
                 c.weaponGraphicsController.sidearm.sheathed = false;
             }
         }
@@ -387,7 +500,7 @@ namespace PlayerController
             {
                 currentBow = index;
 
-                c.weaponGraphicsController.bow.SetHeld(InventoryController.ItemAt(index, ItemType.Bow), c.db);
+                c.weaponGraphicsController.bow.SetHeld((BowItemData)c.db[InventoryController.ItemAt(index, ItemType.Bow)]);
 
             }
         }
@@ -408,37 +521,41 @@ namespace PlayerController
         {
             if (currentSidearm != -1)
             {
-                c.db[InventoryController.singleton.sideArm.items[currentSidearm].name].properties.OnItemDeEquip(animator);
+                ((SideArmItemData)c.db[InventoryController.singleton.sideArm.items[currentSidearm].name]).OnItemDeEquip(animator);
                 c.weaponGraphicsController.sidearm.sheathed = true;
             }
         }
 
-        bool requestedSwordSwing = false;
-        bool holdingSecondary = false;
-        Coroutine bowChargingRoutine;
-        float bowCharge = 0;
-        float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
 
-        bool swordCanBeUsed = false;
+
+        public void UnEquipAll()
+        {
+            if (!c.weaponGraphicsController.weapon.sheathed)
+            {
+                c.StartCoroutine(SheathSword());
+            }
+        }
 
         public override void OnAttack(InputActionPhase phase)
         {
-            if (weaponSet == WeaponSet.SwordSidearm && phase == InputActionPhase.Started && currentWeapon != -1)
+            if (!inControl) return;
+
+            if (holdingBody) PlaceHoldable();
+
+            if (weaponSet == WeaponSet.SwordSidearm && phase == InputActionPhase.Started && currentMelee != -1)
             {
                 if (inControl)
                 {
                     if (c.weaponGraphicsController.weapon.sheathed == true)
                     {
-                        c.StartCoroutine(UnSheathSword());
+
+
+                        c.StartCoroutine(DrawSword());
                     }
                     else if (swordCanBeUsed)
                     {
                         SwingSword();
                     }
-                }
-                else
-                {
-                    requestedSwordSwing = true;
                 }
             }
             else if (weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
@@ -514,14 +631,14 @@ namespace PlayerController
             c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }
 
-        void FireBow()
+        async void FireBow()
         {
             print("Charged bow to {0}", bowCharge);
             //Fire ammo
             ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
-            GameObject arrow = new GameObject(
-                ammoName.ToString(),
-                typeof(Arrow)); //Arrow automatically adds required components
+            var ammo = (c.db[ammoName] as AmmoItemData);
+            GameObject ammoGO = await ammo.spawnedGameobject.InstantiateAsync(c.arrowSpawn.position, Quaternion.identity).Task;
+            Arrow arrow = ammoGO.AddComponent<Arrow>();
             //Initialize arrow
             arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
 
@@ -535,19 +652,37 @@ namespace PlayerController
                 SelectAmmo(currentAmmo);
             }
         }
-        IEnumerator UnSheathSword()
+        IEnumerator DrawSword()
         {
             animator.SetBool("Holding Sword", true);
-            yield return new WaitForSeconds(0.5f);
+            c.animationController.TriggerTransition(c.transitionSet.drawSword);
+            c.animationController.TriggerTransition(c.transitionSet.swordWalking);
+
+            equippingSword = true;
+
+            if (sprinting)
+            {
+                walkingType = WalkingType.Walking;
+                c.holdingSprintKey = false; //Stop the player from immediately sprinting again
+            }
+            yield return new WaitForSeconds(0.1f);
             c.weaponGraphicsController.weapon.sheathed = false;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
+            equippingSword = false;
             swordCanBeUsed = true;
         }
 
 
-        void SheathSword()
+        IEnumerator SheathSword()
         {
+            c.animationController.TriggerTransition(c.transitionSet.sheathSword);
+            c.animationController.TriggerTransition(c.transitionSet.freeMovement);
+
             animator.SetBool("Holding Sword", false);
+
+            sheathingSword = true;
+            yield return new WaitForSeconds(0.2f);
+            sheathingSword = false;
             c.weaponGraphicsController.weapon.sheathed = true;
             swordCanBeUsed = false;
         }
@@ -559,29 +694,14 @@ namespace PlayerController
             swordCanBeUsed = false;
             //swing the sword
 
-            animator.SetTrigger("Swing Sword");
+            //This is easier. Animation graphs suck
+            c.animationController.TriggerTransition(c.transitionSet.swingSword);
+
 
             MeshCollider collider = null;
             WeaponTrigger trigger = null;
 
-            //Check for triggers from the sword
-            void OnTrigger(Collider other)
-            {
-                if (other.TryGetComponent<Health>(out Health a))
-                {
-                    if (a != c.health)
-                        a.Damage(meleeWeapon.damage, gameObject);
-                }
-                else if (other.TryGetComponent<CuttableTree>(out var tree))
-                {
-                    //TODO - find point of impact exactly
-                    tree.CutTree(collider.bounds.center, transform.position);
-                }
-                else
-                {
-                    other.GetComponentInParent<CuttableTree>()?.CutTree(collider.bounds.center, transform.position);
-                }
-            }
+
 
             void AddTrigger()
             {
@@ -589,7 +709,8 @@ namespace PlayerController
                 collider.convex = true;
                 collider.isTrigger = true;
                 trigger = c.weaponGraphicsController.weapon.gameObject.AddComponent<WeaponTrigger>();
-                trigger.onTriggerEnter = OnTrigger;
+                trigger.weaponItem = meleeWeapon.itemName;
+                trigger.controller = gameObject;
             }
 
             void RemoveTrigger()
@@ -613,7 +734,12 @@ namespace PlayerController
 
         public override void OnAltAttack(InputActionPhase phase)
         {
-            if (inControl && phase == InputActionPhase.Started)
+            if (!inControl) return;
+            if (holdingBody)
+            {
+                ThrowHoldable();
+            }
+            else if (phase == InputActionPhase.Started)
             {
                 //Equip the sidearm if it wasnt
                 if (c.weaponGraphicsController.sidearm.sheathed)
@@ -622,7 +748,7 @@ namespace PlayerController
                 }
                 holdingSecondary = true;
             }
-            else if (inControl && phase == InputActionPhase.Canceled)
+            else if (phase == InputActionPhase.Canceled)
             {
                 holdingSecondary = false;
             }
@@ -633,7 +759,7 @@ namespace PlayerController
         /// \param allCPs List to search
         /// \param groundCP The contact point with the ground
         /// \return If grounded
-        public bool FindGround(out ContactPoint groundCP, out Vector3 groundNormal, List<ContactPoint> allCPs)
+        public bool FindGround(out ContactPoint groundCP, out Vector3 groundNormal, Vector3 playerDirection, List<ContactPoint> allCPs)
         {
             groundCP = default;
 
@@ -652,7 +778,7 @@ namespace PlayerController
                     //Get the most upwards pointing contact point
 
                     //Also get the point that points most in the current direction the player desires to move
-                    float directionDot = Vector3.Dot(cp.normal, desiredVelocity);
+                    float directionDot = Vector3.Dot(cp.normal, playerDirection);
 
 
 
@@ -792,13 +918,13 @@ namespace PlayerController
         {
             animator.SetBool(vars.surfing.id, false);
 
-            float speed = c.input.horizontal.magnitude * (c.mod.HasFlag(MovementModifiers.Sprinting) ? 1.5f : 1);
+            float speed = c.input.horizontal.magnitude * (sprinting ? 1.5f : 1);
 
             animator.SetBool("Idle", speed == 0);
 
-            animator.SetFloat(vars.vertical.id, speed);
+            animator.SetFloat(vars.vertical.id, speed, 0.2f, Time.deltaTime);
             //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
-            animator.SetFloat("WalkingSpeed", speed);
+            animator.SetFloat("WalkingSpeed", 1);
             animator.SetBool("IsGrounded", true);
 
             animator.SetBool("EngagingSecondary", holdingSecondary);
@@ -861,29 +987,25 @@ namespace PlayerController
         // }
 
 
-        public override void OnDrawGizmos()
-        {
-            FindGround(out groundCP, out currentGroundNormal, c.allCPs);
-            for (int i = 0; i < c.allCPs.Count; i++)
-            {
-                //draw positions the ground is touching
-                if (c.allCPs[i].point == groundCP.point)
-                    Gizmos.color = Color.red;
-                else //Change color of cps depending on importance
-                    Gizmos.color = Color.white;
-                Gizmos.DrawWireSphere(c.allCPs[i].point, 0.05f);
-                Gizmos.DrawLine(c.allCPs[i].point, c.allCPs[i].point + c.allCPs[i].normal * 0.1f);
-            }
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, transform.position + desiredVelocity);
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(transform.position, transform.position + requiredForce.normalized);
-            Gizmos.DrawLine(transform.position, transform.position + currentGroundNormal.normalized * 0.5f);
+        // public override void OnDrawGizmos()
+        // {
+        //     FindGround(out groundCP, out currentGroundNormal, c.allCPs);
+        //     for (int i = 0; i < c.allCPs.Count; i++)
+        //     {
+        //         //draw positions the ground is touching
+        //         if (c.allCPs[i].point == groundCP.point)
+        //             Gizmos.color = Color.red;
+        //         else //Change color of cps depending on importance
+        //             Gizmos.color = Color.white;
+        //         Gizmos.DrawWireSphere(c.allCPs[i].point, 0.05f);
+        //         Gizmos.DrawLine(c.allCPs[i].point, c.allCPs[i].point + c.allCPs[i].normal * 0.1f);
+        //     }
+        //     Gizmos.DrawLine(transform.position, transform.position + currentGroundNormal.normalized * 0.5f);
 
-            Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * c.maxStepHeight, Quaternion.identity, new Vector3(1, 0, 1));
-            Gizmos.color = Color.yellow;
-            //draw a place to reprosent max step height
-            Gizmos.DrawWireSphere(Vector3.zero, c.stepSearchOvershoot + 0.25f);
-        }
+        //     Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * c.maxStepHeight, Quaternion.identity, new Vector3(1, 0, 1));
+        //     Gizmos.color = Color.yellow;
+        //     //draw a place to reprosent max step height
+        //     Gizmos.DrawWireSphere(Vector3.zero, c.stepSearchOvershoot + 0.25f);
+        // }
     }
 }

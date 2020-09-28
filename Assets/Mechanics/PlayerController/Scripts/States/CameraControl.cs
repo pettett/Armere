@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
 
-namespace PlayerController
+namespace Armere.PlayerController
 {
     [System.Serializable]
     public class CameraControl : MovementState

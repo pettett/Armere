@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-public class WeaponItemData : PhysicsItemData
+public class WeaponItemData : HoldableItemData
 {
     public float damage;
 

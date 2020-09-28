@@ -15,6 +15,9 @@ public class InteractableButton : MonoBehaviour, IInteractable
     [Range(0, 360)]
     public float requiredLookAngle = 180;
     public float requiredLookDot => Mathf.Cos(requiredLookAngle);
+
+    public string interactionDescription => "Press Button";
+
     public void Interact(IInteractor c)
     {
         isOn = !isOn;

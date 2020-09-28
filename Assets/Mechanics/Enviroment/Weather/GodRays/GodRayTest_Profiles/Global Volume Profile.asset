@@ -1372,7 +1372,7 @@ MonoBehaviour:
     value: 0
   scattering:
     overrideState: 1
-    value: 0.066
+    value: 0.064
   extinction:
     overrideState: 1
     value: 0.1
@@ -1380,8 +1380,8 @@ MonoBehaviour:
     overrideState: 1
     value: 0
   MieG:
-    overrideState: 0
-    value: 0.23
+    overrideState: 1
+    value: 0.999
   noiseScale:
     overrideState: 0
     value: 0.25

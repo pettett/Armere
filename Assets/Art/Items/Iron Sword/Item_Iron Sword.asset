@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Iron Sword
   m_EditorClassIdentifier: 
   itemName: 2
-  itemType: 1
+  type: 1
   displaySprite:
     m_AssetGUID: 7c743814603b02a44826ad1efd7ddf21
     m_SubObjectName: ironswordthumb
@@ -25,4 +25,4 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: 268ceb1e3136cf944a9e57474d522fae
     m_SubObjectName: Short Sword
-  damage: 0
+  damage: 20

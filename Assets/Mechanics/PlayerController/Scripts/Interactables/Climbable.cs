@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using PlayerController;
+using Armere.PlayerController;
 using UnityEngine;
 using System.Linq;
 public class Climbable : MonoBehaviour, IInteractable
@@ -23,6 +23,7 @@ public class Climbable : MonoBehaviour, IInteractable
     public float requiredLookAngle = 180;
     public float requiredLookDot => Mathf.Cos(requiredLookAngle);
 
+    public string interactionDescription => "Climb";
 
     [SerializeField] Vector3[] vertices;
     [SerializeField] Vector3[] normals;

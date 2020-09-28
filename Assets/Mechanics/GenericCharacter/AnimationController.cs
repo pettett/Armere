@@ -20,6 +20,31 @@ readonly struct StringHashes
         this.VelocityZ = Animator.StringToHash(VelocityZ);
     }
 }
+[System.Flags]
+public enum Layers
+{
+    None = 0,
+    Everything = BaseLayer | UpperBody,
+    BaseLayer = 1,
+    UpperBody = 2,
+}
+
+[System.Serializable]
+public struct AnimationTransition
+{
+    public string name;
+    public float duration;
+    public float offset;
+    public Layers layers;
+
+    public AnimationTransition(string name, float duration, float offset, Layers layers)
+    {
+        this.name = name;
+        this.duration = duration;
+        this.offset = offset;
+        this.layers = layers;
+    }
+}
 
 public class AnimationController : MonoBehaviour
 {
@@ -48,7 +73,6 @@ public class AnimationController : MonoBehaviour
     [Header("AC")]
 
     public bool useIK;
-    public bool localPlayer = false;
 
 
     [System.Serializable]
@@ -61,6 +85,20 @@ public class AnimationController : MonoBehaviour
         [Range(0, 1)]
         public float rotationWeight;
     }
+
+    void TriggerTransition(AnimationTransition transition, int layer)
+    {
+        anim.CrossFadeInFixedTime(transition.name, transition.duration, layer, transition.offset);
+    }
+
+    public void TriggerTransition(AnimationTransition transition)
+    {
+        if (transition.layers.HasFlag(Layers.BaseLayer))
+            TriggerTransition(transition, 0);
+        if (transition.layers.HasFlag(Layers.UpperBody))
+            TriggerTransition(transition, 1);
+    }
+
     public HoldPoint[] holdPoints;
 
     Animator anim;
@@ -84,29 +122,12 @@ public class AnimationController : MonoBehaviour
     void Start()
     {
 
-
         anim = GetComponent<Animator>();
-        mesh.SetActive(!localPlayer);
 
         if (useAnimationHook)
         {
             animationHook = GetComponent<IAnimatable>();
             hashes = new StringHashes("VelocityX", "VelocityZ");
-        }
-    }
-
-    bool _thirdPerson;
-    public bool thirdPerson
-    {
-        get
-        {
-            return _thirdPerson;
-        }
-        set
-        {
-            _thirdPerson = value;
-            //only disable the mesh if it is the local player in third person
-            mesh.SetActive(_thirdPerson || !localPlayer);
         }
     }
 

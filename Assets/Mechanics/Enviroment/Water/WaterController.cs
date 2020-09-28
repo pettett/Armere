@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.VFX;
 public class WaterController : MonoBehaviour
 {
     [System.Serializable]
@@ -15,7 +15,11 @@ public class WaterController : MonoBehaviour
 
     public Collider waterVolume;
 
-    public ParticleSystem splashSystem;
+    public float density = 1000f;
+
+    public Bounds bounds => waterVolume.bounds;
+
+    public VisualEffect splashEffect;
 
     static void DrawCross(Vector3 center, float size)
     {
@@ -29,7 +33,7 @@ public class WaterController : MonoBehaviour
     {
         other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
 
-        CreateSplash(other.transform.position);
+        CreateSplash(GetCollisionPosition(other.transform.position));
 
     }
 
@@ -38,20 +42,27 @@ public class WaterController : MonoBehaviour
     {
         other.GetComponent<IWaterObject>()?.OnWaterExit(this);
 
-        CreateSplash(other.transform.position);
+        CreateSplash(GetCollisionPosition(other.transform.position));
     }
-
-    public void CreateSplash(Vector3 otherCenter)
+    public Vector3 GetSurfacePosition(Vector3 inWaterPosition)
+    {
+        return waterVolume.ClosestPoint(inWaterPosition + Vector3.up * 10);
+    }
+    public Vector3 GetCollisionPosition(Vector3 otherCenter)
     {
         Vector3 collisionEstimate = waterVolume.ClosestPoint(otherCenter + Vector3.up);
         // collisionEstimate = other.ClosestPoint(collisionEstimate);
         //  collisionEstimate = waterVolume.ClosestPoint(collisionEstimate);
-        collisionEstimate.y += 0.03f;
-
         DrawCross(collisionEstimate, 0.1f);
+        return collisionEstimate;
+    }
+    public void CreateSplash(Vector3 position, float size = 1)
+    {
+        position.y += 0.03f;
+        splashEffect.transform.position = position;
 
-        splashSystem.transform.position = collisionEstimate;
-        splashSystem.Emit(1);
+        splashEffect.SetFloat("Splash Size", size);
+        splashEffect.SendEvent("Splash");
     }
 
 

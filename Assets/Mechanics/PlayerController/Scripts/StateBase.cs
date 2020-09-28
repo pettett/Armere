@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-namespace PlayerController
+namespace Armere.PlayerController
 {
 
     [Serializable]
@@ -42,13 +42,6 @@ namespace PlayerController
             id = Animator.StringToHash(name);
         }
     }
-    [Flags]
-    public enum MovementModifiers
-    {
-        None = 0,
-        Sprinting = 1,
-        Crouching = 2
-    }
 
     [Serializable]
     public abstract class MovementState : State
@@ -61,10 +54,10 @@ namespace PlayerController
         public GameObject gameObject => c.gameObject;
 
         public Animator animator => c.animator;
-        [NonSerialized] protected Player_CharacterController c;
+        [NonSerialized] protected PlayerController c;
 
 
-        public void Init(Player_CharacterController characterController)
+        public void Init(PlayerController characterController)
         {
             c = characterController;
         }

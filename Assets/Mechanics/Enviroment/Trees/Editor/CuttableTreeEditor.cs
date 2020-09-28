@@ -11,7 +11,6 @@ public class CuttableTreeEditor : Editor
     private void OnEnable()
     {
         var t = (target as CuttableTree);
-        t.FindCylinderTriangles();
     }
 
     void Property(string name)
@@ -38,54 +37,12 @@ public class CuttableTreeEditor : Editor
         Property("meshCollider");
         Property("meshRenderer");
         Property("audioSource");
-        Property("originalMesh");
+        Property("profile");
 
         // GUILayout.Label("Cutting", EditorStyles.boldLabel);
 
-        EditorGUI.BeginChangeCheck();
-        EditorGUI.BeginChangeCheck();
-
-        Property("cutHeight");
-
-        if (EditorGUI.EndChangeCheck())
-            t.FindCenterPoint();
-
-        Property("cutSize");
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            t.FindCylinderTriangles();
-            t.TestForVerticesAboveCut();
-            EditorUtility.SetDirty(t);
-        }
-
-
-
-        Property("cutCenter");
-        Property("mergeFaces");
-        Property("subdivisionScalar");
-        Property("minSubdivisions");
-        Property("maxSubdivisions");
-        Property("intensityCutoff");
-
-        Property("minSeveredIntensity");
-        Property("bevelProfile");
-        Property("bevelDistribution");
         Property("activeCutVectors");
-        Property("gizmos");
-        Property("damageToCut");
 
-        Property("logDensity");
-        Property("logEstimateHeight");
-        Property("logEstimateRadius");
-        Property("logKnockingForce");
-
-        Property("logMaterial");
-        Property("crosssectionMaterial");
-
-        Property("crossSectionScale");
-
-        Property("impactClips");
 
         testCutMode = (CuttableTree.TriangleCutMode)EditorGUILayout.EnumPopup("Test Cut Mode", testCutMode);
 
@@ -127,8 +84,8 @@ public class CuttableTreeEditor : Editor
 
         GUI.enabled = false;
 
-        EditorGUILayout.IntField("Additional Vertices:", t.meshFilter.sharedMesh.vertexCount - t.originalMesh.vertexCount);
-        EditorGUILayout.FloatField("Log Mass:", t.LogMass);
+        EditorGUILayout.IntField("Additional Vertices:", t.meshFilter.sharedMesh.vertexCount - t.profile.treeMesh.mesh.vertexCount);
+        EditorGUILayout.FloatField("Log Mass:", t.profile.LogMass);
     }
     const int lineGap = 10;
     const int boldLineStep = 5;
@@ -236,38 +193,40 @@ public class CuttableTreeEditor : Editor
     {
         var t = this.target as CuttableTree;
         Handles.color = Color.red;
-        Handles.DrawWireDisc(t.transform.position + (t.transform.up * t.cutHeight), t.transform.up, t.logEstimateRadius);
-        Handles.DrawWireDisc(t.transform.position + (t.transform.up * (t.cutHeight + t.logEstimateHeight)), t.transform.up, t.logEstimateRadius);
+        Handles.DrawWireDisc(t.transform.position + (t.transform.up * t.profile.cutHeight), t.transform.up, t.profile.logEstimateRadius);
+        Handles.DrawWireDisc(t.transform.position + (t.transform.up * (t.profile.cutHeight + t.profile.logEstimateHeight)), t.transform.up, t.profile.logEstimateRadius);
         Handles.DrawLine(
-            t.transform.position + (t.transform.up * t.cutHeight) + t.transform.forward * t.logEstimateRadius,
-            t.transform.position + (t.transform.up * (t.cutHeight + t.logEstimateHeight) + t.transform.forward * t.logEstimateRadius)
+            t.transform.position + (t.transform.up * t.profile.cutHeight) + t.transform.forward * t.profile.logEstimateRadius,
+            t.transform.position + (t.transform.up * (t.profile.cutHeight + t.profile.logEstimateHeight) + t.transform.forward * t.profile.logEstimateRadius)
         );
         Handles.DrawLine(
-            t.transform.position + (t.transform.up * t.cutHeight) - t.transform.forward * t.logEstimateRadius,
-            t.transform.position + (t.transform.up * (t.cutHeight + t.logEstimateHeight) - t.transform.forward * t.logEstimateRadius)
+            t.transform.position + (t.transform.up * t.profile.cutHeight) - t.transform.forward * t.profile.logEstimateRadius,
+            t.transform.position + (t.transform.up * (t.profile.cutHeight + t.profile.logEstimateHeight) - t.transform.forward * t.profile.logEstimateRadius)
         );
         Handles.DrawLine(
-            t.transform.position + (t.transform.up * t.cutHeight) + t.transform.right * t.logEstimateRadius,
-            t.transform.position + (t.transform.up * (t.cutHeight + t.logEstimateHeight) + t.transform.right * t.logEstimateRadius)
+            t.transform.position + (t.transform.up * t.profile.cutHeight) + t.transform.right * t.profile.logEstimateRadius,
+            t.transform.position + (t.transform.up * (t.profile.cutHeight + t.profile.logEstimateHeight) + t.transform.right * t.profile.logEstimateRadius)
         );
         Handles.DrawLine(
-            t.transform.position + (t.transform.up * t.cutHeight) - t.transform.right * t.logEstimateRadius,
-            t.transform.position + (t.transform.up * (t.cutHeight + t.logEstimateHeight) - t.transform.right * t.logEstimateRadius)
+            t.transform.position + (t.transform.up * t.profile.cutHeight) - t.transform.right * t.profile.logEstimateRadius,
+            t.transform.position + (t.transform.up * (t.profile.cutHeight + t.profile.logEstimateHeight) - t.transform.right * t.profile.logEstimateRadius)
         );
 
         Handles.color = Color.green;
-        Vector3[] verts = t.originalMesh.vertices;
+        Vector3[] verts = t.profile.treeMesh.mesh.vertices;
 
         //Draw triangle cylinder
-        for (int i = 0; i < t.cylinderTriangles.Length; i++)
+        for (int i = 0; i < t.profile.treeMesh.cutCylinder.Length; i++)
         {
             Handles.DrawLine(
-                t.transform.position + verts[t.cylinderTriangles[i].b],
-                t.transform.position + verts[t.cylinderTriangles[i].c]
+                t.transform.position + verts[t.profile.treeMesh.cutCylinder[i].b],
+                t.transform.position + verts[t.profile.treeMesh.cutCylinder[i].c]
             );
 
         }
     }
+
+
 
 }
 

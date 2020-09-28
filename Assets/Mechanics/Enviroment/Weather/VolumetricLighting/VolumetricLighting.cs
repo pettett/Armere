@@ -63,13 +63,13 @@ public sealed class VolumetricLightingRenderer : PostProcessEffectRenderer<Volum
         int sampleHeight = context.screenHeight / settings.textureDownscale;
 
         context.command.GetTemporaryRT(_sampleMapID, sampleWidth, sampleHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-
+        //Draw the god rays onto the sample texture
         context.command.BlitFullscreenTriangle(context.source, _sampleMapID, volumetricSheet, 0);
 
         context.command.SetGlobalTexture("_SampleMap", _sampleMapID);
         //Set color of main light
         additiveSheet.properties.SetColor("_RayColor", RenderSettings.sun.color);
-
+        //Add samples to the final image with upscaling
         context.command.BlitFullscreenTriangle(context.source, context.destination, additiveSheet, 0);
 
         context.command.ReleaseTemporaryRT(_sampleMapID);

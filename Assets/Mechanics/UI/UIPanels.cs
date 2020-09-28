@@ -10,7 +10,7 @@ public class UIPanels : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
     public RectTransform currentPanelDisplay;
-    int openPanel;
+    public int openPanel;
     private void Start()
     {
         leftButton.onClick.AddListener(Left);

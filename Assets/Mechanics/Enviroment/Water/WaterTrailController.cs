@@ -18,6 +18,7 @@ public class WaterTrailController : MonoBehaviour
         stopEventID = Shader.PropertyToID("EndTrail");
         startEventID = Shader.PropertyToID("StartTrail");
     }
+
     [MyBox.ButtonMethod]
     public void StartTrail()
     {
@@ -27,6 +28,15 @@ public class WaterTrailController : MonoBehaviour
     public void StopTrail()
     {
         waterTrail?.SendEvent(stopEventID);
+    }
+    public void DestroyOnFinish()
+    {
+        StartCoroutine(DestroyWhenDone());
+    }
+    IEnumerator DestroyWhenDone()
+    {
+        yield return new WaitUntil(() => waterTrail.aliveParticleCount == 0);
+        Destroy(gameObject);
     }
 
 }

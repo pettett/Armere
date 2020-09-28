@@ -113,7 +113,8 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
 
 
-       #define NUM_SAMPLES 32
+
+       #define PIXEL_SAMPLES 32 
 
 		float MieScattering(float cosAngle, float4 g)
 		{
@@ -139,18 +140,21 @@ Shader "Hidden/Custom/VolumetricPostProcess"
             //return float4(rayDir* 0.5f + 0.5f,1); //DEBUG - show world space directions
 
 
-            float rayLength = LinearEyeDepth(depth,_ZBufferParams);
+            const float rayLength = LinearEyeDepth(depth,_ZBufferParams);
 
             Light light = GetMainLight();
 
             float total = 0;
             float extinction = 0;
 
-            float recipricleSamples = rcp(NUM_SAMPLES);
-            float cosAngle = dot(light.direction.xyz, -rayDir);
 
+            //float cosAngle = dot(light.direction.xyz, -rayDir);
 
-            [loop] for (uint index = 0; index < NUM_SAMPLES; index++){
+  
+
+            const float recipricleSamples = rcp(PIXEL_SAMPLES); //Used for adding distance along ray
+
+            [loop] for (uint index = 0; index < PIXEL_SAMPLES; index++){
                 float distance = saturate(index * recipricleSamples) * rayLength;
 
                 float3 samplePosWS = rayOrigin + rayDir * distance;
@@ -170,7 +174,7 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
             total = lerp(total,0,_VolumetricLight.w * (depth < 0.0001));
 
-            total *= MieScattering(cosAngle, _MieG);
+            //total *= MieScattering(abs( cosAngle), _MieG);
             return total;
 
 

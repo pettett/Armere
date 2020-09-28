@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Basic Bow
   m_EditorClassIdentifier: 
   itemName: 9
-  itemType: 2
+  type: 2
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
     m_SubObjectName: 

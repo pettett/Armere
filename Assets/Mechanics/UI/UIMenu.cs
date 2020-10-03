@@ -4,12 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 public class UIMenu : MonoBehaviour
 {
+    //All the buttons that can be used to move up
     [System.Serializable]
     public class UpwardNavigationButton
     {
         public Button button;
         public UIMenu menu;
     }
+    //All the elements that will be disabled when the upwards menu is activated
     public Selectable[] menuElements;
     public UpwardNavigationButton[] upwardNavigationButtons;
     public Button backButton;

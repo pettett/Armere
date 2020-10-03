@@ -18,11 +18,11 @@ public static class LevelController
         onLevelLoaded = onLevelLoadedEvent;
         LoadLevelAsync(level);
     }
-    async static Task LoadLevelAsync(LevelName level)
+    async static void LoadLevelAsync(LevelName level)
     {
         AsyncOperation a = SceneManager.LoadSceneAsync(level.ToString());
         SceneManager.sceneLoaded += OnSceneLoaded;
-
+        //Take the oppertunity to 
         System.GC.Collect();
         while (a.progress < 1)
         {

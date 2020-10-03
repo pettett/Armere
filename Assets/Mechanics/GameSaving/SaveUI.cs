@@ -1,46 +1,45 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
 using UnityEngine.UI;
+using TMPro;
+using System.Threading.Tasks;
+
 public class SaveUI : UIMenu
 {
-    public RectTransform savesMenu;
-    public GameObject saveDispayPrefab;
-
-    public Button loadButton;
-
-
+    public Button confirm;
+    public TextMeshProUGUI text;
+    public string saveText = "Are you sure you would like to save?";
+    public string savingText = "Saving...";
+    public string savedText = "Saved";
     protected override void Start()
     {
+        confirm.onClick.AddListener(OnConfirm);
         base.Start();
-        //Add listeners
-        loadButton.onClick.AddListener(OnLoad);
     }
-    public override void CloseMenu()
-    {
-        for (int i = 0; i < savesMenu.childCount; i++)
-        {
-            Destroy(savesMenu.GetChild(i).gameObject);
-        }
-        base.CloseMenu();
-    }
-    public void OnLoad()
-    {
 
-    }
     public override void OpenMenu()
     {
         base.OpenMenu();
-        string rootDir = Application.persistentDataPath + "/saves/save1";
-        if (Directory.Exists(rootDir))
-        {
-            string[] dirs = Directory.GetDirectories(rootDir);
-            for (int i = dirs.Length - 1; i >= 0; i--)
-            {
-                Instantiate(saveDispayPrefab, savesMenu).GetComponent<SaveDisplayUI>().Init(dirs[i]);
-            }
-        }
+        backButton.gameObject.SetActive(true);
+        confirm.gameObject.SetActive(true);
+        text.text = saveText;
     }
+
+    async void OnConfirm()
+    {
+        backButton.gameObject.SetActive(false);
+        confirm.gameObject.SetActive(false);
+        text.text = savingText;
+
+        await SaveManager.singleton.SaveGameStateAsync();
+
+        text.text = savedText;
+        await Task.Delay(100);
+        CloseMenu();
+    }
+
+
+
 
 }

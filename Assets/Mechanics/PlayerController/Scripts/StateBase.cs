@@ -76,7 +76,7 @@ namespace Armere.PlayerController
         public virtual void OnTriggerEnter(Collider other) { }
         public virtual void OnTriggerExit(Collider other) { }
         public virtual void OnGroundedChange() { }
-        public virtual void OnSelectWeapon(int index) { }
+        public virtual void OnSelectWeapon(int index, InputActionPhase phase) { }
         public virtual void OnCustomAction(InputAction.CallbackContext action) { }
         protected void print(string format, params object[] args) => Debug.LogFormat(format, args);
     }

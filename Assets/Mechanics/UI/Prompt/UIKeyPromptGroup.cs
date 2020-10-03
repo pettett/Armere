@@ -40,6 +40,9 @@ public class UIKeyPromptGroup : MonoBehaviour
     [Reorderable(paginate = false)]
     public KeyBindSpritesArray keybindSpritesOrder;
     public static UIKeyPromptGroup singleton;
+
+
+
     private void Start()
     {
         //ShowPrompts(player, "Ground Action Map", starts);

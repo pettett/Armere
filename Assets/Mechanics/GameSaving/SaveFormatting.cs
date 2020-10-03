@@ -1,7 +1,8 @@
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using UnityEngine;
-public static class SaveFormatting{
+public static class SaveFormatting
+{
 
 
     sealed class Vector3SerializationSurrogate : ISerializationSurrogate
@@ -94,7 +95,7 @@ public static class SaveFormatting{
 
 
 
-    public  static IFormatter SetupFormatter()
+    public static IFormatter SetupFormatter()
     {
         // 1. Construct a SurrogateSelector object
         SurrogateSelector ss = new SurrogateSelector();
@@ -112,7 +113,8 @@ public static class SaveFormatting{
                         new StreamingContext(StreamingContextStates.All),
                         qss);
 
-        IFormatter f = new BinaryFormatter();
+        BinaryFormatter f = new BinaryFormatter();
+
         // 2. Have the formatter use our surrogate selector
         f.SurrogateSelector = ss;
         return f;

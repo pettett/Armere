@@ -6,7 +6,8 @@
         "Game.Structure",
         "Inventory",
         "Unity.Addressables",
-        "Unity.ResourceManager"
+        "Unity.ResourceManager",
+        "Game.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

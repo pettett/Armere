@@ -15,6 +15,11 @@ public class UIController : MonoBehaviour
 
     public Image fadeoutImage;
     public TextMeshProUGUI fadeoutText;
+    public GameObject scrollingSelector;
+    public GameObject selectedMeleeDisplay;
+    public GameObject selectedSidearmDisplay;
+    public GameObject selectedBowDisplay;
+    public GameObject selectedAmmoDisplay;
 
     private void Awake()
     {

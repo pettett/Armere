@@ -29,8 +29,7 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
     {
         var go = Instantiate(template, itemGridPanel.GetChild(1));
 
-
-        InventoryUIItem item = go.GetComponent<InventoryUIItem>();
+        SelectableInventoryItemUI item = go.GetComponent<SelectableInventoryItemUI>();
 
         switch (panel[index])
         {
@@ -38,23 +37,20 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
                 item.countText.text = stack.count == 1 ? "" : stack.count.ToString();
                 break;
             default:
-                Destroy(item.countText);
+                if (item.countText != null)
+                    Destroy(item.countText);
                 break;
         }
 
-
-        item.SetupItem(db[panel[index].name]);
-
         item.onSelect += () => OnItemSelected(panel[index].name);
-
+        item.type = db[panel[index].name].type;
         item.inventoryUI = this;
         // if (!sellMenu)
         //     item.optionDelegates = panel.options;
         // else
         //     item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
 
-        item.itemIndex = index;
-
+        item.ChangeItemIndex(index);
     }
 
     public void OnPointerClick(PointerEventData eventData)

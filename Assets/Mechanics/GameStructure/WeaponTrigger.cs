@@ -12,7 +12,6 @@ public class WeaponTrigger : MonoBehaviour
     public GameObject controller;
     private void OnTriggerEnter(Collider other)
     {
-        print(other.gameObject.name);
 
         if (other.gameObject != controller.gameObject && other.TryGetComponent<IAttackable>(out var attackable))
         {

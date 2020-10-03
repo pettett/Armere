@@ -312,9 +312,11 @@ namespace Armere.PlayerController
 
         public void OnActionTriggered(InputAction.CallbackContext action)
         {
+
             //Convert nullable bool into bool - defaults to true
             if (onPlayerInput?.Invoke(action) ?? true)
             {
+
                 string actionName = action.action.name;
 
                 switch (actionName)
@@ -448,10 +450,8 @@ namespace Armere.PlayerController
         private void OnSelectWeapon(int index, InputActionPhase phase)
         {
             //print(String.Format("Switched to weapon {0}", index));
-            if (phase == InputActionPhase.Started)
-                for (int i = 0; i < allStates.Length; i++)
-                    if (StateActive(i))
-                        allStates[i].OnSelectWeapon(index);
+            for (int i = 0; i < allStates.Length; i++)
+                allStates[i].OnSelectWeapon(index, phase);
         }
 
 

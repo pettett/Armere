@@ -86,7 +86,7 @@ public class AnimationController : MonoBehaviour
         public float rotationWeight;
     }
 
-    void TriggerTransition(AnimationTransition transition, int layer)
+    void TriggerTransition(in AnimationTransition transition, int layer)
     {
         anim.CrossFadeInFixedTime(transition.name, transition.duration, layer, transition.offset);
     }
@@ -178,9 +178,9 @@ public class AnimationController : MonoBehaviour
 
             anim.SetLookAtWeight(lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight);
             anim.SetLookAtPosition(lookAtPosition);
-
         }
     }
+
     private void Update()
     {
         if (useAnimationHook)

@@ -30,7 +30,7 @@ public class WeaponGraphicsController : MonoBehaviour
     {
         public HoldPoint holdPoint;
         public HoldPoint sheathedPoint;
-        public bool sheathed;
+        public bool sheathed = true;
         [HideInInspector] public GameObject gameObject;
 
         public void Init(Animator a)

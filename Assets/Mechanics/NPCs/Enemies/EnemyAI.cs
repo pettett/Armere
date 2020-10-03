@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 [RequireComponent(typeof(Health))]
 public class EnemyAI : AIBase
 {
@@ -38,13 +37,6 @@ public class EnemyAI : AIBase
     float sqrApproachDistance => approachDistance * approachDistance;
     public bool approachPlayer = true;
 
-    [Header("UI")]
-
-    public Image alertImage;
-    public Image investigateImage;
-    public Image investigateProgressImage;
-
-
     Coroutine currentRoutine;
     bool investigateOnSight = false;
     bool engageOnAttack = true;
@@ -53,12 +45,15 @@ public class EnemyAI : AIBase
     AnimationController animationController;
     Matrix4x4 viewMatrix;
     Plane[] viewPlanes = new Plane[6];
+    [Header("Indicators")]
+    public float height = 1.8f;
+    AlertIndicatorUI alert;
 
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
         if (engageOnAttack)
-            ChangeRoutine(EngagePlayer());
+            ChangeRoutine(Alert());
     }
 
 
@@ -114,9 +109,7 @@ public class EnemyAI : AIBase
 
     void StartBaseRoutine()
     {
-        alertImage.gameObject.SetActive(false);
-        investigateImage.gameObject.SetActive(false);
-        investigateProgressImage.gameObject.SetActive(false);
+        if (alert != null) Destroy(alert.gameObject);
 
         if (enemyBehaviour == EnemyBehaviour.Patrol)
         {
@@ -145,15 +138,15 @@ public class EnemyAI : AIBase
         //Do not re-enter investigate
         investigateOnSight = false;
         engageOnAttack = true;
-        alertImage.gameObject.SetActive(false);
-        investigateImage.gameObject.SetActive(true);
-        investigateProgressImage.gameObject.SetActive(true);
+        alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
+        alert.EnableInvestigate(true);
+        alert.EnableAlert(false);
 
         float investProgress = 0;
         //Try to look at the player long enough to alert
         while (true)
         {
-            investigateProgressImage.fillAmount = investProgress;
+            alert.SetInvestigation(investProgress);
             if (CanSeeBounds(playerCollider.bounds))
             {
 
@@ -185,12 +178,14 @@ public class EnemyAI : AIBase
     }
     IEnumerator Alert()
     {
-        investigateImage.gameObject.SetActive(false);
-        investigateProgressImage.gameObject.SetActive(false);
-        alertImage.gameObject.SetActive(true);
+        //If alert is null create one
+        alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
+
+        alert.EnableInvestigate(false);
+        alert.EnableAlert(true);
         yield return new WaitForSeconds(1);
         print("Alerted");
-        alertImage.gameObject.SetActive(false);
+        Destroy(alert.gameObject);
         ChangeRoutine(EngagePlayer());
     }
 

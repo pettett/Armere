@@ -19,12 +19,15 @@ public class Health : MonoBehaviour, IAttackable
     public bool dead { get; private set; }
 
 
-    public delegate void EventDelegate(GameObject attacker, GameObject victim);
+    public delegate void HealthEvent(GameObject attacker, GameObject victim);
 
-    public event EventDelegate onDeath;
+    public delegate void ShieldDamage(ref float damage, GameObject attacker, GameObject victim);
+
+    public event HealthEvent onDeath;
+    public event ShieldDamage TryShieldDamage;
     public UnityEvent onDeathEvent;
 
-    public event EventDelegate onTakeDamage;
+    public event HealthEvent onTakeDamage;
 
     /// <summary>
     /// Start is called on the frame when a script is enabled just before
@@ -46,6 +49,8 @@ public class Health : MonoBehaviour, IAttackable
 
         if (dead)
             return;
+
+        TryShieldDamage?.Invoke(ref amount, origin, gameObject);
 
         _health -= amount;
         _health = Mathf.Clamp(_health, 0, maxHealth);
@@ -70,8 +75,8 @@ public class Health : MonoBehaviour, IAttackable
 
     void UpdateUI()
     {
-        //if (useUI)
-        //ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
+        if (useUI)
+            ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
     }
 
     public void Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)

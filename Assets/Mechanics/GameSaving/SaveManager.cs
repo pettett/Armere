@@ -7,8 +7,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Linq;
-
-
+using System.Threading.Tasks;
+using UnityEngine.Profiling;
 
 public class SaveManager : MonoBehaviour
 {
@@ -145,23 +145,38 @@ public class SaveManager : MonoBehaviour
         currentSaveState = new SaveState();
     }
 
-
+    public void OnQuicksave(InputAction.CallbackContext c)
+    {
+        SaveGameStateAsync();
+    }
 
     public void LoadSave(string dir)
     {
         IFormatter formatter = SaveFormatting.SetupFormatter();
-        using (Stream saveInfoStream = new FileStream(dir + save, FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (FileStream saveInfoStream = new FileStream(dir + save, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
             currentSaveState = (SaveState)formatter.Deserialize(saveInfoStream);
         }
         currentSaveState.RestoreGameState();
     }
 
-
-    public void OnQuicksave(InputAction.CallbackContext c)
+    public async void LoadSaveAsync(string dir)
     {
-        UnityEngine.Profiling.Profiler.BeginSample("Quicksaving");
+        IFormatter formatter = SaveFormatting.SetupFormatter();
+        using (FileStream saveInfoStream = new FileStream(dir + save, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            using (MemoryStream saveInMemory = new MemoryStream())
+            {
+                await saveInfoStream.CopyToAsync(saveInMemory);
+                currentSaveState = (SaveState)formatter.Deserialize(saveInMemory);
+            }
+        }
+        currentSaveState.RestoreGameState();
+    }
 
+
+    public async Task SaveGameStateAsync()
+    {
 
         //dont allow saving more then once every 5 seconds
         if (lastSave > Time.time - 5)
@@ -171,35 +186,44 @@ public class SaveManager : MonoBehaviour
         //setup directory
         string dir = SaveDirectory;
         System.IO.Directory.CreateDirectory(dir);
-        Debug.LogFormat("Quick saving to {0}", dir);
+        //Debug.LogFormat("Quick saving to {0}", dir);
 
         lastSaveDir = dir;
 
 
-        Stream stream;
         IFormatter formatter = SaveFormatting.SetupFormatter();
 
         //TODO - do this automatically
         currentSaveState.GatherSaveData();
 
-        using (stream = new FileStream(dir + save, FileMode.Create, FileAccess.Write, FileShare.None))
+
+        using (MemoryStream memoryStream = new MemoryStream())
         {
             //Current save state is updated during the game, so it can be stored raw
-            formatter.Serialize(stream, currentSaveState);
+            formatter.Serialize(memoryStream, currentSaveState);
+            using (Stream stream = new FileStream(dir + save, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                //Copy into storage in the background
+                await memoryStream.CopyToAsync(stream);
+            }
         }
-
 
         SaveInfo info = new SaveInfo(ScreenshotCapture.CaptureScreenshot(128, 128));
 
         info.saveTime = System.DateTime.Now;
 
 
-        using (stream = new FileStream(dir + metaSave, FileMode.Create, FileAccess.Write, FileShare.None))
+        using (MemoryStream memoryStream = new MemoryStream())
         {
-            formatter.Serialize(stream, info);
+            formatter.Serialize(memoryStream, info);
+            using (Stream stream = new FileStream(dir + metaSave, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                //Copy into storage in the background
+                await memoryStream.CopyToAsync(stream);
+            }
         }
 
-        UnityEngine.Profiling.Profiler.EndSample();
     }
+
 
 }

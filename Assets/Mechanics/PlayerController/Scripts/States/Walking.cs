@@ -11,6 +11,9 @@ namespace Armere.PlayerController
         RequiresParallelState(typeof(ToggleMenus)),
         RequiresParallelState(typeof(Interact))
     ]
+
+
+
     public class Walking : MovementState
     {
         public override string StateName => "Walking";
@@ -48,14 +51,14 @@ namespace Armere.PlayerController
 
 
 
-        MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.weapon.items[currentMelee].name] as MeleeWeaponItemData;
-        public int currentMelee => selections[ItemType.Weapon];
+        MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.melee.items[currentMelee].name] as MeleeWeaponItemData;
+        public int currentMelee => selections[ItemType.Melee];
         public int currentBow => selections[ItemType.Bow];
         public int currentAmmo => selections[ItemType.Ammo];
         public int currentSidearm => selections[ItemType.SideArm];
 
-        public Dictionary<ItemType, int> selections = new Dictionary<ItemType, int>{
-            {ItemType.Weapon,-1},
+        public Dictionary<ItemType, int> selections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
+            {ItemType.Melee,-1},
             {ItemType.Bow,-1},
             {ItemType.Ammo,-1},
             {ItemType.SideArm,-1},
@@ -74,11 +77,9 @@ namespace Armere.PlayerController
         float bowCharge = 0;
         float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
 
-        bool swordCanBeUsed = false;
-        bool equippingSword = false;
-        bool sheathingSword = false;
-
-
+        EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
+        EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
+        EquipmentSet<bool> usable = new EquipmentSet<bool>(false, false, false);
 
         public override void Start()
         {
@@ -103,7 +104,7 @@ namespace Armere.PlayerController
             InventoryController.singleton.onItemAdded += OnItemAdded;
 
 
-            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) selections[ItemType.Weapon] = (int)o1;
+            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) selections[ItemType.Melee] = (int)o1;
             if (c.persistentStateData.TryGetValue("currentBow", out object o2)) selections[ItemType.Bow] = (int)o2;
             if (c.persistentStateData.TryGetValue("currentAmmo", out object o3)) selections[ItemType.Ammo] = (int)o3;
             if (c.persistentStateData.TryGetValue("currentSidearm", out object o4)) selections[ItemType.SideArm] = (int)o4;
@@ -163,9 +164,17 @@ namespace Armere.PlayerController
             Vector3 direction = transform.position - attacker.transform.position;
             direction.y = 0;
             float dot = Vector3.Dot(direction, transform.forward);
+
             if (dot < 0)
             {
-                c.animationController.TriggerTransition(c.transitionSet.swordFrontImpact);
+                if (c.db[InventoryController.singleton.sideArm[currentSidearm].name] is ShieldItemData)
+                {
+                    c.animationController.TriggerTransition(c.transitionSet.shieldImpact);
+                }
+                else
+                {
+                    c.animationController.TriggerTransition(c.transitionSet.swordFrontImpact);
+                }
             }
             else
             {
@@ -242,7 +251,7 @@ namespace Armere.PlayerController
                         //Striding through water
                         //Slow speed of walk
                         //Full depth walks at half speed
-                        speedScalar = scaledDepth * 0.5f + 0.5f;
+                        speedScalar = (1 - scaledDepth) * c.maxStridingDepthSpeedScalar + (1 - c.maxStridingDepthSpeedScalar);
                     }
 
                 }
@@ -327,7 +336,7 @@ namespace Armere.PlayerController
 
             if (c.holdingSprintKey)
             {
-                if (!sheathingSword)
+                if (!sheathing[ItemType.Melee])
                 {
                     if (!c.weaponGraphicsController.weapon.sheathed)
                     {
@@ -457,22 +466,52 @@ namespace Armere.PlayerController
 
         public void OnSelectItem(ItemType type, int index)
         {
-            Debug.Log($"Selected Item Type {type} #{index}");
-            switch (type)
+            Debug.Log($"Selected Item Type {type} - {index}");
+
+            if (InventoryController.singleton.GetPanelFor(type).stackCount > index && index != selections[type])
             {
-                case ItemType.Weapon:
-                    SelectMelee(index);
-                    break;
-                case ItemType.SideArm:
-                    SelectSidearm(index);
-                    break;
-                case ItemType.Bow:
-                    SelectBow(index);
-                    break;
-                case ItemType.Ammo:
-                    SelectAmmo(index);
-                    break;
+                //Draw or Sheath the selected type
+
+                //If the user wishes to deselect this type:
+                if (index == -1)
+                {
+                    selections[type] = -1;
+                    c.weaponGraphicsController.weapon.RemoveHeld();
+                    //Do not trigger over time - remove immediately
+                    c.StartCoroutine(SheathSword());
+                }
+                else
+                {
+                    ItemName name = InventoryController.singleton.melee.ItemAt(index);
+                    if (c.db[name] is HoldableItemData holdableItemData)
+                    {
+                        selections[type] = index;
+                        c.weaponGraphicsController.holdables[type].sheathed = true;
+                        c.weaponGraphicsController.holdables[type].SetHeld(holdableItemData);
+                    }
+                }
+
+                SelectedItemDisplayForType(type).ChangeItemIndex(currentMelee);
+
             }
+
+
+
+            // switch (type)
+            // {
+            //     case ItemType.Weapon:
+            //         SelectMelee(index);
+            //         break;
+            //     case ItemType.SideArm:
+            //         SelectSidearm(index);
+            //         break;
+            //     case ItemType.Bow:
+            //         SelectBow(index);
+            //         break;
+            //     case ItemType.Ammo:
+            //         SelectAmmo(index);
+            //         break;
+            // }
         }
 
         //In this case, common means no value
@@ -481,13 +520,26 @@ namespace Armere.PlayerController
         {
             switch (id)
             {
-                case 0: return ItemType.Weapon;
+                case 0: return ItemType.Melee;
                 case 1: return ItemType.SideArm;
                 case 2: return ItemType.Bow;
                 case 3: return ItemType.Ammo;
                 default: return ItemType.Common;
             }
         }
+        InventoryItemUI SelectedItemDisplayForType(ItemType t)
+        {
+            switch (t)
+            {
+                case ItemType.Melee: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.SideArm: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.Bow: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.Ammo: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
+                default: return null;
+            }
+        }
+
+
         public override void OnSelectWeapon(int index, InputActionPhase phase)
         {
             if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common)
@@ -517,8 +569,9 @@ namespace Armere.PlayerController
                 inControl = true;
                 c.Play();
             }
-
         }
+
+
 
         public static bool EnforceType<T>(object o) => o != null && o is T;
 
@@ -527,24 +580,24 @@ namespace Armere.PlayerController
         public void SelectMelee(int index)
         {
 
-            if (InventoryController.singleton.weapon.items.Count > index && index != currentMelee)
+            if (InventoryController.singleton.melee.items.Count > index && index != currentMelee)
             {
                 //If the user wishes to deselect sword:
                 if (index == -1)
                 {
-                    selections[ItemType.Weapon] = -1;
+                    selections[ItemType.Melee] = -1;
                     c.weaponGraphicsController.weapon.RemoveHeld();
                     //Do not trigger over time - remove immediately
                     c.StartCoroutine(SheathSword());
                 }
                 else
                 {
-                    ItemName name = InventoryController.singleton.weapon.ItemAt(index);
+                    ItemName name = InventoryController.singleton.melee.ItemAt(index);
                     if (!EnforceType<MeleeWeaponItemData>(c.db[name]))
                         throw new System.Exception("Melee weapon requires appropriate data");
                     else
                     {
-                        selections[ItemType.Weapon] = index;
+                        selections[ItemType.Melee] = index;
                         c.weaponGraphicsController.weapon.sheathed = true;
                         c.weaponGraphicsController.weapon.SetHeld(meleeWeapon);
                     }
@@ -642,7 +695,7 @@ namespace Armere.PlayerController
 
                         c.StartCoroutine(DrawSword());
                     }
-                    else if (swordCanBeUsed)
+                    else if (usable[ItemType.Melee])
                     {
                         SwingSword();
                     }
@@ -742,13 +795,15 @@ namespace Armere.PlayerController
                 SelectAmmo(currentAmmo);
             }
         }
+
+
         IEnumerator DrawSword()
         {
             animator.SetBool("Holding Sword", true);
             c.animationController.TriggerTransition(c.transitionSet.drawSword);
             c.animationController.TriggerTransition(c.transitionSet.swordWalking);
 
-            equippingSword = true;
+            equipping[ItemType.Melee] = true;
 
             if (sprinting)
             {
@@ -758,8 +813,8 @@ namespace Armere.PlayerController
             yield return new WaitForSeconds(0.1f);
             c.weaponGraphicsController.weapon.sheathed = false;
             yield return new WaitForSeconds(0.1f);
-            equippingSword = false;
-            swordCanBeUsed = true;
+            equipping[ItemType.Melee] = false;
+            usable[ItemType.Melee] = true;
         }
 
 
@@ -767,21 +822,22 @@ namespace Armere.PlayerController
         {
             c.animationController.TriggerTransition(c.transitionSet.sheathSword);
             c.animationController.TriggerTransition(c.transitionSet.freeMovement);
-
             animator.SetBool("Holding Sword", false);
 
-            sheathingSword = true;
+            sheathing[ItemType.Melee] = true;
+
             yield return new WaitForSeconds(0.2f);
-            sheathingSword = false;
+
+            sheathing[ItemType.Melee] = false;
             c.weaponGraphicsController.weapon.sheathed = true;
-            swordCanBeUsed = false;
+            usable[ItemType.Melee] = false;
         }
 
         void SwingSword()
         {
             c.rb.velocity = Vector3.zero; //Stop the player moving
             inControl = false;
-            swordCanBeUsed = false;
+            usable[ItemType.Melee] = false;
             //swing the sword
 
             //This is easier. Animation graphs suck
@@ -811,7 +867,7 @@ namespace Armere.PlayerController
 
                 c.onSwingStateChanged = null;
                 inControl = true;
-                swordCanBeUsed = true;
+                usable[ItemType.Melee] = true;
             }
 
             c.onSwingStateChanged = (bool on) =>
@@ -836,11 +892,21 @@ namespace Armere.PlayerController
                 {
                     SelectSidearm(currentSidearm);
                 }
+                if (c.db[InventoryController.singleton.sideArm[currentSidearm].name] is ShieldItemData)
+                {
+                    c.animationController.TriggerTransition(c.transitionSet.shieldRaise);
+                }
+
                 holdingSecondary = true;
             }
             else if (phase == InputActionPhase.Canceled)
             {
                 holdingSecondary = false;
+
+                if (c.db[InventoryController.singleton.sideArm[currentSidearm].name] is ShieldItemData)
+                {
+                    c.animationController.TriggerTransition(c.transitionSet.shieldLower);
+                }
             }
         }
 

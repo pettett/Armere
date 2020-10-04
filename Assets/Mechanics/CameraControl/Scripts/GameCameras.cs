@@ -9,6 +9,14 @@ public class GameCameras : MonoBehaviour
     {
         s = this;
     }
+    private void Start()
+    {
+        freeLook.Follow = LevelInfo.currentLevelInfo.playerTransform;
+        freeLook.LookAt = LevelInfo.currentLevelInfo.playerTransform;
+
+        freeLookAim.Follow = LevelInfo.currentLevelInfo.playerTransform;
+        freeLookAim.LookAt = LevelInfo.currentLevelInfo.playerTransform;
+    }
 
     public void SwitchCinemachineCameras(Cinemachine.CinemachineFreeLook from, Cinemachine.CinemachineFreeLook to)
     {

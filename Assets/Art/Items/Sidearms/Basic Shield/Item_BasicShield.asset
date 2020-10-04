@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07a22ce7412349f4bbabe70b037d3f69, type: 3}
+  m_Name: Item_BasicShield
+  m_EditorClassIdentifier: 
+  itemName: 12
+  type: 4
+  displaySprite:
+    m_AssetGUID: 
+    m_SubObjectName: 
+  displayName: Basic Shield
+  description: The most basic Shield. Be carefull around fire
+  sellable: 1
+  sellValue: 25
+  staticPickup: 0
+  spawnedGameobject:
+    m_AssetGUID: 628b35708d1b48849ae6ee2b707ee8f1
+    m_SubObjectName: 
+  defense: 2

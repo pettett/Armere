@@ -25,6 +25,9 @@ public class NPCManager : MonoBehaviour
         }
     }
 
+
+
+
     [System.Serializable]
     public class NPCSaveData : Dictionary<NPCName, NPCData>
     {
@@ -65,6 +68,9 @@ public class NPCManager : MonoBehaviour
     {
         public bool spokenTo = false;
         public Dictionary<string, NPCVariable> variables;
+        public int routineIndex = 0;
+
+
         public NPCData(NPCTemplate t)
         {
             variables = new Dictionary<string, NPCVariable>(t.defaultValues.Length);
@@ -73,8 +79,14 @@ public class NPCManager : MonoBehaviour
                 //Turn default variable into yarn value then into NPCVariable
                 variables[variable.name] = NPCVariable.FromYarnEquiv(Yarn.Unity.InMemoryVariableStorage.AddDefault(variable));
             }
+
+            //Set the default index from active quests
+            routineIndex = t.GetRoutineIndex();
         }
+
     }
 
     [HideInInspector] public NPCSaveData data = new NPCSaveData();
+
+
 }

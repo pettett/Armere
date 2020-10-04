@@ -112,6 +112,8 @@ namespace Armere.PlayerController
         public float dynamicFriction = 0.2f;
         [Header("Water")]
         public float maxWaterStrideDepth = 1;
+        [Range(0, 1), Tooltip("0 means no movement in water, 1 means full speed at full depth")]
+        public float maxStridingDepthSpeedScalar = 0.6f;
         public float waterDrag = 1;
         public float waterMovementForce = 1;
 

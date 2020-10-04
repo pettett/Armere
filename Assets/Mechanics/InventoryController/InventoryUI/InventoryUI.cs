@@ -179,7 +179,7 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
         CleanUpInventory();
         //Currency if left for the currency display
         AddItemGroup(InventoryController.singleton.common);
-        AddItemGroup(InventoryController.singleton.weapon);
+        AddItemGroup(InventoryController.singleton.melee);
         AddItemGroup(InventoryController.singleton.sideArm);
         AddItemGroup(InventoryController.singleton.bow);
         AddItemGroup(InventoryController.singleton.ammo);

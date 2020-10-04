@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MusicController : MonoBehaviour
 {
-    public Transform target;
 
     public List<MusicVolume> volumes = new List<MusicVolume>();
     public static MusicController instance;
@@ -36,8 +35,8 @@ public class MusicController : MonoBehaviour
         //Go though all the volumes and test to see which one is closest
         foreach (var vol in volumes)
         {
-            Vector3 closestPoint = vol.ClosestPoint(target.position);
-            float distance = (closestPoint - target.position).sqrMagnitude;
+            Vector3 closestPoint = vol.ClosestPoint(LevelInfo.currentLevelInfo.playerTransform.position);
+            float distance = (closestPoint - LevelInfo.currentLevelInfo.playerTransform.position).sqrMagnitude;
 
             float sqrRadius = vol.m_blendDistance * vol.m_blendDistance;
 

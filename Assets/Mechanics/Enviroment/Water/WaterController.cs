@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using UnityEngine.AddressableAssets;
+
 public class WaterController : MonoBehaviour
 {
     [System.Serializable]
@@ -12,14 +14,21 @@ public class WaterController : MonoBehaviour
         public float waterWidth = 5;
     }
     public WaterPathNode[] path = new WaterPathNode[0];
+    public static VisualEffect splashEffect = null;
+    public AssetReferenceGameObject splashEffectPrefab = new AssetReferenceGameObject("Enviroment/Water/WaterSplash");
 
     public Collider waterVolume;
 
     public float density = 1000f;
 
     public Bounds bounds => waterVolume.bounds;
-
-    public VisualEffect splashEffect;
+    private async void Start()
+    {
+        if (splashEffect == null)
+        {
+            splashEffect = (await Addressables.InstantiateAsync(splashEffectPrefab).Task).GetComponent<VisualEffect>();
+        }
+    }
 
     static void DrawCross(Vector3 center, float size)
     {
@@ -59,10 +68,13 @@ public class WaterController : MonoBehaviour
     public void CreateSplash(Vector3 position, float size = 1)
     {
         position.y += 0.03f;
-        splashEffect.transform.position = position;
+        if (splashEffect != null)
+        {
+            splashEffect.transform.position = position;
 
-        splashEffect.SetFloat("Splash Size", size);
-        splashEffect.SendEvent("Splash");
+            splashEffect.SetFloat("Splash Size", size);
+            splashEffect.SendEvent("Splash");
+        }
     }
 
 

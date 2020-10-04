@@ -3,7 +3,9 @@
     "references": [
         "DebugMenuAssembly",
         "Enviroment.Music",
-        "UtilityAssembly"
+        "UtilityAssembly",
+        "GameSavingAssembly",
+        "Game.Structure"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

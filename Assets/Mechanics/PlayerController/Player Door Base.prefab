@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 456392735069319649}
   - component: {fileID: 456392735069319648}
   - component: {fileID: 456392735069319651}
-  m_Layer: 0
+  - component: {fileID: 5912889235999671792}
+  m_Layer: 2
   m_Name: Player Door Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,10 +47,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkingDistance: 1
+  doorStepDistance: 0.1
   leftDoorPivot: {fileID: 456392735489505511}
   rightDoorPivot: {fileID: 0}
   doorAngularSpeed: 150
   doorWidth: 1
+  requiredLookAngle: 180
+  forwardRoom: {fileID: 0}
+  backwardRoom: {fileID: 0}
 --- !u!65 &456392735069319651
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -63,6 +68,26 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1.1155128, y: 2, z: 3.3746927}
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &5912889235999671792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456392735069319650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eeb5dc026fdf4b488bc7ae0138ab719, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_StartPoint: {x: 0, y: 0, z: -0.41}
+  m_EndPoint: {x: 0, y: -0.2, z: 0.43}
+  m_Width: 0
+  m_CostModifier: -1
+  m_Bidirectional: 1
+  m_AutoUpdatePosition: 0
+  m_Area: 0
 --- !u!1 &456392735489505510
 GameObject:
   m_ObjectHideFlags: 0

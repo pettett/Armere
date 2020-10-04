@@ -15,6 +15,12 @@ public static class Items
 
     public static async Task<InteractableItem> SpawnItem(PhysicsItemData physicsItem, Vector3 position, Quaternion rotation)
     {
+        if (physicsItem == null)
+        {
+            Debug.LogError("No item to spawn");
+            return null;
+        }
+
         AsyncOperationHandle<GameObject> asyncLoad = physicsItem.spawnedGameobject.InstantiateAsync(position, rotation);
         await asyncLoad.Task;
         GameObject go = asyncLoad.Result;
@@ -94,7 +100,14 @@ public class ItemSpawner : PlayerRelativeObject
     {
         if (spawnType == SpawnType.Item)
         {
+            if (!(database[item] is PhysicsItemData))
+            {
+                Debug.LogError($"Cannot spawn {item}. Try using chest instead", gameObject);
+                return;
+            }
+
             var c = await Items.SpawnItem(database[item] as PhysicsItemData, transform.position, transform.rotation);
+
             c.onItemDestroy = DestroyItem;
         }
         else

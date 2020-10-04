@@ -1,7 +1,8 @@
 {
     "name": "Enviroment.Music",
     "references": [
-        "GUID:e2ecf0ac9cca6c046a2e95d93273720c"
+        "GUID:e2ecf0ac9cca6c046a2e95d93273720c",
+        "GUID:6bf7ec95c2c3ad2439a9b968432e123a"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

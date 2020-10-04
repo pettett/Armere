@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dialogue: {fileID: 2480198943629176163, guid: 53e64907aaf5b1746bbc503637f204ca,
     type: 3}
-  quests: []
+  quests:
+  - {fileID: 11400000, guid: b95e5aeee78eff74a9feed2119798af2, type: 2}
   defaultValues: []
   buyMenuItems:
   - item: 4
@@ -25,3 +26,18 @@ MonoBehaviour:
     count: 5
     stock: 2
     cost: 40
+  routines:
+  - activateOnQuestComplete: FixingBakery
+    stages:
+    - endTime: 0
+      activity: 1
+      animation: 0
+      location: Inside
+      conversationStartNode: Start
+  - activateOnQuestComplete: 
+    stages:
+    - endTime: 0
+      activity: 1
+      animation: 0
+      location: Outside
+      conversationStartNode: Start

@@ -33,8 +33,8 @@ MonoBehaviour:
     m_Address: InventoryController/ItemDatabase
     m_ReadOnly: 0
     m_SerializedLabels: []
-    m_MainAsset: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
-    m_TargetAsset: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_Address: Assets/Art/Items/Stick/Stick.png
     m_ReadOnly: 0
@@ -61,6 +61,12 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 32510e8d8a1ab8a4ba8e9c01d251f77a
     m_Address: Assets/Art/Items/Arrows/Arrow/arrow.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 628b35708d1b48849ae6ee2b707ee8f1
+    m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Objects/Shield.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -125,6 +131,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: b9447b60771aa2f48884d90ee5e570cc
+    m_Address: Enviroment/Water/WaterSplash
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: d7a2417f37d4bcb498c7efb0305e0c09
     m_Address: Enviroment/Trees/Models/PACK V3/palm_crosssection.mat
     m_ReadOnly: 0
@@ -141,8 +153,8 @@ MonoBehaviour:
     m_Address: LowPolyTreePack/Materials/Normal
     m_ReadOnly: 0
     m_SerializedLabels: []
-    m_MainAsset: {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
-    m_TargetAsset: {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

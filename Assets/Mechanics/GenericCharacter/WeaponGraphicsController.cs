@@ -5,6 +5,47 @@ using UnityEngine.VFX;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.AddressableAssets;
+
+
+public class EquipmentSet<T>
+{
+    public T melee;
+    public T sidearm;
+    public T bow;
+
+    public EquipmentSet(T melee, T sidearm, T bow)
+    {
+        this.melee = melee;
+        this.sidearm = sidearm;
+        this.bow = bow;
+    }
+
+    public T this[ItemType t]
+    {
+        get
+        {
+            switch (t)
+            {
+                case ItemType.Melee: return melee;
+                case ItemType.SideArm: return sidearm;
+                case ItemType.Bow: return bow;
+                default: throw new System.Exception("No such type in set");
+            }
+        }
+        set
+        {
+            switch (t)
+            {
+                case ItemType.Melee: melee = value; return;
+                case ItemType.SideArm: sidearm = value; return;
+                case ItemType.Bow: bow = value; return;
+                default: throw new System.Exception("No such type in set");
+            }
+        }
+    }
+}
+
+
 public class WeaponGraphicsController : MonoBehaviour
 {
     //Class to sort out locking objects to parts of the body
@@ -25,6 +66,10 @@ public class WeaponGraphicsController : MonoBehaviour
         }
 
     }
+
+
+
+
     [System.Serializable]
     public class HoldableObject
     {
@@ -58,14 +103,16 @@ public class WeaponGraphicsController : MonoBehaviour
             if (gameObject != null)
                 Addressables.ReleaseInstance(gameObject);
         }
-
     }
+
+
+
 
     public HoldableObject weapon;
     public HoldableObject bow;
     public HoldableObject sidearm;
 
-
+    public EquipmentSet<HoldableObject> holdables;
 
 
     private void Start()
@@ -74,6 +121,8 @@ public class WeaponGraphicsController : MonoBehaviour
         weapon.Init(a);
         bow.Init(a);
         sidearm.Init(a);
+
+        holdables = new EquipmentSet<HoldableObject>(weapon, sidearm, bow);
     }
 
 

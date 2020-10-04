@@ -26,7 +26,7 @@ public class EnemyAI : AIBase
     public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
     [MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
     public Transform eye;
-    public Collider playerCollider;
+    Collider playerCollider;
     public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 
     [Header("Player Engagement")]
@@ -83,6 +83,8 @@ public class EnemyAI : AIBase
 
     protected override void Start()
     {
+        playerCollider = LevelInfo.currentLevelInfo.player.GetComponent<Collider>();
+
         health = GetComponent<Health>();
         weaponGraphics = GetComponent<WeaponGraphicsController>();
         animationController = GetComponent<AnimationController>();
@@ -138,7 +140,9 @@ public class EnemyAI : AIBase
         //Do not re-enter investigate
         investigateOnSight = false;
         engageOnAttack = true;
-        alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
+        if (alert == null || alert.gameObject == null)
+            alert = IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
+
         alert.EnableInvestigate(true);
         alert.EnableAlert(false);
 

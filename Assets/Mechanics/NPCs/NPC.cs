@@ -38,9 +38,12 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
     public int currentRoutineStage;
 
     Transform playerTransform;
-
     public YarnProgram Dialogue => t.dialogue;
-    public string StartNode => t.routine[currentRoutineStage].conversationStartNode;
+
+    public int RoutineIndex { get => NPCManager.singleton.data[npcName].routineIndex; set => NPCManager.singleton.data[npcName].routineIndex = value; }
+
+    public NPCTemplate.Routine CurrentRoutine => t.routines[RoutineIndex];
+    public string StartNode => CurrentRoutine.stages[currentRoutineStage].conversationStartNode;
 
     public string interactionDescription => "Talk";
 
@@ -65,6 +68,10 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         this.conversationGroupOverride = conversationGroupOverride;
     }
 
+
+
+
+
     private void Awake()
     {
         camera = Camera.main;
@@ -82,45 +89,41 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         }
 
         //Setup starting point for routine - instant so they start in the proper place
-        ChangeRoutineStage(GetRoutineIndex(TimeDayController.singleton.hour), true);
-    }
-    ///<summary>Get the current routine index that should be active at this time - use when time is not increasing linearly</summary>
-    int GetRoutineIndex(float time)
-    {
-        int routineStage = -1;
-        for (int i = 0; i < t.routine.Length; i++)
-        {
-            //Go through every stage to find the current one
-            if (time < t.routine[i].endTime)
-            {
-                routineStage = i;
-                break;
-            }
-        }
-        //If no stage ends after hour, loop around to the first stage
-        if (routineStage == -1) routineStage = 0;
+        ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
 
-        return routineStage;
+        QuestManager.singleton.onQuestComplete += OnQuestComplete;
     }
+    private void OnDestroy()
+    {
+        QuestManager.singleton.onQuestComplete -= OnQuestComplete;
+    }
+    public void OnQuestComplete(Quest quest)
+    {
+        //Update all of the indexes
+        RoutineIndex = t.GetRoutineIndex();
+    }
+
+
 
     public void GoToWalkingPoint(string name, System.Action onComplete = null)
     {
         GoToPosition(GetTransform(spawn.walkingPoints, name).position, onComplete);
     }
+
     private void Update()
     {
         ambientThought.rotation = camera.transform.rotation;
 
         //Test if we need to move to the next routine stage
         //Only check for state change when before final end, as it will never change after that
-        if (TimeDayController.singleton.hour < t.routine[t.routine.Length - 1].endTime)
+        if (TimeDayController.singleton.hour < CurrentRoutine.stages[CurrentRoutine.stages.Length - 1].endTime)
         {
-            if (TimeDayController.singleton.hour > t.routine[currentRoutineStage].endTime)
+            if (TimeDayController.singleton.hour > CurrentRoutine.stages[currentRoutineStage].endTime)
             {
                 ChangeRoutineStage(currentRoutineStage + 1);
             }
         }
-        else if (currentRoutineStage == t.routine.Length - 1)
+        else if (currentRoutineStage == CurrentRoutine.stages.Length - 1)
         {
             ChangeRoutineStage(0);
         }
@@ -129,12 +132,12 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
     public void ChangeRoutineStage(int newStage, bool instant = false)
     {
         currentRoutineStage = newStage;
-        ambientThoughtText.text = t.routine[currentRoutineStage].activity.ToString();
+        ambientThoughtText.text = CurrentRoutine.stages[currentRoutineStage].activity.ToString();
 
         //Apply routine animation
-        animator.SetInteger("idle_state", (int)t.routine[currentRoutineStage].animation);
+        animator.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);
 
-        switch (t.routine[currentRoutineStage].activity)
+        switch (CurrentRoutine.stages[currentRoutineStage].activity)
         {
             case NPCTemplate.RoutineActivity.Stand:
                 ActivateStandRoutine(instant);
@@ -144,7 +147,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
 
     public void ActivateStandRoutine(bool instant)
     {
-        Transform target = GetTransform(spawn.walkingPoints, t.routine[currentRoutineStage].location);
+        Transform target = GetTransform(spawn.walkingPoints, CurrentRoutine.stages[currentRoutineStage].location);
         if (target != null)
         {
             if (instant)
@@ -159,7 +162,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         }
         else
         {
-            throw new System.Exception(string.Format("Desired routine location {0} not within walking points array", t.routine[currentRoutineStage].location));
+            throw new System.Exception(string.Format("Desired routine location {0} not within walking points array", CurrentRoutine.stages[currentRoutineStage].location));
         }
     }
 
@@ -227,7 +230,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
 
     }
 
-    public Transform GetTransform(Transform[] transforms, string name) => transforms.FirstOrDefault(t => t.name == name);
+    public Transform GetTransform(Transform[] transforms, string name) => transforms.First(t => t.name == name);
     public Transform GetFocusPoint(string name) => GetTransform(spawn.focusPoints, name);
 
 

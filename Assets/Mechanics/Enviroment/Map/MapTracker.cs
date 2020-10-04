@@ -133,9 +133,9 @@ public class MapTracker : MonoBehaviour
         if (prevRegion != inRegion)
         {
             //New region, new name
-            currentRegion = inRegion == -1 ?
+            OnChangeRegion(inRegion == -1 ?
                 "Wilderness" :
-                map.regions[inRegion].name;
+                map.regions[inRegion].name);
         }
 
 
@@ -145,6 +145,15 @@ public class MapTracker : MonoBehaviour
             string.Join(" ", regionInfluences.Select((RegionInfluence r) => string.Format("{0} : {1}", map.regions[r.region].name, r.influence)));
     }
 
+
+    public void OnChangeRegion(string newRegion)
+    {
+        currentRegion = newRegion;
+        LevelInfo.currentLevelInfo.currentRegionName = currentRegion;
+        //If autosave has not been activated for a while, autosave
+        SaveManager.singleton.AttemptAutoSave();
+
+    }
 
     private void OnDrawGizmos()
     {

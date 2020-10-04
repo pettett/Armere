@@ -29,6 +29,8 @@ public class SaveManager : MonoBehaviour
     public string lastSaveDir;
     float lastSave;
 
+    public float minAutosaveGap = 4 * 60;
+
     /*
     Save Structure:
     Saves
@@ -121,7 +123,7 @@ public class SaveManager : MonoBehaviour
         {
             this.thumbnail = thumbnail;
             //Save the name of the current region for more context for the player
-            regionName = Armere.PlayerController.PlayerController.activePlayerController.GetComponent<MapTracker>().currentRegion;
+            regionName = LevelInfo.currentLevelInfo.currentRegionName;
         }
     }
 
@@ -138,7 +140,7 @@ public class SaveManager : MonoBehaviour
         singleton = this;
         DontDestroyOnLoad(this);
 
-        lastSave = Time.time - 5;
+        lastSave = Time.realtimeSinceStartup - 5;
         quicksaveAction.performed += OnQuicksave;
         quicksaveAction.Enable();
         print("Creating first save state");
@@ -149,6 +151,24 @@ public class SaveManager : MonoBehaviour
     {
         SaveGameStateAsync();
     }
+
+
+    public async void AttemptAutoSave()
+    {
+
+        if (lastSave + minAutosaveGap < Time.realtimeSinceStartup)
+        {
+            //Save the game and show an indicator so show the game is saving
+            await SaveGameStateAsync();
+            print("Autosaved");
+            lastSave = Time.realtimeSinceStartup;
+        }
+        else
+        {
+            print("Too soon to autosave again");
+        }
+    }
+
 
     public void LoadSave(string dir)
     {
@@ -179,9 +199,9 @@ public class SaveManager : MonoBehaviour
     {
 
         //dont allow saving more then once every 5 seconds
-        if (lastSave > Time.time - 5)
+        if (lastSave > Time.realtimeSinceStartup - 5)
             return;
-        lastSave = Time.time;
+        lastSave = Time.realtimeSinceStartup;
 
         //setup directory
         string dir = SaveDirectory;

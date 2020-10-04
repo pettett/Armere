@@ -255,7 +255,7 @@ public class InventoryController : MonoBehaviour
         {
             case ItemType.Common: return common;
             case ItemType.Quest: return quest;
-            case ItemType.Weapon: return weapon;
+            case ItemType.Melee: return melee;
             case ItemType.SideArm: return sideArm;
             case ItemType.Ammo: return ammo;
             case ItemType.Bow: return bow;
@@ -276,7 +276,7 @@ public class InventoryController : MonoBehaviour
         {
             common = c.common.items;
             quest = c.quest.items;
-            weapon = c.weapon.items;
+            weapon = c.melee.items;
             sideArm = c.sideArm.items;
         }
     }
@@ -289,13 +289,13 @@ public class InventoryController : MonoBehaviour
     {
         common.items = inventorySave.common;
         quest.items = inventorySave.quest;
-        weapon.items = inventorySave.weapon;
+        melee.items = inventorySave.weapon;
         sideArm.items = inventorySave.sideArm;
     }
 
     public StackPanel common;
     public UniquesPanel quest;
-    public UniquesPanel weapon;
+    public UniquesPanel melee;
     public UniquesPanel bow;
     public StackPanel ammo;
     public UniquesPanel sideArm;
@@ -323,7 +323,7 @@ public class InventoryController : MonoBehaviour
     {
         common = new StackPanel("Items", int.MaxValue);
         quest = new UniquesPanel("Quest Items", int.MaxValue);
-        weapon = new UniquesPanel("Weapons", 10, OnSelectItem, OnDropItem);
+        melee = new UniquesPanel("Weapons", 10, OnSelectItem, OnDropItem);
         sideArm = new UniquesPanel("Side Arms", 10, OnSelectItem, OnDropItem);
 
         bow = new UniquesPanel("Bows", 10, OnSelectItem, OnDropItem);

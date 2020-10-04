@@ -11,7 +11,7 @@ public class HoldableBody : MonoBehaviour, IInteractable
     public bool canInteract { get => (!(PlayerController.activePlayerController.currentState as Walking)?.holdingBody) ?? false; set { } }
 
     public float requiredLookDot => 0;
-
+    public string holdableTriggerTag = "Default";
     public string interactionDescription => "Pickup";
     public FixedJoint joint;
     float oldMass;

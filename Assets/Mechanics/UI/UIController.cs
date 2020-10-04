@@ -21,6 +21,8 @@ public class UIController : MonoBehaviour
     public GameObject selectedBowDisplay;
     public GameObject selectedAmmoDisplay;
 
+
+
     private void Awake()
     {
         singleton = this;

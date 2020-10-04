@@ -47,11 +47,29 @@ VisualEffect:
   m_ResetSeedOnPlay: 1
   m_PropertySheet:
     m_Float:
-      m_Array: []
+      m_Array:
+      - m_Value: 0.6
+        m_Name: StartingVelocity
+        m_Overridden: 1
+      - m_Value: 0.51
+        m_Name: TrailWidth
+        m_Overridden: 1
+      - m_Value: 0.7
+        m_Name: ParticleSpread
+        m_Overridden: 1
+      - m_Value: 0.5
+        m_Name: Splash Size
+        m_Overridden: 1
+      - m_Value: 0.07
+        m_Name: FoamWidth
+        m_Overridden: 1
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 2.09, y: 4.6}
+      - m_Value: {x: 2, y: 5}
         m_Name: Upwards Velocity Range
+        m_Overridden: 1
+      - m_Value: {x: 0.01, y: 0.04}
+        m_Name: Particle Size Range
         m_Overridden: 1
     m_Vector3f:
       m_Array: []

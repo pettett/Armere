@@ -12,6 +12,16 @@ public class AnimationTransitionSet : ScriptableObject
     public AnimationTransition drawSword = new AnimationTransition("Draw Sword", 0.05f, 0.05f, Layers.UpperBody);
     public AnimationTransition swordWalking = new AnimationTransition("Sword Walking", 0.05f, 0.05f, Layers.BaseLayer);
     public AnimationTransition freeMovement = new AnimationTransition("Free Movement", 0.05f, 0.05f, Layers.BaseLayer);
+
+
+    public AnimationTransition shieldRaise = new AnimationTransition("Raise Shield", 0.05f, 0.05f, Layers.BaseLayer);
+    public AnimationTransition shieldLower = new AnimationTransition("Lower Shield", 0.05f, 0.05f, Layers.BaseLayer);
+    public AnimationTransition shieldImpact = new AnimationTransition("Shield Impact", 0.05f, 0.05f, Layers.BaseLayer);
+
     public AnimationTransition swordBackImpact = new AnimationTransition("Back Impact", 0.05f, 0.05f, Layers.BaseLayer);
     public AnimationTransition swordFrontImpact = new AnimationTransition("Front Impact", 0.05f, 0.05f, Layers.BaseLayer);
+
+
+
+
 }

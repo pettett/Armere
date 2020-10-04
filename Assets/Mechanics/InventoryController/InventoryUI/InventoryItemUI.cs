@@ -25,10 +25,13 @@ public class InventoryItemUI : MonoBehaviour
     public async void SetupItemAsync(ItemData item)
     {
         type = item.type;
-        asyncOperation = item.displaySprite.LoadAssetAsync();
-        Sprite s = await asyncOperation.Task;
-        //The image may have been destroyed before finishing
-        if (thumbnail != null) thumbnail.sprite = s;
+        if (item.displaySprite.RuntimeKeyIsValid())
+        {
+            asyncOperation = item.displaySprite.LoadAssetAsync();
+            Sprite s = await asyncOperation.Task;
+            //The image may have been destroyed before finishing
+            if (thumbnail != null) thumbnail.sprite = s;
+        }
     }
 
 

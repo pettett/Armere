@@ -15,6 +15,11 @@ public class QuestManager : MonoBehaviour
     public List<QuestStatus> quests;
     public List<QuestStatus> completedQuests;
 
+    public delegate void QuestEvent(Quest quest);
+
+    public event QuestEvent onQuestProgress;
+    public event QuestEvent onQuestComplete;
+
     private void Awake()
     {
         singleton = this;
@@ -26,6 +31,38 @@ public class QuestManager : MonoBehaviour
     {
         //Add listener for new item event
         InventoryController.singleton.onItemAdded += OnInventoryItemAdded;
+    }
+
+
+    public static void UpdateTrigger(QuestTrigger trigger)
+    {
+        for (int i = 0; i < singleton.quests.Count; i++)
+        {
+            if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.AwaitTriggerCount)
+            {
+                Quest.QuestTriggerInfo info = singleton.quests[i].quest.stages[singleton.quests[i].stage].questTrigger;
+                if (info.name == trigger.name)
+                {
+                    //Try to complete this stage
+                    info.currentTriggerCount = trigger.triggerCount;
+                    switch (info.comparision)
+                    {
+                        case Quest.CountComparision.Equals:
+                            if (info.currentTriggerCount == info.requiredTriggerCount)
+                                ProgressQuest(i);
+                            break;
+                        case Quest.CountComparision.Greater:
+                            if (info.currentTriggerCount > info.requiredTriggerCount)
+                                ProgressQuest(i);
+                            break;
+                        case Quest.CountComparision.Less:
+                            if (info.currentTriggerCount < info.requiredTriggerCount)
+                                ProgressQuest(i);
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     public static bool TryGetQuest(string questName, out QuestStatus q)
@@ -117,22 +154,49 @@ public class QuestManager : MonoBehaviour
 
     public static void ProgressQuest(int index)
     {
+        print($"Progressing Quest {index}");
+
         singleton.quests[index].stage++;
         if (singleton.quests[index].stage == singleton.quests[index].quest.stages.Length)
         {
             //quest is complete
             CompleteQuest(index);
         }
+        else
+        {
+            singleton.onQuestProgress?.Invoke(singleton.quests[index].quest);
+
+            //Test to see if the conditions for this new stage have already been met
+            Quest.QuestStage stage = singleton.quests[index].quest.stages[singleton.quests[index].stage];
+            if (stage.type == Quest.QuestType.Complete)
+            {
+                for (int i = 0; i < singleton.completedQuests.Count; i++)
+                {
+                    if (singleton.completedQuests[i].quest.name == stage.quest)
+                    {
+                        //This quest is already completed, progress
+                        ProgressQuest(index);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
 
     public static void CompleteQuest(int index)
     {
+        print($"Completing Quest {index}");
+
         singleton.completedQuests.Add(singleton.quests[index]);
+
+        singleton.onQuestComplete?.Invoke(singleton.quests[index].quest);
+
         for (int i = 0; i < singleton.quests.Count; i++)
         {
-            if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.Complete &&
-            singleton.quests[i].quest.stages[singleton.quests[i].stage].quest == singleton.quests[index].quest.name
+            //Test if another quest was waiting for this quest to be completed
+            if (i != index && singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.Complete &&
+                singleton.quests[i].quest.stages[singleton.quests[i].stage].quest == singleton.quests[index].quest.name
             )
             {
                 //Completed this quest and progressing this next quest

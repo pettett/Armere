@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9efb734574eaa043b9c74102f44090a, type: 3}
+  m_Name: Item_Iron Ore
+  m_EditorClassIdentifier: 
+  itemName: 6
+  itemType: 0
+  displaySprite:
+    m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
+    m_SubObjectName: 
+  displayName: Iron Ore
+  description: This item has no description
+  sellable: 1
+  sellValue: 25
+  staticPickup: 0
+  spawnedGameobject:
+    m_AssetGUID: 6b6d49fa816b0c54fbb96a21a7fd0270
+    m_SubObjectName: Iron Ore

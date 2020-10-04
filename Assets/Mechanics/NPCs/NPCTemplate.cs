@@ -30,6 +30,54 @@ public class NPCTemplate : ScriptableObject
     }
 
 
-    public RoutineStage[] routine = new RoutineStage[1];
+    public int GetRoutineIndex()
+    {
+
+        for (int r = 0; r < routines.Length - 1; r++)
+        {
+            for (int i = 0; i < QuestManager.singleton.completedQuests.Count; i++)
+            {
+                if (QuestManager.singleton.completedQuests[i].quest.name == routines[r].activateOnQuestComplete)
+                {
+                    //Return the first routine that fits the current situation
+                    return r;
+                }
+            }
+        }
+
+        return routines.Length - 1; //Default routine is the last one
+
+    }
+
+
+    [System.Serializable]
+    public class Routine
+    {
+        public string activateOnQuestComplete = string.Empty;
+        public RoutineStage[] stages = new RoutineStage[1];
+
+
+        ///<summary>Get the current routine index that should be active at this time - use when time is not increasing linearly</summary>
+        public int GetRoutineStageIndex(float time)
+        {
+            int routineStage = -1;
+            for (int i = 0; i < stages.Length; i++)
+            {
+                //Go through every stage to find the current one
+                if (time < stages[i].endTime)
+                {
+                    routineStage = i;
+                    break;
+                }
+            }
+            //If no stage ends after hour, loop around to the first stage
+            if (routineStage == -1) routineStage = 0;
+
+            return routineStage;
+        }
+
+    }
+
+    public Routine[] routines = new Routine[1];
 }
 

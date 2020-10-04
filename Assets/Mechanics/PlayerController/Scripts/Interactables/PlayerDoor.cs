@@ -8,6 +8,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
     public bool canInteract { get; set; } = true;
 
     public float walkingDistance = 1;
+    public float doorStepDistance = 0.1f;
     public Transform leftDoorPivot;
     public Transform rightDoorPivot;
     public float doorAngularSpeed = 45;
@@ -73,7 +74,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
         Vector3 doorCenter = transform.TransformPoint(doorPivot.localPosition + Vector3.right * doorWidth * 0.5f * (leftDoor ? 1 : -1));
 
         //Walk to the start
-        autowalk.WalkTo(doorCenter);
+        autowalk.WalkTo(doorCenter + doorSide * transform.forward * doorStepDistance);
 
         yield return autowalk.WaitForAgent(0.5f);
         //Start opening the door - door has to be open and agent at doorstep to continue

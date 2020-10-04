@@ -12,7 +12,6 @@ public class Animal : MonoBehaviour
     [SerializeField] State state;
     public ItemName drop;
     public int count;
-    public Transform playerTransform;
     public float scareDistance = 1f;
     public float scareTime = 2f;
     public float speed = 1f;
@@ -38,7 +37,7 @@ public class Animal : MonoBehaviour
         }
         else if (state == State.Scared)
         {
-            dir = (transform.position - playerTransform.position).normalized * scareSpeed;
+            dir = (transform.position - LevelInfo.currentLevelInfo.playerTransform.position).normalized * scareSpeed;
         }
 
         if (NavMesh.SamplePosition(transform.position + dir * Time.deltaTime, out NavMeshHit hit, 0.1f, -1))
@@ -47,7 +46,7 @@ public class Animal : MonoBehaviour
         }
 
         //If the animal is too close to the player, start running away
-        if (state != State.Scared && (transform.position - playerTransform.position).sqrMagnitude < scareDistance * scareDistance)
+        if (state != State.Scared && (transform.position - LevelInfo.currentLevelInfo.playerTransform.position).sqrMagnitude < scareDistance * scareDistance)
         {
             //run away
             StartCoroutine(Scare());

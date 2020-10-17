@@ -17,14 +17,16 @@ MonoBehaviour:
   quests: []
   defaultValues: []
   buyMenuItems: []
-  routine:
-  - endTime: 4.421053
-    activity: 1
-    animation: 1
-    location: Sit
-    conversationStartNode: Night
-  - endTime: 18.41337
-    activity: 1
-    animation: 0
-    location: Stand
-    conversationStartNode: Start
+  routines:
+  - activateOnQuestComplete: 
+    stages:
+    - endTime: 6.3333335
+      activity: 1
+      animation: 1
+      location: Sit
+      conversationStartNode: Night
+    - endTime: 16.400002
+      activity: 1
+      animation: 0
+      location: Stand
+      conversationStartNode: Start

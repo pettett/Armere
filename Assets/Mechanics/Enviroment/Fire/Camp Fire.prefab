@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5581811250330857163}
+  - component: {fileID: 7350642299653211250}
+  - component: {fileID: 536566041696225399}
   m_Layer: 0
   m_Name: Camp Fire
   m_TagString: Untagged
@@ -33,6 +35,33 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7350642299653211250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3496594057447986897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45a696888bbd5b84dae67e4fc92775de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  restPromptText: Sit
+  restTimeSelectText: Rest by the fire until...
+--- !u!135 &536566041696225399
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3496594057447986897}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 2.29
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8143542020163810399
 GameObject:
   m_ObjectHideFlags: 0

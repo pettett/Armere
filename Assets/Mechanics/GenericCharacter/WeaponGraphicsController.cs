@@ -77,13 +77,12 @@ public class WeaponGraphicsController : MonoBehaviour
         public HoldPoint sheathedPoint;
         public bool sheathed = true;
         [HideInInspector] public GameObject gameObject;
-
+        HoldableItemData holdable;
         public void Init(Animator a)
         {
             holdPoint.Init(a);
             sheathedPoint.Init(a);
         }
-
         public void Anchor()
         {
             if (gameObject != null)
@@ -95,6 +94,7 @@ public class WeaponGraphicsController : MonoBehaviour
 
         public async void SetHeld(HoldableItemData holdable)
         {
+            this.holdable = holdable;
             if (gameObject != null) Destroy(gameObject);
             gameObject = await holdable.CreatePlayerObject();
         }
@@ -103,11 +103,22 @@ public class WeaponGraphicsController : MonoBehaviour
             if (gameObject != null)
                 Addressables.ReleaseInstance(gameObject);
         }
+
+        public void OnClank(AudioSource source)
+        {
+            if (holdable != null && holdable.clankSet != null && holdable.clankSet.Valid())
+            {
+                if (Random.Range(0f, 1f) > holdable.clankProbability)
+                {
+                    source.PlayOneShot(holdable.clankSet.SelectClip());
+                }
+            }
+        }
     }
 
 
 
-
+    public AudioSource source;
     public HoldableObject weapon;
     public HoldableObject bow;
     public HoldableObject sidearm;
@@ -115,14 +126,61 @@ public class WeaponGraphicsController : MonoBehaviour
     public EquipmentSet<HoldableObject> holdables;
 
 
+    Animator animator;
+
+    AnimationController animationController;
+
+    public IEnumerator DrawItem(ItemType type, AnimationTransitionSet transitionSet)
+    {
+        if (type == ItemType.Melee)
+        {
+            animationController.TriggerTransition(transitionSet.drawSword);
+            animator.SetBool("Holding Sword", true);
+        }
+        animationController.TriggerTransition(transitionSet.swordWalking);
+
+        yield return new WaitForSeconds(0.1f);
+        holdables[type].sheathed = false;
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    public IEnumerator SheathItem(ItemType type, AnimationTransitionSet transitionSet)
+    {
+        if (type == ItemType.Melee)
+        {
+            animationController.TriggerTransition(transitionSet.sheathSword);
+            animator.SetBool("Holding Sword", false);
+        }
+
+        animationController.TriggerTransition(transitionSet.freeMovement);
+
+        yield return new WaitForSeconds(0.2f);
+
+        holdables[type].sheathed = true;
+    }
+
+
     private void Start()
     {
-        Animator a = GetComponent<Animator>();
-        weapon.Init(a);
-        bow.Init(a);
-        sidearm.Init(a);
+        animator = GetComponent<Animator>();
+        animationController = GetComponent<AnimationController>();
+        weapon.Init(animator);
+        bow.Init(animator);
+        sidearm.Init(animator);
 
         holdables = new EquipmentSet<HoldableObject>(weapon, sidearm, bow);
+    }
+
+    public void OnClank()
+    {
+        //Called by animator
+        weapon.OnClank(source);
+        bow.OnClank(source);
+        sidearm.OnClank(source);
+    }
+    public void FootDown()
+    {
+        OnClank();
     }
 
 

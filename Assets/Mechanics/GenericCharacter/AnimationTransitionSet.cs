@@ -14,6 +14,10 @@ public class AnimationTransitionSet : ScriptableObject
     public AnimationTransition freeMovement = new AnimationTransition("Free Movement", 0.05f, 0.05f, Layers.BaseLayer);
 
 
+    public AnimationTransition startSitting = new AnimationTransition("Start Sit", 0.05f, 0.05f, Layers.BaseLayer);
+    public AnimationTransition stopSitting = new AnimationTransition("Stop Sit", 0.05f, 0.05f, Layers.BaseLayer);
+
+
     public AnimationTransition shieldRaise = new AnimationTransition("Raise Shield", 0.05f, 0.05f, Layers.BaseLayer);
     public AnimationTransition shieldLower = new AnimationTransition("Lower Shield", 0.05f, 0.05f, Layers.BaseLayer);
     public AnimationTransition shieldImpact = new AnimationTransition("Shield Impact", 0.05f, 0.05f, Layers.BaseLayer);

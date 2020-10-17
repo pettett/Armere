@@ -19,7 +19,20 @@ namespace Armere.PlayerController
             animator.SetBool(c.animatorVariables.isGrounded.id, onSurface);
             if (onSurface) transform.rotation = Quaternion.identity;
 
-            if (diving) waterTrailController.StopTrail();
+            if (diving)
+            {
+                waterTrailController.StopTrail();
+                //Make camera orbit around center
+                GameCameras.s.playerTrackingOffset = 0;
+                GameCameras.s.playerRigOffset = 1.6f;
+            }
+            else
+            {
+
+                GameCameras.s.playerRigOffset = GameCameras.s.defaultRigOffset;
+                GameCameras.s.playerTrackingOffset = GameCameras.s.defaultTrackingOffset;
+            }
+
         }
 
         DebugMenu.DebugEntry<int, float> entry;
@@ -38,7 +51,10 @@ namespace Armere.PlayerController
             waterTrailController = waterTrail.GetComponent<WaterTrailController>();
 
             entry = DebugMenu.CreateEntry("Player", "Hits: {0} Current Depth: {1}", 0, 0f);
+
+
         }
+
         public override void End()
         {
             c.rb.useGravity = true;
@@ -48,6 +64,7 @@ namespace Armere.PlayerController
 
             waterTrailController.StopTrail();
             waterTrailController.DestroyOnFinish();
+
         }
 
 
@@ -89,9 +106,8 @@ namespace Armere.PlayerController
                 //Player is colliding with something
                 for (int i = 0; i < c.allCPs.Count; i++)
                 {
-
-                    //If about perpendicular to wall
-                    if (Mathf.Abs(Vector3.Dot(Vector3.up, c.allCPs[i].normal)) < 0.01f)
+                    //If about perpendicular to wall and facing towards the normal
+                    if (Mathf.Abs(Vector3.Dot(Vector3.up, c.allCPs[i].normal)) < 0.01f && Vector3.Dot(c.allCPs[i].normal, transform.forward) < -0.8f)
                     {
 
                         //Colliding against wall
@@ -100,8 +116,8 @@ namespace Armere.PlayerController
 
 
                         Debug.DrawLine(origin, origin + Vector3.down * c.collider.height * 1.05f, Color.blue, Time.deltaTime);
-
-                        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, c.collider.height * 1.05f, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
+                        //Also allow vault into shallow water
+                        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, c.collider.height + c.maxWaterStrideDepth, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
                          Vector3.Dot(Vector3.up, hit.normal) > c.m_maxGroundDot)
                         {
                             //Can move to hit spot
@@ -135,10 +151,21 @@ namespace Armere.PlayerController
             Vector3 playerDirection;
 
             if (onSurface)
-                playerDirection = c.cameraController.TransformInput(c.input.horizontal) * c.waterMovementForce * Time.fixedDeltaTime;
+            {
+                playerDirection = c.cameraController.TransformInput(c.input.horizontal);
+                playerDirection.y = 0;
+                playerDirection *= c.waterMovementForce * Time.fixedDeltaTime;
+            }
             else
-                playerDirection = GameCameras.s.cameraTransform.TransformDirection(new Vector3(c.input.horizontal.x, c.input.vertical, c.input.horizontal.y)) * c.waterMovementForce * Time.fixedDeltaTime;
+            {
+                playerDirection = GameCameras.s.cameraTransform.TransformDirection(
+                    new Vector3(c.input.horizontal.x, 0, c.input.horizontal.y));
+                //Move up seperatley to camera
+                playerDirection.y += c.input.vertical;
+                playerDirection.Normalize();
 
+                playerDirection *= c.waterMovementForce * Time.fixedDeltaTime;
+            }
 
             if (playerDirection.sqrMagnitude > 0)
             {
@@ -156,7 +183,6 @@ namespace Armere.PlayerController
             }
 
             Vector3 requiredForce = playerDirection * c.waterMovementSpeed - c.rb.velocity;
-            requiredForce.y = 0;
 
             requiredForce = Vector3.ClampMagnitude(requiredForce, c.waterMovementForce * Time.fixedDeltaTime);
 

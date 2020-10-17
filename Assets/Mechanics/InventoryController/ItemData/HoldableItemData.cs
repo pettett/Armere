@@ -7,7 +7,10 @@ public abstract class HoldableItemData : PhysicsItemData
     {
         return await spawnedGameobject.InstantiateAsync().Task;
     }
-    public virtual void OnItemEquip(Animator anim) { }
-    public virtual void OnItemDeEquip(Animator anim) { }
+
+
+    [Range(0, 1)]
+    public float clankProbability = 0.7f;
+    public AudioClipSet clankSet;
 
 }

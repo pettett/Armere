@@ -10,7 +10,8 @@ public class QuestManager : MonoBehaviour
     public class QuestStatus
     {
         public Quest quest;
-        public int stage;
+        public int stage = -1;
+        public uint currentTriggerCount;
     }
     public List<QuestStatus> quests;
     public List<QuestStatus> completedQuests;
@@ -19,6 +20,8 @@ public class QuestManager : MonoBehaviour
 
     public event QuestEvent onQuestProgress;
     public event QuestEvent onQuestComplete;
+
+    Dictionary<string, uint> questTriggers = new Dictionary<string, uint>();
 
     private void Awake()
     {
@@ -36,32 +39,36 @@ public class QuestManager : MonoBehaviour
 
     public static void UpdateTrigger(QuestTrigger trigger)
     {
+        singleton.questTriggers[trigger.name] = trigger.triggerCount;
+
         for (int i = 0; i < singleton.quests.Count; i++)
         {
             if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type == Quest.QuestType.AwaitTriggerCount)
             {
-                Quest.QuestTriggerInfo info = singleton.quests[i].quest.stages[singleton.quests[i].stage].questTrigger;
-                if (info.name == trigger.name)
+                Quest.QuestTriggerInfo triggerRequirements = singleton.quests[i].quest.stages[singleton.quests[i].stage].questTrigger;
+                if (triggerRequirements.name == trigger.name)
                 {
+                    singleton.quests[i].currentTriggerCount = trigger.triggerCount;
                     //Try to complete this stage
-                    info.currentTriggerCount = trigger.triggerCount;
-                    switch (info.comparision)
+                    if (QuestTriggerForfilled(triggerRequirements, trigger.triggerCount))
                     {
-                        case Quest.CountComparision.Equals:
-                            if (info.currentTriggerCount == info.requiredTriggerCount)
-                                ProgressQuest(i);
-                            break;
-                        case Quest.CountComparision.Greater:
-                            if (info.currentTriggerCount > info.requiredTriggerCount)
-                                ProgressQuest(i);
-                            break;
-                        case Quest.CountComparision.Less:
-                            if (info.currentTriggerCount < info.requiredTriggerCount)
-                                ProgressQuest(i);
-                            break;
+                        ProgressQuest(i);
                     }
                 }
             }
+        }
+    }
+    public static bool QuestTriggerForfilled(Quest.QuestTriggerInfo triggerRequirements, uint current)
+    {
+        switch (triggerRequirements.comparision)
+        {
+            case Quest.CountComparision.Equals:
+                return (current == triggerRequirements.requiredTriggerCount);
+            case Quest.CountComparision.Greater:
+                return (current > triggerRequirements.requiredTriggerCount);
+            case Quest.CountComparision.Less:
+                return (current < triggerRequirements.requiredTriggerCount);
+            default: return false;
         }
     }
 
@@ -97,7 +104,7 @@ public class QuestManager : MonoBehaviour
         foreach (Quest q in singleton.qdb.quests)
             if (q.name == name)
             {
-                singleton.quests.Add(new QuestStatus() { quest = q });
+                AddQuest(q);
                 return;//When found return
             }
         throw new System.ArgumentException("No quest with that name in database", name);
@@ -106,7 +113,9 @@ public class QuestManager : MonoBehaviour
     public static void AddQuest(Quest q)
     {
         singleton.quests.Add(new QuestStatus() { quest = q });
+        ProgressQuest(singleton.quests.Count - 1);
     }
+
     public void OnInventoryItemAdded(ItemName newItem)
     {
         //test if any quests are listening for this event
@@ -138,6 +147,7 @@ public class QuestManager : MonoBehaviour
     }
     public static void ForfillTalkToQuest(string questName)
     {
+        print(questName);
         for (int i = 0; i < singleton.quests.Count; i++)
             if (singleton.quests[i].quest.name == questName)
             {
@@ -154,9 +164,10 @@ public class QuestManager : MonoBehaviour
 
     public static void ProgressQuest(int index)
     {
-        print($"Progressing Quest {index}");
+        print($"Progressing Quest {singleton.quests[index].quest.name}");
 
         singleton.quests[index].stage++;
+        singleton.quests[index].currentTriggerCount = 0;
         if (singleton.quests[index].stage == singleton.quests[index].quest.stages.Length)
         {
             //quest is complete
@@ -177,6 +188,20 @@ public class QuestManager : MonoBehaviour
                         //This quest is already completed, progress
                         ProgressQuest(index);
                         return;
+                    }
+                }
+            }
+            else if (stage.type == Quest.QuestType.AwaitTriggerCount)
+            {
+                //Test if the trigger has already been forfilled
+                Quest.QuestTriggerInfo triggerInfo = stage.questTrigger;
+                if (singleton.questTriggers.TryGetValue(triggerInfo.name, out uint current))
+                {
+                    singleton.quests[index].currentTriggerCount = current;
+                    if (QuestTriggerForfilled(triggerInfo, current))
+                    {
+                        print("Quest trigger already satisfied");
+                        ProgressQuest(index);
                     }
                 }
             }

@@ -5,6 +5,39 @@ using Cinemachine;
 public class GameCameras : MonoBehaviour
 {
     public static GameCameras s;
+
+    public float defaultTrackingOffset = 1.6f;
+    float _playerTrackingOffset = 1.6f;
+
+    public float defaultRigOffset = 0;
+    float _playerRigOffset = 0;
+
+
+    public float playerTrackingOffset
+    {
+        get => _playerTrackingOffset;
+        set
+        {
+            _playerTrackingOffset = value;
+            if (freeLook != null)
+            {
+                freeLook.GetRig(0).GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset = Vector3.up * value;
+                freeLook.GetRig(1).GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset = Vector3.up * value;
+                freeLook.GetRig(2).GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset = Vector3.up * value;
+            }
+        }
+    }
+
+
+    public float playerRigOffset
+    {
+        get => _playerRigOffset;
+        set
+        {
+            _playerRigOffset = value;
+        }
+    }
+
     private void Awake()
     {
         s = this;

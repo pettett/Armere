@@ -31,6 +31,9 @@ public class UIKeyPromptGroup : MonoBehaviour
     }
     public float preferredWidth = 100f;
     public float preferredHeight = 100f;
+    public float fontSize = 12f;
+    public float buttonGapSize = 10f;
+    public float gapSize = 80f;
     public TMP_FontAsset fontAsset;
     public Material maskingTextMaterial;
     public Material maskedSpriteMaterial;
@@ -63,20 +66,7 @@ public class UIKeyPromptGroup : MonoBehaviour
 
         for (int i = 0; i < prompts.Length; i++)
         {
-            var holder = new GameObject(prompts[i].name, typeof(RectTransform), typeof(LayoutElement));
-            holder.transform.SetParent(transform, false);
-            var element = holder.GetComponent<LayoutElement>();
-            element.preferredHeight = preferredHeight;
-            element.preferredWidth = preferredWidth;
-            //Name text
-            var text = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            var t = text.GetComponent<TextMeshProUGUI>();
-            t.font = fontAsset;
-            t.text = prompts[i].name;
-            t.alignment = TextAlignmentOptions.Left;
-            text.transform.SetParent(holder.transform, false);
 
-            ExpandRectTransform(text.transform as RectTransform, new Vector2(0.5f, 0), Vector2.one);
 
             //Keybind text
 
@@ -84,23 +74,38 @@ public class UIKeyPromptGroup : MonoBehaviour
             var bindText = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
             var bindT = bindText.GetComponent<TextMeshProUGUI>();
             bindT.font = fontAsset;
+            bindT.fontSize = fontSize;
             bindT.fontMaterial = maskingTextMaterial;
             bindT.text = player.actions[prompts[i].action].GetBindingDisplayString();
 
             bindT.alignment = TextAlignmentOptions.Right;
 
-            bindText.transform.SetParent(holder.transform, false);
+            bindText.transform.SetParent(transform, false);
 
-            ExpandRectTransform(bindText.transform as RectTransform, Vector2.zero, new Vector2(0.5f, 1f));
-
+            // ExpandRectTransform(bindText.transform as RectTransform, Vector2.zero, new Vector2(0.5f, 1f));
 
             var bindImage = new GameObject("Sprite", typeof(RectTransform), typeof(Image));
             bindImage.transform.SetParent(bindText.transform, false);
 
             ExpandRectTransform(bindImage.transform as RectTransform, Vector2.zero, Vector2.one);
 
-
             bindImage.GetComponent<Image>().material = maskedSpriteMaterial;
+
+            //Name text
+            var text = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var t = text.GetComponent<TextMeshProUGUI>();
+            t.fontSize = fontSize;
+            t.font = fontAsset;
+            t.text = prompts[i].name;
+            t.alignment = TextAlignmentOptions.Left;
+            text.transform.SetParent(transform, false);
+
+
+            t.margin = new Vector4(buttonGapSize, 0, i != prompts.Length - 1 ? gapSize : 0, 0);
+
+
+
+            //  ExpandRectTransform(text.transform as RectTransform, new Vector2(0.5f, 0), Vector2.one);
 
         }
     }

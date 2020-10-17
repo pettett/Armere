@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 namespace Armere.PlayerController
@@ -492,38 +493,43 @@ namespace Armere.PlayerController
             entry.value0 = currentState.StateName;
 
             //test to see if this state requires any parallel states to be started
-            RequiresParallelState[] attributes = type.GetCustomAttributes(typeof(RequiresParallelState), true) as RequiresParallelState[];
-            MovementState[] newStates = new MovementState[attributes.Length];
-
-            for (int i = 0; i < attributes.Length; i++)
-            {
-                //test if the desired parallel state is currently active
-                newStates[i] = GetParallelState(attributes[i].state);
-                if (newStates[i] == null)
-                {
-                    newStates[i] = Activator.CreateInstance(attributes[i].state) as MovementState;
-                }
-            }
+            RequiresParallelState requiresParallelStates = (RequiresParallelState)type.GetCustomAttributes(typeof(RequiresParallelState), true).FirstOrDefault();
 
             //go through and end all the parallel states not used by this state
             for (int i = 0; i < parallelStates.Length; i++)
             {
                 bool continues = false;
-
-                for (int j = 0; j < attributes.Length; j++)
-                {
-                    if (parallelStates[i].GetType() == attributes[j].state)
+                if (requiresParallelStates != null)
+                    for (int j = 0; j < requiresParallelStates.states.Count; j++)
                     {
-                        continues = true;
+                        if (parallelStates[i].GetType() == requiresParallelStates.states[j])
+                        {
+                            continues = true;
+                        }
                     }
-                }
+
                 if (!continues)
                 {
                     parallelStates[i].End();
                 }
             }
 
-            parallelStates = newStates;
+            if (requiresParallelStates != null)
+            {
+                MovementState[] newStates = new MovementState[requiresParallelStates.states.Count];
+
+                for (int i = 0; i < requiresParallelStates.states.Count; i++)
+                {
+                    //test if the desired parallel state is currently active
+                    newStates[i] = GetParallelState(requiresParallelStates.states[i]);
+                    if (newStates[i] == null)
+                    {
+                        newStates[i] = Activator.CreateInstance(requiresParallelStates.states[i]) as MovementState;
+                    }
+                }
+                parallelStates = newStates;
+            }
+
 
             if (currentStateText != null)
             {

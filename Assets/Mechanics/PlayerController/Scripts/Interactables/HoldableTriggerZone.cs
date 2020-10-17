@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class HoldableTriggerZone : MonoBehaviour, QuestTrigger
 {
-    public string allowTag;
+    [TagSelector] public string allowTag;
     public string questTriggerName;
     public uint bodiesInZone;
 

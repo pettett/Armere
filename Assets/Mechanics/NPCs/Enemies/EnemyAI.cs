@@ -1,7 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
-[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIBase
 {
     public enum EnemyBehaviour { Guard, Patrol, }
@@ -37,6 +38,8 @@ public class EnemyAI : AIBase
     float sqrApproachDistance => approachDistance * approachDistance;
     public bool approachPlayer = true;
 
+    public float knockoutTime = 4f;
+
     Coroutine currentRoutine;
     bool investigateOnSight = false;
     bool engageOnAttack = true;
@@ -49,6 +52,8 @@ public class EnemyAI : AIBase
     public float height = 1.8f;
     AlertIndicatorUI alert;
 
+    Ragdoller ragdoller;
+
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
@@ -56,7 +61,11 @@ public class EnemyAI : AIBase
             ChangeRoutine(Alert());
     }
 
-
+    [MyBox.ButtonMethod()]
+    public void Ragdoll()
+    {
+        ChangeRoutine(Knockout());
+    }
 
     private void OnValidate()
     {
@@ -72,12 +81,13 @@ public class EnemyAI : AIBase
         }
     }
 
-    public void Die(GameObject attacker, GameObject victim)
+    public async void Die(GameObject attacker, GameObject victim)
     {
         weaponGraphics.weapon.RemoveHeld();
         weaponGraphics.bow.RemoveHeld();
         weaponGraphics.sidearm.RemoveHeld();
-
+        ragdoller.RagdollEnabled = true;
+        await Task.Delay(1000);
         Destroy(gameObject);
     }
 
@@ -88,6 +98,9 @@ public class EnemyAI : AIBase
         health = GetComponent<Health>();
         weaponGraphics = GetComponent<WeaponGraphicsController>();
         animationController = GetComponent<AnimationController>();
+        ragdoller = GetComponent<Ragdoller>();
+
+        ragdoller.RagdollEnabled = false;
 
         health.onTakeDamage += OnDamageTaken;
         health.onDeath += Die;
@@ -96,18 +109,20 @@ public class EnemyAI : AIBase
         base.Start();
         StartBaseRoutine();
 
-        EquipMelee();
+        weaponGraphics.weapon.SetHeld(InventoryController.singleton.db[meleeWeapon] as HoldableItemData);
     }
-    void EquipMelee()
+
+
+    IEnumerator DrawItem(ItemType type)
     {
-        MeleeWeaponItemData melee = (MeleeWeaponItemData)InventoryController.singleton.db[meleeWeapon];
-
-        weaponGraphics.weapon.SetHeld(melee);
-
-
-        animationController.TriggerTransition(transitionSet.drawSword);
-        animationController.TriggerTransition(transitionSet.swordWalking);
+        yield return weaponGraphics.DrawItem(type, transitionSet);
     }
+
+    IEnumerator SheathItem(ItemType type)
+    {
+        yield return weaponGraphics.SheathItem(type, transitionSet);
+    }
+
 
     void StartBaseRoutine()
     {
@@ -180,8 +195,18 @@ public class EnemyAI : AIBase
             yield return new WaitForEndOfFrame();
         }
     }
+
+    IEnumerator Knockout()
+    {
+        ragdoller.RagdollEnabled = true;
+        yield return new WaitForSeconds(knockoutTime);
+        ragdoller.RagdollEnabled = false;
+    }
+
     IEnumerator Alert()
     {
+        yield return DrawItem(ItemType.Melee);
+
         //If alert is null create one
         alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
 
@@ -204,6 +229,7 @@ public class EnemyAI : AIBase
 
         Vector3 directionToPlayer;
         print("Engaged player");
+
         while (true)
         {
             directionToPlayer = playerCollider.transform.position - transform.position;

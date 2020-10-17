@@ -6,7 +6,10 @@ using System;
 
 namespace Armere.PlayerController
 {
-
+    interface IInteractReceiver
+    {
+        void OnInteract(IInteractable interactable);
+    }
 
     [System.Serializable]
     //class to allow player interactions with the environment through IInteractable scripts
@@ -179,20 +182,28 @@ namespace Armere.PlayerController
                                 c.ChangeToState<Dialogue>(dialogue);
                                 break;
                         }
+
+                    if (i.canInteract)
+                    {
+                        (c.currentState as IInteractReceiver).OnInteract(i);
+                    }
                 }
             }
         }
 
         public override void End()
         {
-            enabled = false;
-            for (int i = 0; i < interactablesInRange.Count; i++)
+            if (enabled)
             {
-                ExitInteractable(interactablesInRange[i]);
+                enabled = false;
+                for (int i = 0; i < interactablesInRange.Count; i++)
+                {
+                    ExitInteractable(interactablesInRange[i]);
+                }
+                interactablesInRange = null;
+                //Remove the "Interact" prompt
+                UIPrompt.ResetPrompt();
             }
-            interactablesInRange = null;
-            //Remove the "Interact" prompt
-            UIPrompt.ResetPrompt();
         }
     }
 }

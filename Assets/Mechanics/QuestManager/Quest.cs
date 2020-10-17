@@ -34,7 +34,6 @@ public class Quest : ScriptableObject
     public class QuestTriggerInfo : QuestTrigger
     {
         public string name;
-        [System.NonSerialized] public uint currentTriggerCount;
         public uint requiredTriggerCount;
         public CountComparision comparision;
 

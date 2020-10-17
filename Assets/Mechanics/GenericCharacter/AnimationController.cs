@@ -107,7 +107,6 @@ public class AnimationController : MonoBehaviour
     public float lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight = 0;
     public Vector3 lookAtPosition;
 
-    public GameObject mesh;
 
     public bool useAnimationHook = false;
 

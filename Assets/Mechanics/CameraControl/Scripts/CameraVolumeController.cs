@@ -102,6 +102,7 @@ public class CameraVolumeController
                 }
             }
         }
+
         if (biggestEffect != 0)
             GameCameras.s.freeLook.m_Orbits = orbits;
         else if (s.overrideProfile != null)
@@ -116,6 +117,11 @@ public class CameraVolumeController
         {
             ApplyProfile(s.globalVolume.profile);
         }
+
+        //Offset by current camera rig
+        GameCameras.s.freeLook.m_Orbits[0].m_Height -= GameCameras.s.playerRigOffset;
+        GameCameras.s.freeLook.m_Orbits[1].m_Height -= GameCameras.s.playerRigOffset;
+        GameCameras.s.freeLook.m_Orbits[2].m_Height -= GameCameras.s.playerRigOffset;
 
     }
 

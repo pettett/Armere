@@ -3,7 +3,17 @@ guid: 9eacbed10cf2c2341b66dcaac7783d36
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ocean Surface
+    second: {fileID: 2100000, guid: 8fdae0eda1e4ba84cb521705e73f6aec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Water
+    second: {fileID: 2100000, guid: 8fdae0eda1e4ba84cb521705e73f6aec, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

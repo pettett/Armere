@@ -81,15 +81,16 @@ namespace Armere.PlayerController
         protected void print(string format, params object[] args) => Debug.LogFormat(format, args);
     }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class RequiresParallelState : Attribute
     {
-        public readonly Type state;
-        public RequiresParallelState(Type state)
+        public readonly System.Collections.ObjectModel.ReadOnlyCollection<Type> states;
+        public RequiresParallelState(params Type[] states)
         {
-            if (!state.IsSubclassOf(typeof(MovementState)))
-                throw new Exception("Must use a parallel State");
-            this.state = state;
+            foreach (var state in states)
+                if (!state.IsSubclassOf(typeof(MovementState)))
+                    throw new Exception("Must use a parallel State");
+            this.states = Array.AsReadOnly(states);
         }
     }
 

@@ -1,0 +1,12 @@
+title: Start
+---
+How long do you wish to rest for?
+-> Morning
+    <<Morning>>
+-> Noon
+    <<Noon>>
+-> Night
+    <<Night>>
+-> Maybe not... <exit>
+    <<None>>
+===

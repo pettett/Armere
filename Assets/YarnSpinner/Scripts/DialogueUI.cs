@@ -366,8 +366,16 @@ namespace Yarn.Unity
 
 
             string[] s = text.Split(':');
-            text = s[1];
-            nameText.text = s[0];
+            if (s.Length == 2)
+            {
+                text = s[1];
+                nameText.text = s[0];
+            }
+            else
+            {
+                text = s[0];
+                nameText.text = "";
+            }
 
 
 
@@ -475,6 +483,7 @@ namespace Yarn.Unity
 
         int escapeOption = -1;
 
+
         /// Show a list of options, and wait for the player to make a
         /// selection.
         private IEnumerator DoRunOptions(Yarn.OptionSet optionsCollection, ILineLocalisationProvider localisationProvider, System.Action<int> selectOption)
@@ -528,9 +537,9 @@ namespace Yarn.Unity
                     int e = optionText.IndexOf('>');
                     string markup = optionText.Substring(m + 1, e - m - 1);
                     optionText = optionText.Remove(m, e - m + 1);
-                    switch (markup)
+                    switch (markup.ToLower())
                     {
-                        case "Exit":
+                        case "exit":
                             //bind the escape key to this option
                             escapeOption = optionString.ID;
                             optionText = string.Format("[{0}] - {1}", exitKey.controls[0].displayName, optionText);
@@ -669,6 +678,7 @@ namespace Yarn.Unity
                 Debug.LogWarning("An option was selected, but the dialogue UI was not expecting it.");
                 return;
             }
+
             waitingForOptionSelection = false;
             currentOptionSelectionHandler?.Invoke(optionID);
         }

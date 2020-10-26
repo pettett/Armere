@@ -85,7 +85,6 @@ namespace Armere.PlayerController
             if (hits == 2)
             {
                 WaterController w = waterHits[1].collider.GetComponentInParent<WaterController>();
-                print("hitting ground");
                 if (w != null)
                 {
                     //Hit water and ground

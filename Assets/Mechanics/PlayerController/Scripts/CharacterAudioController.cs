@@ -15,8 +15,9 @@ namespace Armere.PlayerController
             source = GetComponent<AudioSource>();
             c = GetComponent<PlayerController>();
         }
-        public void FootDown()
+        public void FootDown(string a)
         {
+
             source.PlayOneShot(footSteps[Random.Range(0, footSteps.Length - 1)]);
             if (c.currentWater != null)
             {

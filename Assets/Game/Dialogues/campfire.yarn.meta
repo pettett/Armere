@@ -1,0 +1,38 @@
+fileFormatVersion: 2
+guid: 39af06df6bf49c8499392e03be91622e
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - campfire-Start-0
+  - campfire-Start-1
+  - campfire-Start-2
+  - campfire-Start-3
+  - campfire-Start-4
+  - campfire-Start-5
+  - campfire-Start-6
+  - campfire-Start-7
+  - campfire-Start-8
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 'Error on line 1 at position 1:
+
+    mismatched input
+    ''<EOF>'' expecting {ID, HASHTAG}
+
+
+
+
+
+    Tokens:
+
+    1:0 EOF "<EOF>"'
+  baseLanguage: {fileID: 7128917941130120860, guid: 39af06df6bf49c8499392e03be91622e,
+    type: 3}
+  localizations: []

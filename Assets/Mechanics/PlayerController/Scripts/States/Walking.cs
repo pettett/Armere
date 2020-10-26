@@ -185,19 +185,75 @@ namespace Armere.PlayerController
                     );
 
                 if (c.TryGetParallelState<Interact>(out var s))
-                {
                     s.End();
-                }
 
 
-                GameCameras.s.playerTrackingOffset = 0.5f;
 
 
                 c.StartCoroutine(UnEquipAll(() =>
                 {
                     c.animationController.TriggerTransition(c.transitionSet.startSitting);
+
+                    GameCameras.s.playerTrackingOffset = 0.5f;
+
+                    bool inDialogue = false;
+
+                    bool OnInput(InputAction.CallbackContext context)
+                    {
+                        switch (context.action.name)
+                        {
+                            case "Walk":
+                                if (inDialogue) break;
+                                //Return to walking
+                                c.animationController.TriggerTransition(c.transitionSet.stopSitting);
+                                inControl = true;
+                                UIKeyPromptGroup.singleton.RemovePrompts();
+
+                                GameCameras.s.playerTrackingOffset = GameCameras.s.defaultTrackingOffset;
+                                c.onPlayerInput -= OnInput;
+
+
+                                s?.Start();
+                                break;
+                            case "Action":
+                                if (!inDialogue)
+                                {
+                                    //Run the dialogue
+                                    c.runner.Add(restPoint.dialogue);
+                                    c.runner.StartDialogue("Start");
+
+                                    c.runner.AddCommandHandler("Morning", (_) => Debug.Log("Morning"));
+                                    c.runner.AddCommandHandler("Noon", (_) => Debug.Log("Noon"));
+                                    c.runner.AddCommandHandler("Night", (_) => Debug.Log("Night"));
+                                    c.runner.AddCommandHandler("None", (_) => Debug.Log("None"));
+
+                                    Yarn.Unity.DialogueUI.singleton.onDialogueEnd.AddListener(() =>
+                                   {
+                                       inDialogue = false;
+                                       c.runner.Clear();
+                                       c.runner.ClearStringTable();
+                                       c.runner.RemoveCommandHandler("Morning");
+                                       c.runner.RemoveCommandHandler("Noon");
+                                       c.runner.RemoveCommandHandler("Night");
+                                       c.runner.RemoveCommandHandler("None");
+                                   });
+
+                                    inDialogue = true;
+                                }
+                                break;
+                        }
+
+
+                        return false;
+                    };
+
+                    c.onPlayerInput += OnInput;
+
                 }
                 ));
+
+
+
 
 
             }

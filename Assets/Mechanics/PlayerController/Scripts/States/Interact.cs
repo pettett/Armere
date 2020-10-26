@@ -185,7 +185,7 @@ namespace Armere.PlayerController
 
                     if (i.canInteract)
                     {
-                        (c.currentState as IInteractReceiver).OnInteract(i);
+                        (c.currentState as IInteractReceiver)?.OnInteract(i);
                     }
                 }
             }

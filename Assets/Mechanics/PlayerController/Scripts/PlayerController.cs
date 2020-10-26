@@ -233,7 +233,7 @@ namespace Armere.PlayerController
 
             m_maxGroundDot = Mathf.Cos(m_maxGroundAngle * Mathf.Deg2Rad);
 
-            entry = DebugMenu.CreateEntry("Player", "Current State: {0}", "");
+            entry = DebugMenu.CreateEntry("Player", "State(s): {0}", "");
 
             cameraController = new CameraControl();
             cameraController.Init(this);
@@ -488,30 +488,23 @@ namespace Armere.PlayerController
             currentState = Activator.CreateInstance(type) as MovementState;
 
 
-
-            //update f3 information
-            entry.value0 = currentState.StateName;
-
             //test to see if this state requires any parallel states to be started
             RequiresParallelState requiresParallelStates = (RequiresParallelState)type.GetCustomAttributes(typeof(RequiresParallelState), true).FirstOrDefault();
 
             //go through and end all the parallel states not used by this state
             for (int i = 0; i < parallelStates.Length; i++)
             {
-                bool continues = false;
                 if (requiresParallelStates != null)
-                    for (int j = 0; j < requiresParallelStates.states.Count; j++)
-                    {
-                        if (parallelStates[i].GetType() == requiresParallelStates.states[j])
-                        {
-                            continues = true;
-                        }
-                    }
-
-                if (!continues)
                 {
-                    parallelStates[i].End();
+                    Type stateType = parallelStates[i].GetType();
+                    for (int j = 0; j < requiresParallelStates.states.Count; j++)
+                        if (stateType == requiresParallelStates.states[j])
+                            goto DoNotEndState;
                 }
+                //Goto saves time here - ending state will only be skipped if it is required
+                parallelStates[i].End();
+            DoNotEndState:
+                continue;
             }
 
             if (requiresParallelStates != null)
@@ -529,12 +522,28 @@ namespace Armere.PlayerController
                 }
                 parallelStates = newStates;
             }
-
-
-            if (currentStateText != null)
+            else
             {
-                currentStateText.text = currentState.StateName;
+                parallelStates = new MovementState[0];
             }
+
+
+
+
+            //Show all the currentley active states
+            System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(currentState.StateName);
+            if (parallelStates.Length != 0)
+            {
+                stringBuilder.Append('{');
+                foreach (var s in parallelStates)
+                {
+                    stringBuilder.Append(s.StateName);
+                    stringBuilder.Append(',');
+                }
+                stringBuilder.Append('}');
+            }
+            //update f3 information
+            entry.value0 = stringBuilder.ToString();
 
 
 

@@ -8,7 +8,7 @@ public class RestPoint : MonoBehaviour, IInteractable
     [TextArea]
     public string restTimeSelectText = "Rest by the fire until...";
 
-
+    public YarnProgram dialogue;
 
 
     public void Interact(IInteractor interactor) { }

@@ -99,4 +99,28 @@ public class WeaponTrigger : MonoBehaviour
             }
         }
     }
+
+    private void Update()
+    {
+        Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
+        grassBounds.center = transform.position + transform.forward * 0.5f;
+        grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
+        float yRot = transform.eulerAngles.y;
+
+
+    }
+
+    private void OnDrawGizmos()
+    {
+        Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
+        grassBounds.center = transform.position + transform.forward * 0.5f;
+        grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
+        float yRot = transform.eulerAngles.y;
+
+
+        Matrix4x4 mat = Matrix4x4.TRS(grassBounds.center, Quaternion.Euler(0, yRot, 0), grassBounds.size);
+        Gizmos.matrix = mat;
+        Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+
+    }
 }

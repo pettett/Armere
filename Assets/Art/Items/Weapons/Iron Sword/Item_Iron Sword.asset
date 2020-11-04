@@ -25,6 +25,15 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: 268ceb1e3136cf944a9e57474d522fae
     m_SubObjectName: Short Sword
+  worldObjectData:
+    m_AssetGUID: 29e95ce72fec21646a272a3fc2c50b86
+    m_SubObjectName: 
   clankProbability: 0.7
   clankSet: {fileID: 11400000, guid: 4364d0a64aabd47439877eb83c42211a, type: 2}
+  holdableWorldObjectData:
+    m_AssetGUID: 9c6dd958ec174fd44ba4a491935c05ae
+    m_SubObjectName: 
   damage: 20
+  hitSparkEffect:
+    m_AssetGUID: 4a996b38507c9814db35514c1719b533
+    m_SubObjectName: 

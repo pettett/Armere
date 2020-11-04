@@ -22,17 +22,15 @@ public class EnemyAI : AIBase
         public Vector3[] path = new Vector3[0];
     }
     [MyBox.ConditionalField("enemyBehaviour", false, EnemyBehaviour.Patrol)] public PatrolData patrolData;
-    public Health health;
+    [HideInInspector] public Health health;
     [Header("Player Detection")]
     public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
     [MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
-    public Transform eye;
+    public Transform eye; //Used for vision frustum calculations
     Collider playerCollider;
     public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 
     [Header("Player Engagement")]
-
-    public float engagementSpeed = 4;
 
     public float approachDistance = 1;
     float sqrApproachDistance => approachDistance * approachDistance;
@@ -51,8 +49,10 @@ public class EnemyAI : AIBase
     [Header("Indicators")]
     public float height = 1.8f;
     AlertIndicatorUI alert;
-
     Ragdoller ragdoller;
+
+    Transform lookingAtTarget;
+    Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
@@ -83,11 +83,11 @@ public class EnemyAI : AIBase
 
     public async void Die(GameObject attacker, GameObject victim)
     {
-        weaponGraphics.weapon.RemoveHeld();
-        weaponGraphics.bow.RemoveHeld();
-        weaponGraphics.sidearm.RemoveHeld();
+        weaponGraphics.holdables.melee.RemoveHeld();
+        weaponGraphics.holdables.bow.RemoveHeld();
+        weaponGraphics.holdables.sidearm.RemoveHeld();
         ragdoller.RagdollEnabled = true;
-        await Task.Delay(1000);
+        await Task.Delay(4000);
         Destroy(gameObject);
     }
 
@@ -109,7 +109,7 @@ public class EnemyAI : AIBase
         base.Start();
         StartBaseRoutine();
 
-        weaponGraphics.weapon.SetHeld(InventoryController.singleton.db[meleeWeapon] as HoldableItemData);
+        weaponGraphics.holdables.melee.SetHeld(InventoryController.singleton.db[meleeWeapon] as HoldableItemData);
     }
 
 
@@ -166,6 +166,7 @@ public class EnemyAI : AIBase
         while (true)
         {
             alert.SetInvestigation(investProgress);
+
             if (CanSeeBounds(playerCollider.bounds))
             {
 
@@ -174,21 +175,25 @@ public class EnemyAI : AIBase
                 float playerDistance = Mathf.InverseLerp(clippingPlanes.x, clippingPlanes.y, Vector3.Distance(eye.position, playerCollider.transform.position));
                 //Invest the player slower if they are further away
                 investProgress += Time.deltaTime * investigateRateOverDistance.Evaluate(playerDistance);
-
             }
             else
             {
                 investProgress -= Time.deltaTime;
             }
+
+
             if (investProgress < -1)
             {
                 //Cannot see player
                 StartBaseRoutine();
+
+                break;
             }
             else if (investProgress >= 1)
             {
                 //Seen player
                 ChangeRoutine(Alert());
+                break;
             }
 
 
@@ -205,7 +210,10 @@ public class EnemyAI : AIBase
 
     IEnumerator Alert()
     {
-        yield return DrawItem(ItemType.Melee);
+        lookingAtTarget = playerCollider.transform;
+
+        if (weaponGraphics.holdables.melee.sheathed)
+            yield return DrawItem(ItemType.Melee);
 
         //If alert is null create one
         alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
@@ -230,12 +238,26 @@ public class EnemyAI : AIBase
         Vector3 directionToPlayer;
         print("Engaged player");
 
+        bool movingToCatchPlayer = false;
+        lookingAtTarget = playerCollider.transform;
         while (true)
         {
             directionToPlayer = playerCollider.transform.position - transform.position;
             if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
             {
-                agent.Move(directionToPlayer.normalized * Time.deltaTime * engagementSpeed);
+                if (!movingToCatchPlayer)
+                {
+                    movingToCatchPlayer = true;
+                    yield return new WaitForSeconds(0.1f);
+                }
+
+                agent.Move(directionToPlayer.normalized * Time.deltaTime * agent.speed);
+            }
+            else if (movingToCatchPlayer)
+            {
+                movingToCatchPlayer = false;
+                //Small delay to adjust to stopped movement
+                yield return new WaitForSeconds(0.1f);
             }
             else
             {
@@ -243,8 +265,12 @@ public class EnemyAI : AIBase
                 //Swing sword
                 yield return SwingSword();
             }
+
             directionToPlayer.y = 0;
             transform.forward = directionToPlayer;
+
+            //TODO: Test to see if the player is still in view
+
 
             yield return new WaitForEndOfFrame();
         }
@@ -262,14 +288,20 @@ public class EnemyAI : AIBase
         MeshCollider collider = null;
         WeaponTrigger trigger = null;
 
+        void OnHit(AttackResult r)
+        {
 
+            //For now knock out the agent if the attack is blocked
+        }
 
         void AddTrigger()
         {
-            collider = weaponGraphics.weapon.gameObject.AddComponent<MeshCollider>();
+            //Add collider and trigger logic to the blade object
+            collider = weaponGraphics.holdables.melee.worldObject.gameObject.AddComponent<MeshCollider>();
             collider.convex = true;
             collider.isTrigger = true;
-            trigger = weaponGraphics.weapon.gameObject.AddComponent<WeaponTrigger>();
+            trigger = weaponGraphics.holdables.melee.worldObject.gameObject.AddComponent<WeaponTrigger>();
+            trigger.onWeaponHit += OnHit;
             trigger.weaponItem = meleeWeapon;
             trigger.controller = gameObject;
         }
@@ -332,7 +364,7 @@ public class EnemyAI : AIBase
             var b = playerCollider.bounds;
             if (CanSeeBounds(b))
             {
-                //can see the player, inturrupt current routine
+                //can see the player, interrupt current routine
                 ChangeRoutine(Investigate());
             }
         }
@@ -345,8 +377,10 @@ public class EnemyAI : AIBase
 
     private void OnAnimatorIK(int layerIndex)
     {
-        LookAtPlayer(playerCollider.transform.position);
+        if (lookingAtTarget != null)
+            LookAtPlayer(lookingAtTarget.position + lookingAtOffset);
     }
+
     private void OnDrawGizmos()
     {
         if (patrolData.path.Length >= 2)

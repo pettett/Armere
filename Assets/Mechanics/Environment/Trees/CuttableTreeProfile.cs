@@ -37,7 +37,8 @@ public class CuttableTreeProfile : ScriptableObject
 
     public float cutHeight = 1;
     public float cutSize = 1.2f;
-    public AudioClip[] cutClips;
+    public AudioClipSet cutClips;
+
     [Header("Log Felling")]
     public float logDensity = 700f;
     public float logEstimateHeight = 3f;

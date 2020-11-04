@@ -15,6 +15,7 @@ public class WaterController : MonoBehaviour
     }
     public WaterPathNode[] path = new WaterPathNode[0];
     public static VisualEffect splashEffect = null;
+    public static bool loadingSplashEffect = false;
     public AssetReferenceGameObject splashEffectPrefab = new AssetReferenceGameObject("Enviroment/Water/WaterSplash");
 
     public Collider waterVolume;
@@ -24,8 +25,9 @@ public class WaterController : MonoBehaviour
     public Bounds bounds => waterVolume.bounds;
     private async void Start()
     {
-        if (splashEffect == null)
+        if (splashEffect == null && loadingSplashEffect == false)
         {
+            loadingSplashEffect = true;
             splashEffect = (await Addressables.InstantiateAsync(splashEffectPrefab).Task).GetComponent<VisualEffect>();
         }
     }

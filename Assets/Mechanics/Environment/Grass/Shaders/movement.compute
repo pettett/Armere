@@ -1,0 +1,149 @@
+﻿#pragma kernel CSMain
+
+#include "MeshProperties.cginc"
+#include "MatrixStruct.cginc"
+
+
+cbuffer CB{
+    float4 _PusherPositions[10];
+    int pushers;
+    float deltatime;
+    float time;
+    int2 dispatchSize;
+}; 
+
+
+StructuredBuffer<MeshProperties> _Properties;
+RWStructuredBuffer<MatrixStruct> _Output;
+
+float4x4 Rotation(float z, float y, float x){
+    return float4x4 (
+        cos(x)*cos(y),cos(x)*sin(y)*sin(z)-sin(x)*cos(z),cos(x)*sin(y)*cos(z)+sin(x)*sin(z),0,
+        sin(x)*cos(y),cos(x)*sin(y)*sin(z)-cos(x)*cos(z),cos(x)*sin(y)*sin(z)+cos(x)*sin(z),0,
+        -sin(y), cos(y)*sin(z), cos(y)*cos(z),0,
+        0,0,0,1
+    );
+}
+
+float4x4 rotationMatrix(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+
+float4x4 RotationY(float y){
+    return float4x4 (
+        cos(y),0,sin(y),0,
+        0,1,0,0,
+        -sin(y),0,cos(y),0,
+        0,0,0,1
+    );
+}
+
+float4x4 ScaleXYZ(float2 size){
+    return float4x4 (
+        size.x,0,0,0,
+        0,size.y,0,0,
+        0,0,size.x,0,
+        0,0,0,1
+    );
+}
+
+
+#define pi 3.14159265359
+
+
+inline float angle(float2 vec) {
+    return atan2(vec.x, vec.y);
+}
+
+float Repeat(float t, float length)
+{
+    return clamp(t - floor(t / length) * length, 0.0f, length);
+}
+float LerpAngle(float a, float b, float t)
+{
+    float delta = Repeat((b - a), pi*2);
+    return a + delta * saturate(t);
+}
+
+
+#include "noiseSimplex.cginc"
+
+
+// For the sake of simplicity, only using 1, 1, 1 threads.
+//lol no
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+    uint index = id.x + id.y * 512*64;
+
+    // In a transform matrix, the position (translation) vector is the last column.
+
+    float damp = 0;
+    float3 dampDir = float3(0.01,0,0);
+
+    [loop] for (uint i = 0; i < pushers; i++){
+        float effect =  distance(_Properties[index].position, _PusherPositions[i].xyz);
+        float radius = _PusherPositions[i].w;
+
+        effect = (radius- clamp(0.0, radius, effect))/radius;
+
+        damp = max(damp,effect);
+        dampDir += (_Properties[index].position - _PusherPositions[i].xyz) * effect;
+    }
+
+    float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
+
+    // Scale and reverse distance so that we get a value which fades as it gets further away.
+    // Max distance is 5.0.
+
+    //_Properties[id.x].rotation.y += 1 * deltatime;
+
+    float2 rot = float2(
+                snoise(_Properties[index].position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
+                snoise(_Properties[index].position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+
+    // The amount of wind decreases as damp increases
+    //_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
+
+    
+    float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
+
+    float4x4 mat_local_r = Rotation(rot.x ,_Properties[index].rotation.y,rot.y);
+   // float4x4 mat_local_r = Rotation(pi,0,0);
+
+
+    // Create a new translation matrix which represents a move in a direction.
+    float4x4 translation = float4x4(
+        1, 0, 0, _Properties[index].position.x,
+        0, 1, 0, _Properties[index].position.y,
+        0, 0, 1, _Properties[index].position.z,
+        0, 0, 0, 1
+    );
+
+    // Apply translation to existing matrix, which will be read in the shader.
+
+
+    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(_Properties[index].size)));
+    _Output[index].color = _Properties[index].color;
+
+
+    /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.
+    float4x4 rotation = float4x4(
+        .999, -.01, 0, 0.1,
+        .01, .999, 0, 0.1,
+        0, 0, 1, 0.1,
+        0, 0, 0, 1
+    );
+    _Properties[id.x].mat = mul(_Properties[id.x].mat, rotation);
+    */
+}

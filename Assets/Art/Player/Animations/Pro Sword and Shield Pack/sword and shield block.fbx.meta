@@ -1,11 +1,11 @@
 fileFormatVersion: 2
 guid: 795a812f80bcff34b93f1a1b6b18bb30
 ModelImporter:
-  serializedVersion: 19301
+  serializedVersion: 20101
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: SwordShield_RaiseSheild
+    second: SwordShield_RaiseShield
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: SwordShield_RaiseSheild
+      name: SwordShield_RaiseShield
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0
@@ -81,6 +81,7 @@ ModelImporter:
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1
+    bakeAxisConversion: 0
     preserveHierarchy: 0
     skinWeightsMode: 0
     maxBonesPerVertex: 4
@@ -90,6 +91,9 @@ ModelImporter:
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:

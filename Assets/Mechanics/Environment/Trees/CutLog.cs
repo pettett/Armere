@@ -8,20 +8,31 @@ public class CutLog : MonoBehaviour, IAttackable
     public GameObject canopy;
     public GameObject trunk;
 
+    //Needed to spawn items and place offset
     public Vector2 lengthRegion;
 
     ItemName spawnedItem = ItemName.Stick;
     Vector2Int itemCount = new Vector2Int(1, 3);
 
+    public Vector3 offset;
+    Vector3 IScanable.offset => offset;
+    public bool invincible = true;
+    public IEnumerator Start()
+    {
+        offset = Vector3.up * (lengthRegion.x + lengthRegion.y) * 0.5f;
+        yield return new WaitForSeconds(0.5f); //Wait a short time before the log can be destroyed
+        invincible = false;
+    }
+
     public async void Cut()
     {
         int spawns = Random.Range(itemCount.x, itemCount.y + 1);
 
-        IEnumerable<Task<InteractableItem>> SpawnTasks()
+        IEnumerable<Task<WorldObject>> SpawnTasks()
         {
             for (int i = 0; i < spawns; i++)
             {
-                yield return Items.SpawnItem(
+                yield return WorldObjectSpawner.SpawnItemAsync(
                     InventoryController.singleton.db[spawnedItem] as PhysicsItemData,
                     transform.position + transform.up * Mathf.Lerp(lengthRegion.x, lengthRegion.y, (i + 0.5f) / (float)spawns),
                     Quaternion.Euler(0, Random.Range(0, 360), 0));
@@ -35,9 +46,26 @@ public class CutLog : MonoBehaviour, IAttackable
         Destroy(gameObject);
     }
 
-    public void Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
     {
-        Cut();
+        if (!invincible)
+        {
+            Cut();
+            return AttackResult.Damaged | AttackResult.Killed;
+        }
+        else
+        {
+            return AttackResult.None;
+        }
+    }
+
+    private void OnEnable()
+    {
+        TypeGroup<IAttackable>.allObjects.Add(this);
+    }
+    private void OnDisable()
+    {
+        TypeGroup<IAttackable>.allObjects.Remove(this);
     }
 
     //Remove the canopy when hit ground

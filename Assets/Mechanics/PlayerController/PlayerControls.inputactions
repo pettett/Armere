@@ -132,6 +132,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "KO",
+                    "type": "Button",
+                    "id": "42f9125d-94a5-4316-911e-64a0c2e88121",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -618,6 +626,17 @@
                     "action": "VerticalMovement",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "c2c0c83b-eb16-4191-bfb9-d2e18d99188e",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "KO",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

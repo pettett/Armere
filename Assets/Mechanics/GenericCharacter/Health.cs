@@ -11,23 +11,26 @@ public class Health : MonoBehaviour, IAttackable
 
     public float maxHealth;
     public float headshotHeight = 1.5f;
-
     public bool useUI;
     public string uiName = "health";
-
-
     public bool dead { get; private set; }
 
+    public Vector3 offset => centerOffset;
+
+    public Vector3 centerOffset;
 
     public delegate void HealthEvent(GameObject attacker, GameObject victim);
 
     public delegate void ShieldDamage(ref float damage, GameObject attacker, GameObject victim);
 
     public event HealthEvent onDeath;
-    public event ShieldDamage TryShieldDamage;
+    public bool blockingDamage = false;
+    [Range(-1, 1)]
+    public float minBlockingDot = 0.5f;
     public UnityEvent onDeathEvent;
 
     public event HealthEvent onTakeDamage;
+    public event HealthEvent onBlockDamage;
 
     /// <summary>
     /// Start is called on the frame when a script is enabled just before
@@ -44,13 +47,23 @@ public class Health : MonoBehaviour, IAttackable
         health = _health;
         dead = false;
     }
-    public void Damage(float amount, GameObject origin)
+
+    public AttackResult Damage(float amount, GameObject origin)
     {
 
-        if (dead)
-            return;
 
-        TryShieldDamage?.Invoke(ref amount, origin, gameObject);
+
+        if (dead)
+            return AttackResult.None;
+        //Test if the damage can be blocked based on the angle
+        //TODO: Better blocking physics
+        else if (blockingDamage && Vector3.Dot(transform.forward, (origin.transform.position - transform.position).normalized) > minBlockingDot)
+        {
+            onBlockDamage?.Invoke(origin, gameObject);
+            return AttackResult.Blocked;
+        }
+
+        AttackResult r = AttackResult.Damaged;
 
         _health -= amount;
         _health = Mathf.Clamp(_health, 0, maxHealth);
@@ -60,18 +73,23 @@ public class Health : MonoBehaviour, IAttackable
             dead = true;
             onDeath?.Invoke(origin, gameObject);
             onDeathEvent.Invoke();
+
+            r |= AttackResult.Killed;
         }
         else
         {
             onTakeDamage?.Invoke(origin, gameObject);
         }
         UpdateUI();
+
+        return r;
     }
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawCube(transform.position + Vector3.up * headshotHeight, new Vector3(1, 0, 1));
-    }
 
+        Gizmos.DrawWireSphere(transform.position + offset, 0.1f);
+    }
 
     void UpdateUI()
     {
@@ -79,10 +97,19 @@ public class Health : MonoBehaviour, IAttackable
             ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
     }
 
-    public void Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
     {
         WeaponItemData weaponData = (WeaponItemData)InventoryController.singleton.db[weapon];
-        print(weaponData.damage);
-        Damage(weaponData.damage, controller);
+        return Damage(weaponData.damage, controller);
     }
+
+    private void OnEnable()
+    {
+        TypeGroup<IAttackable>.allObjects.Add(this);
+    }
+    private void OnDisable()
+    {
+        TypeGroup<IAttackable>.allObjects.Remove(this);
+    }
+
 }

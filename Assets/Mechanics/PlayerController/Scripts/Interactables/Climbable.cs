@@ -25,9 +25,9 @@ public class Climbable : MonoBehaviour, IInteractable
 
     public string interactionDescription => "Climb";
 
-    [SerializeField] Vector3[] vertices;
-    [SerializeField] Vector3[] normals;
-    [SerializeField] int[] triangles;
+    Vector3[] vertices;
+    Vector3[] normals;
+    int[] triangles;
 
     public void SyncMesh(MeshFilter mesh)
     {
@@ -56,6 +56,8 @@ public class Climbable : MonoBehaviour, IInteractable
     public void Interact(IInteractor c)
     {
         //Change to state ladder
+
+        SyncMesh(mesh);
 
         //Maybe change this to happen inside the player controller?
         //Yes past me, that sounds like a good idea for later-er. But instead Im going to expand this to include climbable walls

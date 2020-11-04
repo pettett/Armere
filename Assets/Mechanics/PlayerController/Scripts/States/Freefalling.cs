@@ -27,16 +27,6 @@ namespace Armere.PlayerController
 
         }
 
-
-        public override void OnCollideGround(RaycastHit hit)
-        {
-            //Only go to walking if they player is not moving upwards
-            if (Vector3.Dot(hit.normal, Vector3.up) > c.m_maxGroundDot && c.rb.velocity.y <= 0)
-            {
-                ChangeToState<Walking>();
-            }
-        }
-
         public override void Animate(AnimatorVariables vars)
         {
             animator.SetBool(vars.surfing.id, false);

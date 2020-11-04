@@ -72,11 +72,13 @@ public class SaveManager : MonoBehaviour
         {
             //attempt to retore all the saveables
             print("Loaded save");
-            Items.OnSceneChange();
+
 
             InventoryController.singleton.RestoreSave(inventory);
             Armere.PlayerController.PlayerController.activePlayerController.RestoreSave(player);
             NPCManager.singleton.data = npc;
+
+            //TODO: Reset all addressable assets and stuff
 
             Time.timeScale = 1;
         }

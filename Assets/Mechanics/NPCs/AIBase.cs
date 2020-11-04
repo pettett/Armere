@@ -42,7 +42,7 @@ public abstract class AIBase : MonoBehaviour
     public void LookAtPlayer(Vector3 playerPos)
     {
         anim.SetLookAtPosition(playerPos);
-        anim.SetLookAtWeight(1);
+        anim.SetLookAtWeight(1, 0, 1, 1, 0.2f);
 
 
         Vector3 flatDir = Vector3.Scale(transform.position, new Vector3(1, 0, 1)) - Vector3.Scale(playerPos, new Vector3(1, 0, 1));

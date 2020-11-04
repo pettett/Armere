@@ -6,5 +6,7 @@ using UnityEngine.AddressableAssets;
 [AllowItemTypes(ItemType.SideArm)]
 public class ShieldItemData : SideArmItemData
 {
-    public float defense;
+
+    [Range(-1, 1)]
+    public float minBlockingDot = 0.2f;
 }

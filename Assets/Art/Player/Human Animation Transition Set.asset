@@ -37,3 +37,38 @@ MonoBehaviour:
     duration: 0.05
     offset: 0.05
     layers: 1
+  startSitting:
+    name: Start Sit
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  stopSitting:
+    name: Stop Sit
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  shieldRaise:
+    name: Raise Shield
+    duration: 0.05
+    offset: 0.05
+    layers: 2
+  shieldLower:
+    name: Lower Shield
+    duration: 0.05
+    offset: 0.05
+    layers: 2
+  shieldImpact:
+    name: Shield Impact
+    duration: 0.08
+    offset: 0.11
+    layers: -1
+  swordBackImpact:
+    name: Back Impact
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  swordFrontImpact:
+    name: Front Impact
+    duration: 0.05
+    offset: 0.05
+    layers: 1

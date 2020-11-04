@@ -8,19 +8,19 @@ public class ItemInfoDisplay : MonoBehaviour
     public Image thumbnail;
     public TextMeshProUGUI title;
     public TextMeshProUGUI description;
-    AsyncOperationHandle<Sprite> sprite;
+    AsyncOperationHandle<Sprite> spriteAsyncOperation;
     public async void ShowInfo(ItemName item, ItemDatabase db)
     {
         title.text = db[item].displayName;
         description.text = db[item].description;
         //Load the sprite
-        sprite = db[item].displaySprite.LoadAssetAsync();
-        thumbnail.sprite = await sprite.Task;
+        spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(db[item].displaySprite);
+        thumbnail.sprite = await spriteAsyncOperation.Task;
     }
 
     private void OnDestroy()
     {
-        if (sprite.IsValid())
-            Addressables.Release(sprite);
+        if (spriteAsyncOperation.IsValid())
+            Addressables.Release(spriteAsyncOperation);
     }
 }

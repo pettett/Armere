@@ -1,0 +1,43 @@
+#pragma kernel CSMain
+
+#include "MeshProperties.cginc"
+
+
+
+cbuffer CB{
+    float2 sectorCenter;
+    float2 sectorDirection;
+    float sectorDot;
+    float2 sectorRadiusRange;
+    
+    int2 dispatchSize;
+}; 
+
+
+StructuredBuffer<uint> _ArgsData;
+
+StructuredBuffer<MeshProperties> _Grass;
+AppendStructuredBuffer<MeshProperties> _CulledGrass;
+
+#define THREADGROUPX 64
+#define THREADGROUPY 1
+
+// For the sake of simplicity, only using 1, 1, 1 threads.
+//lol no
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+    uint index = id.x + id.y * dispatchSize.x * THREADGROUPX + id.z * dispatchSize.x * dispatchSize.y * THREADGROUPX * THREADGROUPY;
+
+    float2 p = _Grass[index].position.xz;
+
+    
+    float2 dir = sectorCenter - p;
+    float dotDiff = dot(dir,sectorDirection);
+    float distance = length(dir);
+
+    if ((distance > sectorRadiusRange.y || distance < sectorRadiusRange.x || dotDiff > sectorDot) && index < _ArgsData[1])
+    {
+        _CulledGrass.Append(_Grass[index]);
+    }
+}

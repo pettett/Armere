@@ -4,10 +4,9 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine.AddressableAssets;
 
-
-public class EquipmentSet<T>
+[System.Serializable]
+public class EquipmentSet<T> : IEnumerable<T>
 {
     public T melee;
     public T sidearm;
@@ -43,6 +42,18 @@ public class EquipmentSet<T>
             }
         }
     }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        yield return melee;
+        yield return sidearm;
+        yield return bow;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 }
 
 
@@ -62,9 +73,11 @@ public class WeaponGraphicsController : MonoBehaviour
         }
         public void Anchor(Transform t)
         {
-            t.SetPositionAndRotation(anchorTrans.TransformPoint(posOffset), anchorTrans.rotation * rotOffset);
+            t.SetParent(anchorTrans, false);
+            t.localScale = Vector3.one * 100;
+            t.localPosition = posOffset;
+            t.localRotation = rotOffset;
         }
-
     }
 
 
@@ -75,8 +88,18 @@ public class WeaponGraphicsController : MonoBehaviour
     {
         public HoldPoint holdPoint;
         public HoldPoint sheathedPoint;
-        public bool sheathed = true;
-        [HideInInspector] public GameObject gameObject;
+        bool _sheathed = true;
+        public bool sheathed
+        {
+            get => _sheathed;
+            set
+            {
+                _sheathed = value;
+                //Anchor only needs updating when sheath changes
+                Anchor();
+            }
+        }
+        [HideInInspector] public WorldObject worldObject;
         HoldableItemData holdable;
         public void Init(Animator a)
         {
@@ -85,23 +108,24 @@ public class WeaponGraphicsController : MonoBehaviour
         }
         public void Anchor()
         {
-            if (gameObject != null)
+            if (worldObject != null)
                 if (sheathed)
-                    sheathedPoint.Anchor(gameObject.transform);
+                    sheathedPoint.Anchor(worldObject.transform);
                 else
-                    holdPoint.Anchor(gameObject.transform);
+                    holdPoint.Anchor(worldObject.transform);
         }
 
         public async void SetHeld(HoldableItemData holdable)
         {
             this.holdable = holdable;
-            if (gameObject != null) Destroy(gameObject);
-            gameObject = await holdable.CreatePlayerObject();
+            if (worldObject != null) Destroy(worldObject);
+            worldObject = await WorldObjectSpawner.SpawnWorldObjectAsync(holdable.holdableWorldObjectData, Vector3.zero, Quaternion.identity, default);
         }
+
         public void RemoveHeld()
         {
-            if (gameObject != null)
-                Addressables.ReleaseInstance(gameObject);
+            if (worldObject != null)
+                WorldObjectSpawner.DestroyWorldObject(worldObject);
         }
 
         public void OnClank(AudioSource source)
@@ -119,9 +143,9 @@ public class WeaponGraphicsController : MonoBehaviour
 
 
     public AudioSource source;
-    public HoldableObject weapon;
-    public HoldableObject bow;
-    public HoldableObject sidearm;
+    // public HoldableObject weapon;
+    // public HoldableObject bow;
+    // public HoldableObject sidearm;
 
     public EquipmentSet<HoldableObject> holdables;
 
@@ -129,6 +153,8 @@ public class WeaponGraphicsController : MonoBehaviour
     Animator animator;
 
     AnimationController animationController;
+
+
 
     public IEnumerator DrawItem(ItemType type, AnimationTransitionSet transitionSet)
     {
@@ -164,31 +190,20 @@ public class WeaponGraphicsController : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         animationController = GetComponent<AnimationController>();
-        weapon.Init(animator);
-        bow.Init(animator);
-        sidearm.Init(animator);
 
-        holdables = new EquipmentSet<HoldableObject>(weapon, sidearm, bow);
+        foreach (HoldableObject h in holdables)
+            h.Init(animator);
+
     }
 
     public void OnClank()
     {
         //Called by animator
-        weapon.OnClank(source);
-        bow.OnClank(source);
-        sidearm.OnClank(source);
+        foreach (HoldableObject h in holdables)
+            h.OnClank(source);
     }
     public void FootDown()
     {
         OnClank();
-    }
-
-
-    private void Update()
-    {
-        //Only lock objects to anchors if they exist
-        weapon.Anchor();
-        bow.Anchor();
-        sidearm.Anchor();
     }
 }

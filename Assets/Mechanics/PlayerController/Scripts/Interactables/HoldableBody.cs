@@ -8,7 +8,8 @@ public class HoldableBody : MonoBehaviour, IInteractable
 {
     public Rigidbody rb;
     public float heightOffset = 0.26f;
-    public bool canInteract { get => (!(PlayerController.activePlayerController.currentState as Walking)?.holdingBody) ?? false; set { } }
+    public bool interactable = true;
+    public bool canInteract { get => interactable && ((!(PlayerController.activePlayerController.currentState as Walking)?.holdingBody) ?? false); set { } }
 
     public float requiredLookDot => 0;
     public string holdableTriggerTag = "Default";
@@ -18,6 +19,7 @@ public class HoldableBody : MonoBehaviour, IInteractable
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.velocity = Vector3.zero;
     }
     public void Interact(IInteractor interactor)
     {
@@ -30,6 +32,7 @@ public class HoldableBody : MonoBehaviour, IInteractable
     public void OnDropped()
     {
         rb.mass = oldMass;
+        rb.AddForce(Vector3.up * 0.001f);
         Destroy(joint);
     }
 
@@ -41,5 +44,10 @@ public class HoldableBody : MonoBehaviour, IInteractable
     public void OnStartHighlight()
     {
 
+    }
+
+    private void OnDestroy()
+    {
+        interactable = false;
     }
 }

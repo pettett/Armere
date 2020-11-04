@@ -35,6 +35,24 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 0a5462bf8dce8d34aaff0908fd278bf4
+    m_Address: Assets/Art/Items/Common/Stick/Stick WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 182f95875d9280e4f8664005e6f0aa13
+    m_Address: Assets/Art/Items/Currency/Sprites/Blue_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 1a9f009d6a6d49840b29ba6c66c9abd9
+    m_Address: Assets/Art/Items/Common/IronOre/Iron Ore WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_Address: Assets/Art/Items/Stick/Stick.png
     m_ReadOnly: 0
@@ -53,6 +71,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 29e95ce72fec21646a272a3fc2c50b86
+    m_Address: Assets/Art/Items/Weapons/Iron Sword/Iron Sword WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 2b0446f3fd01da54180a4344648cd5e5
     m_Address: herb
     m_ReadOnly: 0
@@ -65,14 +89,50 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 3588b8d2aae105240bcc3e75eec92c7f
+    m_Address: Assets/Art/Items/Currency/Sprites/Purple_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 4a996b38507c9814db35514c1719b533
+    m_Address: Assets/Art/Particles/Impact/Sword Hit Effect.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 5243dd5c2525df84bad31ee275e12c7c
+    m_Address: Assets/Art/Items/Currency/Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 628b35708d1b48849ae6ee2b707ee8f1
     m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Objects/Shield.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 6b5a6a9f0eac4c24cb3a5b4ad9e78fe9
+    m_Address: Assets/Art/Items/Currency/Sprites/Gold_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 6b6d49fa816b0c54fbb96a21a7fd0270
     m_Address: Assets/Art/Items/IronOre/ironOre.blend
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 6c43f06be31de6f46be4dc406e8ad591
+    m_Address: Assets/Art/Items/Currency/Sprites/Green_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 71e00151d6a4f6d4ba18fef457b778a8
+    m_Address: Assets/Art/Items/Common/Meat/Meat WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -89,6 +149,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 7490805abb9777a498e402ae6810db83
+    m_Address: Assets/Art/Items/Sidearms/Lantern/Gas Lantern WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 79a5eab03a63f9f498cb405349d6f995
     m_Address: Assets/Art/Items/Bows/Basic Bow/basic_bow.blend
     m_ReadOnly: 0
@@ -97,6 +163,12 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 7c743814603b02a44826ad1efd7ddf21
     m_Address: Assets/Art/Items/Iron Sword/ironswordthumb.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 814232617a247bc4fbc3dd058081a3d2
+    m_Address: Assets/Art/Chests/Wooden Chest/Chest 1.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -113,6 +185,18 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 96bc285502889dd4b86d42b593346ca9
+    m_Address: Assets/Art/Items/Currency/Sprites/Red_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 993be0fa7ce142c4d8ba567552685ba5
+    m_Address: Assets/Art/Items/Currency/Sprites/Silver_Rupee_Icon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: a62e8da5194101042a4d89028ef6f912
     m_Address: LowPolyTreePack/Materials/Fall.mat
     m_ReadOnly: 0
@@ -121,6 +205,12 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: ac35566b90ee1ee44aa121ca0a1318ac
     m_Address: Assets/Art/Items/Meat/meatthumb.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: acc191f85cff5c746a83691ee15a821b
+    m_Address: Assets/Art/Items/Common/Herb/Herb WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -149,8 +239,99 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: fd868e277558c8e4fa0b86eb6782d4cb
+    m_Address: Assets/Art/Items/Currency/Gold Currency World Object.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: fe3e3b8ebc1a32647b48b7ea88f534a8
     m_Address: LowPolyTreePack/Materials/Normal
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: a9825537023a3bb4f91d078928fd82f3
+    m_Address: Assets/Art/Items/Sidearms/Lantern/Holdable Gas Lantern WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 90d99b217b4074942bfaecf6ccaafe4d
+    m_Address: Assets/Art/Items/Sidearms/Basic Shield/Holdable Basic Shield WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 2cc9bdf09aff63e4397235a8552c210e
+    m_Address: Assets/Art/Items/Sidearms/Basic Shield/Basic Shield WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 2d6240ed09a83b3439396a16c10e3e95
+    m_Address: Assets/Art/Items/Bows/Basic Bow/Holdable Basic Bow WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: f2d8a6cf457f24c48a77ea067ff4119e
+    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 9c6dd958ec174fd44ba4a491935c05ae
+    m_Address: Assets/Art/Items/Weapons/Iron Sword/Holdable Iron Sword WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: c4876a66425c61749a342b016142a4c8
+    m_Address: Assets/Art/Items/Currency/Green Currency WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 77ef6e19db3834c49a768228e594e5a5
+    m_Address: Assets/Art/Items/Currency/Purple Currency WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 14c2a3ca2fb786849bb1867dc864cbce
+    m_Address: Assets/Art/Items/Currency/Blue Currency WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: c557393096f42934a82ed32177f37f6f
+    m_Address: Assets/Art/Items/Currency/Silver Currency WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 1be9b76081eb5084ab47a2e60db6785c
+    m_Address: Assets/Art/Items/Currency/Red Currency WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: b542e39e4ae317d4486a78bc59d722aa
+    m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Furniture/WO/Barrel_Closed
+      Holdable.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: ef320abe3d4dc17408219048c6dd825c
+    m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Furniture/WO/Barrel_Closed_Holdable.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 4fcba79b948edca479435b7a4b67e723
+    m_Address: Assets/Art/Chests/Wooden Chest/Wooden Chest WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

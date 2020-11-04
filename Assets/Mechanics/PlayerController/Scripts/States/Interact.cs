@@ -21,13 +21,15 @@ namespace Armere.PlayerController
         IInteractable prevTarget;
         public bool enabled = true;
 
-
-
+        public DebugMenu.DebugEntry<string> entry;
 
         public override void Start()
         {
             interactablesInRange = new List<IInteractable>();
             enabled = true;
+
+            entry = DebugMenu.CreateEntry("Player", "interactables: {0}", "");
+
             ScanForInteractables();
         }
         ///<summary>Perform an overlap capsule to check for interactables, returning whether it did or not</summary>
@@ -54,27 +56,52 @@ namespace Armere.PlayerController
         {
             if (!enabled) return;
             TestForInteractable(other);
+
+        }
+
+        void UpdateEntry()
+        {
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+            for (int i = 0; i < interactablesInRange.Count; i++)
+            {
+                s.Append(interactablesInRange[i].gameObject.name);
+                s.Append(' ');
+            }
+            entry.value0 = s.ToString();
         }
 
         bool TestForInteractable(Collider interactable)
         {
+            if (!interactable.isTrigger) return false;
+
             if (interactable.TryGetComponent(out IInteractable i))
             {
-                if (i.canInteract)
+                //Sometimes at the start the same interactable can be detected multiple times as it scans multiple triggers 
+                //Make sure this interactable has not occured
+                if (i.canInteract && !interactablesInRange.Contains(i))
                 {
-                    interactablesInRange.Add(i);
-
-
-
+                    AddInteractable(i);
                     return true;
                 }
             }
+            else if (interactable.TryGetComponent(out IPassiveInteractable p))
+            {
+                if (p.canInteract)
+                    p.Interact(c);
+            }
+
             return false;
+        }
+        public void AddInteractable(IInteractable i)
+        {
+            interactablesInRange.Add(i);
+            UpdateEntry();
         }
 
         public override void OnTriggerExit(Collider interactable)
         {
             if (!enabled) return;
+
 
             //if this was the interactable, remove it
             if (interactable.TryGetComponent<IInteractable>(out var i))
@@ -94,7 +121,7 @@ namespace Armere.PlayerController
 
             for (int i = 0; i < interactablesInRange.Count; i++)
             {
-                if (!interactablesInRange[i].canInteract)
+                if (interactablesInRange[i] == null || !interactablesInRange[i].canInteract)
                 {
                     OnInteractableRemoved(interactablesInRange[i]);
                 }
@@ -130,7 +157,6 @@ namespace Armere.PlayerController
                 interactablesInRange[currentLookAt].OnStartHighlight();
                 prevTarget = interactablesInRange[currentLookAt];
             }
-
         }
 
         void RemovePrevTarget()
@@ -153,12 +179,11 @@ namespace Armere.PlayerController
         {
             exit.OnEndHighlight();
             interactablesInRange.Remove(exit);
+            UpdateEntry();
         }
 
         public override void OnInteract(InputActionPhase phase)
         {
-
-
             if (enabled && phase == InputActionPhase.Started)
             {
                 //activate the interactable that is pointed most to the player
@@ -169,6 +194,7 @@ namespace Armere.PlayerController
                     i.Interact(c);
 
                     if (i.canInteract)
+                    {
                         //Somehow this needs to be improved
                         switch (i)
                         {
@@ -183,10 +209,15 @@ namespace Armere.PlayerController
                                 break;
                         }
 
-                    if (i.canInteract)
-                    {
-                        (c.currentState as IInteractReceiver)?.OnInteract(i);
+                        if (i.canInteract)
+                        {
+                            (c.currentState as IInteractReceiver)?.OnInteract(i);
+                        }
+                        else
+                            ExitInteractable(interactablesInRange[currentLookAt]);
                     }
+                    else if (interactablesInRange != null)
+                        ExitInteractable(interactablesInRange[currentLookAt]);
                 }
             }
         }
@@ -200,9 +231,14 @@ namespace Armere.PlayerController
                 {
                     ExitInteractable(interactablesInRange[i]);
                 }
+                interactablesInRange.Clear();
                 interactablesInRange = null;
+
                 //Remove the "Interact" prompt
                 UIPrompt.ResetPrompt();
+
+                DebugMenu.RemoveEntry(entry);
+                entry = null;
             }
         }
     }

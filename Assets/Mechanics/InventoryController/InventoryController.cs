@@ -21,7 +21,7 @@ public class InventoryController : MonoBehaviour
     {
         public readonly string name;
         public OptionDelegate[] options;
-        public int limit;
+        public uint limit;
 
         public abstract bool AddItem(ItemName name, uint count);
         public abstract bool AddItem(int index, uint count);
@@ -31,7 +31,7 @@ public class InventoryController : MonoBehaviour
         public abstract uint ItemCount(int itemIndex);
         public abstract ItemName ItemAt(int index);
 
-        public InventoryPanel(string name, int limit, OptionDelegate[] options)
+        public InventoryPanel(string name, uint limit, params OptionDelegate[] options)
         {
             this.name = name;
             this.options = options;
@@ -47,6 +47,8 @@ public class InventoryController : MonoBehaviour
             get;
         }
 
+        public event Action onPanelUpdated;
+        protected void OnPanelUpdated() => onPanelUpdated?.Invoke();
     }
 
     public class StackPanel : InventoryPanel
@@ -61,7 +63,7 @@ public class InventoryController : MonoBehaviour
                 this.count = count;
             }
         }
-        public Action onPanelUpdated;
+
 
         public List<ItemStack> items;
 
@@ -70,9 +72,9 @@ public class InventoryController : MonoBehaviour
 
         public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value as ItemStack; }
 
-        public StackPanel(string name, int limit, params OptionDelegate[] options) : base(name, limit, options)
+        public StackPanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
         {
-            items = new List<ItemStack>(limit == int.MaxValue ? 0 : limit);
+            items = new List<ItemStack>(limit > 20 ? 20 : (int)limit);
         }
 
         public override uint ItemCount(ItemName item)
@@ -113,7 +115,7 @@ public class InventoryController : MonoBehaviour
                 return false;
             }
 
-            onPanelUpdated?.Invoke();
+            OnPanelUpdated();
             return true;
         }
         public override bool AddItem(int index, uint count)
@@ -123,7 +125,7 @@ public class InventoryController : MonoBehaviour
                 //Never need to add item as the type being increased is not known,
                 //so if out of range it can not be specified
                 items[index].count += count;
-                onPanelUpdated?.Invoke();
+                OnPanelUpdated();
                 return true;
             }
             else return false;
@@ -142,7 +144,7 @@ public class InventoryController : MonoBehaviour
                         items.RemoveAt(i);
                     }
 
-                    onPanelUpdated?.Invoke();
+                    OnPanelUpdated();
                     return true;
                 }
             }
@@ -157,7 +159,7 @@ public class InventoryController : MonoBehaviour
                 items[index].count -= count;
                 if (items[index].count == 0)
                     items.RemoveAt(index);
-                onPanelUpdated?.Invoke();
+                OnPanelUpdated();
                 return true;
             }
             else return false;
@@ -172,9 +174,9 @@ public class InventoryController : MonoBehaviour
 
         public List<ItemStackBase> items;
 
-        public UniquesPanel(string name, int limit, params OptionDelegate[] options) : base(name, limit, options)
+        public UniquesPanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
         {
-            items = new List<ItemStackBase>(limit == int.MaxValue ? 0 : limit);
+            items = new List<ItemStackBase>(limit > 20 ? 20 : (int)limit);
         }
 
         public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value; }
@@ -186,6 +188,7 @@ public class InventoryController : MonoBehaviour
             if (items.Count < limit)
             {
                 items.Add(new ItemStackBase(name));
+                OnPanelUpdated();
                 return true;
             }
             else
@@ -227,6 +230,7 @@ public class InventoryController : MonoBehaviour
                 if (items[i].name == name)
                 {
                     items.RemoveAt(i);
+                    OnPanelUpdated();
                     return true;
                 }
             }
@@ -243,6 +247,65 @@ public class InventoryController : MonoBehaviour
             return false;
         }
     }
+
+    //Items added to this panel are not recorded, the values of the items are used
+    public class ValuePanel : InventoryPanel
+    {
+        public uint currency;
+
+        public ValuePanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
+        {
+            currency = 0;
+        }
+
+        public override ItemStackBase this[int i] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public override int stackCount => 1;
+        public override bool AddItem(ItemName name, uint count)
+        {
+            //Add the value of this item to the stack
+            currency += InventoryController.singleton.db[name].sellValue * count;
+            OnPanelUpdated();
+            return true;
+        }
+        public override bool AddItem(int index, uint count)
+        {
+            throw new NotImplementedException();
+        }
+        public override ItemName ItemAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+        public override uint ItemCount(ItemName item)
+        {
+            if (InventoryController.singleton.db[item].sellable)
+                return currency % InventoryController.singleton.db[item].sellValue;
+            else
+                return 0;
+        }
+        public override uint ItemCount(int itemIndex)
+        {
+            return currency;
+        }
+        public override bool TakeItem(ItemName name, uint count)
+        {
+            if (currency >= InventoryController.singleton.db[name].sellValue * count)
+            {
+                currency -= InventoryController.singleton.db[name].sellValue * count;
+                OnPanelUpdated();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public override bool TakeItem(int index, uint count)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
 
     public delegate void NewItemDelegate(ItemName item);
     public NewItemDelegate onItemAdded;
@@ -263,6 +326,8 @@ public class InventoryController : MonoBehaviour
             default: return null;
         }
     }
+
+
 
     public delegate void OptionDelegate(ItemType type, int itemIndex);
     [System.Serializable]
@@ -299,7 +364,7 @@ public class InventoryController : MonoBehaviour
     public UniquesPanel bow;
     public StackPanel ammo;
     public UniquesPanel sideArm;
-    public StackPanel currency;
+    public ValuePanel currency;
 
 
 
@@ -328,7 +393,7 @@ public class InventoryController : MonoBehaviour
 
         bow = new UniquesPanel("Bows", 10, OnSelectItem, OnDropItem);
         ammo = new StackPanel("Ammo", int.MaxValue, OnSelectItem, OnDropItem);
-        currency = new StackPanel("Currency", 1);
+        currency = new ValuePanel("Currency", int.MaxValue);
 
         singleton = this;
     }

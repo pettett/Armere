@@ -14,8 +14,14 @@ public enum ItemName
     DungeonKey = 8,
     BasicBow = 9,
     Arrow = 10,
-    Currency = 11,
-    BasicShield = 12
+    PotLid = 11,
+    BasicShield = 12,
+    GreenCurrency = 13,
+    BlueCurrency = 14,
+    RedCurrency = 15,
+    PurpleCurrency = 16,
+    SilverCurrency = 17,
+    GoldCurrency = 18
 }
 
 public enum ItemType
@@ -31,7 +37,9 @@ public enum ItemType
 
 
 
-public class ItemTypeEqualityComparer : IEqualityComparer<ItemType>
+
+[System.Serializable]
+public sealed class ItemTypeEqualityComparer : IEqualityComparer<ItemType>
 {
     public bool Equals(ItemType t1, ItemType t2)
     {

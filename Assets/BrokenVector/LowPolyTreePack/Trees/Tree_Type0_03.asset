@@ -1,0 +1,318 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2cf308cc4fb2aa45b56ac83f0f314a5, type: 3}
+  m_Name: Tree_Type0_03
+  m_EditorClassIdentifier: 
+  mergeFaces: 0
+  subdivisionScalar: 5
+  minSubdivisions: 2
+  maxSubdivisions: 3
+  intensityCutoff: 0.05
+  minSeveredIntensity: 0.1
+  bevelProfile: 1
+  bevelDistribution: 1
+  damageToCut: 1
+  treeMesh:
+    mesh: {fileID: -5705847276358454521, guid: 704fd818afd2e3c4396be1d7772e1aee, type: 3}
+    cutCylinder:
+    - a: 2174
+      b: 2175
+      c: 2176
+      index: 3528
+      pointingUpwards: 0
+    - a: 2176
+      b: 2177
+      c: 2174
+      index: 3531
+      pointingUpwards: 1
+    - a: 2206
+      b: 2207
+      c: 2208
+      index: 3576
+      pointingUpwards: 0
+    - a: 2208
+      b: 2209
+      c: 2206
+      index: 3579
+      pointingUpwards: 1
+    - a: 2202
+      b: 2203
+      c: 2204
+      index: 3570
+      pointingUpwards: 0
+    - a: 2204
+      b: 2205
+      c: 2202
+      index: 3573
+      pointingUpwards: 1
+    - a: 2198
+      b: 2199
+      c: 2200
+      index: 3564
+      pointingUpwards: 0
+    - a: 2200
+      b: 2201
+      c: 2198
+      index: 3567
+      pointingUpwards: 1
+    - a: 2194
+      b: 2195
+      c: 2196
+      index: 3558
+      pointingUpwards: 0
+    - a: 2196
+      b: 2197
+      c: 2194
+      index: 3561
+      pointingUpwards: 1
+    - a: 2190
+      b: 2191
+      c: 2192
+      index: 3552
+      pointingUpwards: 0
+    - a: 2192
+      b: 2193
+      c: 2190
+      index: 3555
+      pointingUpwards: 1
+    - a: 2186
+      b: 2187
+      c: 2188
+      index: 3546
+      pointingUpwards: 0
+    - a: 2188
+      b: 2189
+      c: 2186
+      index: 3549
+      pointingUpwards: 1
+    - a: 2182
+      b: 2183
+      c: 2184
+      index: 3540
+      pointingUpwards: 0
+    - a: 2184
+      b: 2185
+      c: 2182
+      index: 3543
+      pointingUpwards: 1
+    - a: 2178
+      b: 2179
+      c: 2180
+      index: 3534
+      pointingUpwards: 0
+    - a: 2180
+      b: 2181
+      c: 2178
+      index: 3537
+      pointingUpwards: 1
+    centerPoint: {x: -0.045513596, y: 0.7, z: -0.014098179}
+  stumpMesh:
+    mesh: {fileID: -9115202184262568917, guid: 704fd818afd2e3c4396be1d7772e1aee, type: 3}
+    cutCylinder:
+    - a: 36
+      b: 37
+      c: 38
+      index: 54
+      pointingUpwards: 0
+    - a: 38
+      b: 39
+      c: 36
+      index: 57
+      pointingUpwards: 1
+    - a: 68
+      b: 69
+      c: 70
+      index: 102
+      pointingUpwards: 0
+    - a: 70
+      b: 71
+      c: 68
+      index: 105
+      pointingUpwards: 1
+    - a: 64
+      b: 65
+      c: 66
+      index: 96
+      pointingUpwards: 0
+    - a: 66
+      b: 67
+      c: 64
+      index: 99
+      pointingUpwards: 1
+    - a: 60
+      b: 61
+      c: 62
+      index: 90
+      pointingUpwards: 0
+    - a: 62
+      b: 63
+      c: 60
+      index: 93
+      pointingUpwards: 1
+    - a: 56
+      b: 57
+      c: 58
+      index: 84
+      pointingUpwards: 0
+    - a: 58
+      b: 59
+      c: 56
+      index: 87
+      pointingUpwards: 1
+    - a: 52
+      b: 53
+      c: 54
+      index: 78
+      pointingUpwards: 0
+    - a: 54
+      b: 55
+      c: 52
+      index: 81
+      pointingUpwards: 1
+    - a: 48
+      b: 49
+      c: 50
+      index: 72
+      pointingUpwards: 0
+    - a: 50
+      b: 51
+      c: 48
+      index: 75
+      pointingUpwards: 1
+    - a: 44
+      b: 45
+      c: 46
+      index: 66
+      pointingUpwards: 0
+    - a: 46
+      b: 47
+      c: 44
+      index: 69
+      pointingUpwards: 1
+    - a: 40
+      b: 41
+      c: 42
+      index: 60
+      pointingUpwards: 0
+    - a: 42
+      b: 43
+      c: 40
+      index: 63
+      pointingUpwards: 1
+    centerPoint: {x: -0.045513596, y: 0.7, z: -0.014098179}
+  logMesh:
+    mesh: {fileID: -7250726235070708820, guid: 704fd818afd2e3c4396be1d7772e1aee, type: 3}
+    cutCylinder:
+    - a: 0
+      b: 1
+      c: 2
+      index: 0
+      pointingUpwards: 0
+    - a: 2
+      b: 3
+      c: 0
+      index: 3
+      pointingUpwards: 1
+    - a: 32
+      b: 33
+      c: 34
+      index: 48
+      pointingUpwards: 0
+    - a: 34
+      b: 35
+      c: 32
+      index: 51
+      pointingUpwards: 1
+    - a: 28
+      b: 29
+      c: 30
+      index: 42
+      pointingUpwards: 0
+    - a: 30
+      b: 31
+      c: 28
+      index: 45
+      pointingUpwards: 1
+    - a: 24
+      b: 25
+      c: 26
+      index: 36
+      pointingUpwards: 0
+    - a: 26
+      b: 27
+      c: 24
+      index: 39
+      pointingUpwards: 1
+    - a: 20
+      b: 21
+      c: 22
+      index: 30
+      pointingUpwards: 0
+    - a: 22
+      b: 23
+      c: 20
+      index: 33
+      pointingUpwards: 1
+    - a: 16
+      b: 17
+      c: 18
+      index: 24
+      pointingUpwards: 0
+    - a: 18
+      b: 19
+      c: 16
+      index: 27
+      pointingUpwards: 1
+    - a: 12
+      b: 13
+      c: 14
+      index: 18
+      pointingUpwards: 0
+    - a: 14
+      b: 15
+      c: 12
+      index: 21
+      pointingUpwards: 1
+    - a: 8
+      b: 9
+      c: 10
+      index: 12
+      pointingUpwards: 0
+    - a: 10
+      b: 11
+      c: 8
+      index: 15
+      pointingUpwards: 1
+    - a: 4
+      b: 5
+      c: 6
+      index: 6
+      pointingUpwards: 0
+    - a: 6
+      b: 7
+      c: 4
+      index: 9
+      pointingUpwards: 1
+    centerPoint: {x: -0.045513596, y: 0.7, z: -0.014098179}
+  canopyMesh: {fileID: 5460296141571151100, guid: 704fd818afd2e3c4396be1d7772e1aee,
+    type: 3}
+  cutHeight: 0.7
+  cutSize: 0.22
+  cutClips: {fileID: 11400000, guid: d22b5585611cd2c469bb5423e8930d64, type: 2}
+  logDensity: 700
+  logEstimateHeight: 6
+  logEstimateRadius: 0.15
+  logKnockingForce: 70
+  crossSectionScale: 0.562
+  logMaterial: {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
+  crosssectionMaterial: {fileID: 2100000, guid: d7a2417f37d4bcb498c7efb0305e0c09,
+    type: 2}

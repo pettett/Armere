@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Iron Ore
   m_EditorClassIdentifier: 
   itemName: 6
-  itemType: 0
+  type: 0
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
     m_SubObjectName: 
@@ -25,3 +25,6 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: 6b6d49fa816b0c54fbb96a21a7fd0270
     m_SubObjectName: Iron Ore
+  worldObjectData:
+    m_AssetGUID: 1a9f009d6a6d49840b29ba6c66c9abd9
+    m_SubObjectName: 

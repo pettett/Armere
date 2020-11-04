@@ -1,0 +1,43 @@
+#pragma kernel CSMain
+
+#include "MeshProperties.cginc"
+
+
+
+cbuffer CB{
+    float4 boundsTransform;
+    float3 boundsExtents;
+    int2 dispatchSize;
+}; 
+
+
+StructuredBuffer<uint> _ArgsData;
+
+StructuredBuffer<MeshProperties> _Grass;
+AppendStructuredBuffer<MeshProperties> _CulledGrass;
+
+#define THREADGROUPX 64
+#define THREADGROUPY 1
+
+// For the sake of simplicity, only using 1, 1, 1 threads.
+//lol no
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+    uint index = id.x + id.y * dispatchSize.x * THREADGROUPX + id.z * dispatchSize.x * dispatchSize.y * THREADGROUPX * THREADGROUPY;
+
+    //Transform the point into bounds local space
+    float3 p = _Grass[index].position - boundsTransform.xyz;
+    //Rotate the point around the y axis
+    float s = sin(boundsTransform.w);
+    float c = cos(boundsTransform.w);
+    p = float3(
+        p.x * c - p.z * s,
+        p.y,
+        p.x * s + p.z * c
+    );
+
+    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) && index < _ArgsData[1] ){
+        _CulledGrass.Append(_Grass[index]);
+    }
+}

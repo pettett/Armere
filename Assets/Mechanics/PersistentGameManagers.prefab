@@ -78,7 +78,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77da173dffde79446b0ebe50e00697b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
   volumes: []
 --- !u!114 &4832598259131234586
 MonoBehaviour:
@@ -122,6 +121,7 @@ MonoBehaviour:
       m_Action: <keyboard>/f5
       m_Flags: 0
   lastSaveDir: 
+  minAutosaveGap: 240
 --- !u!114 &6225402510337564490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,9 +136,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingCommands:
   - give IronSword 1
+  - give IronSword 1
   - give BasicBow 1
   - give Arrow 20
-  - give Currency 60
+  - give GreenCurrency 60
   - givequest Tutorial
 --- !u!114 &1254477659995837600
 MonoBehaviour:

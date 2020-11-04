@@ -8,8 +8,9 @@ namespace Armere.PlayerController
 {
     [
         Serializable,
-        RequiresParallelState(typeof(ToggleMenus), typeof(Interact))
+        RequiresParallelState(typeof(ToggleMenus), typeof(Interact), typeof(ScanForNear<IAttackable>))
     ]
+
     public class Walking : MovementState, IInteractReceiver
     {
         public override string StateName => "Walking";
@@ -77,8 +78,13 @@ namespace Armere.PlayerController
         EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
         EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
 
-        bool SidearmIsShield => c.db[InventoryController.singleton.sideArm[currentSidearm].name] is ShieldItemData;
+        ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[currentSidearm].name] as ShieldItemData;
+        bool SidearmIsShield => SidearmAsShield is ShieldItemData;
+
         bool holdingAltAttack = false;
+
+        ScanForNear<IAttackable> nearAttackables;
+
         public bool Usable(ItemType t)
         {
             switch (t)
@@ -134,8 +140,12 @@ namespace Armere.PlayerController
 
 
             c.health.onTakeDamage += OnTakeDamage;
+            c.health.onBlockDamage += OnBlockDamage;
             //Try to force any ammo type to be selected
             SelectAmmo(0);
+
+            nearAttackables = (ScanForNear<IAttackable>)c.GetParallelState(typeof(ScanForNear<IAttackable>));
+            nearAttackables.updateEveryFrame = false;
         }
 
         public void HoldHoldable(HoldableBody body)
@@ -273,6 +283,11 @@ namespace Armere.PlayerController
             RemoveHoldable((transform.forward + Vector3.up).normalized * c.throwForce);
         }
 
+        void OnBlockDamage(GameObject attacker, GameObject victim)
+        {
+            c.animationController.TriggerTransition(c.transitionSet.shieldImpact);
+        }
+
         void OnTakeDamage(GameObject attacker, GameObject victim)
         {
             Vector3 direction = transform.position - attacker.transform.position;
@@ -281,14 +296,9 @@ namespace Armere.PlayerController
 
             if (dot < 0)
             {
-                if (Using(ItemType.SideArm) && c.db[InventoryController.singleton.sideArm[currentSidearm].name] is ShieldItemData)
-                {
-                    c.animationController.TriggerTransition(c.transitionSet.shieldImpact);
-                }
-                else
-                {
-                    c.animationController.TriggerTransition(c.transitionSet.swordFrontImpact);
-                }
+
+                c.animationController.TriggerTransition(c.transitionSet.swordFrontImpact);
+
             }
             else
             {
@@ -308,11 +318,14 @@ namespace Armere.PlayerController
             holding.OnDropped();
             holding.rb.AddForce(acceleration, ForceMode.Acceleration);
 
-            holding = null;
+
             holdingBody = false;
             UIKeyPromptGroup.singleton.RemovePrompts();
 
             (c.GetParallelState(typeof(Interact)) as Interact).Start();
+
+
+            holding = null;
         }
 
         public override void End()
@@ -321,6 +334,7 @@ namespace Armere.PlayerController
             DebugMenu.RemoveEntry(entry);
 
             c.health.onTakeDamage -= OnTakeDamage;
+            c.health.onBlockDamage -= OnBlockDamage;
 
             //make sure the collider is left correctly
             c.collider.height = c.walkingHeight;
@@ -459,7 +473,7 @@ namespace Armere.PlayerController
             {
                 if (!sheathing[ItemType.Melee])
                 {
-                    if (!c.weaponGraphicsController.weapon.sheathed)
+                    if (!c.weaponGraphicsController.holdables.melee.sheathed)
                     {
                         //Will only operate is sword exists
                         c.StartCoroutine(SheathItem(ItemType.Melee));
@@ -562,7 +576,8 @@ namespace Armere.PlayerController
 
         public override void OnInteract(InputActionPhase phase)
         {
-            if (holdingBody && !movingHoldable) PlaceHoldable();
+            if (phase == InputActionPhase.Started)
+                if (holdingBody && !movingHoldable) PlaceHoldable();
         }
 
         public void OnItemAdded(ItemName item)
@@ -605,7 +620,7 @@ namespace Armere.PlayerController
                 if (index == -1)
                 {
                     selections[type] = -1;
-                    c.weaponGraphicsController.weapon.RemoveHeld();
+                    c.weaponGraphicsController.holdables.melee.RemoveHeld();
                     //Do not trigger over time - remove immediately
                     c.StartCoroutine(SheathItem(type));
                 }
@@ -751,7 +766,7 @@ namespace Armere.PlayerController
             {
                 if (inControl)
                 {
-                    if (c.weaponGraphicsController.weapon.sheathed == true)
+                    if (c.weaponGraphicsController.holdables.melee.sheathed == true)
                     {
                         c.StartCoroutine(DrawItem(ItemType.Melee));
                     }
@@ -795,7 +810,7 @@ namespace Armere.PlayerController
             c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
 
 
-            var bowAC = c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>();
+            var bowAC = c.weaponGraphicsController.holdables.bow.worldObject.GetComponent<Animator>();
             while (true)
             {
                 yield return new WaitForEndOfFrame();
@@ -831,7 +846,7 @@ namespace Armere.PlayerController
             forceForwardHeading = false;
             c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
             c.animator.SetBool("Holding Bow", false);
-            c.weaponGraphicsController.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
+            c.weaponGraphicsController.holdables.bow.worldObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }
 
         async void FireBow()
@@ -840,13 +855,17 @@ namespace Armere.PlayerController
             //Fire ammo
             ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
             var ammo = (c.db[ammoName] as AmmoItemData);
-            GameObject ammoGO = await ammo.spawnedGameobject.InstantiateAsync(c.arrowSpawn.position, Quaternion.identity).Task;
+            GameObject ammoGO = (await WorldObjectSpawner.SpawnWorldObjectAsync(ammo.ammoWorldObject, c.arrowSpawn.position, Quaternion.identity, default)).gameObject;
             Arrow arrow = ammoGO.AddComponent<Arrow>();
             //Initialize arrow
             arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
 
             //Remove one of ammo used
             InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
+
+
+
+
             //Test if ammo left for shooting
             if (InventoryController.ItemCount(ammoName) == 0)
             {
@@ -885,31 +904,88 @@ namespace Armere.PlayerController
 
         void AddWeaponTrigger()
         {
-            var collider = c.weaponGraphicsController.weapon.gameObject.AddComponent<MeshCollider>();
-            collider.convex = true;
-            collider.isTrigger = true;
-            var trigger = c.weaponGraphicsController.weapon.gameObject.AddComponent<WeaponTrigger>();
-            trigger.weaponItem = meleeWeapon.itemName;
-            trigger.controller = gameObject;
+            // var collider = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.AddComponent<MeshCollider>();
+            // collider.convex = true;
+            // collider.isTrigger = true;
+            var trigger = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.GetComponent<WeaponTrigger>();
+            trigger.enableTrigger = true;
+
+            if (!trigger.inited)
+            {
+                trigger.Init(meleeWeapon.hitSparkEffect);
+                trigger.weaponItem = meleeWeapon.itemName;
+                trigger.controller = gameObject;
+            }
         }
 
         void RemoveWeaponTrigger()
         {
             //Clean up the trigger detection of the sword
-            MonoBehaviour.Destroy(c.weaponGraphicsController.weapon.gameObject.GetComponent<MeshCollider>());
-            MonoBehaviour.Destroy(c.weaponGraphicsController.weapon.gameObject.GetComponent<WeaponTrigger>());
+            var trigger = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.GetComponent<WeaponTrigger>();
+            trigger.enableTrigger = false;
 
             c.onSwingStateChanged = null;
             inControl = true;
             activated.melee = false;
+
+            float time = 0.07f;
+            c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, c.animationController.bodyLookAtPositionWeight, 0, time));
+            c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, c.animationController.lookAtPositionWeight, 0, time));
         }
 
+        IEnumerator LerpNumber(Action<float> update, float from, float to, float time)
+        {
+            float t = 0;
+            float invTime = 1 / time;
+            while (t < 1)
+            {
+                t += Time.deltaTime * invTime;
+                update(Mathf.Lerp(from, to, t));
+                yield return new WaitForEndOfFrame();
+            }
+            update(to);
+        }
+
+        //Play the animation and use triggers to swing the player's sword
         void SwingSword()
         {
             c.rb.velocity = Vector3.zero; //Stop the player moving
             inControl = false;
             activated.melee = true;
             //swing the sword
+
+            //While the sword is swinging, test if the player was looking towards an attackable to adjust the direction
+            //Of the player's torso
+            nearAttackables.Scan();
+            float bestDot = -1;
+            IAttackable closest = null;
+            //Linear search for most direct target
+            for (int i = 1; i < nearAttackables.nearObjects.Count; i++)
+            {
+                Vector3 direction = nearAttackables.nearObjects[i].transform.TransformPoint(nearAttackables.nearObjects[i].offset) - transform.position - nearAttackables.scanCenterOffset;
+                direction.y = 0;
+                direction.Normalize();
+                float dot = Vector3.Dot(transform.forward, direction);
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    closest = nearAttackables.nearObjects[i];
+                }
+            }
+
+            if (closest != null && bestDot > 0.5f) //Only bend body if it is clear the player is aiming at this attackable
+            {
+                Vector3 target = closest.transform.TransformPoint(closest.offset);
+                c.animationController.lookAtPosition = target;
+
+                float time = 0.07f;
+                c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, 0, 1, time));
+                c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, 0, 1, time));
+
+                c.animationController.headLookAtPositionWeight = 0;
+
+            }
+
 
             //This is easier. Animation graphs suck
             c.animationController.TriggerTransition(c.transitionSet.swingSword);
@@ -938,7 +1014,7 @@ namespace Armere.PlayerController
                 if (currentSidearm != -1)
                 {
                     //Equip the sidearm if it wasnt
-                    if (!sheathing.sidearm && c.weaponGraphicsController.sidearm.sheathed)
+                    if (!sheathing.sidearm && c.weaponGraphicsController.holdables.sidearm.sheathed)
                     {
                         print("Drawing sidearm");
                         if (SidearmIsShield)
@@ -956,11 +1032,7 @@ namespace Armere.PlayerController
             {
                 holdingAltAttack = false;
 
-                if (currentSidearm != -1 && activated.sidearm && SidearmIsShield)
-                {
-                    activated.sidearm = false;
-                    c.animationController.TriggerTransition(c.transitionSet.shieldLower);
-                }
+                LowerShield();
             }
         }
 
@@ -972,6 +1044,19 @@ namespace Armere.PlayerController
                 print("Raising shield");
                 activated.sidearm = true;
                 c.animationController.TriggerTransition(c.transitionSet.shieldRaise);
+
+                c.health.blockingDamage = true;
+                c.health.minBlockingDot = SidearmAsShield.minBlockingDot;
+            }
+        }
+        public void LowerShield()
+        {
+            if (currentSidearm != -1 && activated.sidearm && SidearmIsShield)
+            {
+                activated.sidearm = false;
+                c.animationController.TriggerTransition(c.transitionSet.shieldLower);
+
+                c.health.blockingDamage = false;
             }
         }
 
@@ -1171,24 +1256,24 @@ namespace Armere.PlayerController
         }
 
 
-        public override void OnCollideGround(RaycastHit hit)
-        {
-            //currentGroundNormal = hit.normal;
-            //Make the player stand on a platform if it is kinematic
-            if (hit.rigidbody != null && hit.rigidbody.isKinematic)
-            {
-                groundVelocity = hit.rigidbody.velocity;
-                transform.SetParent(hit.transform, true);
-            }
-            else
-            {
-                transform.SetParent(null, true);
-            }
+        // public override void OnCollideGround(RaycastHit hit)
+        // {
+        //     //currentGroundNormal = hit.normal;
+        //     //Make the player stand on a platform if it is kinematic
+        //     if (hit.rigidbody != null && hit.rigidbody.isKinematic)
+        //     {
+        //         groundVelocity = hit.rigidbody.velocity;
+        //         transform.SetParent(hit.transform, true);
+        //     }
+        //     else
+        //     {
+        //         transform.SetParent(null, true);
+        //     }
 
 
-            //attempt to lock the player to the ground while walking
+        //     //attempt to lock the player to the ground while walking
 
-        }
+        // }
 
 
         // public override void OnCollideCliff(RaycastHit hit)

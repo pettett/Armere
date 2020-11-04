@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Meat
   m_EditorClassIdentifier: 
   itemName: 4
-  itemType: 0
+  type: 0
   displaySprite:
     m_AssetGUID: ac35566b90ee1ee44aa121ca0a1318ac
     m_SubObjectName: 
@@ -24,4 +24,7 @@ MonoBehaviour:
   staticPickup: 0
   spawnedGameobject:
     m_AssetGUID: 
+    m_SubObjectName: 
+  worldObjectData:
+    m_AssetGUID: 71e00151d6a4f6d4ba18fef457b778a8
     m_SubObjectName: 

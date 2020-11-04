@@ -158,7 +158,7 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
         if (panel.limit == int.MaxValue)
             blankCount = 4 - (panel.stackCount % rowCount);
         else
-            blankCount = panel.limit - panel.stackCount;
+            blankCount = (int)panel.limit - panel.stackCount;
 
         for (int i = 0; i < blankCount; i++)
         {

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Stick
   m_EditorClassIdentifier: 
   itemName: 0
-  itemType: 0
+  type: 0
   displaySprite:
     m_AssetGUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_SubObjectName: 
@@ -25,3 +25,6 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: b32317c7b58b11d4bbb63baf2262ce44
     m_SubObjectName: Stick
+  worldObjectData:
+    m_AssetGUID: 0a5462bf8dce8d34aaff0908fd278bf4
+    m_SubObjectName: 

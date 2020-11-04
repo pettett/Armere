@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 6137509289512668310}
   - component: {fileID: 8222275986114918330}
   - component: {fileID: 1375336887245378073}
+  - component: {fileID: 5147096514753056109}
   m_Layer: 10
   m_Name: Human Base
   m_TagString: Player
@@ -111,7 +112,6 @@ MonoBehaviour:
   eyesLookAtPositionWeight: 0
   clampLookAtPositionWeight: 0
   lookAtPosition: {x: 0, y: 0, z: 0}
-  mesh: {fileID: 8975383740080960357}
   useAnimationHook: 0
   velocityScaler: 1
 --- !u!114 &368902570172568862
@@ -126,39 +126,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f174331e8dc857047a4c9dcaf410775a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weapon:
-    holdPoint:
-      anchor: 18
-      posOffset: {x: -2, y: 9.81, z: 3.95}
-      rotOffset: {x: 0.49999997, y: -0.49999997, z: -0.49999997, w: 0.49999997}
-    sheathedPoint:
-      anchor: 0
-      posOffset: {x: -18.91, y: 0, z: 0}
-      rotOffset: {x: 0.6341005, y: 0.57930356, z: -0.38992503, w: 0.33208805}
-    sheathed: 1
-    gameObject: {fileID: 0}
-  bow:
-    holdPoint:
-      anchor: 17
-      posOffset: {x: 4, y: 8.03, z: 5.35}
-      rotOffset: {x: 0.45129442, y: 0.6918644, z: -0.54836565, w: 0.13020024}
-    sheathedPoint:
-      anchor: 0
-      posOffset: {x: 0, y: 0, z: 0}
-      rotOffset: {x: 0, y: 0, z: 0, w: 0}
-    sheathed: 1
-    gameObject: {fileID: 0}
-  sidearm:
-    holdPoint:
-      anchor: 17
-      posOffset: {x: 0.19, y: 6.87, z: 7.74}
-      rotOffset: {x: 0, y: 0.9997366, z: 0, w: 0.022949068}
-    sheathedPoint:
-      anchor: 0
-      posOffset: {x: 18.91, y: 0, z: 0}
-      rotOffset: {x: 0.6341005, y: 0.57930356, z: -0.38992503, w: 0.33208805}
-    sheathed: 1
-    gameObject: {fileID: 0}
+  source: {fileID: 0}
+  holdables:
+    melee:
+      holdPoint:
+        anchor: 18
+        posOffset: {x: -2, y: 9.81, z: 3.95}
+        rotOffset: {x: 0.49999997, y: -0.49999997, z: -0.49999997, w: 0.49999997}
+      sheathedPoint:
+        anchor: 0
+        posOffset: {x: -18.91, y: 0, z: 0}
+        rotOffset: {x: 0.6341003, y: 0.5793036, z: -0.3899251, w: 0.3320881}
+      worldObject: {fileID: 0}
+    sidearm:
+      holdPoint:
+        anchor: 17
+        posOffset: {x: 4, y: 8.03, z: 5.35}
+        rotOffset: {x: 0.4512942, y: 0.6918645, z: -0.54836583, w: 0.13019998}
+      sheathedPoint:
+        anchor: 0
+        posOffset: {x: 0, y: 0, z: 0}
+        rotOffset: {x: 0, y: 0, z: 0, w: 0}
+      worldObject: {fileID: 0}
+    bow:
+      holdPoint:
+        anchor: 17
+        posOffset: {x: 0.19, y: 6.87, z: 7.74}
+        rotOffset: {x: 0, y: 0.9997366, z: 0, w: 0.022949068}
+      sheathedPoint:
+        anchor: 0
+        posOffset: {x: 18.91, y: 0, z: 0}
+        rotOffset: {x: 0.6341003, y: 0.5793035, z: -0.3899251, w: 0.3320882}
+      worldObject: {fileID: 0}
 --- !u!114 &8716322609640156541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,6 +175,9 @@ MonoBehaviour:
   headshotHeight: 1.58
   useUI: 1
   uiName: health
+  centerOffset: {x: 0, y: 0, z: 0}
+  blockingDamage: 0
+  minBlockingDot: 0.5
   onDeathEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -324,6 +326,20 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &5147096514753056109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368902570172568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2277b8d5d98a3e48ae49e29c311375c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  radius: 0.7
+  offset: {x: 0, y: 0, z: 0}
 --- !u!54 &4758277108601243638
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1498,12 +1514,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dd578aa8d54df344c9e03b021ceed5a2, type: 3}
---- !u!1 &8975383740080960357 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 176314, guid: dd578aa8d54df344c9e03b021ceed5a2,
-    type: 3}
-  m_PrefabInstance: {fileID: 8975383740080784351}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8975383740080604335 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 477040, guid: dd578aa8d54df344c9e03b021ceed5a2,

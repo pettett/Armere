@@ -25,4 +25,12 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: 628b35708d1b48849ae6ee2b707ee8f1
     m_SubObjectName: 
-  defense: 2
+  worldObjectData:
+    m_AssetGUID: 2cc9bdf09aff63e4397235a8552c210e
+    m_SubObjectName: 
+  clankProbability: 0.7
+  clankSet: {fileID: 0}
+  holdableWorldObjectData:
+    m_AssetGUID: 90d99b217b4074942bfaecf6ccaafe4d
+    m_SubObjectName: 
+  minBlockingDot: 0.2

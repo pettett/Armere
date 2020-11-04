@@ -58,6 +58,7 @@ public class CuttableTree : MonoBehaviour, IAttackable
     float totalDamage = 0;
 
 
+    public Vector3 offset => Vector3.up * profile.cutHeight;
 
     private void Start()
     {
@@ -65,18 +66,28 @@ public class CuttableTree : MonoBehaviour, IAttackable
         UpdateMeshFilter(TriangleCutMode.Full);
     }
 
-    public void Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
     {
-        CutTree(hitPosition, controller.transform.position);
+        return CutTree(hitPosition, controller.transform.position);
+
+    }
+    private void OnEnable()
+    {
+        TypeGroup<IAttackable>.allObjects.Add(this);
+    }
+    private void OnDisable()
+    {
+        TypeGroup<IAttackable>.allObjects.Remove(this);
     }
 
-
-    public void CutTree(Vector3 hitPoint, Vector3 hitterPosition)
+    public AttackResult CutTree(Vector3 hitPoint, Vector3 hitterPosition)
     {
         Profiler.BeginSample("Cut Tree");
         if (totalDamage >= profile.damageToCut)
         {
-            return;
+            //Tree already destroyed, this should never happen
+            Debug.LogWarning("Hit tree that has already been destroyed");
+            return AttackResult.None;
         }
 
 
@@ -88,14 +99,22 @@ public class CuttableTree : MonoBehaviour, IAttackable
         activeCutVectors.Add(new CutVector(Vector3.SignedAngle(transform.forward, direction, Vector3.up) * Mathf.Deg2Rad, intensity));
         totalDamage += intensity;
 
-        if (profile.cutClips.Length != 0)
-            audioSource.PlayOneShot(profile.cutClips[Random.Range(0, profile.cutClips.Length)]);
+        if (profile.cutClips.Valid())
+            audioSource.PlayOneShot(profile.cutClips.SelectClip());
 
-
-        if (totalDamage < profile.damageToCut) UpdateMeshFilter(TriangleCutMode.Full);
-        else SplitTree(hitterPosition);
-
-        Profiler.EndSample();
+        //Cut or split the tree
+        if (totalDamage < profile.damageToCut)
+        {
+            UpdateMeshFilter(TriangleCutMode.Full);
+            Profiler.EndSample();
+            return AttackResult.Damaged;
+        }
+        else
+        {
+            SplitTree(hitterPosition);
+            Profiler.EndSample();
+            return AttackResult.Damaged | AttackResult.Killed;
+        }
         //Debug.Break();
     }
 
@@ -138,6 +157,9 @@ public class CuttableTree : MonoBehaviour, IAttackable
 
         logRB.AddForceAtPosition(playerDirection * profile.logKnockingForce,
                                 logRB.centerOfMass + Vector3.up * profile.logEstimateHeight * 0.5f - playerDirection * profile.logEstimateRadius);
+
+        //Disable the script
+        enabled = false;
     }
 
 

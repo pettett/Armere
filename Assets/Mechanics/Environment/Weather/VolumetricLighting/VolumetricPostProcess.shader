@@ -2,7 +2,6 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 {
     HLSLINCLUDE
 
-        //#include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -15,10 +14,10 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
 
 
-        #define TEXTURE2D_SAMPLER2D(textureName, samplerName) Texture2D textureName; SamplerState samplerName
+      //  #define TEXTURE2D_SAMPLER2D(textureName, samplerName) Texture2D textureName; SamplerState samplerName
 
 
-        TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex); 
+       // TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex); 
 
 
 
@@ -128,12 +127,17 @@ Shader "Hidden/Custom/VolumetricPostProcess"
         float Frag(VaryingsDefault i) : SV_Target
         {
             
-            float3 background = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord).rgb;
+           // float depth = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord).r;
+
+            
 
             // Transform the camera origin to world space
             float3 rayOrigin = mul(_CameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
 
             float depth = SampleSceneDepth(i.texcoord);
+
+
+           //return float4(depth,0,0,0);
 
 
             float3 rayDir = i.direction;

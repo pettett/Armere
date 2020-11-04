@@ -367,6 +367,10 @@ namespace Armere.PlayerController
                                 allStates[i].OnAltAttack(action.phase);
                         break;
 
+                    case "KO":
+                        ChangeToState<KnockedOut>();
+                        break;
+
                     default:
                         currentState.OnCustomAction(action);
                         break;
@@ -380,7 +384,7 @@ namespace Armere.PlayerController
             ItemName name = InventoryController.singleton.GetPanelFor(type)[itemIndex].name;
             //TODO - Add way to drop multiple items
             if (InventoryController.TakeItem(itemIndex, type))
-                await Items.SpawnItem((PhysicsItemData)db[name], transform.position, transform.rotation);
+                await WorldObjectSpawner.SpawnItemAsync((PhysicsItemData)db[name], transform.position, transform.rotation);
         }
 
 
@@ -388,7 +392,7 @@ namespace Armere.PlayerController
         // Update is called once per frame
         private void Update()
         {
-            RaycastGround();
+
             for (int i = 0; i < allStates.Length; i++)
                 if (StateActive(i))
                     allStates[i].Update();
@@ -605,47 +609,13 @@ namespace Armere.PlayerController
         }
 
 
-        private void RaycastGround()
-        {
-
-            if (Physics.SphereCast(
-                transform.position + Vector3.up * m_groundScanningOffset,
-                m_groundSphereRadius,
-                Vector3.down,
-                out groundRaycastHit,
-                Mathf.Infinity,
-                m_groundLayerMask,
-                QueryTriggerInteraction.Ignore))
-            {
-                currentHeight = transform.position.y - groundRaycastHit.point.y;
-
-                if (currentHeight < m_maxGroundDistance && Vector3.Angle(groundRaycastHit.normal, Vector3.up) < m_maxGroundAngle)
-                {
-                    //hit ground
-                    currentState.OnCollideGround(groundRaycastHit);
-
-                    if (!onGround)
-                    {
-                        onGround = true;
-                        currentState.OnGroundedChange();
-                    }
-                }
-                else
-                {
-                    if (onGround)
-                    {
-                        onGround = false;
-                        currentState.OnGroundedChange();
-                    }
-                }
-            }
-        }
-
 
         void OnDrawGizmos()
         {
-            if (currentState != null)
-                currentState.OnDrawGizmos();
+            if (allStates != null)
+                for (int i = 0; i < allStates.Length; i++)
+                    if (StateActive(i))
+                        allStates[i].OnDrawGizmos();
         }
 
         //show the sound on the minimap?

@@ -67,7 +67,6 @@ namespace Armere.PlayerController
 
         public virtual void Animate(AnimatorVariables vars) { }
         public virtual void OnAnimatorIK(int layerIndex) { }
-        public virtual void OnCollideGround(RaycastHit hit) { }
         public virtual void OnJump(InputActionPhase phase) { }
         public virtual void OnAttack(InputActionPhase phase) { }
         public virtual void OnAltAttack(InputActionPhase phase) { }
@@ -75,7 +74,6 @@ namespace Armere.PlayerController
         public virtual void OnInteract(InputActionPhase phase) { }
         public virtual void OnTriggerEnter(Collider other) { }
         public virtual void OnTriggerExit(Collider other) { }
-        public virtual void OnGroundedChange() { }
         public virtual void OnSelectWeapon(int index, InputActionPhase phase) { }
         public virtual void OnCustomAction(InputAction.CallbackContext action) { }
         protected void print(string format, params object[] args) => Debug.LogFormat(format, args);

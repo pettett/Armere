@@ -27,7 +27,8 @@ public class InventoryItemUI : MonoBehaviour
         type = item.type;
         if (item.displaySprite.RuntimeKeyIsValid())
         {
-            asyncOperation = item.displaySprite.LoadAssetAsync();
+            asyncOperation = Addressables.LoadAssetAsync<Sprite>(item.displaySprite);
+
             Sprite s = await asyncOperation.Task;
             //The image may have been destroyed before finishing
             if (thumbnail != null) thumbnail.sprite = s;

@@ -21,7 +21,7 @@ public class WorldIndicator : IndicatorUI
     {
         target = null;
         onEndIndicate?.Invoke();
-        gameObject.SetActive(false);
+        gameObject?.SetActive(false);
     }
 
 

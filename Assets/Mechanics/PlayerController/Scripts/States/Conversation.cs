@@ -363,7 +363,7 @@ namespace Armere.PlayerController
 
                 //TODO - Add amount control
                 //Pay the player for the item
-                InventoryController.AddItem(ItemName.Currency, InventoryController.singleton.db[InventoryController.ItemAt(itemIndex, type)].sellValue);
+                InventoryController.AddItem(InventoryController.ItemAt(itemIndex, type), 1);
                 //Remove the item from the inventory
                 InventoryController.TakeItem(itemIndex, type);
 

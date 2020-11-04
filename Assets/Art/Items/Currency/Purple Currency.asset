@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9efb734574eaa043b9c74102f44090a, type: 3}
+  m_Name: Purple Currency
+  m_EditorClassIdentifier: 
+  itemName: 16
+  type: 6
+  displaySprite:
+    m_AssetGUID: 3588b8d2aae105240bcc3e75eec92c7f
+    m_SubObjectName: 
+  displayName: Purple Rupee
+  description: "50 rupees. Its violet glow fills your heart with generosity.\r"
+  sellable: 1
+  sellValue: 50
+  staticPickup: 1
+  spawnedGameobject:
+    m_AssetGUID: 
+    m_SubObjectName: 
+  worldObjectData:
+    m_AssetGUID: 77ef6e19db3834c49a768228e594e5a5
+    m_SubObjectName: 

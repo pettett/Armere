@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Herb
   m_EditorClassIdentifier: 
   itemName: 5
-  itemType: 0
+  type: 0
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
     m_SubObjectName: 
@@ -24,4 +24,7 @@ MonoBehaviour:
   staticPickup: 0
   spawnedGameobject:
     m_AssetGUID: 2b0446f3fd01da54180a4344648cd5e5
+    m_SubObjectName: 
+  worldObjectData:
+    m_AssetGUID: acc191f85cff5c746a83691ee15a821b
     m_SubObjectName: 

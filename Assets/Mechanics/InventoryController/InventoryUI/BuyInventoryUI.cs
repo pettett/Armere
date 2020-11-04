@@ -70,16 +70,19 @@ public class BuyInventoryUI : MonoBehaviour
     }
     public void ConfirmBuy()
     {
+        uint amount = 1;
 
-        if (inventory[selected].stock == 0)
+
+        if (inventory[selected].stock - amount < 0)
         {
-            print("Cannot purchase out of stock item");
+            print("Cannot purchase this many items");
         }
-        //Will return true if the currency is successfully removed
-        else if (InventoryController.TakeItem(ItemName.Currency, inventory[selected].cost))
-        {
 
-            inventory[selected].stock -= 1;
+        //Will return true if the currency is successfully removed
+        //Only need to take the item being sold as it will interpret that as the value
+        else if (InventoryController.TakeItem(inventory[selected].item, amount))
+        {
+            inventory[selected].stock -= amount;
 
             InventoryController.AddItem(inventory[selected].item, inventory[selected].count);
 

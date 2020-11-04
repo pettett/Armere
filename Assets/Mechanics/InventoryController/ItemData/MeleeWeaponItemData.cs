@@ -6,5 +6,5 @@ using UnityEngine.AddressableAssets;
 [AllowItemTypes(ItemType.Melee)]
 public class MeleeWeaponItemData : WeaponItemData
 {
-
+    public AssetReferenceGameObject hitSparkEffect;
 }

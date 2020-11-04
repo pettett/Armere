@@ -21,7 +21,7 @@ public class TimeDayController : MonoBehaviour
 
     public Transform sun;
     DebugMenu.DebugEntry<float, float> entry;
-    [ReadOnly] public float hour = 12;
+    public float hour = 12;
     public float hoursPerSecond = 1;
     const float degreesPerHour = 360 / 24;
 

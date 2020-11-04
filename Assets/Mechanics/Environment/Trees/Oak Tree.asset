@@ -517,14 +517,7 @@ MonoBehaviour:
     type: 3}
   cutHeight: 1.32
   cutSize: 0.49
-  cutClips:
-  - {fileID: 8300000, guid: e736c27d03904c3439146943d3e20366, type: 3}
-  - {fileID: 8300000, guid: 910e7d7f6cf4f95498def07e693ee4c6, type: 3}
-  - {fileID: 8300000, guid: 523fa33a0b2d32649a69f38242afee66, type: 3}
-  - {fileID: 8300000, guid: 4a29258849eaecb4b975f98bbf55e21a, type: 3}
-  - {fileID: 8300000, guid: af7826b8aa3740d49b867571a3b17d5e, type: 3}
-  - {fileID: 8300000, guid: 61f10f80cab0512479df0ff464631937, type: 3}
-  - {fileID: 8300000, guid: 23595ec2f4ca51f4b8da955a61fc60c5, type: 3}
+  cutClips: {fileID: 11400000, guid: d22b5585611cd2c469bb5423e8930d64, type: 2}
   logDensity: 700
   logEstimateHeight: 3
   logEstimateRadius: 0.46

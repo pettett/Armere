@@ -25,6 +25,14 @@ MonoBehaviour:
   spawnedGameobject:
     m_AssetGUID: 286deab20111cc04fac341f0d3da40da
     m_SubObjectName: 
-  color: {r: 0, g: 0, b: 0, a: 0}
+  worldObjectData:
+    m_AssetGUID: 7490805abb9777a498e402ae6810db83
+    m_SubObjectName: 
+  clankProbability: 0.7
+  clankSet: {fileID: 0}
+  holdableWorldObjectData:
+    m_AssetGUID: a9825537023a3bb4f91d078928fd82f3
+    m_SubObjectName: 
+  color: {r: 1, g: 0.83297265, b: 0, a: 1}
   range: 15
   intensity: 3

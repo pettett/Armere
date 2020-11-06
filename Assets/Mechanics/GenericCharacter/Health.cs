@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-public class Health : MonoBehaviour, IAttackable
+public class Health : SimpleHealth, IAttackable
 {
-    float _health;
-    //so you can see health in inspector
-    [ReadOnly] public float health;
 
-    public float maxHealth;
+
     public float headshotHeight = 1.5f;
     public bool useUI;
     public string uiName = "health";
@@ -27,7 +24,6 @@ public class Health : MonoBehaviour, IAttackable
     public bool blockingDamage = false;
     [Range(-1, 1)]
     public float minBlockingDot = 0.5f;
-    public UnityEvent onDeathEvent;
 
     public event HealthEvent onTakeDamage;
     public event HealthEvent onBlockDamage;
@@ -38,20 +34,18 @@ public class Health : MonoBehaviour, IAttackable
     /// </summary>
     void Start()
     {
-        _health = maxHealth;
-        health = _health;
+        health = maxHealth;
+        currentHealth = health;
     }
     public void Respawn()
     {
-        _health = maxHealth;
-        health = _health;
+        health = maxHealth;
+        currentHealth = health;
         dead = false;
     }
 
-    public AttackResult Damage(float amount, GameObject origin)
+    public override AttackResult Damage(float amount, GameObject origin)
     {
-
-
 
         if (dead)
             return AttackResult.None;
@@ -65,10 +59,10 @@ public class Health : MonoBehaviour, IAttackable
 
         AttackResult r = AttackResult.Damaged;
 
-        _health -= amount;
-        _health = Mathf.Clamp(_health, 0, maxHealth);
-        health = _health;
-        if (_health == 0)
+        health -= amount;
+        health = Mathf.Clamp(health, 0, maxHealth);
+        currentHealth = health;
+        if (health == 0)
         {
             dead = true;
             onDeath?.Invoke(origin, gameObject);
@@ -94,7 +88,7 @@ public class Health : MonoBehaviour, IAttackable
     void UpdateUI()
     {
         if (useUI)
-            ProgressionBar.SetInstanceProgress(uiName, _health, maxHealth);
+            ProgressionBar.SetInstanceProgress(uiName, health, maxHealth);
     }
 
     public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)

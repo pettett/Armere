@@ -10,6 +10,10 @@ public enum WeatherConditions
 }
 public class TimeDayController : MonoBehaviour
 {
+    const float degreesPerHour = 360 / 24;
+    const float oneOver24 = 1f / 24f;
+
+    public Material skyboxMaterial;
     public static TimeDayController singleton;
     //current weather will depend on the weather scaler
     public WeatherConditions weather;
@@ -18,14 +22,18 @@ public class TimeDayController : MonoBehaviour
     public float maxCloudyScaler = 0.6f;
     public float maxWindyScaler = 0.8f;
 
-
+    [Header("Sun")]
     public Transform sun;
     DebugMenu.DebugEntry<float, float> entry;
     public float hour = 12;
     public float hoursPerSecond = 1;
-    const float degreesPerHour = 360 / 24;
+    public float azimuth = 20;
+
+    [Header("Weather")]
 
     public AnimationCurve weatherOverTime;
+    public Gradient fogOverDay;
+    public Vector2 fogDensityRange;
     [ReadOnly] public float weatherScaler;
 
     public CloudDrawer clouds;
@@ -36,6 +44,7 @@ public class TimeDayController : MonoBehaviour
         {"noon",12},
         {"night",20},
     };
+
     public static void SetTime(string time)
     {
         if (specialTimes.ContainsKey(time))
@@ -54,6 +63,7 @@ public class TimeDayController : MonoBehaviour
     void Start()
     {
         entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
+
     }
 
     // Update is called once per frame
@@ -79,7 +89,14 @@ public class TimeDayController : MonoBehaviour
         hour = Mathf.Repeat(hour, 24);
         //take 90 so the 0th hour is pointing straight down (-90)
         if (sun != null)
-            sun.rotation = Quaternion.Euler(hour * degreesPerHour - 90, -90, 0);
+            sun.rotation = Quaternion.Euler(0, 90, azimuth) * Quaternion.Euler(hour * degreesPerHour - 90, 0, 0);
+
+        Color fog = fogOverDay.Evaluate(hour * oneOver24);
+
+        RenderSettings.fogColor = fog;
+        RenderSettings.fogDensity = fog.a * (fogDensityRange.y - fogDensityRange.x) + fogDensityRange.x;
+
+        skyboxMaterial.SetColor("_GroundColor", fog);
 
         entry.value0 = Mathf.Floor(hour);
         entry.value1 = 60f * (hour - Mathf.Floor(hour));

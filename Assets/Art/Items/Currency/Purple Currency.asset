@@ -21,10 +21,9 @@ MonoBehaviour:
   description: "50 rupees. Its violet glow fills your heart with generosity.\r"
   sellable: 1
   sellValue: 50
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: 77ef6e19db3834c49a768228e594e5a5
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: 1eb2a71e3203f3b4d995d39e08208be7
     m_SubObjectName: 

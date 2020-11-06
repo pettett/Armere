@@ -1,73 +1,39 @@
-﻿// using System.Collections;
-// using System.Collections.Generic;
-// using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-// public class InteractableItem : PlayerRelativeObject, IInteractable
-// {
+public class InteractableItem : ItemSpawnable, IInteractable
+{
 
-//     public bool canInteract { get; set; } = true;
+    public bool canInteract { get; set; } = true;
 
-//     public float requiredLookDot => -1;
+    public float requiredLookDot => -1;
 
-//     public string interactionDescription => type == ItemSpawner.SpawnType.Chest ? "Open Chest" : $"Pickup {InventoryController.singleton.db[item].displayName}";
-
-//     public System.Action<InteractableItem> onItemDestroy;
-
-//     public ItemSpawner.SpawnType type;
-//     ItemName item;
-//     uint count;
-
-//     public void Init(ItemSpawner.SpawnType type, ItemName item, uint count)
-//     {
-//         this.type = type;
-//         this.item = item;
-//         this.count = count;
+    public string interactionDescription => $"Pickup {InventoryController.singleton.db[item].displayName}";
 
 
-//         AddToRegister();
-//     }
 
-//     public void Interact(IInteractor c)
-//     {
-//         if (type == ItemSpawner.SpawnType.Item)
-//         {
-//             DestroyItem();
-//             InventoryController.AddItem(item, 1);
-//         }
-//         else
-//         {
-//             Time.timeScale = 0;
+    public void Interact(IInteractor c)
+    {
 
-//             NewItemPrompt.singleton.ShowPrompt(item, count, () => { Time.timeScale = 1; });
-//             //Do not allow multiple chest opens
-//             canInteract = false;
-//             gameObject.gameObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 40, 0);
-//         }
+        Destroy();
 
-//         onItemDestroy?.Invoke(this);
-//     }
+        AddItemsToInventory();
 
-//     public void OnStartHighlight()
-//     {
-//         //Show an arrow for this item with name on ui
-//         UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
-//     }
+    }
 
-//     public void OnEndHighlight()
-//     {
-//         //remove arrow
-//         UIController.singleton.itemIndicator.EndIndication();
-//     }
+    public void OnStartHighlight()
+    {
+        //Show an arrow for this item with name on ui
+        UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
+    }
 
-//     void DestroyItem()
-//     {
-//         RemoveFromRegister();
-//         Items.DeSpawnItem(this);
+    public void OnEndHighlight()
+    {
+        //remove arrow
+        UIController.singleton.itemIndicator.EndIndication();
+    }
 
-//     }
 
-//     public override void OnPlayerOutRange()
-//     {
-//         DestroyItem();
-//     }
-// }
+
+}

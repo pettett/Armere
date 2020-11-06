@@ -81,17 +81,17 @@ float LerpAngle(float a, float b, float t)
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(64,1,1)]
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = id.x + id.y * 512*64;
+    uint index = DispatchThreadToIndex(id,dispatchSize);
 
     // In a transform matrix, the position (translation) vector is the last column.
 
     float damp = 0;
     float3 dampDir = float3(0.01,0,0);
 
-    [loop] for (uint i = 0; i < pushers; i++){
+    for (uint i = 0; i < pushers; i++){
         float effect =  distance(_Properties[index].position, _PusherPositions[i].xyz);
         float radius = _PusherPositions[i].w;
 

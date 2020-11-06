@@ -21,10 +21,9 @@ MonoBehaviour:
   description: Someone said jeff was looking for some
   sellable: 1
   sellValue: 25
-  staticPickup: 0
-  spawnedGameobject:
-    m_AssetGUID: b32317c7b58b11d4bbb63baf2262ce44
-    m_SubObjectName: Stick
   worldObjectData:
     m_AssetGUID: 0a5462bf8dce8d34aaff0908fd278bf4
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: d6f50d76ea0755444a62d89f860d1cca
     m_SubObjectName: 

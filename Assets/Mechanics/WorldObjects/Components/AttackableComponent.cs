@@ -9,6 +9,7 @@ public sealed class AttackableComponent : WorldObjectComponent<AttackableCompone
     Vector3 IScanable.offset => offset;
     public bool oneShotHit;
     public float health;
+
     public AttackResult Attack(ItemName weapon, GameObject attacker, Vector3 hitPosition)
     {
         if (oneShotHit)

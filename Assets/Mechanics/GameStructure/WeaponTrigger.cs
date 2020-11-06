@@ -85,8 +85,6 @@ public class WeaponTrigger : MonoBehaviour
             // Debug.DrawLine(transform.position, transform.position + direction * distance, Color.red, 10);
             // Debug.Break();
 
-
-
             //Create a spark
             if (hitSparkEffect != null)
                 Destroy(Instantiate(hitSparkEffect, hitPosition, Quaternion.identity), 1);
@@ -102,12 +100,15 @@ public class WeaponTrigger : MonoBehaviour
 
     private void Update()
     {
-        Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
-        grassBounds.center = transform.position + transform.forward * 0.5f;
-        grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
-        float yRot = transform.eulerAngles.y;
+        if (enableTrigger)
+        {
+            Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
+            grassBounds.center = transform.position + transform.forward * 0.5f;
+            grassBounds.size = new Vector3(grassBounds.size.x, 5, grassBounds.size.z);
+            float yRot = transform.eulerAngles.y * Mathf.Deg2Rad;
 
-
+            GrassController.singleton.DestroyBladesInBounds(grassBounds, yRot);
+        }
     }
 
     private void OnDrawGizmos()

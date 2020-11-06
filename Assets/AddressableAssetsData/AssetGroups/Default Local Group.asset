@@ -35,8 +35,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 0a5462bf8dce8d34aaff0908fd278bf4
-    m_Address: Assets/Art/Items/Common/Stick/Stick WO.asset
+  - m_GUID: d6f50d76ea0755444a62d89f860d1cca
+    m_Address: Assets/Art/Items/Common/Stick/Stick.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -149,12 +149,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 7490805abb9777a498e402ae6810db83
-    m_Address: Assets/Art/Items/Sidearms/Lantern/Gas Lantern WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: 79a5eab03a63f9f498cb405349d6f995
     m_Address: Assets/Art/Items/Bows/Basic Bow/basic_bow.blend
     m_ReadOnly: 0
@@ -168,7 +162,7 @@ MonoBehaviour:
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
   - m_GUID: 814232617a247bc4fbc3dd058081a3d2
-    m_Address: Assets/Art/Chests/Wooden Chest/Chest 1.prefab
+    m_Address: Assets/Art/Chests/Wooden Chest/Wooden Chest.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -239,32 +233,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: fd868e277558c8e4fa0b86eb6782d4cb
-    m_Address: Assets/Art/Items/Currency/Gold Currency World Object.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: fe3e3b8ebc1a32647b48b7ea88f534a8
     m_Address: LowPolyTreePack/Materials/Normal
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: a9825537023a3bb4f91d078928fd82f3
-    m_Address: Assets/Art/Items/Sidearms/Lantern/Holdable Gas Lantern WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 90d99b217b4074942bfaecf6ccaafe4d
-    m_Address: Assets/Art/Items/Sidearms/Basic Shield/Holdable Basic Shield WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 2cc9bdf09aff63e4397235a8552c210e
-    m_Address: Assets/Art/Items/Sidearms/Basic Shield/Basic Shield WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -287,36 +257,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: c4876a66425c61749a342b016142a4c8
-    m_Address: Assets/Art/Items/Currency/Green Currency WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 77ef6e19db3834c49a768228e594e5a5
-    m_Address: Assets/Art/Items/Currency/Purple Currency WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 14c2a3ca2fb786849bb1867dc864cbce
-    m_Address: Assets/Art/Items/Currency/Blue Currency WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: c557393096f42934a82ed32177f37f6f
-    m_Address: Assets/Art/Items/Currency/Silver Currency WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 1be9b76081eb5084ab47a2e60db6785c
-    m_Address: Assets/Art/Items/Currency/Red Currency WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: b542e39e4ae317d4486a78bc59d722aa
     m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Furniture/WO/Barrel_Closed
       Holdable.prefab
@@ -324,14 +264,50 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: ef320abe3d4dc17408219048c6dd825c
-    m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Furniture/WO/Barrel_Closed_Holdable.asset
+  - m_GUID: 4fcba79b948edca479435b7a4b67e723
+    m_Address: Assets/Art/Chests/Wooden Chest/Wooden Chest WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 4fcba79b948edca479435b7a4b67e723
-    m_Address: Assets/Art/Chests/Wooden Chest/Wooden Chest WO.asset
+  - m_GUID: 00895d482ae3ecd43aa80bc59a01d2a1
+    m_Address: Assets/Art/Items/Currency/Blue Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: d3c7b67393c02b344b81638b209fb00b
+    m_Address: Assets/Art/Items/Currency/Gold Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 6cd5d7d0db83e7946951cfe08f5659b9
+    m_Address: Assets/Art/Items/Currency/Green Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 1eb2a71e3203f3b4d995d39e08208be7
+    m_Address: Assets/Art/Items/Currency/Purple Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: b1c2e9953b648e24696dcd949a3332b7
+    m_Address: Assets/Art/Items/Currency/Red Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: ec087004c7a60c04780b7413633478b5
+    m_Address: Assets/Art/Items/Currency/Silver Rupee.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 91daf214cf32f3a43ba0b9a927a95870
+    m_Address: Assets/Art/Items/Sidearms/Lantern/lantern Item.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

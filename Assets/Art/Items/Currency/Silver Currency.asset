@@ -21,10 +21,9 @@ MonoBehaviour:
   description: "100 Rupees. Its dazzling silver light reflects your beaming smile.\r"
   sellable: 1
   sellValue: 100
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: c557393096f42934a82ed32177f37f6f
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: ec087004c7a60c04780b7413633478b5
     m_SubObjectName: 

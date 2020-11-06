@@ -28,12 +28,12 @@ public class CutLog : MonoBehaviour, IAttackable
     {
         int spawns = Random.Range(itemCount.x, itemCount.y + 1);
 
-        IEnumerable<Task<WorldObject>> SpawnTasks()
+        IEnumerable<Task<ItemSpawnable>> SpawnTasks()
         {
             for (int i = 0; i < spawns; i++)
             {
-                yield return WorldObjectSpawner.SpawnItemAsync(
-                    InventoryController.singleton.db[spawnedItem] as PhysicsItemData,
+                yield return ItemSpawner.SpawnItemAsync(
+                    spawnedItem,
                     transform.position + transform.up * Mathf.Lerp(lengthRegion.x, lengthRegion.y, (i + 0.5f) / (float)spawns),
                     Quaternion.Euler(0, Random.Range(0, 360), 0));
             }

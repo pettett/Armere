@@ -9,11 +9,16 @@ using Unity.Jobs;
 
 public class GrassController : MonoBehaviour
 {
+    private const string k_RenderGrassTag = "Render Grass";
+    private ProfilingSampler m_Grass_Profile;
+
     public static List<GrassPusher> pushers = new List<GrassPusher>();
 
+    public static GrassController singleton;
+
+
     public Vector3Int threadGroups = new Vector3Int(8, 1, 1);
-    [System.NonSerialized] public Vector3Int destroyGrassThreadGroupSize;
-    [System.NonSerialized] public Vector3Int mainThreadGroupSize;
+    [System.NonSerialized] public Vector3Int threadGroupSize;
     public int totalPopulation;
 
 
@@ -26,10 +31,11 @@ public class GrassController : MonoBehaviour
     public ComputeShader destroyGrassInBounds;
     public ComputeShader destroyGrassInSector;
 
-    private ComputeBuffer meshPropertiesBuffer;
+    private ComputeBuffer meshPropertiesConsumeBuffer;
+    private ComputeBuffer meshPropertiesAppendBuffer;
 
     private ComputeBuffer matrixesBuffer;
-    private ComputeBuffer argsBuffer;
+    private ComputeBuffer drawIndirectArgsBuffer;
     private Mesh mesh;
     private Bounds bounds;
 
@@ -80,6 +86,12 @@ public class GrassController : MonoBehaviour
 
     }
 
+    public struct RotatedBounds
+    {
+        public Bounds bounds;
+        public float rotation;
+    }
+
     private void Setup()
     {
         Mesh mesh = CreateQuad();
@@ -92,11 +104,17 @@ public class GrassController : MonoBehaviour
 
     private void DisposeBuffers()
     {
-        if (meshPropertiesBuffer != null)
+        if (meshPropertiesConsumeBuffer != null)
         {
-            meshPropertiesBuffer.Release();
+            meshPropertiesConsumeBuffer.Release();
         }
-        meshPropertiesBuffer = null;
+        meshPropertiesConsumeBuffer = null;
+
+        if (meshPropertiesAppendBuffer != null)
+        {
+            meshPropertiesAppendBuffer.Release();
+        }
+        meshPropertiesAppendBuffer = null;
 
         if (matrixesBuffer != null)
         {
@@ -104,11 +122,11 @@ public class GrassController : MonoBehaviour
         }
         matrixesBuffer = null;
 
-        if (argsBuffer != null)
+        if (drawIndirectArgsBuffer != null)
         {
-            argsBuffer.Release();
+            drawIndirectArgsBuffer.Release();
         }
-        argsBuffer = null;
+        drawIndirectArgsBuffer = null;
     }
 
     void UpdateBounds()
@@ -120,11 +138,9 @@ public class GrassController : MonoBehaviour
     void UpdateThreadGroupSizes()
     {
         compute.GetKernelThreadGroupSizes(mainKernel, out uint x, out uint y, out uint z);
-        mainThreadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
+        threadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
         totalPopulation = threadGroups.x * threadGroups.y * threadGroups.z * (int)x * (int)y * (int)z;
 
-        destroyGrassInBounds.GetKernelThreadGroupSizes(0, out x, out y, out z);
-        destroyGrassThreadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
 
     }
 
@@ -147,10 +163,12 @@ public class GrassController : MonoBehaviour
         args[1] = (uint)totalPopulation;
         args[2] = mesh.GetIndexStart(0);
         args[3] = mesh.GetBaseVertex(0);
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-        argsBuffer.SetData(args);
+        drawIndirectArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        drawIndirectArgsBuffer.SetData(args);
 
-        meshPropertiesBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size());
+        meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append);
+        meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append);
+
         matrixesBuffer = new ComputeBuffer(totalPopulation, MatricesStruct.Size(), ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
         //matrixesBuffer.SetCounterValue(0);
@@ -158,7 +176,7 @@ public class GrassController : MonoBehaviour
         FillBuffers();
         //frustumCuller.SetBuffer(frustumKernel, "_Properties", meshPropertiesBuffer);
 
-        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesBuffer);
+        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesConsumeBuffer);
         compute.SetBuffer(mainKernel, "_Output", matrixesBuffer);
 
         SetDispatchSize(compute);
@@ -176,8 +194,8 @@ public class GrassController : MonoBehaviour
 
     private void FillBuffers()
     {
-        if (meshPropertiesBuffer == null ||
-            meshPropertiesBuffer.count != totalPopulation) InitializeBuffers();
+        if (meshPropertiesConsumeBuffer == null ||
+            meshPropertiesConsumeBuffer.count != totalPopulation) InitializeBuffers();
 
         // Initialize buffer with the given population.
         NativeArray<MeshProperties> properties = new NativeArray<MeshProperties>(totalPopulation, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -202,7 +220,7 @@ public class GrassController : MonoBehaviour
             properties[i] = props;
         }
 
-        meshPropertiesBuffer.SetData<MeshProperties>(properties);
+        meshPropertiesConsumeBuffer.SetData<MeshProperties>(properties);
 
         properties.Dispose();
     }
@@ -317,134 +335,179 @@ public class GrassController : MonoBehaviour
     private void Start()
     {
         mainCamera = Camera.main;
+        m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
     }
 
     private void OnEnable()
     {
         Setup();
+        singleton = this;
+
+        RenderPipelineManager.beginFrameRendering += OnBeginCameraRendering;
+
+    }
+
+    private void OnDisable()
+    {
+        DisposeBuffers();
+        singleton = null;
+
+        RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;
+    }
+
+    Vector4[] pushersData = new Vector4[0];
+    Queue<RotatedBounds> destroyGrassQueue = new Queue<RotatedBounds>();
+
+    void OnBeginCameraRendering(ScriptableRenderContext context, Camera[] camera)
+    {
+        //This is called once per frame no matter the number of cameras
+
+        //DestroyBladesInBounds();
+
+
+
+        if (Time.deltaTime == 0) return; //No need to update grass - nothing has happened
+
+        CommandBuffer cmd = CommandBufferPool.Get(k_RenderGrassTag);
+
+        using (new ProfilingScope(cmd, m_Grass_Profile))
+        {
+
+            //meshPropertiesBuffer.SetCounterValue((uint)totalPopulation);
+
+            cmd.Clear();
+            //cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+
+            //First set up to destroy all the grass in bounds selected
+            while (destroyGrassQueue.Count != 0)
+            {
+                DestroyBladesInBounds(destroyGrassQueue.Dequeue(), cmd);
+            }
+
+            //Then move the remaining grass
+
+            cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
+            cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
+
+
+            cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
+            cmd.SetComputeFloatParam(compute, "time", Time.time);
+
+            //Copies Properties -> Output with processing
+            cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
+
+            //Swap the buffers and copy them back
+            // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Properties", meshPropertiesBuffer);
+            // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Output", matrixesBuffer);
+            // cmd.DispatchCompute(compute, copyBuffersKernel, population.x * 64, population.y, population.z);
+
+            // ComputeBuffer.CopyCount(matrixesBuffer, argsBuffer, sizeof(uint));
+
+            context.ExecuteCommandBuffer(cmd);
+        }
+
+        CommandBufferPool.Release(cmd);
+
+        // material.SetBuffer("_Properties", meshPropertiesBuffer);
     }
 
     private void Update()
     {
-        //DestroyBladesInBounds();
+        if (pushersData == null || pushersData.Length != pushers.Count)
+            pushersData = new Vector4[pushers.Count];
 
-
-        CommandBuffer cmd = CommandBufferPool.Get("Grass Compute");
-
-        meshPropertiesBuffer.SetCounterValue((uint)totalPopulation);
-
-
-        cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
-        //Reset the buffer position so old things are written over
-
-        // matrixesBuffer.SetCounterValue(0);
-
-        // cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesBuffer);
-        // cmd.SetComputeBufferParam(compute, mainKernel, "_Output", matrixesBuffer);
-
-        Vector4[] data = new Vector4[pushers.Count];
-        for (int i = 0; i < data.Length; i++)
+        for (int i = 0; i < pushersData.Length; i++)
         {
-            data[i] = pushers[i].Data;
-            data[i] -= new Vector4(transform.position.x, transform.position.y, transform.position.z);
+            pushersData[i] = pushers[i].Data;
+            pushersData[i] -= new Vector4(transform.position.x, transform.position.y, transform.position.z);
         }
 
 
-        cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", data);
-        cmd.SetComputeIntParam(compute, "pushers", data.Length);
+        //Setup the call to draw the grass when the time comes
 
-        cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
-        cmd.SetComputeFloatParam(compute, "time", Time.time);
-
-
-
-        //Copies Properties -> Output with processing
-        cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
-
-        //Swap the buffers and copy them back
-        // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Properties", meshPropertiesBuffer);
-        // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Output", matrixesBuffer);
-        // cmd.DispatchCompute(compute, copyBuffersKernel, population.x * 64, population.y, population.z);
-
-        // ComputeBuffer.CopyCount(matrixesBuffer, argsBuffer, sizeof(uint));
-
-        Graphics.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Default);
-
-        CommandBufferPool.Release(cmd);
+        Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
 
         // uint[] temp = new uint[5];
-        // argsBuffer.GetData(temp);
-        // Debug.Log(temp[1]);
+        // drawIndirectArgsBuffer.GetData(temp);
+        // Debug.Log($"{temp[1]}, max: {totalPopulation}");
 
-        // material.SetBuffer("_Properties", meshPropertiesBuffer);
-
-        Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, argsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
     }
 
     [MyBox.ButtonMethod]
-    public void DestroyBladesInBounds()
+    public void DestroyGrassInKillingBounds()
     {
-        //Send the data needed and destroy grass
-        destroyGrassInBounds.SetVector("boundsTransform",
-            new Vector4(killingBounds.center.x - transform.position.x,
-            killingBounds.center.y - transform.position.y,
-            killingBounds.center.z - transform.position.z,
-            boundsYRot * Mathf.Deg2Rad));
-
-        destroyGrassInBounds.SetVector("boundsExtents", killingBounds.extents);
-
-        DestroyBlades(destroyGrassInBounds);
+        DestroyBladesInBounds(killingBounds, boundsYRot * Mathf.Deg2Rad);
     }
-
-    [MyBox.ButtonMethod]
-    public void DestroyBladesInSector()
+    public void DestroyBladesInBounds(Bounds bounds, float angleRad)
     {
         //Send the data needed and destroy grass
-        destroyGrassInSector.SetVector("sectorCenter",
-            new Vector4(trackingSector.position.x - transform.position.x, trackingSector.position.z - transform.position.z, 0, 0));
-
-        destroyGrassInSector.SetVector("sectorDirection", new Vector4(trackingSector.forward.x, trackingSector.forward.z, 0, 0).normalized);
-        destroyGrassInSector.SetFloat("sectorDot", -0.25f);
-        destroyGrassInSector.SetVector("sectorRadiusRange", sectorRange);
-
-        DestroyBlades(destroyGrassInSector);
+        destroyGrassQueue.Enqueue(new RotatedBounds() { bounds = bounds, rotation = angleRad });
     }
 
 
-    public void DestroyBlades(ComputeShader shader)
+    public void DestroyBladesInBounds(RotatedBounds bounds, CommandBuffer cmd)
+    {
+        //Send the data needed and destroy grass
+        cmd.SetComputeVectorParam(destroyGrassInBounds, "boundsTransform",
+            new Vector4(bounds.bounds.center.x - transform.position.x,
+            bounds.bounds.center.y - transform.position.y,
+            bounds.bounds.center.z - transform.position.z,
+            bounds.rotation));
+
+        cmd.SetComputeVectorParam(destroyGrassInBounds, "boundsExtents", bounds.bounds.extents);
+
+        DestroyBlades(destroyGrassInBounds, cmd);
+    }
+
+
+    // [MyBox.ButtonMethod]
+    // public void DestroyBladesInSector()
+    // {
+    //     //Send the data needed and destroy grass
+    //     destroyGrassInSector.SetVector("sectorCenter",
+    //         new Vector4(trackingSector.position.x - transform.position.x, trackingSector.position.z - transform.position.z, 0, 0));
+
+    //     destroyGrassInSector.SetVector("sectorDirection", new Vector4(trackingSector.forward.x, trackingSector.forward.z, 0, 0).normalized);
+    //     destroyGrassInSector.SetFloat("sectorDot", -0.25f);
+    //     destroyGrassInSector.SetVector("sectorRadiusRange", sectorRange);
+
+    //     DestroyBlades(destroyGrassInSector);
+    // }
+
+
+    public void DestroyBlades(ComputeShader shader, CommandBuffer cmd)
     {
         //dispatch a compute shader that will take in buffer of all mesh data
         //And return an append buffer of mesh data remaining
         //Then use this buffer as the main buffer
 
-        ComputeBuffer appendMeshData = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append);
-        appendMeshData.SetCounterValue(0);
+
+        cmd.SetComputeBufferCounterValue(meshPropertiesAppendBuffer, 0);
+        //  cmd.SetComputeBufferCounterValue(meshPropertiesConsumeBuffer, 0);
 
         // destroyGrass.SetVector("boundsMin", killingBounds.min - transform.position);
         // destroyGrass.SetVector("boundsMax", killingBounds.max - transform.position);
 
-        shader.SetBuffer(0, "_Grass", meshPropertiesBuffer);
-        shader.SetBuffer(0, "_CulledGrass", appendMeshData);
-        shader.SetBuffer(0, "_ArgsData", argsBuffer);
+        cmd.SetComputeBufferParam(shader, 0, "_Grass", meshPropertiesConsumeBuffer);
+        cmd.SetComputeBufferParam(shader, 0, "_CulledGrass", meshPropertiesAppendBuffer);
+        cmd.SetComputeBufferParam(shader, 0, "_ArgsData", drawIndirectArgsBuffer);
 
-        //Destroy grass shader only works with thread group 1,1,1?
-        shader.Dispatch(0, threadGroups.x * mainThreadGroupSize.x, threadGroups.y, threadGroups.z);
 
-        meshPropertiesBuffer.Dispose();
-
-        meshPropertiesBuffer = appendMeshData;
-
-        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesBuffer);
+        cmd.DispatchCompute(shader, 0, threadGroups.x, threadGroups.y, threadGroups.z);
 
         //Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
-        ComputeBuffer.CopyCount(meshPropertiesBuffer, argsBuffer, sizeof(uint));
+        cmd.CopyCounterValue(meshPropertiesAppendBuffer, drawIndirectArgsBuffer, sizeof(uint));
+
+        //Swap the buffers around
+        (meshPropertiesConsumeBuffer, meshPropertiesAppendBuffer) = (meshPropertiesAppendBuffer, meshPropertiesConsumeBuffer);
+
+
+        //Update the main grass with the new append buffer
+        cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+
     }
 
 
-    private void OnDisable()
-    {
-        DisposeBuffers();
-    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireCube(bounds.center, bounds.size);

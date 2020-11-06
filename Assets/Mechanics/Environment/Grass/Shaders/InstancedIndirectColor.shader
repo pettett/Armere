@@ -56,7 +56,7 @@ Shader "Custom/InstancedIndirectColor" {
                 float2 texCoord : TEXCOORD0;
                 //input normal and tangent for world space normals
                 float3 normalOS     : NORMAL;
-                 float4 tangentOS    : TANGENT;
+                float4 tangentOS    : TANGENT;
                 float4 color    : COLOR;
 
                                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -64,8 +64,6 @@ Shader "Custom/InstancedIndirectColor" {
 
             struct v2f {
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-
-
 
                 float4 vertex   : SV_POSITION;
                 float2 texCoord : TEXCOORD0;
@@ -141,8 +139,10 @@ Shader "Custom/InstancedIndirectColor" {
 
                 //Generate the color of the grass
                 float4 diffuse = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap,i.texCoord) * i.color;
-                if (diffuse.a < 0.5f) discard;
+
+                clip(diffuse.a-0.5f);
                 
+                //Calculate the shadow coordinate for lighting
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
                     float4 shadowCoord = i.shadowCoord;
                 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
@@ -157,11 +157,10 @@ Shader "Custom/InstancedIndirectColor" {
                 float3 normal = SafeNormalize(i.normalWS);
                 //Use the information stored in light to render the grass
 
-
                 float shadow = light.distanceAttenuation * light.shadowAttenuation;
 
 
-                float3 diffuseColor = light.color * shadow;
+                float3 diffuseColor = light.color * shadow ;
 
                 half3 reflectVector = reflect(-i.viewDirectionWS, normal);
 

@@ -21,10 +21,9 @@ MonoBehaviour:
   description: "20 rupees. Its red luster tickles your heartstrings.\r"
   sellable: 1
   sellValue: 20
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: 1be9b76081eb5084ab47a2e60db6785c
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: b1c2e9953b648e24696dcd949a3332b7
     m_SubObjectName: 

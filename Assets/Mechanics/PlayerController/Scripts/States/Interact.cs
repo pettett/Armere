@@ -121,7 +121,7 @@ namespace Armere.PlayerController
 
             for (int i = 0; i < interactablesInRange.Count; i++)
             {
-                if (interactablesInRange[i] == null || !interactablesInRange[i].canInteract)
+                if (((Component)interactablesInRange[i]) == null || !interactablesInRange[i].canInteract)
                 {
                     OnInteractableRemoved(interactablesInRange[i]);
                 }

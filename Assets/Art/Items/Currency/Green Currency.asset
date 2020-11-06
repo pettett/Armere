@@ -21,10 +21,9 @@ MonoBehaviour:
   description: A single rupee. Its soft green glow puts a smile on your face.
   sellable: 1
   sellValue: 1
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: c4876a66425c61749a342b016142a4c8
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: 6cd5d7d0db83e7946951cfe08f5659b9
     m_SubObjectName: 

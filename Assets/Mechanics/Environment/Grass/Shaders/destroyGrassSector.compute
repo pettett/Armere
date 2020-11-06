@@ -19,18 +19,16 @@ StructuredBuffer<uint> _ArgsData;
 StructuredBuffer<MeshProperties> _Grass;
 AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
-#define THREADGROUPX 64
-#define THREADGROUPY 1
+
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(64,1,1)]
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = id.x + id.y * dispatchSize.x * THREADGROUPX + id.z * dispatchSize.x * dispatchSize.y * THREADGROUPX * THREADGROUPY;
+    uint index = DispatchThreadToIndex(id,dispatchSize);
 
     float2 p = _Grass[index].position.xz;
-
     
     float2 dir = sectorCenter - p;
     float dotDiff = dot(dir,sectorDirection);

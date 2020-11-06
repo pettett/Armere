@@ -126,6 +126,8 @@ public class WorldObjectSpawner : MonoBehaviour
     public uint containsItemCount = 1;
 
 
+
+
     private async void Start()
     {
         await SpawnWorldObjectAsync(worldObjectData, transform.position, transform.rotation,

@@ -21,10 +21,9 @@ MonoBehaviour:
   description: "Five rupees. Its shiny blue facets make you weak in the knees.\r"
   sellable: 1
   sellValue: 5
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: 14c2a3ca2fb786849bb1867dc864cbce
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: 00895d482ae3ecd43aa80bc59a01d2a1
     m_SubObjectName: 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class NPCSpawn : MonoBehaviour
 {
-    public static Queue<GameObject> npcPool = new Queue<GameObject>();
+
 
     public NPCName spawnedNPCName;
 
@@ -21,7 +21,7 @@ public class NPCSpawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        var npc = Spawner.Spawn(ref npcPool, baseNPC, transform.position, transform.rotation).GetComponent<NPC>();
+        var npc = Instantiate(baseNPC, transform.position, transform.rotation).GetComponent<NPC>();
         npc.InitNPC(template, this, conversationGroupTargetsOverride);
     }
 

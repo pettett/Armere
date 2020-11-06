@@ -21,10 +21,9 @@ MonoBehaviour:
   description: 300 Rupees! Its radiant golden shine illuminates your soul.
   sellable: 1
   sellValue: 300
-  staticPickup: 1
-  spawnedGameobject:
-    m_AssetGUID: 
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: fd868e277558c8e4fa0b86eb6782d4cb
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: d3c7b67393c02b344b81638b209fb00b
     m_SubObjectName: 

@@ -21,12 +21,11 @@ MonoBehaviour:
   description: This item has no description
   sellable: 1
   sellValue: 25
-  staticPickup: 0
-  spawnedGameobject:
-    m_AssetGUID: 286deab20111cc04fac341f0d3da40da
-    m_SubObjectName: 
   worldObjectData:
     m_AssetGUID: 7490805abb9777a498e402ae6810db83
+    m_SubObjectName: 
+  gameObject:
+    m_AssetGUID: 91daf214cf32f3a43ba0b9a927a95870
     m_SubObjectName: 
   clankProbability: 0.7
   clankSet: {fileID: 0}

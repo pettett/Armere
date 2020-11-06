@@ -81,14 +81,9 @@ public class EnemyAI : AIBase
         }
     }
 
-    public async void Die(GameObject attacker, GameObject victim)
+    public void Die(GameObject attacker, GameObject victim)
     {
-        weaponGraphics.holdables.melee.RemoveHeld();
-        weaponGraphics.holdables.bow.RemoveHeld();
-        weaponGraphics.holdables.sidearm.RemoveHeld();
-        ragdoller.RagdollEnabled = true;
-        await Task.Delay(4000);
-        Destroy(gameObject);
+        ChangeRoutine(DieRoutine());
     }
 
     protected override void Start()
@@ -133,6 +128,20 @@ public class EnemyAI : AIBase
             ChangeRoutine(PatrolRoutine());
         }
     }
+
+    IEnumerator DieRoutine()
+    {
+        investigateOnSight = false;
+        engageOnAttack = false;
+
+        weaponGraphics.holdables.melee.RemoveHeld();
+        weaponGraphics.holdables.bow.RemoveHeld();
+        weaponGraphics.holdables.sidearm.RemoveHeld();
+        ragdoller.RagdollEnabled = true;
+        yield return new WaitForSeconds(4);
+        Destroy(gameObject);
+    }
+
 
     IEnumerator PatrolRoutine()
     {

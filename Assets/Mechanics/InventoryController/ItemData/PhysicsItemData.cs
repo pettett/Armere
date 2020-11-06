@@ -8,5 +8,6 @@ public class PhysicsItemData : ItemData
 {
 
     public AssetReferenceT<WorldObjectData> worldObjectData;
+    public AssetReferenceGameObject gameObject;
 }
 

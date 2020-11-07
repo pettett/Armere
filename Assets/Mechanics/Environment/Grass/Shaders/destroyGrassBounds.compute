@@ -11,6 +11,7 @@ cbuffer CB{
 }; 
 
 
+
 StructuredBuffer<uint> _ArgsData;
 
 StructuredBuffer<MeshProperties> _Grass;

@@ -1,0 +1,42 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel ResetCount
+
+
+#include "MeshProperties.cginc"
+
+cbuffer CB{
+
+    int2 dispatchSize;
+}; 
+
+//Opposite of burn grass, using read only properties to got to rw texture
+RWTexture2D<float> FireDensityMap;
+StructuredBuffer<MeshProperties> _Properties;
+
+StructuredBuffer<uint> _ArgsData;
+
+
+//Take the grass buffer, and for every instance of grass increase the corrisponding green (density) channel in the fireMap
+//This allows spaces with no grass to not conduct fire
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int total = 0;
+
+    for (uint i = 0; i < _ArgsData[1] ;i++ ){
+        //Add one or zero to the total based on if this grass is on the tile
+        total += all(( floor((_Properties[i].position.xz + 10.0) * 16.0 / 20.0)  - id.xy) == 0);
+    }
+
+    FireDensityMap[id.xy] = total;
+
+}
+
+
+[numthreads(8,8,1)]
+void ResetCount (uint3 id : SV_DispatchThreadID)
+{
+    FireDensityMap[id.xy] = 0;
+}

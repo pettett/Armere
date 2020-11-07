@@ -9,53 +9,6 @@ using Unity.Jobs;
 
 public class GrassController : MonoBehaviour
 {
-    private const string k_RenderGrassTag = "Render Grass";
-    private ProfilingSampler m_Grass_Profile;
-
-    public static List<GrassPusher> pushers = new List<GrassPusher>();
-
-    public static GrassController singleton;
-
-
-    public Vector3Int threadGroups = new Vector3Int(8, 1, 1);
-    [System.NonSerialized] public Vector3Int threadGroupSize;
-    public int totalPopulation;
-
-
-
-
-    public float range;
-
-    public Material material;
-    public ComputeShader compute;
-    public ComputeShader destroyGrassInBounds;
-    public ComputeShader destroyGrassInSector;
-
-    private ComputeBuffer meshPropertiesConsumeBuffer;
-    private ComputeBuffer meshPropertiesAppendBuffer;
-
-    private ComputeBuffer matrixesBuffer;
-    private ComputeBuffer drawIndirectArgsBuffer;
-    private Mesh mesh;
-    private Bounds bounds;
-
-    public Terrain terrain;
-    public Gradient colorGradient = new Gradient();
-
-    public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
-    public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
-    Camera mainCamera;
-    int mainKernel;
-    public ShadowCastingMode shadowCastingMode = ShadowCastingMode.On;
-    public float SampleRandomRange(Vector2 range) => Random.Range(range.x, range.y);
-
-    public float boundsYRot = 45f;
-    public Vector3 testPoint;
-    public Bounds killingBounds;
-    public Transform trackingSector;
-    public Vector2 sectorRange = new Vector2(0.5f, 1.5f);
-
-
 
 
     // Mesh Properties struct to be read from the GPU.
@@ -92,14 +45,152 @@ public class GrassController : MonoBehaviour
         public float rotation;
     }
 
+
+
+    private const string k_RenderGrassTag = "Render Grass";
+
+    private const string k_FireDensityMap = "FireDensityMap";
+    private const string k_FireMap = "FireMap";
+
+    private ProfilingSampler m_Grass_Profile;
+
+    public static List<GrassPusher> pushers = new List<GrassPusher>();
+
+    public static GrassController singleton;
+
+    //COMPUTE SHADERS
+    public Vector3Int threadGroups = new Vector3Int(8, 1, 1);
+    [System.NonSerialized] public Vector3Int threadGroupSize;
+    public int totalPopulation;
+
+    //FIRE
+    public Vector2Int fireMapResolution = new Vector2Int(16, 16);
+    private RenderTexture _fireMap;
+    private RenderTexture _fireDensityMap;
+    public int debugDrawSize = 256;
+    //GRASS
+    public float range;
+
+    public Material material;
+    [Header("Grass Movement")]
+    public ComputeShader compute;
+    [Header("Destroy Grass")]
+    public ComputeShader destroyGrassInBounds;
+    public ComputeShader destroyGrassInSector;
+    [Header("Fire Compute")]
+    public ComputeShader firePropagationCompute;
+    public ComputeShader burnGrassCompute;
+    public ComputeShader updateFireMapDensityCompute;
+
+
+    [Header("Fire Spread Settings")]
+    public float fireSpreadSpeed = 10f;
+
+    [Range(0, 1), Tooltip("Fire value on one tile required to spread to the next")]
+    public float fireSpreadThreshold = 0.7f;
+
+
+
+    [Header("Grass Mesh Settings")]
+    public Terrain terrain;
+    public Gradient colorGradient = new Gradient();
+    [ColorUsage(false)] public Color burntGrassColor = new Color(0.1f, 0.1f, 0.1f);
+
+    public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
+    public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
+    Camera mainCamera;
+    int mainKernel;
+    public ShadowCastingMode shadowCastingMode = ShadowCastingMode.On;
+    public float SampleRandomRange(Vector2 range) => Random.Range(range.x, range.y);
+
+    public float boundsYRot = 45f;
+    public Vector3 testPoint;
+    public Bounds killingBounds;
+    public Transform trackingSector;
+    public Vector2 sectorRange = new Vector2(0.5f, 1.5f);
+
+    private ComputeBuffer meshPropertiesConsumeBuffer;
+    private ComputeBuffer meshPropertiesAppendBuffer;
+
+    private ComputeBuffer matrixesBuffer;
+    private ComputeBuffer drawIndirectArgsBuffer;
+    private Mesh mesh;
+    private Bounds bounds;
+
+    Vector4[] pushersData = new Vector4[0];
+    Queue<RotatedBounds> destroyGrassQueue = new Queue<RotatedBounds>();
+
+    public bool fireMapDirty = true;
+
+
     private void Setup()
     {
         Mesh mesh = CreateQuad();
         this.mesh = mesh;
 
 
+        CreateFireMap();
 
         InitializeBuffers();
+
+        SetupComputeShaders();
+    }
+
+
+    private void CreateFireMap()
+    {
+        _fireMap = new RenderTexture(fireMapResolution.x, fireMapResolution.y, 0, RenderTextureFormat.RHalf);
+        _fireMap.wrapMode = TextureWrapMode.Clamp;
+        _fireMap.enableRandomWrite = true;
+        _fireMap.Create();
+
+
+        _fireDensityMap = new RenderTexture(fireMapResolution.x, fireMapResolution.y, 0, RenderTextureFormat.R8);
+        _fireDensityMap.filterMode = FilterMode.Point;
+        _fireDensityMap.wrapMode = TextureWrapMode.Clamp;
+        _fireDensityMap.enableRandomWrite = true;
+        _fireDensityMap.Create();
+
+        //Give the fire map to all compute shaders that will need it
+        firePropagationCompute.SetTexture(0, k_FireMap, _fireMap);
+        firePropagationCompute.SetTexture(0, k_FireDensityMap, _fireDensityMap);
+
+        burnGrassCompute.SetTexture(0, k_FireMap, _fireMap);
+
+        updateFireMapDensityCompute.SetTexture(0, k_FireDensityMap, _fireDensityMap);
+        updateFireMapDensityCompute.SetTexture(1, k_FireDensityMap, _fireDensityMap);
+
+
+        burnGrassCompute.SetVector("burntColor", burntGrassColor);
+    }
+
+    //Update the density of the grass after grass has been destroyed
+    private void UpdateFireMap(CommandBuffer cmd)
+    {
+        cmd.SetComputeBufferParam(updateFireMapDensityCompute, 0, "_ArgsData", drawIndirectArgsBuffer);
+
+        //Reset the count field
+        cmd.DispatchCompute(updateFireMapDensityCompute, 1, fireMapResolution.x / 8, fireMapResolution.y / 8, 1);
+
+        SetDispatchSize(updateFireMapDensityCompute);
+
+        cmd.DispatchCompute(updateFireMapDensityCompute, 0, fireMapResolution.x / 8, fireMapResolution.y / 8, 1);
+
+    }
+
+
+    //Update the fire map texture's x value to spread fire
+    //Also apply the burning to the grass's colour
+    private void UpdateFirePropagation(CommandBuffer cmd)
+    {
+        cmd.SetComputeFloatParam(firePropagationCompute, "dt", Time.deltaTime * fireSpreadSpeed);
+
+        cmd.DispatchCompute(firePropagationCompute, 0, fireMapResolution.x / 8, fireMapResolution.y / 8, 1);
+
+        SetDispatchSize(burnGrassCompute);
+        cmd.SetComputeFloatParam(burnGrassCompute, "dt", Time.deltaTime);
+
+        cmd.DispatchCompute(burnGrassCompute, 0, threadGroups.x, threadGroups.y, threadGroups.z);
     }
 
     private void DisposeBuffers()
@@ -140,18 +231,23 @@ public class GrassController : MonoBehaviour
         compute.GetKernelThreadGroupSizes(mainKernel, out uint x, out uint y, out uint z);
         threadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
         totalPopulation = threadGroups.x * threadGroups.y * threadGroups.z * (int)x * (int)y * (int)z;
+    }
 
-
+    private void SetupComputeShaders()
+    {
+        firePropagationCompute.SetFloat("spreadThreshold", fireSpreadThreshold);
     }
 
     private void InitializeBuffers()
     {
+
+
+        mainKernel = compute.FindKernel("CSMain");
+
         UpdateBounds();
         UpdateThreadGroupSizes();
         if (mesh == null) return;
 
-
-        mainKernel = compute.FindKernel("CSMain");
 
         //int frustumKernel = frustumCuller.FindKernel("CSMain");
 
@@ -176,7 +272,8 @@ public class GrassController : MonoBehaviour
         FillBuffers();
         //frustumCuller.SetBuffer(frustumKernel, "_Properties", meshPropertiesBuffer);
 
-        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        OnUpdateMeshPropertiesBuffer();
+
         compute.SetBuffer(mainKernel, "_Output", matrixesBuffer);
 
         SetDispatchSize(compute);
@@ -187,10 +284,26 @@ public class GrassController : MonoBehaviour
         material.SetBuffer("_Properties", matrixesBuffer);
     }
 
+
+    void OnUpdateMeshPropertiesBuffer()
+    {
+        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        burnGrassCompute.SetBuffer(mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        updateFireMapDensityCompute.SetBuffer(0, "_Properties", meshPropertiesConsumeBuffer);
+    }
+    void OnUpdateMeshPropertiesBuffer(CommandBuffer cmd)
+    {
+        cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        cmd.SetComputeBufferParam(burnGrassCompute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        cmd.SetComputeBufferParam(updateFireMapDensityCompute, 0, "_Properties", meshPropertiesConsumeBuffer);
+    }
+
+
     private void SetDispatchSize(ComputeShader shader)
     {
         shader.SetInts("dispatchSize", threadGroups.x, threadGroups.y);
     }
+
 
     private void FillBuffers()
     {
@@ -332,19 +445,46 @@ public class GrassController : MonoBehaviour
         return mesh;
     }
 
-    private void Start()
-    {
-        mainCamera = Camera.main;
-        m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
-    }
-
+    //Functions called over lifetime (in logical order)
     private void OnEnable()
     {
         Setup();
         singleton = this;
 
         RenderPipelineManager.beginFrameRendering += OnBeginCameraRendering;
+    }
 
+    private void Start()
+    {
+        mainCamera = Camera.main;
+        m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
+    }
+
+    private void Update()
+    {
+        if (pushersData == null || pushersData.Length != pushers.Count)
+            pushersData = new Vector4[pushers.Count];
+
+        for (int i = 0; i < pushersData.Length; i++)
+        {
+            pushersData[i] = pushers[i].Data;
+            pushersData[i] -= new Vector4(transform.position.x, transform.position.y, transform.position.z);
+        }
+
+
+        //Setup the call to draw the grass when the time comes
+
+        Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
+
+        // uint[] temp = new uint[5];
+        // drawIndirectArgsBuffer.GetData(temp);
+        // Debug.Log($"{temp[1]}, max: {totalPopulation}");
+    }
+
+    private void OnGUI()
+    {
+        GUI.DrawTexture(new Rect(0, 0, debugDrawSize, debugDrawSize), _fireMap, ScaleMode.ScaleToFit, false);
+        GUI.DrawTexture(new Rect(debugDrawSize, 0, debugDrawSize, debugDrawSize), _fireDensityMap, ScaleMode.ScaleToFit, false);
     }
 
     private void OnDisable()
@@ -355,8 +495,7 @@ public class GrassController : MonoBehaviour
         RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;
     }
 
-    Vector4[] pushersData = new Vector4[0];
-    Queue<RotatedBounds> destroyGrassQueue = new Queue<RotatedBounds>();
+
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera[] camera)
     {
@@ -379,22 +518,26 @@ public class GrassController : MonoBehaviour
             //cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
 
             //First set up to destroy all the grass in bounds selected
+            bool destroyedGrass = destroyGrassQueue.Count != 0;
             while (destroyGrassQueue.Count != 0)
             {
                 DestroyBladesInBounds(destroyGrassQueue.Dequeue(), cmd);
             }
+            if (destroyedGrass)
+            {
+                fireMapDirty = true;
+            }
 
-            //Then move the remaining grass
+            if (fireMapDirty)
+            {
+                UpdateFireMap(cmd);
+                fireMapDirty = false;
+            }
 
-            cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
-            cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
 
+            UpdateFirePropagation(cmd);
 
-            cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
-            cmd.SetComputeFloatParam(compute, "time", Time.time);
-
-            //Copies Properties -> Output with processing
-            cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
+            UpdateGrassMovement(cmd);
 
             //Swap the buffers and copy them back
             // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Properties", meshPropertiesBuffer);
@@ -411,27 +554,23 @@ public class GrassController : MonoBehaviour
         // material.SetBuffer("_Properties", meshPropertiesBuffer);
     }
 
-    private void Update()
+
+    private void UpdateGrassMovement(CommandBuffer cmd)
     {
-        if (pushersData == null || pushersData.Length != pushers.Count)
-            pushersData = new Vector4[pushers.Count];
+        //Then move the remaining grass
 
-        for (int i = 0; i < pushersData.Length; i++)
-        {
-            pushersData[i] = pushers[i].Data;
-            pushersData[i] -= new Vector4(transform.position.x, transform.position.y, transform.position.z);
-        }
+        cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
+        cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
 
 
-        //Setup the call to draw the grass when the time comes
+        cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
+        cmd.SetComputeFloatParam(compute, "time", Time.time);
 
-        Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
-
-        // uint[] temp = new uint[5];
-        // drawIndirectArgsBuffer.GetData(temp);
-        // Debug.Log($"{temp[1]}, max: {totalPopulation}");
-
+        //Copies Properties -> Output with processing
+        cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
     }
+
+
 
     [MyBox.ButtonMethod]
     public void DestroyGrassInKillingBounds()
@@ -503,7 +642,7 @@ public class GrassController : MonoBehaviour
 
 
         //Update the main grass with the new append buffer
-        cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        OnUpdateMeshPropertiesBuffer(cmd);
 
     }
 

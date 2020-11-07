@@ -1,0 +1,43 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float> FireMap;
+Texture2D<float> FireDensityMap;
+
+//set dt and spreadthreshold from grass controller
+
+cbuffer CB{
+    float dt;
+    float spreadThreshold;
+}; 
+
+#define ONEOVER255 0.00392156862
+
+float GetFireSpread(uint2 pos){
+    //one over 255 as 255 is the max blades of grass per tile
+    return (FireMap[pos] > spreadThreshold) * dt * FireDensityMap[pos] * ONEOVER255;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    //Seed the position 0,0 with fire
+    FireMap[id.xy] = max(FireMap[id.xy], float((id.x == 0) & (id.y == 0)));
+
+    //Sample around point for fire to spread
+    
+    float fire = 0;
+
+    //Only spread past certain spread threshold
+    fire += GetFireSpread(id.xy + uint2(0,-1));
+    fire += GetFireSpread(id.xy + uint2(0, 1));
+    fire += GetFireSpread(id.xy + uint2(1, 0));
+    fire += GetFireSpread(id.xy + uint2(-1,0));
+
+    fire *=  FireDensityMap[id.xy];
+
+    FireMap[id.xy] = saturate(FireMap[id.xy] + fire);
+}

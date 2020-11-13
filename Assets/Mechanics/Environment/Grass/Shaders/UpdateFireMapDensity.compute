@@ -2,13 +2,11 @@
 #pragma kernel CSMain
 #pragma kernel ResetCount
 
+cbuffer CB{
+     int2 dispatchSize;   
+}
 
 #include "MeshProperties.cginc"
-
-cbuffer CB{
-
-    int2 dispatchSize;
-}; 
 
 //Opposite of burn grass, using read only properties to got to rw texture
 RWTexture2D<float> FireDensityMap;
@@ -31,7 +29,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
 
     FireDensityMap[id.xy] = total;
-
 }
 
 

@@ -3375,7 +3375,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fb9a875caba39e48bee4128567c2ecd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grassDispatchGroups: 512
+  threadGroups: {x: 128, y: 1, z: 1}
+  totalPopulation: 0
   fireMapResolution: {x: 16, y: 16}
   range: 22.75
   chunkSize: 16
@@ -3384,11 +3385,13 @@ MonoBehaviour:
   viewDistanceFading: 5
   material: {fileID: 2100000, guid: cb5b9944543a33a4e87b818cc7aa8395, type: 2}
   grassGroupsPerChunk: 1
-  createGrassOnGPU: 1
+  createGrassOnGPU: 0
   AddGrassInBoundsCompute: {fileID: 7200000, guid: f852d3ce0793eae4bb52cce257c24269,
     type: 3}
   compute: {fileID: 7200000, guid: 57f1dbd48c092f748bc4ad0b78b88088, type: 3}
   destroyGrassInBounds: {fileID: 7200000, guid: b2f86f7d44fb57e40a0c024a6670594c,
+    type: 3}
+  destroyGrassInChunkCompute: {fileID: 7200000, guid: b98d5763cf121424aa4408c385e1979b,
     type: 3}
   firePropagationCompute: {fileID: 7200000, guid: e4bf52b9658552547921b07f1df2f917,
     type: 3}
@@ -4193,12 +4196,12 @@ PrefabInstance:
     - target: {fileID: 8691208064515587236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.000000023836478
+      value: 0.000000007945494
       objectReference: {fileID: 0}
     - target: {fileID: 8691208064515587236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.0000000098973
+      value: -0.0000000032991005
       objectReference: {fileID: 0}
     - target: {fileID: 8691208064515587236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}
@@ -4318,12 +4321,12 @@ PrefabInstance:
     - target: {fileID: 8691208065082933236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.000000020010082
+      value: 0.0000000120060495
       objectReference: {fileID: 0}
     - target: {fileID: 8691208065082933236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.000000007886034
+      value: -0.0000000047316204
       objectReference: {fileID: 0}
     - target: {fileID: 8691208065082933236, guid: c3869c7ce65d904418d0a0012c131765,
         type: 3}

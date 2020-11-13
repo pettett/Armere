@@ -8,6 +8,7 @@ public abstract class QuadTreeLeaf
 {
 
     public Rect rect;
+    public int id;
 
     public abstract void DrawGizmos();
 
@@ -20,12 +21,14 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
     public bool enabled;
     public int chunksWidth = 1;
 
-    public QuadTreeEnd(bool enabled, Vector2 centre, Vector2 size, int chunksWidth)
+    public QuadTreeEnd(bool enabled, Vector2 centre, Vector2 size, int chunksWidth, ref int chunkID)
     {
         this.rect = new Rect(centre - size / 2, size);
 
         this.enabled = enabled;
         this.chunksWidth = chunksWidth;
+        this.id = chunkID;
+        chunkID++;
     }
 
 
@@ -79,13 +82,13 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
 
     int leafSize;
 
-    QuadTreeLeaf GenerateLeaf(bool[,] chunks, Vector2 center, int startX, int startY, int endX, int endY)
+    QuadTreeLeaf GenerateLeaf(bool[,] chunks, Vector2 center, int startX, int startY, int endX, int endY, ref int chunkID)
     {
         // Debug.Log($"{startX},{startY},{endX},{endY}");
 
         if (endX - startX == 0)
         {
-            return new QuadTreeEnd(chunks[startX, startY], center, rect.size / 2, 1);
+            return new QuadTreeEnd(chunks[startX, startY], center, rect.size / 2, 1, ref chunkID);
         }
 
         bool hasChunk = false;
@@ -114,33 +117,34 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
             if (allChunk)
             {
                 //Region is full
-                return new QuadTreeEnd(true, center, rect.size / 2, (endX - startX));
+                return new QuadTreeEnd(true, center, rect.size / 2, (endX - startX), ref chunkID);
             }
             else
             {
-                return new QuadTree(chunks, center, rect.size / 2, startX, startY, endX, endY);
+                return new QuadTree(chunks, center, rect.size / 2, startX, startY, endX, endY, ref chunkID);
             }
         }
         else
         {
             //Nothing in this region
 
-            return new QuadTreeEnd(false, center, rect.size / 2, (endX - startX));
+            return new QuadTreeEnd(false, center, rect.size / 2, (endX - startX), ref chunkID);
         }
 
     }
 
 
-    public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size) : this(chunks, centre, size, 0, 0, chunks.GetLength(0), chunks.GetLength(1))
+    public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size, ref int chunkID) : this(chunks, centre, size, 0, 0, chunks.GetLength(0), chunks.GetLength(1), ref chunkID)
     {
 
     }
 
-    public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int startX, int startY, int endX, int endY)
+    public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int startX, int startY, int endX, int endY, ref int chunkID)
     {
         this.rect = new Rect(centre - size / 2, size);
 
-
+        this.id = chunkID;
+        chunkID++;
 
         leafSize = endX - startX;
 
@@ -154,10 +158,10 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
         int midY = startY + leafSize / 2;
         int midX = startX + leafSize / 2;
 
-        bottomLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, -offset.y), startX, startY, midX, midY);
-        bottomRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, -offset.y), midX, startY, endX, midY);
-        topLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, offset.y), startX, midY, midX, endY);
-        topRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, offset.y), midX, midY, endX, endY);
+        bottomLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, -offset.y), startX, startY, midX, midY, ref chunkID);
+        bottomRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, -offset.y), midX, startY, endX, midY, ref chunkID);
+        topLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, offset.y), startX, midY, midX, endY, ref chunkID);
+        topRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, offset.y), midX, midY, endX, endY, ref chunkID);
     }
 
 

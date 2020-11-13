@@ -1,14 +1,16 @@
 #pragma kernel CSMain
 
-#include "MeshProperties.cginc"
+
 
 #define PI 3.141592
 
 cbuffer CB{
     float4 boundsMinMax;
     float4 grassSizeMinMax;
+    int chunkID;
+    int2 dispatchSize;
 }; 
-
+#include "MeshProperties.cginc"
 AppendStructuredBuffer<MeshProperties> _Grass;
 Texture2D<float3> _Gradient;
 SamplerState sampler_Gradient;
@@ -38,15 +40,17 @@ float hash12(float2 p)
 //lol no
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
+
     MeshProperties m = (MeshProperties)0;
 
+    m.chunkID = chunkID;
     float2 pos = lerp(boundsMinMax.xy + float2(0.01,0.01),boundsMinMax.zw, hash22(boundsMinMax.zw + id.xy + 0.5f ));
     
     m.position.xz = pos;
     m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy) );
     m.yRot = lerp(-PI,PI,hash12(boundsMinMax.zy + id.xy));
 
-    m.color = float4(_Gradient.SampleLevel(sampler_Gradient, float2(hash12(boundsMinMax.xw + id.xy),0) ,0),1);
+    m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(boundsMinMax.xw + id.xy),0) ,0);
 
     _Grass.Append(m);
     

@@ -1,12 +1,15 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#include "MeshProperties.cginc"
 
 cbuffer CB{
     float dt;
     float3 burntColor;
+    int2 dispatchSize;
 }; 
+
+
+#include "MeshProperties.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -14,17 +17,18 @@ Texture2D<float2> FireMap;
 RWStructuredBuffer<MeshProperties> _Properties;
 
 
-[numthreads(THREADGROUPX,1,1)]
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id: SV_DispatchThreadID)
 {
-    
-    float2 uv = (_Properties[id.x].position.xz + 10.0 ) / 20.0;
+    uint index = DispatchThreadToIndex(id);
+
+    float2 uv = (_Properties[index].position.xz + 10.0 ) / 20.0;
 
     float fire = FireMap[uv * 16].x;
 
     //Reduce color by deltatime and colour
-    _Properties[id.x].color.rgb = lerp(_Properties[id.x].color.rgb , burntColor, fire * dt); 
-    _Properties[id.x].size.y = lerp(_Properties[id.x].size.y , 0.3, fire * dt); 
+    _Properties[index].color.rgb = lerp(_Properties[index].color.rgb , burntColor, fire * dt); 
+    _Properties[index].size.y = lerp(_Properties[index].size.y , 0.3, fire * dt); 
 
     //TODO: If fully burnt, mark for destruction
 }

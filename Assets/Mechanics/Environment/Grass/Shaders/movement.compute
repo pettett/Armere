@@ -1,7 +1,5 @@
 ﻿#pragma kernel CSMain
 
-#include "MeshProperties.cginc"
-#include "MatrixStruct.cginc"
 
 
 
@@ -13,7 +11,11 @@ cbuffer CB{
     float2 viewRangeMinMax;
 
     int pushers;
+    int2 dispatchSize;
 }; 
+
+#include "MeshProperties.cginc"
+#include "MatrixStruct.cginc"
 
 
 StructuredBuffer<MeshProperties> _Properties;
@@ -84,10 +86,12 @@ float LerpAngle(float a, float b, float t)
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,1,1)]
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    MeshProperties properties = _Properties[id.x];
+    uint index = DispatchThreadToIndex(id);
+
+    MeshProperties properties = _Properties[index];
 
     // In a transform matrix, the position (translation) vector is the last column.
 
@@ -139,9 +143,10 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
    // size.y *= smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
 
-    _Output[id.x].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
-    _Output[id.x].color = properties.color;
+    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
+    _Output[index].color = properties.color;
 
+    //_Output[index].color.b = smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.
     float4x4 rotation = float4x4(

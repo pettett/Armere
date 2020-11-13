@@ -22,7 +22,7 @@ public class Animal : MonoBehaviour
         //Die
         print("Hit Animal");
         for (int i = 0; i < count; i++)
-            WorldObjectSpawner.SpawnItemAsync(db[drop] as PhysicsItemData, transform.position, transform.rotation);
+            ItemSpawner.SpawnItemAsync(drop, transform.position, transform.rotation);
 
         Destroy(gameObject);
     }

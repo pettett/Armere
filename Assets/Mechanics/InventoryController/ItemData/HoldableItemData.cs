@@ -7,5 +7,5 @@ public abstract class HoldableItemData : PhysicsItemData
     public float clankProbability = 0.7f;
     public AudioClipSet clankSet;
 
-    public AssetReferenceT<WorldObjectData> holdableWorldObjectData;
+    public AssetReferenceGameObject holdableGameObject;
 }

@@ -84,7 +84,7 @@ public class BuyInventoryUI : MonoBehaviour
         {
             inventory[selected].stock -= amount;
 
-            InventoryController.AddItem(inventory[selected].item, inventory[selected].count);
+            InventoryController.AddItem(inventory[selected].item, inventory[selected].count, true);
 
             waitingForConfirmation = false;
             if (inventory[selected].stock == 0)

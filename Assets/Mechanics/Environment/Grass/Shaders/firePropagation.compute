@@ -1,0 +1,69 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel InitFireMap
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float2> FireMap;
+Texture2D<float> FireDensityMap;
+
+//set dt and spreadthreshold from grass controller
+
+cbuffer CB{
+    float dt;
+    float propagationSpeed;
+    float burnRate;
+    float spreadThreshold;
+    int fireSpreaderCount;
+    float4 fireSpreaders[10];
+}; 
+
+#define ONEOVER255 0.00392156862
+
+float GetFireSpread(uint2 pos){
+    //one over 255 as 255 is the max blades of grass per tile
+    return (FireMap[pos].x > spreadThreshold)  * FireDensityMap[pos] ;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    //Seed the position 0,0 with fire
+    // FireMap[id.xy] = max(FireMap[id.xy], float((id.x == 0) & (id.y == 0)));
+
+    float2 fireData = FireMap[id.xy] ;
+
+    //Start with testing for fire spreaders near here
+    for(uint i = 0; i < fireSpreaderCount; i++ ){
+        fireData.x += all(floor((fireSpreaders[i].xz + 10)*16/20) - id.xy == 0);
+    }
+
+    //Start with a multiple of current fire for exponential increase
+    float fire = fireData.x * 0.01 * dt;
+
+    //Only spread past certain spread threshold
+    fire += GetFireSpread(id.xy + uint2(0,-1));
+    fire += GetFireSpread(id.xy + uint2(0, 1));
+    fire += GetFireSpread(id.xy + uint2(1, 0));
+    fire += GetFireSpread(id.xy + uint2(-1,0));
+
+    fire *= dt * propagationSpeed;
+    //Limit by fire density
+    //fire *= FireDensityMap[id.xy] * ONEOVER255;
+
+    fireData.x += fire;
+    //TODO: Smoother fire extiguish from fuel depletion 
+    fireData.x = saturate(fireData.x) * sign(fireData.y); 
+    fireData.y -= fireData.x * dt * burnRate;
+    fireData.y = clamp(fireData.y, 0, FireDensityMap[id.xy] * ONEOVER255);
+
+    FireMap[id.xy] = fireData; 
+
+}
+
+
+[numthreads(8,8,1)]
+void InitFireMap (uint3 id : SV_DispatchThreadID)
+{
+    FireMap[id.xy] = float2(0,1);
+}

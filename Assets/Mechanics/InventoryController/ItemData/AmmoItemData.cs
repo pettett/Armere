@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -6,5 +7,5 @@ using UnityEngine.AddressableAssets;
 [AllowItemTypes(ItemType.Ammo)]
 public class AmmoItemData : PhysicsItemData
 {
-    public AssetReferenceT<WorldObjectData> ammoWorldObject;
+    public AssetReferenceGameObject ammoGameObject;
 }

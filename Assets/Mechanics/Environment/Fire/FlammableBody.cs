@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-public class FlammableBody : MonoBehaviour
+
+public class FlammableBody : MonoBehaviour, IWaterObject
 {
     [System.Flags]
     public enum FireSpreadMode { None = 0, Contact = 1, Trigger = 2 }
@@ -10,22 +11,18 @@ public class FlammableBody : MonoBehaviour
     public FireSpreadMode spreadMode;
     public bool startLit;
 
-    public float damagePerSecond;
     [System.Serializable]
     public class BoolEvent : UnityEvent<bool> { }
     public BoolEvent onFireLit;
     public bool onFire = false;
+    public bool waterExtinguishes = true;
 
-    Health health;
-
-    private void Start()
+    protected virtual void Start()
     {
         if (startLit)
         {
             Light();
         }
-
-        health = GetComponent<Health>();
     }
 
     private void OnCollisionEnter(Collision other)
@@ -47,13 +44,7 @@ public class FlammableBody : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (health != null && onFire)
-        {
-            health.Damage(damagePerSecond * Time.deltaTime, gameObject);
-        }
-    }
+
 
 
     public void Light() => SetFire(true);
@@ -64,4 +55,13 @@ public class FlammableBody : MonoBehaviour
         onFireLit.Invoke(enabled);
     }
 
+    public void OnWaterEnter(WaterController waterController)
+    {
+        if (onFire && waterExtinguishes) Extinguish();
+    }
+
+    public void OnWaterExit(WaterController waterController)
+    {
+        //Doesnt matter
+    }
 }

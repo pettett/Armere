@@ -6,8 +6,5 @@ using UnityEngine.AddressableAssets;
 [AllowItemTypes(ItemType.Common, ItemType.Currency)]
 public class PhysicsItemData : ItemData
 {
-
-    public AssetReferenceT<WorldObjectData> worldObjectData;
     public AssetReferenceGameObject gameObject;
 }
-

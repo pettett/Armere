@@ -307,7 +307,7 @@ public class InventoryController : MonoBehaviour
 
 
 
-    public delegate void NewItemDelegate(ItemName item);
+    public delegate void NewItemDelegate(ItemName item, bool hiddenAddition);
     public NewItemDelegate onItemAdded;
 
     public ItemDatabase db;
@@ -398,22 +398,22 @@ public class InventoryController : MonoBehaviour
         singleton = this;
     }
 
-    public static bool AddItem(ItemName n, uint count)
+    public static bool AddItem(ItemName n, uint count, bool hiddenAddition)
     {
         var b = singleton.GetPanelFor(singleton.db[n].type).AddItem(n, count);
         if (b)
-            singleton.onItemAdded?.Invoke(n);
+            singleton.onItemAdded?.Invoke(n, hiddenAddition);
         return b;
     }
 
 
     public static bool TakeItem(ItemName n, uint count = 1) => singleton.GetPanelFor(singleton.db[n].type).TakeItem(n, count);
 
-    public static bool AddItem(int index, ItemType type, uint count)
+    public static bool AddItem(int index, ItemType type, uint count, bool hiddenAddition)
     {
         var b = singleton.GetPanelFor(type).AddItem(index, count);
         if (b) //Use itemat command to find the type of item that was added
-            singleton.onItemAdded?.Invoke(singleton.GetPanelFor(type).ItemAt(index));
+            singleton.onItemAdded?.Invoke(singleton.GetPanelFor(type).ItemAt(index), hiddenAddition);
         return b;
     }
     public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.GetPanelFor(type).TakeItem(index, count);

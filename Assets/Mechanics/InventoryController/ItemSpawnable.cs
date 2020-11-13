@@ -16,7 +16,7 @@ public class ItemSpawnable : SpawnableBody
 
     public void AddItemsToInventory()
     {
-        InventoryController.AddItem(item, count);
+        InventoryController.AddItem(item, count, false);
     }
 
     public async void SpawnItemsToWorld()

@@ -76,7 +76,7 @@ public class CommandManager : ConsoleReceiver
                 DesiredInputs(command, 2);
                 ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
                 uint count = uint.Parse(command.values[1]);
-                InventoryController.AddItem(item, count);
+                InventoryController.AddItem(item, count, false);
                 break;
             case level:
                 DesiredInputs(command, 1);

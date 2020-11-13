@@ -33,7 +33,7 @@ public class NewItemPrompt : MonoBehaviour
 
 
 
-        InventoryController.AddItem(item, count);
+        InventoryController.AddItem(item, count, true);
 
         thumbnail.sprite = await db[item].displaySprite.LoadAssetAsync().Task;
 

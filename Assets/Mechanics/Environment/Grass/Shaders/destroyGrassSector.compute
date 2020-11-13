@@ -9,8 +9,6 @@ cbuffer CB{
     float2 sectorDirection;
     float sectorDot;
     float2 sectorRadiusRange;
-    
-    int2 dispatchSize;
 }; 
 
 
@@ -24,19 +22,17 @@ AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
+[numthreads(THREADGROUPX, 1 ,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id,dispatchSize);
-
-    float2 p = _Grass[index].position.xz;
+    float2 p = _Grass[id.x].position.xz;
     
     float2 dir = sectorCenter - p;
     float dotDiff = dot(dir,sectorDirection);
     float distance = length(dir);
 
-    if ((distance > sectorRadiusRange.y || distance < sectorRadiusRange.x || dotDiff > sectorDot) && index < _ArgsData[1])
+    if ((distance > sectorRadiusRange.y || distance < sectorRadiusRange.x || dotDiff > sectorDot) && id.x < _ArgsData[1])
     {
-        _CulledGrass.Append(_Grass[index]);
+        _CulledGrass.Append(_Grass[id.x]);
     }
 }

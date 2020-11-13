@@ -14,6 +14,7 @@ public class InventoryItemUI : MonoBehaviour
     public Image thumbnail;
     public TMPro.TextMeshProUGUI countText;
     public TMPro.TextMeshProUGUI infoText;
+    public TMPro.TextMeshProUGUI nameText;
     AsyncOperationHandle<Sprite> asyncOperation;
     public void ChangeItemIndex(int newIndex)
     {
@@ -25,6 +26,9 @@ public class InventoryItemUI : MonoBehaviour
     public async void SetupItemAsync(ItemData item)
     {
         type = item.type;
+
+        nameText?.SetText(item.displayName);
+
         if (item.displaySprite.RuntimeKeyIsValid())
         {
             asyncOperation = Addressables.LoadAssetAsync<Sprite>(item.displaySprite);

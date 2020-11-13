@@ -59,10 +59,9 @@ public class Arrow : MonoBehaviour
         {
             h.Damage(10, gameObject);
         }
-
-        Destroy(gameObject);
+        GameObjectSpawner.Despawn(GetComponent<SpawnableBody>());
 
         //Turn arrow into an item if it is permitted
-        await WorldObjectSpawner.SpawnItemAsync(InventoryController.singleton.db[ammoName] as PhysicsItemData, transform.position, transform.rotation);
+        await ItemSpawner.SpawnItemAsync(ammoName, transform.position, transform.rotation);
     }
 }

@@ -143,7 +143,7 @@ MonoBehaviour:
   centerOffset: {x: 0, y: 0, z: 0}
   blockingDamage: 0
   minBlockingDot: 0.5
---- !u!114 &3596034915110035976
+--- !u!114 &2257887936227081301
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -152,12 +152,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 6911339814920055804}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2e5a59c681b7cc48be66b1b4bab61a8, type: 3}
+  m_Script: {fileID: 11500000, guid: f28bdbfb6f797ec428bd1a8ce99fb809, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spreadMode: 1
-  startLit: 0
-  damagePerSecond: 4
+  startLit: 1
   onFireLit:
     m_PersistentCalls:
       m_Calls:
@@ -174,6 +173,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   onFire: 0
+  damagePerSecond: 0
 --- !u!114 &4516970300953390654
 MonoBehaviour:
   m_ObjectHideFlags: 0

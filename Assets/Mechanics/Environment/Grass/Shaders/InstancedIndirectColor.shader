@@ -79,14 +79,14 @@ Shader "Custom/InstancedIndirectColor" {
                 float3 normalWS                 : TEXCOORD3;
                 float3 viewDirectionWS : TEXCOORD5;
 
-                                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             }; 
 
 
             #include "MatrixStruct.cginc"
 
-            StructuredBuffer<MatrixStruct> _Properties;
+            uniform StructuredBuffer<MatrixStruct> _Properties;
             
 
 
@@ -95,7 +95,6 @@ Shader "Custom/InstancedIndirectColor" {
 
                 v2f o = (v2f)0;
 
- 
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_TRANSFER_INSTANCE_ID(i, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
@@ -111,6 +110,8 @@ Shader "Custom/InstancedIndirectColor" {
                 // float4 t = i.tangentOS;
 
 
+ 
+
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(pos.xyz);
                 o.posWS = vertexInput.positionWS;
                 VertexNormalInputs normalInput = GetVertexNormalInputs(n, t);
@@ -118,7 +119,8 @@ Shader "Custom/InstancedIndirectColor" {
                 half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
                 o.viewDirectionWS = viewDirWS;
                 o.vertex = vertexInput.positionCS;  
-                o.color = _Properties[instanceID].color;
+                o.color.rgb = _Properties[instanceID].color;
+                o.color.a = 1;
                 o.texCoord = i.texCoord;
                 o.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
@@ -218,9 +220,6 @@ Shader "Custom/InstancedIndirectColor" {
                     return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
                 }
 
-            CBUFFER_START(UnityPerMaterial)
-            float4 _BaseMap_ST;
-            CBUFFER_END
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"

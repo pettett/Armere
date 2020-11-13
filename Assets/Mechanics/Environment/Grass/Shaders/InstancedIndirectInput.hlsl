@@ -7,6 +7,9 @@
 
 CBUFFER_START(UnityPerMaterial)
 TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
+float4 _BaseMap_ST;
+float viewDistance = 5;
+float distanceFading = 1;
 CBUFFER_END
 
 #endif

@@ -116,7 +116,7 @@ public class QuestManager : MonoBehaviour
         ProgressQuest(singleton.quests.Count - 1);
     }
 
-    public void OnInventoryItemAdded(ItemName newItem)
+    public void OnInventoryItemAdded(ItemName newItem, bool hiddenAddition)
     {
         //test if any quests are listening for this event
         for (int i = 0; i < singleton.quests.Count; i++)

@@ -9,7 +9,8 @@
         "Unity.ResourceManager",
         "Game.UI",
         "Game.WorldObjects",
-        "Game.WorldObjectData"
+        "Game.WorldObjectData",
+        "Game.Environment.Fire"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

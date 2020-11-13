@@ -71,8 +71,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 29e95ce72fec21646a272a3fc2c50b86
-    m_Address: Assets/Art/Items/Weapons/Iron Sword/Iron Sword WO.asset
+  - m_GUID: f1babff18934cc84180e3886476880a8
+    m_Address: Assets/Art/Items/Weapons/Iron Sword/Short Sword Holdable.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -251,8 +251,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 9c6dd958ec174fd44ba4a491935c05ae
-    m_Address: Assets/Art/Items/Weapons/Iron Sword/Holdable Iron Sword WO.asset
+  - m_GUID: ad965d4eade25384a9b5ee1e0c421b5c
+    m_Address: Assets/Art/Items/Weapons/Iron Sword/Short Sword Item.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -308,6 +308,12 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 91daf214cf32f3a43ba0b9a927a95870
     m_Address: Assets/Art/Items/Sidearms/Lantern/lantern Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 4eacd5c5e938b0f43862c519337dfe78
+    m_Address: Assets/Mechanics/InventoryController/InventoryUI/Item Log Entry.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

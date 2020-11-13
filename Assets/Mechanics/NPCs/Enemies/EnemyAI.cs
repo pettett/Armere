@@ -306,10 +306,10 @@ public class EnemyAI : AIBase
         void AddTrigger()
         {
             //Add collider and trigger logic to the blade object
-            collider = weaponGraphics.holdables.melee.worldObject.gameObject.AddComponent<MeshCollider>();
+            collider = weaponGraphics.holdables.melee.gameObject.gameObject.AddComponent<MeshCollider>();
             collider.convex = true;
             collider.isTrigger = true;
-            trigger = weaponGraphics.holdables.melee.worldObject.gameObject.AddComponent<WeaponTrigger>();
+            trigger = weaponGraphics.holdables.melee.gameObject.gameObject.AddComponent<WeaponTrigger>();
             trigger.onWeaponHit += OnHit;
             trigger.weaponItem = meleeWeapon;
             trigger.controller = gameObject;

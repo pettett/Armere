@@ -363,7 +363,7 @@ namespace Armere.PlayerController
 
                 //TODO - Add amount control
                 //Pay the player for the item
-                InventoryController.AddItem(InventoryController.ItemAt(itemIndex, type), 1);
+                InventoryController.AddItem(InventoryController.ItemAt(itemIndex, type), 1, true);
                 //Remove the item from the inventory
                 InventoryController.TakeItem(itemIndex, type);
 

@@ -42,18 +42,21 @@ public class WaterController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
-
-        CreateSplash(other);
-
+        if (!other.isTrigger)
+        {
+            other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
+            CreateSplash(other);
+        }
     }
 
 
     private void OnTriggerExit(Collider other)
     {
-        other.GetComponent<IWaterObject>()?.OnWaterExit(this);
-
-        CreateSplash(other);
+        if (!other.isTrigger)
+        {
+            other.GetComponent<IWaterObject>()?.OnWaterExit(this);
+            CreateSplash(other);
+        }
     }
 
 

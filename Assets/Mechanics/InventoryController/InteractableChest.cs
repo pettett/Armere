@@ -12,6 +12,9 @@ public class InteractableChest : ItemSpawnable, IInteractable
     public string interactionDescription => "Open Chest";
 
 
+
+
+
     public void Interact(IInteractor c)
     {
 
@@ -22,7 +25,8 @@ public class InteractableChest : ItemSpawnable, IInteractable
         canInteract = false;
         gameObject.gameObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 40, 0);
 
-
+        //Do not drop items on destroy
+        count = 0;
     }
 
     public void OnStartHighlight()
@@ -36,5 +40,9 @@ public class InteractableChest : ItemSpawnable, IInteractable
         //remove arrow
         UIController.singleton.itemIndicator.EndIndication();
     }
+
+
+
+
 
 }

@@ -580,7 +580,7 @@ namespace Armere.PlayerController
                 if (holdingBody && !movingHoldable) PlaceHoldable();
         }
 
-        public void OnItemAdded(ItemName item)
+        public void OnItemAdded(ItemName item, bool hiddenAddition)
         {
             //If this is ammo and none is equipped, equip it
             if (currentAmmo == -1 && InventoryController.singleton.db[item].type == ItemType.Ammo)
@@ -810,7 +810,7 @@ namespace Armere.PlayerController
             c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
 
 
-            var bowAC = c.weaponGraphicsController.holdables.bow.worldObject.GetComponent<Animator>();
+            var bowAC = c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>();
             while (true)
             {
                 yield return new WaitForEndOfFrame();
@@ -846,7 +846,7 @@ namespace Armere.PlayerController
             forceForwardHeading = false;
             c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
             c.animator.SetBool("Holding Bow", false);
-            c.weaponGraphicsController.holdables.bow.worldObject.GetComponent<Animator>().SetFloat("Charge", 0);
+            c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }
 
         async void FireBow()
@@ -855,16 +855,12 @@ namespace Armere.PlayerController
             //Fire ammo
             ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
             var ammo = (c.db[ammoName] as AmmoItemData);
-            GameObject ammoGO = (await WorldObjectSpawner.SpawnWorldObjectAsync(ammo.ammoWorldObject, c.arrowSpawn.position, Quaternion.identity, default)).gameObject;
-            Arrow arrow = ammoGO.AddComponent<Arrow>();
+            SpawnableBody ammoGO = (await GameObjectSpawner.SpawnAsync(ammo.ammoGameObject, c.arrowSpawn.position, Quaternion.identity, default));
+            Arrow arrow = ammoGO.gameObject.AddComponent<Arrow>();
             //Initialize arrow
             arrow.GetComponent<Arrow>().Initialize(ammoName, c.arrowSpawn.position, GameCameras.s.cameraTransform.forward * bowSpeed, InventoryController.singleton.db);
-
             //Remove one of ammo used
             InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
-
-
-
 
             //Test if ammo left for shooting
             if (InventoryController.ItemCount(ammoName) == 0)
@@ -907,7 +903,7 @@ namespace Armere.PlayerController
             // var collider = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.AddComponent<MeshCollider>();
             // collider.convex = true;
             // collider.isTrigger = true;
-            var trigger = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.GetComponent<WeaponTrigger>();
+            var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
             trigger.enableTrigger = true;
 
             if (!trigger.inited)
@@ -921,7 +917,7 @@ namespace Armere.PlayerController
         void RemoveWeaponTrigger()
         {
             //Clean up the trigger detection of the sword
-            var trigger = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.GetComponent<WeaponTrigger>();
+            var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
             trigger.enableTrigger = false;
 
             c.onSwingStateChanged = null;

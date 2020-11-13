@@ -2,7 +2,8 @@
     "name": "Game.Environment.Grass",
     "references": [
         "GUID:48c9f6afdac61634db0e0f241c7d4d51",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:808c70ca36d77eb40bc482704b7976e6"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -99,7 +99,7 @@ public class WeaponGraphicsController : MonoBehaviour
                 Anchor();
             }
         }
-        [HideInInspector] public WorldObject worldObject;
+        [HideInInspector] public SpawnableBody gameObject;
         HoldableItemData holdable;
         public void Init(Animator a)
         {
@@ -108,24 +108,24 @@ public class WeaponGraphicsController : MonoBehaviour
         }
         public void Anchor()
         {
-            if (worldObject != null)
+            if (gameObject != null)
                 if (sheathed)
-                    sheathedPoint.Anchor(worldObject.transform);
+                    sheathedPoint.Anchor(gameObject.transform);
                 else
-                    holdPoint.Anchor(worldObject.transform);
+                    holdPoint.Anchor(gameObject.transform);
         }
 
         public async void SetHeld(HoldableItemData holdable)
         {
             this.holdable = holdable;
-            if (worldObject != null) Destroy(worldObject);
-            worldObject = await WorldObjectSpawner.SpawnWorldObjectAsync(holdable.holdableWorldObjectData, Vector3.zero, Quaternion.identity, default);
+            if (gameObject != null) Destroy(gameObject);
+            gameObject = await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default);
         }
 
         public void RemoveHeld()
         {
-            if (worldObject != null)
-                WorldObjectSpawner.DestroyWorldObject(worldObject);
+            if (gameObject != null)
+                GameObjectSpawner.Despawn(gameObject);
         }
 
         public void OnClank(AudioSource source)

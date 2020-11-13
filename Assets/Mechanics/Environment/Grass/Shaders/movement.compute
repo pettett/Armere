@@ -7,10 +7,12 @@
 
 cbuffer CB{
     float4 _PusherPositions[10];
-    int pushers;
+    float3 cameraPosition;
     float deltatime;
     float time;
-    int2 dispatchSize;
+    float2 viewRangeMinMax;
+
+    int pushers;
 }; 
 
 
@@ -82,24 +84,24 @@ float LerpAngle(float a, float b, float t)
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
+[numthreads(THREADGROUPX,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id,dispatchSize);
+    MeshProperties properties = _Properties[id.x];
 
     // In a transform matrix, the position (translation) vector is the last column.
 
     float damp = 0;
     float3 dampDir = float3(0.01,0,0);
 
-    for (uint i = 0; i < pushers; i++){
-        float effect =  distance(_Properties[index].position, _PusherPositions[i].xyz);
+    for (int i = 0; i < pushers; i++){
+        float effect =  distance(properties.position, _PusherPositions[i].xyz);
         float radius = _PusherPositions[i].w;
 
         effect = (radius- clamp(0.0, radius, effect))/radius;
 
         damp = max(damp,effect);
-        dampDir += (_Properties[index].position - _PusherPositions[i].xyz) * effect;
+        dampDir += (properties.position - _PusherPositions[i].xyz) * effect;
     }
 
     float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
@@ -110,8 +112,8 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     //_Properties[id.x].rotation.y += 1 * deltatime;
 
     float2 rot = float2(
-                snoise(_Properties[index].position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
-                snoise(_Properties[index].position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+                snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
+                snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
 
     // The amount of wind decreases as damp increases
     //_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
@@ -119,23 +121,26 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     
     float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
 
-    float4x4 mat_local_r = Rotation(rot.x ,_Properties[index].rotation.y,rot.y);
+    float4x4 mat_local_r = Rotation(rot.x ,properties.yRot,rot.y);
    // float4x4 mat_local_r = Rotation(pi,0,0);
 
 
     // Create a new translation matrix which represents a move in a direction.
     float4x4 translation = float4x4(
-        1, 0, 0, _Properties[index].position.x,
-        0, 1, 0, _Properties[index].position.y,
-        0, 0, 1, _Properties[index].position.z,
+        1, 0, 0, properties.position.x,
+        0, 1, 0, properties.position.y,
+        0, 0, 1, properties.position.z,
         0, 0, 0, 1
     );
 
     // Apply translation to existing matrix, which will be read in the shader.
 
+    float2 size = properties.size;
 
-    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(_Properties[index].size)));
-    _Output[index].color = _Properties[index].color;
+   // size.y *= smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
+
+    _Output[id.x].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
+    _Output[id.x].color = properties.color;
 
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.

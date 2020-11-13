@@ -384,7 +384,7 @@ namespace Armere.PlayerController
             ItemName name = InventoryController.singleton.GetPanelFor(type)[itemIndex].name;
             //TODO - Add way to drop multiple items
             if (InventoryController.TakeItem(itemIndex, type))
-                await WorldObjectSpawner.SpawnItemAsync((PhysicsItemData)db[name], transform.position, transform.rotation);
+                await ItemSpawner.SpawnItemAsync(name, transform.position, transform.rotation);
         }
 
 

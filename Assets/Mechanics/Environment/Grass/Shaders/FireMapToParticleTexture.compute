@@ -1,0 +1,42 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel FireMapToParticleData
+#pragma kernel ParticleDataToTex
+#pragma kernel ResetParticleData
+
+
+
+
+Texture2D<float2> FireMap;
+AppendStructuredBuffer<float4> ParticleData;
+
+StructuredBuffer<float4> ParticleDataBuffer;
+RWTexture2D<float4> ParticleTexture;
+
+[numthreads(8,8,1)]
+void FireMapToParticleData (uint3 id : SV_DispatchThreadID)
+{
+    float fire = FireMap[id.xy].x;
+    float3 position = 0;
+
+    position.xz = (float2(id.xy) + 0.5 )* 20 / 16 - 10;
+
+    if (fire > 0.01){
+        ParticleData.Append(float4(position,fire));
+    }
+}
+
+
+[numthreads(64,1,1)]
+void ParticleDataToTex (uint3 id : SV_DispatchThreadID)
+{
+    //Position 0 is reserved for particle count
+    ParticleTexture[id.xy] = ParticleDataBuffer[id.x];
+}
+
+
+
+[numthreads(64,1,1)]
+void ResetParticleData (uint3 id : SV_DispatchThreadID)
+{
+    ParticleData.Append(float4(0,0,0,0));
+}

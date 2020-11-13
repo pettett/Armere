@@ -6,5 +6,5 @@ using UnityEngine.AddressableAssets;
 [AllowItemTypes(ItemType.Ammo)]
 public class AmmoItemData : PhysicsItemData
 {
-    public AssetReferenceT<WorldObjectData> ammoWorldObject;
+    public AssetReferenceGameObject ammoGameObject;
 }

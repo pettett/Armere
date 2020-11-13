@@ -7,7 +7,6 @@
 cbuffer CB{
     float4 boundsTransform;
     float3 boundsExtents;
-    int2 dispatchSize;
 }; 
 
 
@@ -23,10 +22,8 @@ AppendStructuredBuffer<MeshProperties> _CulledGrass;
 [numthreads(64,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id,dispatchSize);
-
     //Transform the point into bounds local space
-    float3 p = _Grass[index].position - boundsTransform.xyz;
+    float3 p = _Grass[id.x].position - boundsTransform.xyz;
     //Rotate the point around the y axis
     float s = sin(boundsTransform.w);
     float c = cos(boundsTransform.w);
@@ -36,7 +33,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
         p.x * s + p.z * c
     );
 
-    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) && index < _ArgsData[1] ){
-        _CulledGrass.Append(_Grass[index]);
+    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) && id.x < _ArgsData[1] ){
+        _CulledGrass.Append(_Grass[id.x]);
     }
 }

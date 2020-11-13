@@ -6,27 +6,25 @@
 cbuffer CB{
     float dt;
     float3 burntColor;
-    int2 dispatchSize;
 }; 
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-Texture2D<float> FireMap;
+Texture2D<float2> FireMap;
 RWStructuredBuffer<MeshProperties> _Properties;
 
 
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+[numthreads(THREADGROUPX,1,1)]
+void CSMain (uint3 id: SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
-
-    int index = DispatchThreadToIndex(id,dispatchSize);
     
-    float2 uv = (_Properties[index].position.xz + 10.0 ) / 20.0;
+    float2 uv = (_Properties[id.x].position.xz + 10.0 ) / 20.0;
 
-    float fire = FireMap[uv *16];
+    float fire = FireMap[uv * 16].x;
 
     //Reduce color by deltatime and colour
+    _Properties[id.x].color.rgb = lerp(_Properties[id.x].color.rgb , burntColor, fire * dt); 
+    _Properties[id.x].size.y = lerp(_Properties[id.x].size.y , 0.3, fire * dt); 
 
-    _Properties[index].color.rgb = lerp(_Properties[index].color.rgb , burntColor, fire * dt); 
+    //TODO: If fully burnt, mark for destruction
 }

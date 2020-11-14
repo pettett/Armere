@@ -26,6 +26,7 @@ float2 hash22(float2 p)
 }
 
 
+
 //----------------------------------------------------------------------------------------
 //  1 out, 2 in...
 float hash12(float2 p)
@@ -38,7 +39,7 @@ float hash12(float2 p)
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(8,8,1)]
+[numthreads(1,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
     MeshProperties m = (MeshProperties)0;

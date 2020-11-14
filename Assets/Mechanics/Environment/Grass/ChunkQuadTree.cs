@@ -19,14 +19,14 @@ public abstract class QuadTreeLeaf
 public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 {
     public bool enabled;
-    public int chunksWidth = 1;
+    public int cellsWidth = 1;
 
     public QuadTreeEnd(bool enabled, Vector2 centre, Vector2 size, int chunksWidth, ref int chunkID)
     {
         this.rect = new Rect(centre - size / 2, size);
 
         this.enabled = enabled;
-        this.chunksWidth = chunksWidth;
+        this.cellsWidth = chunksWidth;
         this.id = chunkID;
         chunkID++;
     }

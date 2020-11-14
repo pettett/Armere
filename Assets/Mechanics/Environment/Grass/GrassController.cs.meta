@@ -3,7 +3,18 @@ guid: 5fb9a875caba39e48bee4128567c2ecd
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - createGrassInBoundsCompute: {fileID: 7200000, guid: f852d3ce0793eae4bb52cce257c24269,
+      type: 3}
+  - gradientTexture: {fileID: 2800000, guid: 7d57d17506da1084dacf1b3ed620917f, type: 3}
+  - material: {instanceID: 0}
+  - compute: {fileID: 7200000, guid: 57f1dbd48c092f748bc4ad0b78b88088, type: 3}
+  - destroyGrassInBounds: {fileID: 7200000, guid: b2f86f7d44fb57e40a0c024a6670594c,
+      type: 3}
+  - destroyGrassInSector: {fileID: 7200000, guid: d76db83559635b34f882e7d7b6be0975,
+      type: 3}
+  - terrain: {instanceID: 0}
+  - trackingSector: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

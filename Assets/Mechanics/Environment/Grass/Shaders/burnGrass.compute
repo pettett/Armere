@@ -20,7 +20,7 @@ RWStructuredBuffer<MeshProperties> _Properties;
 [numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id: SV_DispatchThreadID)
 {
-    uint index = DispatchThreadToIndex(id);
+    uint index = DispatchThreadToIndex(id,dispatchSize);
 
     float2 uv = (_Properties[index].position.xz + 10.0 ) / 20.0;
 

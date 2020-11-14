@@ -118,7 +118,8 @@ Shader "Custom/InstancedIndirectColor" {
                 half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
                 o.viewDirectionWS = viewDirWS;
                 o.vertex = vertexInput.positionCS;  
-                o.color = _Properties[instanceID].color;
+                o.color.rgb = _Properties[instanceID].color;
+                o.color.a = 1;
                 o.texCoord = i.texCoord;
                 o.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 

@@ -8,9 +8,10 @@ inline uint DispatchThreadToIndex(uint3 id, uint2 dispatchSize){
 
 struct MeshProperties {
     float3 position;
-    float3 rotation;
+    float yRot;
     float2 size;
-    float4 color;
+    float3 color;
+    int chunkID;
 };
 
 

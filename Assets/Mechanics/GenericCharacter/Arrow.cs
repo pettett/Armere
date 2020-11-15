@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(MeshFilter)),
 RequireComponent(typeof(MeshRenderer)),
-RequireComponent(typeof(CapsuleCollider)),
+RequireComponent(typeof(Collider)),
 RequireComponent(typeof(Rigidbody))]
-public class Arrow : MonoBehaviour
+public class Arrow : SpawnableBody
 {
     bool initialized = false;
     ItemName ammoName;
     Rigidbody rb;
-    public void Initialize(ItemName ammoName, Vector3 position, Vector3 velocity, ItemDatabase db)
+    Collider col;
+    bool hit = false;
+    public void Initialize(ItemName ammoName, Vector3 velocity, ItemDatabase db)
     {
+        enabled = true;
+        transform.localScale = Vector3.one;
         //Calibrate components
         this.ammoName = ammoName;
         if (db[this.ammoName].type != ItemType.Ammo)
@@ -22,7 +26,7 @@ public class Arrow : MonoBehaviour
         }
 
 
-        transform.position = position;
+        //transform.position = position;
 
         // GetComponent<MeshFilter>().sharedMesh = db[ammoName].mesh;
         // GetComponent<MeshRenderer>().materials = db[ammoName].materials;
@@ -30,13 +34,10 @@ public class Arrow : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.velocity = velocity;
         transform.forward = velocity;
+        rb.isKinematic = false;
 
-        var capsule = GetComponent<CapsuleCollider>();
-        capsule.direction = 2; //0 = x, 1 = y, 2 = z
-        capsule.radius = 0.05f;
-
-        capsule.height = 0.8f;
-        capsule.center = Vector3.forward * capsule.height * 0.5f;
+        col = GetComponent<Collider>();
+        col.enabled = true;
 
         //Set initialzed
         initialized = true;
@@ -47,21 +48,26 @@ public class Arrow : MonoBehaviour
     {
         if (!initialized)
         {
-            Debug.LogError("Arrow not initialized by update");
+            Debug.LogError("Arrow not initialized by update", gameObject);
             return;
         }
         transform.forward = rb.velocity;
     }
     private async void OnCollisionEnter(Collision other)
     {
-        print("Arrow hit");
-        if (other.gameObject.TryGetComponent<Health>(out var h))
+        if (!other.collider.isTrigger && !hit)
         {
-            h.Damage(10, gameObject);
-        }
-        GameObjectSpawner.Despawn(GetComponent<SpawnableBody>());
 
-        //Turn arrow into an item if it is permitted
-        await ItemSpawner.SpawnItemAsync(ammoName, transform.position, transform.rotation);
+            print($"Arrow hit {other.collider.gameObject.name}");
+            hit = true;
+            if (other.gameObject.TryGetComponent<Health>(out var h))
+            {
+                h.Damage(10, gameObject);
+            }
+
+            Destroy();
+            //Turn arrow into an item if it is permitted
+            await ItemSpawner.SpawnItemAsync(ammoName, transform.position, transform.rotation);
+        }
     }
 }

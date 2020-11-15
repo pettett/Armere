@@ -97,15 +97,7 @@ MonoBehaviour:
   useFootCurvesForRotationGrounding: 1
   showSolver: 1
   useIK: 1
-  holdPoints:
-  - goal: 3
-    gripPoint: {fileID: 0}
-    positionWeight: 1
-    rotationWeight: 1
-  - goal: 2
-    gripPoint: {fileID: 0}
-    positionWeight: 1
-    rotationWeight: 1
+  holdPoints: []
   lookAtPositionWeight: 0
   bodyLookAtPositionWeight: 0
   headLookAtPositionWeight: 0
@@ -137,7 +129,7 @@ MonoBehaviour:
         anchor: 0
         posOffset: {x: -18.91, y: 0, z: 0}
         rotOffset: {x: 0.6341003, y: 0.5793036, z: -0.3899251, w: 0.3320881}
-      worldObject: {fileID: 0}
+      gameObject: {fileID: 0}
     sidearm:
       holdPoint:
         anchor: 17
@@ -147,7 +139,7 @@ MonoBehaviour:
         anchor: 0
         posOffset: {x: 0, y: 0, z: 0}
         rotOffset: {x: 0, y: 0, z: 0, w: 0}
-      worldObject: {fileID: 0}
+      gameObject: {fileID: 0}
     bow:
       holdPoint:
         anchor: 17
@@ -157,7 +149,7 @@ MonoBehaviour:
         anchor: 0
         posOffset: {x: 18.91, y: 0, z: 0}
         rotOffset: {x: 0.6341003, y: 0.5793035, z: -0.3899251, w: 0.3320882}
-      worldObject: {fileID: 0}
+      gameObject: {fileID: 0}
 --- !u!114 &8716322609640156541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,17 +162,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18026db7e38661a478b3ffbaa6cc1316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 0
+  currentHealth: 0
   maxHealth: 100
+  onDeathEvent:
+    m_PersistentCalls:
+      m_Calls: []
   headshotHeight: 1.58
   useUI: 1
   uiName: health
   centerOffset: {x: 0, y: 0, z: 0}
   blockingDamage: 0
   minBlockingDot: 0.5
-  onDeathEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &2193245523499967993
 MonoBehaviour:
   m_ObjectHideFlags: 0

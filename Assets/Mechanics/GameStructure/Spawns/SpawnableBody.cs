@@ -11,6 +11,8 @@ public class SpawnableBody : MonoBehaviour
             h.onDeathEvent.AddListener(Destroy);
         }
     }
+
+
     public void Destroy()
     {
         GameObjectSpawner.Despawn(this);

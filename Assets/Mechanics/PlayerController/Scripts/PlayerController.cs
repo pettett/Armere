@@ -136,9 +136,6 @@ namespace Armere.PlayerController
 
         public PhysicMaterial surfPhysicMat;
 
-        [Header("Weapons")]
-        public Transform arrowSpawn;
-        public Transform bowPivot;
 
         [Header("Other")]
 
@@ -171,7 +168,6 @@ namespace Armere.PlayerController
         [HideInInspector]
         public AnimationController animationController;
 
-        public LineRenderer projectileTrajectoryRenderer;
         //set capacity to 1 as it is common for the player to be touching the ground in at least one point
         [HideInInspector] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
 

@@ -120,6 +120,8 @@ public class WeaponGraphicsController : MonoBehaviour
             this.holdable = holdable;
             if (gameObject != null) Destroy(gameObject);
             gameObject = await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default);
+
+            sheathed = true;
         }
 
         public void RemoveHeld()
@@ -140,8 +142,6 @@ public class WeaponGraphicsController : MonoBehaviour
         }
     }
 
-
-
     public AudioSource source;
     // public HoldableObject weapon;
     // public HoldableObject bow;
@@ -154,7 +154,7 @@ public class WeaponGraphicsController : MonoBehaviour
 
     AnimationController animationController;
 
-
+    public Transform bowLockingTransform;
 
     public IEnumerator DrawItem(ItemType type, AnimationTransitionSet transitionSet)
     {
@@ -163,6 +163,27 @@ public class WeaponGraphicsController : MonoBehaviour
             animationController.TriggerTransition(transitionSet.drawSword);
             animator.SetBool("Holding Sword", true);
         }
+        else if (type == ItemType.Bow)
+        {
+            //IK the hand to the bow
+            animationController.holdPoints.Add(new AnimationController.HoldPoint()
+            {
+                goal = AvatarIKGoal.RightHand,
+                positionWeight = 1,
+                rotationWeight = 1,
+                gripPoint = holdables.bow.gameObject.GetComponent<Bow>().backHandAnchor
+            });
+
+            animationController.holdPoints.Add(new AnimationController.HoldPoint()
+            {
+                goal = AvatarIKGoal.LeftHand,
+                positionWeight = 1,
+                rotationWeight = 1,
+                gripPoint = bowLockingTransform
+            });
+        }
+
+
         animationController.TriggerTransition(transitionSet.swordWalking);
 
         yield return new WaitForSeconds(0.1f);
@@ -176,6 +197,12 @@ public class WeaponGraphicsController : MonoBehaviour
         {
             animationController.TriggerTransition(transitionSet.sheathSword);
             animator.SetBool("Holding Sword", false);
+        }
+        else if (type == ItemType.Bow)
+        {
+            //Remove the string attachment
+            animationController.holdPoints.RemoveAll(x => x.goal == AvatarIKGoal.RightHand || x.goal == AvatarIKGoal.LeftHand);
+            holdables.bow.gameObject.GetComponent<Bow>().RemoveNotchedArrow();
         }
 
         animationController.TriggerTransition(transitionSet.freeMovement);
@@ -195,7 +222,6 @@ public class WeaponGraphicsController : MonoBehaviour
             h.Init(animator);
 
     }
-
     public void OnClank()
     {
         //Called by animator

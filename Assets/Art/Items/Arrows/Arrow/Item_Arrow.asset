@@ -21,7 +21,9 @@ MonoBehaviour:
   description: This item has no description
   sellable: 1
   sellValue: 25
-  staticPickup: 0
-  spawnedGameobject:
-    m_AssetGUID: 32510e8d8a1ab8a4ba8e9c01d251f77a
+  gameObject:
+    m_AssetGUID: 6bcaa02e2267b8e4eb5832ee101d0f0b
+    m_SubObjectName: 
+  ammoGameObject:
+    m_AssetGUID: e8a7ea0010ad8e444b2b551b77a13b12
     m_SubObjectName: 

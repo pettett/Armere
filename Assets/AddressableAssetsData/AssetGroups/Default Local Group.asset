@@ -239,14 +239,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 2d6240ed09a83b3439396a16c10e3e95
-    m_Address: Assets/Art/Items/Bows/Basic Bow/Holdable Basic Bow WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: f2d8a6cf457f24c48a77ea067ff4119e
-    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow WO.asset
+  - m_GUID: 950a5209a263639408aaaf416b6f2ec2
+    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow Item.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -302,6 +296,18 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 91daf214cf32f3a43ba0b9a927a95870
     m_Address: Assets/Art/Items/Sidearms/Lantern/lantern Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 6bcaa02e2267b8e4eb5832ee101d0f0b
+    m_Address: Assets/Art/Items/Arrows/Arrow/arrow Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: e8a7ea0010ad8e444b2b551b77a13b12
+    m_Address: Assets/Art/Items/Arrows/Arrow/arrow Ammo.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

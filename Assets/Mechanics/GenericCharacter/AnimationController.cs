@@ -86,6 +86,26 @@ public class AnimationController : MonoBehaviour
         public float rotationWeight;
     }
 
+
+    public List<HoldPoint> holdPoints;
+
+
+    Animator anim;
+
+
+    public float lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight = 0;
+    [System.NonSerialized] public Vector3 lookAtPosition;
+
+
+    public bool useAnimationHook = false;
+
+    public float velocityScaler = 1;
+    IAnimatable animationHook;
+    StringHashes hashes;
+
+    #endregion
+
+
     void TriggerTransition(in AnimationTransition transition, int layer)
     {
         anim.CrossFadeInFixedTime(transition.name, transition.duration, layer, transition.offset);
@@ -98,25 +118,6 @@ public class AnimationController : MonoBehaviour
         if (transition.layers.HasFlag(Layers.UpperBody))
             TriggerTransition(transition, 1);
     }
-
-    public HoldPoint[] holdPoints;
-
-    Animator anim;
-
-
-    public float lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight = 0;
-    public Vector3 lookAtPosition;
-
-
-    public bool useAnimationHook = false;
-
-    public float velocityScaler = 1;
-    IAnimatable animationHook;
-    StringHashes hashes;
-
-    #endregion
-
-
 
     void Start()
     {
@@ -171,6 +172,7 @@ public class AnimationController : MonoBehaviour
 
                 anim.SetIKPositionWeight(point.goal, point.positionWeight);
                 anim.SetIKRotationWeight(point.goal, point.rotationWeight);
+
                 anim.SetIKPosition(point.goal, point.gripPoint.position);
                 anim.SetIKRotation(point.goal, point.gripPoint.rotation);
             }

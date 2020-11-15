@@ -107,7 +107,7 @@ public class WeaponTrigger : MonoBehaviour
             grassBounds.size = new Vector3(grassBounds.size.x, 5, grassBounds.size.z);
             float yRot = transform.eulerAngles.y * Mathf.Deg2Rad;
 
-            GrassController.singleton.DestroyBladesInBounds(grassBounds, yRot);
+            GrassController.singleton?.DestroyBladesInBounds(grassBounds, yRot);
         }
     }
 

@@ -71,7 +71,7 @@ namespace Armere.PlayerController
 
         public int RoundToNearest(float value, int interval, int offset) => Mathf.RoundToInt((value - offset) / interval) * interval + offset;
 
-        float lhRung, rhRung, lfRung, rfRung = 0;
+        //   float lhRung, rhRung, lfRung, rfRung = 0;
 
         void UpdateRung(ref float rung, float height, int offset)
         {

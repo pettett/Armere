@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIBase
 {
-    public enum EnemyBehaviour { Guard, Patrol, }
+    public enum EnemyBehaviour { Guard, Patrol, AutoEngage }
     public enum SightMode { View, Range }
 
 
@@ -19,8 +19,10 @@ public class EnemyAI : AIBase
     {
         public float patrolSpeed = 3.5f;
         public float waitTime = 2;
-        public Vector3[] path = new Vector3[0];
+
     }
+
+
     [MyBox.ConditionalField("enemyBehaviour", false, EnemyBehaviour.Patrol)] public PatrolData patrolData;
     [HideInInspector] public Health health;
     [Header("Player Detection")]
@@ -29,6 +31,8 @@ public class EnemyAI : AIBase
     public Transform eye; //Used for vision frustum calculations
     Collider playerCollider;
     public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
+
+    public AIWaypointGroup waypointGroup;
 
     [Header("Player Engagement")]
 
@@ -54,11 +58,13 @@ public class EnemyAI : AIBase
     Transform lookingAtTarget;
     Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
+    public event System.Action<EnemyAI> onPlayerDetected;
+
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
         if (engageOnAttack)
-            ChangeRoutine(Alert());
+            ChangeRoutine(Alert(1));
     }
 
     [MyBox.ButtonMethod()]
@@ -102,9 +108,14 @@ public class EnemyAI : AIBase
 
 
         base.Start();
-        StartBaseRoutine();
 
-        weaponGraphics.holdables.melee.SetHeld(InventoryController.singleton.db[meleeWeapon] as HoldableItemData);
+
+        weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[meleeWeapon]);
+    }
+
+    public virtual void InitEnemy()
+    {
+        StartBaseRoutine();
     }
 
 
@@ -119,14 +130,22 @@ public class EnemyAI : AIBase
     }
 
 
-    void StartBaseRoutine()
+    protected void StartBaseRoutine()
     {
         if (alert != null) Destroy(alert.gameObject);
-
-        if (enemyBehaviour == EnemyBehaviour.Patrol)
+        switch (enemyBehaviour)
         {
-            ChangeRoutine(PatrolRoutine());
+            case EnemyBehaviour.Patrol:
+                ChangeRoutine(PatrolRoutine());
+                break;
+            case EnemyBehaviour.AutoEngage:
+                ChangeRoutine(Alert(0));
+                break;
+            case EnemyBehaviour.Guard:
+                ChangeRoutine(PatrolRoutine());
+                break;
         }
+
     }
 
     IEnumerator DieRoutine()
@@ -142,19 +161,32 @@ public class EnemyAI : AIBase
         Destroy(gameObject);
     }
 
-
+    IEnumerator GuardRoutine()
+    {
+        yield return GoToPosition(waypointGroup[0].position);
+        yield return RotateTo(waypointGroup[0].rotation, 0.2f);
+    }
     IEnumerator PatrolRoutine()
     {
-        int i = 0;
+
+        //Pick the closest waypoint by non -pathed distance
+        int waypoint = 0;
+        for (int i = 1; i < waypointGroup.Length; i++)
+        {
+            if ((transform.position - waypointGroup[waypoint].position).sqrMagnitude > (transform.position - waypointGroup[i].position).sqrMagnitude)
+                waypoint = i;
+        }
+
         //If the player is seen, switch out of this routine
         investigateOnSight = true;
         agent.speed = patrolData.patrolSpeed;
         while (true)
         {
-            yield return GoToPosition(patrolData.path[i]);
+            yield return GoToPosition(waypointGroup[waypoint].position);
+            yield return RotateTo(waypointGroup[waypoint].rotation, 0.2f);
             yield return new WaitForSeconds(patrolData.waitTime);
-            i++;
-            if (i == patrolData.path.Length) i = 0;
+            waypoint++;
+            if (waypoint == waypointGroup.Length) waypoint = 0;
         }
 
     }
@@ -201,7 +233,7 @@ public class EnemyAI : AIBase
             else if (investProgress >= 1)
             {
                 //Seen player
-                ChangeRoutine(Alert());
+                ChangeRoutine(Alert(1));
                 break;
             }
 
@@ -217,12 +249,19 @@ public class EnemyAI : AIBase
         ragdoller.RagdollEnabled = false;
     }
 
-    IEnumerator Alert()
+    IEnumerator Alert(float waitTime)
     {
         lookingAtTarget = playerCollider.transform;
 
+        onPlayerDetected?.Invoke(this);
+
+
+        animationController.TriggerTransition(transitionSet.surprised);
+        yield return new WaitForSeconds(1);
+
         if (weaponGraphics.holdables.melee.sheathed)
             yield return DrawItem(ItemType.Melee);
+
 
         //If alert is null create one
         alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
@@ -230,12 +269,15 @@ public class EnemyAI : AIBase
         alert.EnableInvestigate(false);
         alert.EnableAlert(true);
         yield return new WaitForSeconds(1);
-        print("Alerted");
+        //print("Alerted");
         Destroy(alert.gameObject);
         ChangeRoutine(EngagePlayer());
     }
 
-
+    public void ForceEngage()
+    {
+        ChangeRoutine(Alert(0));
+    }
     IEnumerator EngagePlayer()
     {
         //Once they player has attacked or been seen, do not stop engageing until circumstances change
@@ -245,7 +287,6 @@ public class EnemyAI : AIBase
         agent.isStopped = true;
 
         Vector3 directionToPlayer;
-        print("Engaged player");
 
         bool movingToCatchPlayer = false;
         lookingAtTarget = playerCollider.transform;
@@ -294,33 +335,30 @@ public class EnemyAI : AIBase
         //This is easier. Animation graphs suck
         animationController.TriggerTransition(transitionSet.swingSword);
 
-        MeshCollider collider = null;
         WeaponTrigger trigger = null;
 
-        void OnHit(AttackResult r)
-        {
-
-            //For now knock out the agent if the attack is blocked
-        }
 
         void AddTrigger()
         {
             //Add collider and trigger logic to the blade object
-            collider = weaponGraphics.holdables.melee.gameObject.gameObject.AddComponent<MeshCollider>();
-            collider.convex = true;
-            collider.isTrigger = true;
-            trigger = weaponGraphics.holdables.melee.gameObject.gameObject.AddComponent<WeaponTrigger>();
-            trigger.onWeaponHit += OnHit;
-            trigger.weaponItem = meleeWeapon;
-            trigger.controller = gameObject;
+            trigger = weaponGraphics.holdables.melee.gameObject.GetComponent<WeaponTrigger>();
+
+            trigger.enableTrigger = true;
+
+            if (!trigger.inited)
+            {
+                trigger.Init(((MeleeWeaponItemData)InventoryController.singleton.db[meleeWeapon]).hitSparkEffect);
+                trigger.weaponItem = meleeWeapon;
+                trigger.controller = gameObject;
+            }
+
         }
 
         void RemoveTrigger()
         {
             //Clean up the trigger detection of the sword
-            Destroy(collider);
-            Destroy(trigger);
 
+            trigger.enableTrigger = false;
             onSwingStateChanged = null;
         }
 
@@ -378,10 +416,10 @@ public class EnemyAI : AIBase
             }
         }
 
-        float speed = Mathf.Sign(agent.speed);
+        float speed = Mathf.Sign(agent.velocity.sqrMagnitude);
 
         anim.SetBool("Idle", speed == 0);
-        anim.SetFloat("InputVertical", speed, 0.2f, Time.deltaTime);
+        anim.SetFloat("InputVertical", agent.velocity.sqrMagnitude / (agent.speed * agent.speed), 0.01f, Time.deltaTime);
     }
 
     private void OnAnimatorIK(int layerIndex)
@@ -392,14 +430,7 @@ public class EnemyAI : AIBase
 
     private void OnDrawGizmos()
     {
-        if (patrolData.path.Length >= 2)
-        {
-            for (int i = 0; i < patrolData.path.Length - 1; i++)
-            {
-                Gizmos.DrawLine(patrolData.path[i], patrolData.path[i + 1]);
-            }
-            Gizmos.DrawLine(patrolData.path[0], patrolData.path[patrolData.path.Length - 1]);
-        }
+
         if (playerCollider != null)
         {
             var b = playerCollider.bounds;

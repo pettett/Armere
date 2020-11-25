@@ -22,6 +22,8 @@ public class UIController : MonoBehaviour
     public GameObject selectedAmmoDisplay;
 
 
+    public UIBossBar bossBar;
+
 
     private void Awake()
     {

@@ -32,6 +32,11 @@ MonoBehaviour:
     duration: 0.05
     offset: 0.05
     layers: 1
+  bowWalking:
+    name: Strafing Movement
+    duration: 0.05
+    offset: 0.05
+    layers: 1
   freeMovement:
     name: Free Movement
     duration: 0.05
@@ -71,4 +76,24 @@ MonoBehaviour:
     name: Front Impact
     duration: 0.05
     offset: 0.05
+    layers: 1
+  ladderClimb:
+    name: Climbing Ladder
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  stepDownFromLadder:
+    name: Step Down Exit
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  climbUpFromLadder:
+    name: Climb Up Exit
+    duration: 0.05
+    offset: 0.05
+    layers: 1
+  surprised:
+    name: Surprised
+    duration: 0.05
+    offset: 0.15
     layers: 1

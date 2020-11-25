@@ -238,7 +238,7 @@ namespace Armere.PlayerController
             Transform focus = talkingTarget.GetFocusPoint(arg[0]);
             if (focus != null)
                 //pan the camera to the target destination
-                c.StartCoroutine(TurnCameraToTarget(focus.position, onComplete));
+                c.StartCoroutine(TurnCameraToTarget(focus, onComplete));
             else
             {
                 Debug.LogWarning("Lookat target not in dictionary");
@@ -246,18 +246,9 @@ namespace Armere.PlayerController
             }
         }
 
-        IEnumerator TurnCameraToTarget(Vector3 target, System.Action onComplete)
+        IEnumerator TurnCameraToTarget(Transform target, System.Action onComplete)
         {
-            //Orbit around the focus point
-            //
-            Quaternion targetRotation = Quaternion.LookRotation((target + Vector3.up));
-
-            //Vector3 pos = focusPoint + Vector3.up + targetRotation * Vector3.back * 2;
-
-            //yield return LerpCameraToPositionAndRotation(pos, targetRotation, 0.3f);
-
-            GameCameras.s.cutsceneCamera.LookAt = c.lookAtTarget;
-            c.lookAtTarget.position = target;
+            GameCameras.s.cutsceneCamera.LookAt = target;
 
             yield return new WaitForSeconds(0.5f);
 

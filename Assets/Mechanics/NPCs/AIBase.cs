@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
-public abstract class AIBase : MonoBehaviour
+public abstract class AIBase : SpawnableBody
 {
     protected NavMeshAgent agent;
     protected Animator anim;
@@ -23,6 +23,19 @@ public abstract class AIBase : MonoBehaviour
     {
         agent.SetDestination(position);
         StartCoroutine(WaitForAgent(onComplete));
+    }
+
+    protected IEnumerator RotateTo(Quaternion rotation, float time)
+    {
+        float t = 0;
+        Quaternion start = transform.rotation;
+        while (t < 1)
+        {
+            yield return new WaitForEndOfFrame();
+            transform.rotation = Quaternion.Slerp(start, rotation, t);
+            t += Time.deltaTime / time;
+        }
+        transform.rotation = rotation;
     }
 
     public static IEnumerator WaitForAgent(NavMeshAgent agent, System.Action onComplete)

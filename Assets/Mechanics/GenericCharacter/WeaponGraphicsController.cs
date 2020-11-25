@@ -162,6 +162,8 @@ public class WeaponGraphicsController : MonoBehaviour
         {
             animationController.TriggerTransition(transitionSet.drawSword);
             animator.SetBool("Holding Sword", true);
+
+            animationController.TriggerTransition(transitionSet.swordWalking);
         }
         else if (type == ItemType.Bow)
         {
@@ -181,10 +183,9 @@ public class WeaponGraphicsController : MonoBehaviour
                 rotationWeight = 1,
                 gripPoint = bowLockingTransform
             });
+
+            animationController.TriggerTransition(transitionSet.bowWalking);
         }
-
-
-        animationController.TriggerTransition(transitionSet.swordWalking);
 
         yield return new WaitForSeconds(0.1f);
         holdables[type].sheathed = false;

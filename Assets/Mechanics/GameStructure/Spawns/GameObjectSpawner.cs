@@ -15,6 +15,7 @@ public class GameObjectSpawner : Spawner
         Assert.IsNotNull(body, $"{handle.Result.name} has no SpawnableBody component");
 
         body.prefabHandle = handle;
+        body.Init();
         return body;
     }
 
@@ -23,6 +24,7 @@ public class GameObjectSpawner : Spawner
         var handle = Addressables.InstantiateAsync(gameObject, parent, instantiateInWorldSpace, false);
         var body = (await handle.Task).GetComponent<SpawnableBody>();
         body.prefabHandle = handle;
+        body.Init();
         return body;
     }
 

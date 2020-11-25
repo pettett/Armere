@@ -7,11 +7,12 @@ using System;
 
 namespace Armere.PlayerController
 {
+    [System.Serializable]
     //Uses the TypeGroup static class in gamestructure
     public class ScanForNear<T> : MovementState where T : IScanable
     {
         public override string StateName => "Scan";
-        public List<T> nearObjects = new List<T>();
+        [NonSerialized] public List<T> nearObjects = new List<T>();
         public float scanDistance = 3;
         public Vector3 scanCenterOffset;
         public bool updateEveryFrame = true;

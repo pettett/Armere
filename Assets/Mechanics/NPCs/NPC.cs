@@ -66,11 +66,18 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         activeNPCs[npcName] = this;
 
         this.conversationGroupOverride = conversationGroupOverride;
+
+
+
+        if (!NPCManager.singleton.data.ContainsKey(npcName))
+        {
+            //Only add this data if the NPC has not existed in the save before
+            NPCManager.singleton.data[npcName] = new NPCManager.NPCData(t);
+        }
+
+        //Setup starting point for routine - instant so they start in the proper place
+        ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
     }
-
-
-
-
 
     private void Awake()
     {
@@ -82,14 +89,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         base.Start();
         animator = GetComponent<Animator>();
 
-        if (!NPCManager.singleton.data.ContainsKey(npcName))
-        {
-            //Only add this data if the NPC has not existed in the save before
-            NPCManager.singleton.data[npcName] = new NPCManager.NPCData(t);
-        }
 
-        //Setup starting point for routine - instant so they start in the proper place
-        ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
 
         QuestManager.singleton.onQuestComplete += OnQuestComplete;
     }
@@ -112,20 +112,23 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
 
     private void Update()
     {
-        ambientThought.rotation = camera.transform.rotation;
+        if (inited)
+        {
+            ambientThought.rotation = camera.transform.rotation;
 
-        //Test if we need to move to the next routine stage
-        //Only check for state change when before final end, as it will never change after that
-        if (TimeDayController.singleton.hour < CurrentRoutine.stages[CurrentRoutine.stages.Length - 1].endTime)
-        {
-            if (TimeDayController.singleton.hour > CurrentRoutine.stages[currentRoutineStage].endTime)
+            //Test if we need to move to the next routine stage
+            //Only check for state change when before final end, as it will never change after that
+            if (TimeDayController.singleton.hour < CurrentRoutine.stages[CurrentRoutine.stages.Length - 1].endTime)
             {
-                ChangeRoutineStage(currentRoutineStage + 1);
+                if (TimeDayController.singleton.hour > CurrentRoutine.stages[currentRoutineStage].endTime)
+                {
+                    ChangeRoutineStage(currentRoutineStage + 1);
+                }
             }
-        }
-        else if (currentRoutineStage == CurrentRoutine.stages.Length - 1)
-        {
-            ChangeRoutineStage(0);
+            else if (currentRoutineStage == CurrentRoutine.stages.Length - 1)
+            {
+                ChangeRoutineStage(0);
+            }
         }
     }
 

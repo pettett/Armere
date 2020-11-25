@@ -312,6 +312,24 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 5e9630d24b6bb454b9de56014772ac3f
+    m_Address: Assets/Mechanics/NPCs/Enemies/Prefabs/Human Enemy AI.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: f454a2a0e0c15394db9529e4a699fe54
+    m_Address: Assets/Mechanics/NPCs/Enemies/Prefabs/Dungeon Boss.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: ad9e2e1f5f67b1044993dae521cb27ce
+    m_Address: Assets/Mechanics/NPCs/NPC.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

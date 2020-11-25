@@ -19,7 +19,7 @@ TagManager:
   - IgnoreNavMesh
   - PostProcessing
   - DrawInFront
-  - 
+  - DoNotCollideWithCamera
   - 
   - 
   - 

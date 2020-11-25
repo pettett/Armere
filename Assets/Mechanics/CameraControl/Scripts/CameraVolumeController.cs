@@ -6,6 +6,7 @@ public class CameraVolumeController
 {
     public List<CameraVolume> activeVolumes = new List<CameraVolume>();
     CameraVolume globalVolume;
+
     CameraProfile oldOverrideProfile;
     CameraProfile overrideProfile;
 
@@ -22,19 +23,25 @@ public class CameraVolumeController
     }
 
 
-    public IEnumerator ApplyOverrideProfile(CameraProfile overrideProfile, float time)
+    public IEnumerator ApplyOverrideProfile(CameraProfile overrideProfile, float blendTime)
     {
 
         float t = 0;
         this.overrideProfile = overrideProfile;
-        while (t < time)
+        while (t < blendTime)
         {
             yield return new WaitForEndOfFrame();
             t += Time.deltaTime;
-            overrideProfileBlend = t / time;
+            overrideProfileBlend = t / blendTime;
         }
         overrideProfileBlend = 1;
         this.oldOverrideProfile = overrideProfile;
+    }
+
+    public IEnumerator RevertOverrideProfile(float blendTime)
+    {
+        yield return ApplyOverrideProfile(oldOverrideProfile, blendTime);
+        Debug.Log(overrideProfile);
     }
 
 
@@ -81,6 +88,7 @@ public class CameraVolumeController
             }
         }
 
+
         float biggestEffect = 0;
 
         CinemachineFreeLook.Orbit[] orbits = new CinemachineFreeLook.Orbit[3];
@@ -118,11 +126,20 @@ public class CameraVolumeController
             ApplyProfile(s.globalVolume.profile);
         }
 
+        LerpToProfile(GameCameras.s.shoulderViewProfile, GameCameras.s.shoulderViewStrength);
+
         //Offset by current camera rig
         GameCameras.s.freeLook.m_Orbits[0].m_Height -= GameCameras.s.playerRigOffset;
         GameCameras.s.freeLook.m_Orbits[1].m_Height -= GameCameras.s.playerRigOffset;
         GameCameras.s.freeLook.m_Orbits[2].m_Height -= GameCameras.s.playerRigOffset;
 
+    }
+
+    static void LerpToProfile(CameraProfile b, float t)
+    {
+        GameCameras.s.freeLook.m_Orbits[0] = LerpOrbit(GameCameras.s.freeLook.m_Orbits[0], b.topRig, t);//Top Orbit
+        GameCameras.s.freeLook.m_Orbits[1] = LerpOrbit(GameCameras.s.freeLook.m_Orbits[1], b.middleRig, t); ;//Mid Orbit
+        GameCameras.s.freeLook.m_Orbits[2] = LerpOrbit(GameCameras.s.freeLook.m_Orbits[2], b.bottomRig, t); ;//Bottom Orbit
     }
 
     static void ApplyLerpProfile(CameraProfile a, CameraProfile b, float t)

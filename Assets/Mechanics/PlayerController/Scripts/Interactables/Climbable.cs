@@ -56,8 +56,8 @@ public class Climbable : MonoBehaviour, IInteractable
     public void Interact(IInteractor c)
     {
         //Change to state ladder
-
-        SyncMesh(mesh);
+        if (surfaceType == ClimbableSurface.Mesh)
+            SyncMesh(mesh);
 
         //Maybe change this to happen inside the player controller?
         //Yes past me, that sounds like a good idea for later-er. But instead Im going to expand this to include climbable walls
@@ -127,7 +127,7 @@ public class Climbable : MonoBehaviour, IInteractable
     ///<summary>Operates in local space </summary>
     public ClosestPointData GetClosestPointOnMesh(Vector3 point)
     {
-        if (vertices.Length < 3) throw new System.Exception("Climbable has no mesh loaded");
+        if (vertices != null && vertices.Length < 3) throw new System.Exception("Climbable has no mesh loaded");
 
         int closestVert = 0;
         float sqrDist;
@@ -296,6 +296,7 @@ public class Climbable : MonoBehaviour, IInteractable
         }
         else if (surfaceType == ClimbableSurface.Mesh)
         {
+            if (vertices != null && vertices.Length < 3) return;
 
             var closestPoint = GetClosestPointOnMesh(localTestPos);
 

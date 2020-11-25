@@ -50,7 +50,6 @@ namespace Armere.PlayerController
         ///<summary> Returns wether the input should still be processed</summary>
         public event ProcessPlayerInputDelegate onPlayerInput;
 
-        [Serializable]
         public struct InputStatus
         {
             public Vector2 horizontal;
@@ -63,8 +62,6 @@ namespace Armere.PlayerController
 
         public ItemDatabase db;
 
-
-        public Transform lookAtTarget;
         [HideInInspector] public PlayerInput playerInput;
 
         [NonSerialized] public MovementState currentState;
@@ -83,15 +80,14 @@ namespace Armere.PlayerController
 
         [NonSerialized] MovementState[] allStates;
 
-        public Room currentRoom;
 
+        [Header("Cameras")]
+
+        public Room currentRoom;
+        public float shoulderViewXOffset = 0.6f;
 
 
         [Header("Ground detection")]
-
-        public float m_maxGroundDistance = 0.1f;
-        public float m_groundSphereRadius = 0.3f;
-        public float m_groundScanningOffset = 1f; // moves raycast start point up to stop normal of 0 when origin touches hit point
         [Range(0, 90)] public float m_maxGroundAngle = 70;
         [HideInInspector] public float m_maxGroundDot = 0.3f;
         public bool onGround;
@@ -147,17 +143,11 @@ namespace Armere.PlayerController
         [HideInInspector]
         public Animator animator;
 
-        public TMPro.TextMeshProUGUI currentStateText;
-        [SerializeField] public InputStatus input = new InputStatus(); //current player input
-
-
+        [System.NonSerialized] public InputStatus input = new InputStatus(); //current player input
 
         public Health health;
 
         [HideInInspector] public float currentHeight = 0;
-        //raycast hit cached
-        private RaycastHit groundRaycastHit;
-        private RaycastHit cliffRaycastHit;
 
         public WeaponGraphicsController weaponGraphicsController;
 
@@ -178,7 +168,6 @@ namespace Armere.PlayerController
         Collider IAITarget.collider => collider;
         public bool canBeTargeted => currentState != null && currentState.canBeTargeted;
         public Vector3 velocity => rb.velocity;
-        int _engagementCount = 0;
 
         public Dictionary<string, object> persistentStateData = new Dictionary<string, object>();
 

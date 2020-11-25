@@ -62,6 +62,7 @@ public class AnimationController : MonoBehaviour
     [Range(0, 2)] [SerializeField] private float raycastDownDistance = 1.5f;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float pelvisOffset = 0f;
+    [SerializeField] private float crouchOffset = 0f;
     [Range(0, 1)] [SerializeField] private float pelvisVerticalSpeed = 0.28f;
     [Range(0, 1)] [SerializeField] private float feetToIKPositionSpeed = 0.5f;
     public string leftFootAnimVariableName = "LeftFootCurve";
@@ -220,7 +221,7 @@ public class AnimationController : MonoBehaviour
 
         float lOffsetPosition = leftFootIKPosition.y - transform.position.y;
         float rOffsetPosition = rightFootIKPosition.y - transform.position.y;
-        float totalOffset = Mathf.Min(lOffsetPosition, rOffsetPosition);
+        float totalOffset = Mathf.Min(lOffsetPosition, rOffsetPosition) - crouchOffset;
 
         Vector3 newPelvisPos = anim.bodyPosition + Vector3.up * totalOffset;
         newPelvisPos.y = Mathf.Lerp(lastPelvisPositionY, newPelvisPos.y, pelvisVerticalSpeed);

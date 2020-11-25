@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2878452116214538645}
   - component: {fileID: 7037747618158507962}
   - component: {fileID: 1588083771427404749}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Cuttable Tree Type0 03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +55,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: fe3e3b8ebc1a32647b48b7ea88f534a8, type: 2}
-  - {fileID: 2100000, guid: d7a2417f37d4bcb498c7efb0305e0c09, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -84,7 +83,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1749820203898067418}
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: -5705847276358454521, guid: 704fd818afd2e3c4396be1d7772e1aee, type: 3}
 --- !u!64 &2878452116214538645
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -212,6 +211,4 @@ MonoBehaviour:
   meshRenderer: {fileID: 4368678057497993021}
   audioSource: {fileID: 7037747618158507962}
   profile: {fileID: 11400000, guid: 0e7d27346d974814094872bbdcd73586, type: 2}
-  activeCutVectors:
-  - angle: 5.47
-    intensity: 0.91
+  activeCutVectors: []

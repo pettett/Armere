@@ -8,10 +8,8 @@ Digga: Don't tell the others, but we are trying a new tactic to get it back
 Digga: The <color=npcCol>New United High Concil</color> has told us to start using
 Digga: Diplomacy
 <<Animate wisper>>
-Digga: I don't know what that is, but they said not to fight, so we are going to sneak in and steal the deed
+Digga: I don't know what that is, but they said not to fight, so we are going to sneak in and steal the <color=itemCol>Dungeon Key</color> 
 <<Animate talk>>
-Digga: Then they will have to leave!
-<<Animate explain>>
 Digga: Only problem is, no-one wants to do it or knows where it is.<wait 1>\nSo here we are.
 -> I'll Do it!
     Digga: Not like that you won't. You need equipment. Talk to me when you want to learn to use a bow

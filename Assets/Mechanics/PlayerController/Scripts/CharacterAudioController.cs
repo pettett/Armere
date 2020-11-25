@@ -9,7 +9,7 @@ namespace Armere.PlayerController
     {
         AudioSource source;
         PlayerController c;
-        public AudioClip[] footSteps;
+        public AudioClipSet footStepsSet;
         private void Start()
         {
             source = GetComponent<AudioSource>();
@@ -18,12 +18,13 @@ namespace Armere.PlayerController
         public void FootDown(string a)
         {
 
-            source.PlayOneShot(footSteps[Random.Range(0, footSteps.Length - 1)]);
-            if (c.currentWater != null)
+            source.PlayOneShot(footStepsSet.SelectClip());
+            if (c != null && c.currentWater != null)
             {
                 //Make foot splash
                 c.currentWater.CreateSplash(c.currentWater.GetSurfacePosition(transform.position), 0.5f);
             }
         }
+
     }
 }

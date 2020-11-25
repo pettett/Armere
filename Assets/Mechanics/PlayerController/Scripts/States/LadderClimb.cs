@@ -19,8 +19,11 @@ namespace Armere.PlayerController
 
         Vector3 currentNormal;
         Vector3 currentPosition;
-        bool collidingTop = false;
+        bool reachedLadderTop = false;
         float oldColliderHeight;
+
+
+
         public override void Start(params object[] info)
         {
             if (info.Length > 0 && info[0] is Climbable climbable)
@@ -34,7 +37,7 @@ namespace Armere.PlayerController
             {
                 case Climbable.ClimbableSurface.Line:
                     //calculate height the player is at if they come at the ladder from above
-                    height = Mathf.Clamp(ladder.transform.InverseTransformPoint(transform.position).y, 0, ladder.ladderHeight - 0.1f);
+                    height = Mathf.Clamp(ladder.transform.InverseTransformPoint(transform.position).y, 0, ladder.ladderHeight - c.walkingHeight - 0.1f);
                     transform.SetPositionAndRotation(GetLadderPos(height), ladder.transform.rotation);
                     break;
                 case Climbable.ClimbableSurface.Mesh:
@@ -46,11 +49,11 @@ namespace Armere.PlayerController
                     MovePlayerToMesh(point.point, point.normal);
 
                     break;
-
             }
             c.rb.isKinematic = true;
             c.animationController.enableFeetIK = false;
             animator.SetBool("OnLadder", true);
+            c.animationController.TriggerTransition(c.transitionSet.ladderClimb);
         }
 
         public Vector3 GetLadderPos(float h)
@@ -66,6 +69,16 @@ namespace Armere.PlayerController
             c.animator.SetFloat(c.animatorVariables.horizontal.id, 0);
             c.animator.SetFloat(c.animatorVariables.vertical.id, 0);
             animator.applyRootMotion = true;
+
+            if (reachedLadderTop)
+            {
+                c.animationController.TriggerTransition(c.transitionSet.climbUpFromLadder);
+            }
+            else
+            {
+                c.animationController.TriggerTransition(c.transitionSet.stepDownFromLadder);
+            }
+
             animator.SetBool("OnLadder", false);
         }
 
@@ -127,15 +140,18 @@ namespace Armere.PlayerController
             {
                 case Climbable.ClimbableSurface.Line:
                     height += c.input.horizontal.y * Time.deltaTime * c.climbingSpeed;
-                    height = Mathf.Clamp(height, 0, ladder.ladderHeight);
+                    height = Mathf.Clamp(height, 0, ladder.ladderHeight - c.walkingHeight);
 
                     transform.position = GetLadderPos(height);
-                    if (height == ladder.ladderHeight)
+
+                    if (height >= ladder.ladderHeight - c.walkingHeight - 0.01f)
                     {
                         //Get off at the top of the ladder
-                        transform.position = GetLadderPos(height) + ladder.transform.forward * 1f;
+                        transform.position = GetLadderPos(ladder.ladderHeight - c.walkingHeight);
+                        reachedLadderTop = true;
                         c.ChangeToState<TransitionState<Walking>>(c.transitionTime);
                     }
+
                     break;
                 case Climbable.ClimbableSurface.Mesh:
                     //Move with input on the mesh
@@ -207,10 +223,10 @@ namespace Armere.PlayerController
                         Vector3 origin = currentPosition + Vector3.up * (oldColliderHeight + c.collider.height) - currentNormal * c.collider.radius * 2;
 
                         if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, oldColliderHeight * 1.05f, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
-                        hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(Vector3.up, hit.normal) > c.m_maxGroundDot)
+                            hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(Vector3.up, hit.normal) > c.m_maxGroundDot)
                         {
                             //go to tops
-
+                            reachedLadderTop = true;
                             c.ChangeToState<TransitionState<Walking>>(c.transitionTime);
 
                         }

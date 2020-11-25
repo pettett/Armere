@@ -1,15 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
-public class NPCSpawn : MonoBehaviour
+public class NPCSpawn : Spawner
 {
 
 
     public NPCName spawnedNPCName;
 
     public NPCTemplate template;
-    public GameObject baseNPC;
+    public AssetReferenceGameObject baseNPCReference;
 
     public Transform[] conversationGroupTargetsOverride = new Transform[0];
 
@@ -19,9 +21,9 @@ public class NPCSpawn : MonoBehaviour
 
 
     // Start is called before the first frame update
-    void Start()
+    async void Start()
     {
-        var npc = Instantiate(baseNPC, transform.position, transform.rotation).GetComponent<NPC>();
+        var npc = (NPC)await Spawn();
         npc.InitNPC(template, this, conversationGroupTargetsOverride);
     }
 
@@ -29,14 +31,11 @@ public class NPCSpawn : MonoBehaviour
     {
         if (Application.isPlaying) return;
         //draw a version of the npc template's mesh
-        if (baseNPC != null)
-        {
-            var m = baseNPC.GetComponentInChildren<SkinnedMeshRenderer>();
+        Gizmos.DrawCube(transform.position + Vector3.up * 0.9f, new Vector3(0.2f, 1.8f, 0.2f));
+    }
 
-            if (m != null)
-            {
-                Gizmos.DrawMesh(m.sharedMesh, transform.position, transform.rotation, m.transform.lossyScale);
-            }
-        }
+    public override async Task<SpawnableBody> Spawn()
+    {
+        return await GameObjectSpawner.SpawnAsync(baseNPCReference, transform.position, transform.rotation);
     }
 }

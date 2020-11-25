@@ -841,7 +841,9 @@ namespace Armere.PlayerController
             bowCharge = 0;
 
             forceForwardHeading = true;
-            GameCameras.s.SwitchToAimCamera();
+            GameCameras.s.cameraTargetXOffset = c.shoulderViewXOffset;
+
+
             c.animator.SetBool("Holding Bow", true);
 
             c.animationController.lookAtPositionWeight = 1;
@@ -860,6 +862,9 @@ namespace Armere.PlayerController
 
                 c.weaponGraphicsController.holdables.bow.gameObject.transform.LookAt(c.animationController.lookAtPosition);
 
+                //Update how zoomed on the shoulder the camera is
+                GameCameras.s.shoulderViewStrength = Mathf.Sqrt(bowCharge);
+
                 bowCharge += Time.deltaTime;
                 bowCharge = Mathf.Clamp01(bowCharge);
                 bowAC.SetFloat("Charge", bowCharge);
@@ -869,7 +874,10 @@ namespace Armere.PlayerController
 
         void ReleaseBow()
         {
-            GameCameras.s.SwitchToNormalCamera();
+            GameCameras.s.cameraTargetXOffset = 0;
+
+            GameCameras.s.shoulderViewStrength = 0;
+
             forceForwardHeading = false;
             c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
             c.animator.SetBool("Holding Bow", false);
@@ -1284,8 +1292,23 @@ namespace Armere.PlayerController
 
             animator.SetBool("Idle", speed == 0);
 
-            animator.SetFloat(vars.vertical.id, speed, 0.2f, Time.deltaTime);
+            const float dampTime = 0.1f;
+
+            if (forceForwardHeading)
+            {
+                animator.SetFloat(vars.vertical.id, c.input.horizontal.y, dampTime, Time.deltaTime);
+                animator.SetFloat(vars.horizontal.id, c.input.horizontal.x, dampTime, Time.deltaTime);
+            }
+            else
+            {
+                animator.SetFloat(vars.vertical.id, speed, dampTime, Time.deltaTime);
+                animator.SetFloat(vars.horizontal.id, 0, dampTime, Time.deltaTime);
+            }
+
+
+
             //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
+
             animator.SetFloat("WalkingSpeed", 1);
             animator.SetBool("IsGrounded", true);
 

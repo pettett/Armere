@@ -74,7 +74,7 @@ public class Dialogue : MovementState
         SetupRunner();
     }
 
-    public CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
+    public static CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
     {
         return new CinemachineTargetGroup.Target() { target = transform, weight = weight, radius = radius };
     }

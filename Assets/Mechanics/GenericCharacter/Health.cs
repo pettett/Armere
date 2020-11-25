@@ -59,9 +59,8 @@ public class Health : SimpleHealth, IAttackable
 
         AttackResult r = AttackResult.Damaged;
 
-        health -= amount;
-        health = Mathf.Clamp(health, 0, maxHealth);
-        currentHealth = health;
+        SetHealth(health - amount);
+
         if (health == 0)
         {
             dead = true;
@@ -78,6 +77,13 @@ public class Health : SimpleHealth, IAttackable
 
         return r;
     }
+
+    public void SetHealth(float newHealth)
+    {
+        health = Mathf.Clamp(newHealth, 0, maxHealth);
+        currentHealth = health;
+    }
+
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawCube(transform.position + Vector3.up * headshotHeight, new Vector3(1, 0, 1));

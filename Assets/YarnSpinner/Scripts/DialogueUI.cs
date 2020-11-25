@@ -418,12 +418,14 @@ namespace Yarn.Unity
                         //always skip the markup
                         i = end + 1;
                     }
-                    //do not include the use of backslash to mark special characters - do not check if at end of text
-                    if (text[i] == '\\' && i != text.Length - 1 && (text[i + 1] == '<' || text[i + 1] == '>'))
-                        i++;
+                    if (i < text.Length)
+                    {
+                        //do not include the use of backslash to mark special characters - do not check if at end of text
+                        if (i < text.Length - 1 && text[i] == '\\' && (text[i + 1] == '<' || text[i + 1] == '>'))
+                            i++;
 
-                    stringBuilder.Append(text[i]);
-
+                        stringBuilder.Append(text[i]);
+                    }
 
 
                     if (!userRequestedNextLine)

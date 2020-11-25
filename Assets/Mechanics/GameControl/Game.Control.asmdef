@@ -1,0 +1,26 @@
+{
+    "name": "Game.Control",
+    "references": [
+        "GUID:b82d9132bd5a865498bf65f07d1b65eb",
+        "GUID:f06555f75b070af458a003d92f9efb00",
+        "GUID:18e2c4afd12b64540bb7404d66a34371",
+        "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
+        "GUID:84651a3751eca9349aac36a66bba901b",
+        "GUID:bd2932073ef3c67499fc424f2892e1c8",
+        "GUID:513f96722d30c6d40b534a1f94eccbae",
+        "GUID:b293fbfec570da448869ea77b282b59c",
+        "GUID:48c9f6afdac61634db0e0f241c7d4d51",
+        "GUID:e37740c32adbf8f4491fd67e69016d22",
+        "GUID:fdf466a339e9a904c876ad44a47a52df"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

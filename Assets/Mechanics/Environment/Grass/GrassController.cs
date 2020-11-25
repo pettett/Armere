@@ -42,9 +42,6 @@ public class GrassController : MonoBehaviour
     private Mesh mesh;
     private Bounds bounds;
 
-    public Terrain terrain;
-    public Gradient colorGradient = new Gradient();
-
     public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
     public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
     Camera mainCamera;
@@ -53,13 +50,11 @@ public class GrassController : MonoBehaviour
     public float boundsYRot = 45f;
     public Vector3 testPoint;
     public Bounds killingBounds;
-    public Transform trackingSector;
-    public Vector2 sectorRange = new Vector2(0.5f, 1.5f);
 
     QuadTree chunkTree;
     bool[,] cells;
 
-
+    public bool inited = false;
     public interface GrassInstruction
     {
         void Execute(GrassController controller, CommandBuffer cmd, ref bool grassCountChanged, ref bool consumeBufferChanged);
@@ -68,12 +63,12 @@ public class GrassController : MonoBehaviour
     public readonly struct CreateGrassInstruction : GrassInstruction
     {
         public readonly int chunkID;
-        public readonly Rect rect;
+        public readonly Rect textureRect;
         public readonly int cellsMultiplier;
-        public CreateGrassInstruction(int chunkID, Rect rect, int cells)
+        public CreateGrassInstruction(int chunkID, Rect textureRect, int cells)
         {
             this.chunkID = chunkID;
-            this.rect = rect;
+            this.textureRect = textureRect;
             this.cellsMultiplier = cells;
         }
 
@@ -87,8 +82,16 @@ public class GrassController : MonoBehaviour
 
 
             //These passes could be done once
-            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "boundsMinMax",
-                new Vector4(rect.min.x, rect.min.y, rect.max.x, rect.max.y));
+            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassDensityUVMinMax",
+                new Vector4(textureRect.min.x, textureRect.min.y, textureRect.max.x, textureRect.max.y));
+
+            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassPositionBoundsMinMax",
+                new Vector4(
+                    textureRect.min.x * c.range * 2 - c.range,
+                    textureRect.min.y * c.range * 2 - c.range,
+                    textureRect.max.x * c.range * 2 - c.range,
+                    textureRect.max.y * c.range * 2 - c.range));
+
 
             cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassSizeMinMax",
                 new Vector4(c.quadWidthRange.x, c.quadHeightRange.x, c.quadWidthRange.y, c.quadHeightRange.y));
@@ -99,7 +102,10 @@ public class GrassController : MonoBehaviour
 
             cmd.DispatchCompute(c.createGrassInBoundsCompute, 0, dispatch, 1, 1);
 
+            //Only the max amount - rejection sampling makes this lower
             c.currentGrassCellCapacity += dispatch * 8;
+            //Update the sizes
+            //cmd.SetComputeBufferData(c.drawIndirectArgsBuffer, new uint[] { (uint)c.currentGrassCellCapacity }, 0, 1, 1);
 
             grassCountChanged = true;
         }
@@ -124,9 +130,9 @@ public class GrassController : MonoBehaviour
             //Send the data needed and destroy grass
             cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsTransform",
                 new Vector4(bounds.center.x - c.transform.position.x,
-                bounds.center.y - c.transform.position.y,
-                bounds.center.z - c.transform.position.z,
-                rotation));
+                            bounds.center.y - c.transform.position.y,
+                             bounds.center.z - c.transform.position.z,
+                            rotation));
 
             cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsExtents", bounds.extents);
 
@@ -201,46 +207,20 @@ public class GrassController : MonoBehaviour
     }
 
 
-    public void UpdateChunkTree()
-    {
-        Color[] pix = grassDensity.GetPixels();
-        if (cells == null) cells = new bool[texSize, texSize];
-
-        for (int x = 0; x < texSize; x++)
-        {
-            for (int y = 0; y < texSize; y++)
-            {
-                cells[x, y] = pix[x + y * texSize].r > 0.1f;
-            }
-        }
-
-        int tempID = 0;
-        chunkTree = new QuadTree(cells, Vector2.zero, Vector2.one * range * 2, ref tempID);
-    }
     private void InitializeBuffers()
     {
         UpdateBounds();
         UpdateThreadGroupSizes();
         if (mesh == null) return;
 
-
         mainKernel = compute.FindKernel("CSMain");
 
         //int frustumKernel = frustumCuller.FindKernel("CSMain");
 
-        // Argument buffer used by DrawMeshInstancedIndirect.
-        uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-        // Arguments for drawing mesh.
-        // 0 == number of triangle indices, 1 == population, others are only relevant if drawing submeshes.
-        args[0] = mesh.GetIndexCount(0);
-        args[1] = (uint)totalPopulation;
-        args[2] = mesh.GetIndexStart(0);
-        args[3] = mesh.GetBaseVertex(0);
-        drawIndirectArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-        drawIndirectArgsBuffer.SetData(args);
+        drawIndirectArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 
-        meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append);
-        meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append);
+        meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append, ComputeBufferMode.Immutable);
+        meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append, ComputeBufferMode.Immutable);
 
         matrixesBuffer = new ComputeBuffer(totalPopulation, MatricesStruct.Size(), ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
@@ -249,18 +229,46 @@ public class GrassController : MonoBehaviour
         PlaceBlades();
         //frustumCuller.SetBuffer(frustumKernel, "_Properties", meshPropertiesBuffer);
 
-        compute.SetBuffer(mainKernel, "_Properties", meshPropertiesConsumeBuffer);
-        compute.SetBuffer(mainKernel, "_Output", matrixesBuffer);
-
-        createGrassInBoundsCompute.SetBuffer(0, "_Grass", meshPropertiesConsumeBuffer);
-        createGrassInBoundsCompute.SetTexture(0, "_Gradient", gradientTexture);
-
-        SetDispatchSize(compute);
-        SetDispatchSize(destroyGrassInBounds);
-        SetDispatchSize(destroyGrassInSector);
-
         // cmd.SetComputeBufferParam(compute, mainKernel, "_Output", matrixesBuffer);
         material.SetBuffer("_Properties", matrixesBuffer);
+    }
+
+
+
+    public void InitComputeShaders(CommandBuffer cmd)
+    {
+        // Argument buffer used by DrawMeshInstancedIndirect.
+        uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+        // Arguments for drawing mesh.
+        // 0 == number of triangle indices, 1 == population, others are only relevant if drawing submeshes.
+        args[0] = mesh.GetIndexCount(0);
+        args[1] = 0;
+        args[2] = mesh.GetIndexStart(0);
+        args[3] = mesh.GetBaseVertex(0);
+
+        cmd.SetComputeBufferData(drawIndirectArgsBuffer, args);
+
+        cmd.SetComputeBufferCounterValue(meshPropertiesAppendBuffer, 0);
+        cmd.SetComputeBufferCounterValue(meshPropertiesConsumeBuffer, 0);
+
+        SetDispatchSize(compute, cmd);
+        SetDispatchSize(destroyGrassInBounds, cmd);
+        SetDispatchSize(destroyGrassInSector, cmd);
+
+        cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
+        cmd.SetComputeBufferParam(compute, mainKernel, "_Output", matrixesBuffer);
+
+        cmd.SetComputeBufferParam(createGrassInBoundsCompute, 0, "_Grass", meshPropertiesConsumeBuffer);
+        cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, "_Gradient", gradientTexture);
+        cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, "_Density", grassDensity);
+        cmd.SetComputeBufferParam(createGrassInBoundsCompute, 0, "_IndirectArgs", drawIndirectArgsBuffer);
+
+    }
+
+
+    private void SetDispatchSize(ComputeShader shader, CommandBuffer cmd)
+    {
+        cmd.SetComputeIntParams(shader, "dispatchSize", threadGroups.x, threadGroups.y);
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera[] camera)
@@ -283,51 +291,55 @@ public class GrassController : MonoBehaviour
             cmd.Clear();
             //cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
 
-            bool grassCountChanged = false;
-            bool consumeBufferChanged = false;
-
-            //Execute all the commands queued from the last frame
-
-            int maxInstructionIterations = 2;
-
-            while (grassInstructions.Count != 0 && maxInstructionIterations > 0)
+            if (!inited)
             {
-                grassInstructions.Dequeue().Execute(this, cmd, ref grassCountChanged, ref consumeBufferChanged);
-                maxInstructionIterations--;
-            }
+                InitComputeShaders(cmd);
 
-            if (consumeBufferChanged)
+                inited = true;
+            }
+            else
             {
-                UpdateConsumeBufferBindings(cmd);
+
+                bool grassCountChanged = false;
+                bool consumeBufferChanged = false;
+
+                //Execute all the commands queued from the last frame
+
+                int maxInstructionIterations = 8;
+
+                while (grassInstructions.Count != 0 && maxInstructionIterations > 0)
+                {
+                    grassInstructions.Dequeue().Execute(this, cmd, ref grassCountChanged, ref consumeBufferChanged);
+                    maxInstructionIterations--;
+                }
+
+                if (consumeBufferChanged)
+                {
+                    UpdateConsumeBufferBindings(cmd);
+                }
+
+                if (grassCountChanged)
+                {
+                    //Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
+                    cmd.CopyCounterValue(meshPropertiesConsumeBuffer, drawIndirectArgsBuffer, sizeof(uint));
+                }
+
+
+
+
+                //Then move the remaining grass
+
+                cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
+                cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
+
+
+                cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
+                cmd.SetComputeFloatParam(compute, "time", Time.time);
+
+                //Copies Properties -> Output with processing
+                cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
+
             }
-
-            if (grassCountChanged)
-            {
-                //Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
-                cmd.CopyCounterValue(meshPropertiesConsumeBuffer, drawIndirectArgsBuffer, sizeof(uint));
-            }
-
-
-
-
-            //Then move the remaining grass
-
-            cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
-            cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
-
-
-            cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
-            cmd.SetComputeFloatParam(compute, "time", Time.time);
-
-            //Copies Properties -> Output with processing
-            cmd.DispatchCompute(compute, mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
-
-            //Swap the buffers and copy them back
-            // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Properties", meshPropertiesBuffer);
-            // cmd.SetComputeBufferParam(compute, copyBuffersKernel, "_Output", matrixesBuffer);
-            // cmd.DispatchCompute(compute, copyBuffersKernel, population.x * 64, population.y, population.z);
-
-            // ComputeBuffer.CopyCount(matrixesBuffer, argsBuffer, sizeof(uint));
 
             context.ExecuteCommandBuffer(cmd);
         }
@@ -343,6 +355,7 @@ public class GrassController : MonoBehaviour
         //Update the main grass with the new append buffer
         cmd.SetComputeBufferParam(compute, mainKernel, "_Properties", meshPropertiesConsumeBuffer);
         cmd.SetComputeBufferParam(createGrassInBoundsCompute, 0, "_Grass", meshPropertiesConsumeBuffer);
+
     }
 
 
@@ -389,40 +402,28 @@ public class GrassController : MonoBehaviour
     }
 
 
-
-    private void SetDispatchSize(ComputeShader shader)
+    public void UpdateChunkTree()
     {
-        shader.SetInts("dispatchSize", threadGroups.x, threadGroups.y);
+        Color[] pix = grassDensity.GetPixels();
+        if (cells == null) cells = new bool[texSize, texSize];
+
+        for (int x = 0; x < texSize; x++)
+        {
+            for (int y = 0; y < texSize; y++)
+            {
+                cells[x, y] = pix[x + y * texSize].r > 0.1f;
+            }
+        }
+
+        int tempID = 0;
+        chunkTree = new QuadTree(cells, Vector2.one * 0.5f, Vector2.one, ref tempID);
     }
+
 
     private void PlaceBlades()
     {
-        if (meshPropertiesConsumeBuffer == null ||
-            meshPropertiesConsumeBuffer.count != totalPopulation) InitializeBuffers();
+
         UpdateChunkTree();
-
-        // // // Initialize buffer with the given population.
-        // NativeArray<MeshProperties> properties = new NativeArray<MeshProperties>(totalPopulation, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-        // for (int i = 0; i < totalPopulation; i++)
-        // {
-        //     MeshProperties props = new MeshProperties();
-        //     Vector3 position = new Vector3(Random.Range(-range, range), 0, Random.Range(-range, range));
-
-        //     if (terrain != null)
-        //         position.y = terrain.SampleHeight(position + transform.position);
-
-
-        //     Vector3 scale = Vector3.one;
-        //     props.position = position;
-        //     props.yRot = Random.Range(-Mathf.PI, Mathf.PI);
-
-        //     props.size = new Vector2(SampleRandomRange(quadWidthRange), SampleRandomRange(quadHeightRange));
-        //     Vector3 col(Color c) => new Vector3(c.r, c.g, c.b);
-        //     props.color = col(colorGradient.Evaluate(Random.value));
-
-        //     properties[i] = props;
-        // }
 
         void CreateGrassInTree(QuadTree tree)
         {
@@ -440,9 +441,7 @@ public class GrassController : MonoBehaviour
         }
         CreateGrassInTree(chunkTree);
 
-        // meshPropertiesConsumeBuffer.SetData<MeshProperties>(properties);
-
-        // properties.Dispose();
+        //grassInstructions.Enqueue(new CreateGrassInstruction(0, new Rect(-range, -range, range * 2, range * 2), texSize * texSize));
     }
 
 
@@ -556,22 +555,24 @@ public class GrassController : MonoBehaviour
     {
         mainCamera = Camera.main;
         m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
+
+        Setup();
+        singleton = this;
+    }
+
+    private void OnDestroy()
+    {
+        DisposeBuffers();
+        singleton = null;
     }
 
     private void OnEnable()
     {
-        Setup();
-        singleton = this;
-
         RenderPipelineManager.beginFrameRendering += OnBeginCameraRendering;
-
     }
 
     private void OnDisable()
     {
-        DisposeBuffers();
-        singleton = null;
-
         RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;
     }
 
@@ -591,7 +592,11 @@ public class GrassController : MonoBehaviour
 
         //Setup the call to draw the grass when the time comes
 
-        Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
+        if (inited)
+            Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
+
+
+        // Debug.Log(inited);
 
         // uint[] temp = new uint[5];
         // drawIndirectArgsBuffer.GetData(temp);

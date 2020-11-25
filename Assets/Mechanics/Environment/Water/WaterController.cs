@@ -16,7 +16,7 @@ public class WaterController : MonoBehaviour
     public WaterPathNode[] path = new WaterPathNode[0];
     public static VisualEffect splashEffect = null;
     public static bool loadingSplashEffect = false;
-    public AssetReferenceGameObject splashEffectPrefab = new AssetReferenceGameObject("Enviroment/Water/WaterSplash");
+    public AssetReferenceGameObject splashEffectPrefab;
 
     public Collider waterVolume;
 
@@ -42,18 +42,23 @@ public class WaterController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
+        if (!other.isTrigger)
+        {
+            other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
 
-        CreateSplash(other);
-
+            CreateSplash(other);
+        }
     }
 
 
     private void OnTriggerExit(Collider other)
     {
-        other.GetComponent<IWaterObject>()?.OnWaterExit(this);
+        if (!other.isTrigger)
+        {
+            other.GetComponent<IWaterObject>()?.OnWaterExit(this);
 
-        CreateSplash(other);
+            CreateSplash(other);
+        }
     }
 
 

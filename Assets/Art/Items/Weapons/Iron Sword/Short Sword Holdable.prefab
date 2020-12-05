@@ -28,7 +28,8 @@ MonoBehaviour:
   weaponItem: 0
   controller: {fileID: 0}
   trigger: {fileID: 4041031371557644868}
---- !u!114 &8471133875691899720
+  scale: 1
+--- !u!114 &307263322409522407
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

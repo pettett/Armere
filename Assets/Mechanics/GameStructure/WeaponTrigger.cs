@@ -16,7 +16,7 @@ public enum AttackResult
     Killed = 0b1000
 }
 
-
+[RequireComponent(typeof(SpawnableBody))]
 public class WeaponTrigger : MonoBehaviour
 {
     public ItemName weaponItem;
@@ -27,6 +27,8 @@ public class WeaponTrigger : MonoBehaviour
     public event System.Action<AttackResult> onWeaponHit;
     bool _enableTrigger = false;
     public bool inited { get; private set; }
+
+    public float scale = 1;
 
     public bool enableTrigger
     {
@@ -102,7 +104,13 @@ public class WeaponTrigger : MonoBehaviour
     {
         if (enableTrigger)
         {
-            Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
+            Bounds grassBounds;
+            if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
+            {
+                filter = GetComponentInChildren<MeshFilter>();
+            }
+
+            grassBounds = filter.sharedMesh.bounds;
             grassBounds.center = transform.position + transform.forward * 0.5f;
             grassBounds.size = new Vector3(grassBounds.size.x, 5, grassBounds.size.z);
             float yRot = transform.eulerAngles.y * Mathf.Deg2Rad;
@@ -113,7 +121,12 @@ public class WeaponTrigger : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Bounds grassBounds = GetComponent<MeshFilter>().sharedMesh.bounds;
+        if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
+        {
+            filter = GetComponentInChildren<MeshFilter>();
+        }
+
+        Bounds grassBounds = filter.sharedMesh.bounds;
         grassBounds.center = transform.position + transform.forward * 0.5f;
         grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
         float yRot = transform.eulerAngles.y;

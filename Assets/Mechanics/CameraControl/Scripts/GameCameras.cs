@@ -119,7 +119,6 @@ public class GameCameras : MonoBehaviour
             //camera is inside a do not collide with camera object, move in front
             l |= doNotCollideWithCamera;
 
-            Debug.Log("Colliding with object");
         }
 
         //Linecast from camera to target to stop collision

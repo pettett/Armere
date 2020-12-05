@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 public class SelectableInventoryItemUI : InventoryItemUI, ISelectHandler, IPointerEnterHandler, IPointerClickHandler
 {
-    public event System.Action onSelect;
+    public event System.Action<ItemName> onSelect;
     public InventoryUI inventoryUI;
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -16,12 +16,12 @@ public class SelectableInventoryItemUI : InventoryItemUI, ISelectHandler, IPoint
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        onSelect?.Invoke();
+        onSelect?.Invoke(InventoryController.ItemAt(itemIndex, type));
     }
 
     public void OnSelect(BaseEventData eventData)
     {
-        onSelect?.Invoke();
+        onSelect?.Invoke(InventoryController.ItemAt(itemIndex, type));
     }
 
 

@@ -21,7 +21,8 @@ public enum ItemName
     RedCurrency = 15,
     PurpleCurrency = 16,
     SilverCurrency = 17,
-    GoldCurrency = 18
+    GoldCurrency = 18,
+    Torch
 }
 
 public enum ItemType

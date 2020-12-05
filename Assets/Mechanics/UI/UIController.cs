@@ -21,6 +21,7 @@ public class UIController : MonoBehaviour
     public GameObject selectedBowDisplay;
     public GameObject selectedAmmoDisplay;
 
+    public GameObject deathScreen;
 
     public UIBossBar bossBar;
 

@@ -113,7 +113,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spreadMode: 2
   startLit: 1
-  damagePerSecond: 0
   onFireLit:
     m_PersistentCalls:
       m_Calls:
@@ -130,6 +129,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   onFire: 0
+  waterExtinguishes: 1
 --- !u!136 &4867292369161407329
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -245,7 +245,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8143542020163810399}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.354, z: 0}
+  m_LocalPosition: {x: 0, y: 0.901, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5581811250330857163}

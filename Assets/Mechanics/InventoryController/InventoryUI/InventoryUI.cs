@@ -25,7 +25,10 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
 
     public BoolEvent onContextMenuEnabled;
     public BoolEvent onContextMenuDisabled;
-    public void CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
+
+    Dictionary<ItemType, SelectableInventoryItemUI[]> inventoryUIPanels = null;
+
+    public SelectableInventoryItemUI CreateTemplate(Transform itemGridPanel, InventoryController.InventoryPanel panel, int index)
     {
         var go = Instantiate(template, itemGridPanel.GetChild(1));
 
@@ -42,8 +45,9 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
                 break;
         }
 
-        item.onSelect += () => OnItemSelected(panel[index].name);
-        item.type = db[panel[index].name].type;
+        item.onSelect += OnItemSelected;
+        item.type = panel.type;
+
         item.inventoryUI = this;
         // if (!sellMenu)
         //     item.optionDelegates = panel.options;
@@ -51,6 +55,8 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
         //     item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
 
         item.ChangeItemIndex(index);
+
+        return item;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -149,10 +155,11 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
     void AddItemGroup(InventoryController.InventoryPanel panel)
     {
         var grid = CreateGridPanelTemplate(panel);
+        inventoryUIPanels[panel.type] = new SelectableInventoryItemUI[panel.stackCount];
         //Add all the item readouts
         for (int i = 0; i < panel.stackCount; i++)
         {
-            CreateTemplate(grid, panel, i);
+            inventoryUIPanels[panel.type][i] = CreateTemplate(grid, panel, i);
         }
         int blankCount;
         if (panel.limit == int.MaxValue)
@@ -164,6 +171,31 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
         {
             CreateBlankSlotTemplate(grid);
         }
+
+        panel.onPanelUpdated += UpdatePanel;
+    }
+
+    public void UpdatePanel(InventoryController.InventoryPanel panel)
+    {
+
+        for (int i = 0; i < panel.stackCount; i++)
+        {
+            inventoryUIPanels[panel.type][i].ChangeItemIndex(i);
+        }
+        for (int i = panel.stackCount; i < inventoryUIPanels[panel.type].Length; i++)
+        {
+            //Clean up the new free square
+
+            if (inventoryUIPanels[panel.type][i] != null)
+            {
+                Destroy(inventoryUIPanels[panel.type][i].gameObject);
+            }
+        }
+    }
+
+    public void RemoveItemGroup(InventoryController.InventoryPanel panel)
+    {
+        panel.onPanelUpdated -= UpdatePanel;
     }
 
     public void CleanUpInventory()
@@ -173,11 +205,23 @@ public class InventoryUI : MonoBehaviour, IPointerClickHandler
             Destroy(gridPanelHolder.GetChild(i).gameObject);
         }
     }
+    private void OnDisable()
+    {
+        inventoryUIPanels = null;
+        RemoveItemGroup(InventoryController.singleton.common);
+        RemoveItemGroup(InventoryController.singleton.melee);
+        RemoveItemGroup(InventoryController.singleton.sideArm);
+        RemoveItemGroup(InventoryController.singleton.bow);
+        RemoveItemGroup(InventoryController.singleton.ammo);
+        RemoveItemGroup(InventoryController.singleton.quest);
+    }
 
     private void OnEnable()
     {
         CleanUpInventory();
+        inventoryUIPanels = new Dictionary<ItemType, SelectableInventoryItemUI[]>();
         //Currency if left for the currency display
+
         AddItemGroup(InventoryController.singleton.common);
         AddItemGroup(InventoryController.singleton.melee);
         AddItemGroup(InventoryController.singleton.sideArm);

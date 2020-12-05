@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6cc0f1e6eb720b4baa1f50b4a7cbf2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyBehaviour: 1
   sightMode: 0
   meleeWeapon: 2
-  patrolData:
-    patrolSpeed: 3.5
-    waitTime: 2
+  idleRoutine: {fileID: 0}
+  autoEngage: 0
   health: {fileID: 2466388028089595494, guid: 74455640297208042893a84f228e2e63, type: 3}
   clippingPlanes: {x: 0.2, y: 10.64}
   fov: 40.8
   eye: {fileID: 7642860863402588016}
+  visionBlockingMask:
+    serializedVersion: 2
+    m_Bits: 16385
   investigateRateOverDistance:
     serializedVersion: 2
     m_Curve:
@@ -50,6 +51,7 @@ MonoBehaviour:
   approachDistance: 1
   approachPlayer: 1
   knockoutTime: 4
+  investigateOnSight: 0
   transitionSet: {fileID: 11400000, guid: 09849a1b142b98b409153e7f0bd5aee3, type: 2}
   height: 1.8
 --- !u!195 &3709464174117157163
@@ -74,6 +76,20 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &5432218096265835120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1765755045372118231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50fb54f8aa7078d4a92e78ba1f86b9c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noiseThreshold: 15
+  pathfindNoiseVolume: 1
 --- !u!1 &5516379636133312980
 GameObject:
   m_ObjectHideFlags: 0
@@ -301,7 +317,8 @@ PrefabInstance:
       propertyPath: m_ConnectedAnchor.z
       value: 0.008022461
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 368902570167259964, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd, type: 3}
 --- !u!1 &1765755045372118231 stripped
 GameObject:

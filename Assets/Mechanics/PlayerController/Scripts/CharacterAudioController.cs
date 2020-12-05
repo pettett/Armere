@@ -9,6 +9,7 @@ namespace Armere.PlayerController
     {
         AudioSource source;
         PlayerController c;
+        public float stepVolume = 20;
         public AudioClipSet footStepsSet;
         private void Start()
         {
@@ -19,6 +20,9 @@ namespace Armere.PlayerController
         {
 
             source.PlayOneShot(footStepsSet.SelectClip());
+
+            VirtualAudioController.singleton.MakeNoise(transform.position, stepVolume);
+
             if (c != null && c.currentWater != null)
             {
                 //Make foot splash

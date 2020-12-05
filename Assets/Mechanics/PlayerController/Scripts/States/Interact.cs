@@ -21,7 +21,7 @@ namespace Armere.PlayerController
         IInteractable prevTarget;
         public bool enabled = true;
 
-        public DebugMenu.DebugEntry<string> entry;
+        [NonSerialized] DebugMenu.DebugEntry<string> entry;
 
         public override void Start()
         {

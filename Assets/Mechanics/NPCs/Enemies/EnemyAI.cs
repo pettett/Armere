@@ -5,30 +5,20 @@ using UnityEngine;
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIBase
 {
-    public enum EnemyBehaviour { Guard, Patrol, AutoEngage }
+
     public enum SightMode { View, Range }
 
-
-    public EnemyBehaviour enemyBehaviour;
     public SightMode sightMode;
     public ItemName meleeWeapon;
+    public EnemyRoutine idleRoutine;
+    public bool autoEngage = false;
 
-
-    [System.Serializable]
-    public class PatrolData
-    {
-        public float patrolSpeed = 3.5f;
-        public float waitTime = 2;
-
-    }
-
-
-    [MyBox.ConditionalField("enemyBehaviour", false, EnemyBehaviour.Patrol)] public PatrolData patrolData;
     [HideInInspector] public Health health;
     [Header("Player Detection")]
     public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
     [MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
     public Transform eye; //Used for vision frustum calculations
+    public LayerMask visionBlockingMask;
     Collider playerCollider;
     public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 
@@ -43,11 +33,11 @@ public class EnemyAI : AIBase
     public float knockoutTime = 4f;
 
     Coroutine currentRoutine;
-    bool investigateOnSight = false;
+    public bool investigateOnSight = false;
     bool engageOnAttack = true;
     public AnimationTransitionSet transitionSet;
-    WeaponGraphicsController weaponGraphics;
-    AnimationController animationController;
+    [System.NonSerialized] public WeaponGraphicsController weaponGraphics;
+    [System.NonSerialized] public AnimationController animationController;
     Matrix4x4 viewMatrix;
     Plane[] viewPlanes = new Plane[6];
     [Header("Indicators")]
@@ -57,6 +47,9 @@ public class EnemyAI : AIBase
 
     Transform lookingAtTarget;
     Vector3 lookingAtOffset = Vector3.up * 1.6f;
+
+
+
 
     public event System.Action<EnemyAI> onPlayerDetected;
 
@@ -92,7 +85,7 @@ public class EnemyAI : AIBase
         ChangeRoutine(DieRoutine());
     }
 
-    protected override void Start()
+    protected override async void Start()
     {
         playerCollider = LevelInfo.currentLevelInfo.player.GetComponent<Collider>();
 
@@ -106,11 +99,15 @@ public class EnemyAI : AIBase
         health.onTakeDamage += OnDamageTaken;
         health.onDeath += Die;
 
-
         base.Start();
 
 
-        weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[meleeWeapon]);
+        await SetHeldWeapon(meleeWeapon);
+    }
+
+    public async Task SetHeldWeapon(ItemName weapon)
+    {
+        await weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[weapon]);
     }
 
     public virtual void InitEnemy()
@@ -133,19 +130,14 @@ public class EnemyAI : AIBase
     protected void StartBaseRoutine()
     {
         if (alert != null) Destroy(alert.gameObject);
-        switch (enemyBehaviour)
+        if (autoEngage)
         {
-            case EnemyBehaviour.Patrol:
-                ChangeRoutine(PatrolRoutine());
-                break;
-            case EnemyBehaviour.AutoEngage:
-                ChangeRoutine(Alert(0));
-                break;
-            case EnemyBehaviour.Guard:
-                ChangeRoutine(PatrolRoutine());
-                break;
+            ChangeRoutine(Alert(0));
         }
-
+        else
+        {
+            ChangeRoutine(idleRoutine.Routine(this));
+        }
     }
 
     IEnumerator DieRoutine()
@@ -153,22 +145,16 @@ public class EnemyAI : AIBase
         investigateOnSight = false;
         engageOnAttack = false;
 
-        weaponGraphics.holdables.melee.RemoveHeld();
-        weaponGraphics.holdables.bow.RemoveHeld();
-        weaponGraphics.holdables.sidearm.RemoveHeld();
+        foreach (var x in weaponGraphics.holdables)
+            x.RemoveHeld();
+
         ragdoller.RagdollEnabled = true;
         yield return new WaitForSeconds(4);
         Destroy(gameObject);
     }
 
-    IEnumerator GuardRoutine()
+    public int GetClosestWaypoint()
     {
-        yield return GoToPosition(waypointGroup[0].position);
-        yield return RotateTo(waypointGroup[0].rotation, 0.2f);
-    }
-    IEnumerator PatrolRoutine()
-    {
-
         //Pick the closest waypoint by non -pathed distance
         int waypoint = 0;
         for (int i = 1; i < waypointGroup.Length; i++)
@@ -176,20 +162,14 @@ public class EnemyAI : AIBase
             if ((transform.position - waypointGroup[waypoint].position).sqrMagnitude > (transform.position - waypointGroup[i].position).sqrMagnitude)
                 waypoint = i;
         }
-
-        //If the player is seen, switch out of this routine
-        investigateOnSight = true;
-        agent.speed = patrolData.patrolSpeed;
-        while (true)
-        {
-            yield return GoToPosition(waypointGroup[waypoint].position);
-            yield return RotateTo(waypointGroup[waypoint].rotation, 0.2f);
-            yield return new WaitForSeconds(patrolData.waitTime);
-            waypoint++;
-            if (waypoint == waypointGroup.Length) waypoint = 0;
-        }
-
+        return waypoint;
     }
+    public IEnumerator GoToWaypoint(int index)
+    {
+        yield return GoToPosition(waypointGroup[index].position);
+        yield return RotateTo(waypointGroup[index].rotation, 0.2f);
+    }
+
 
     IEnumerator Investigate()
     {
@@ -208,14 +188,15 @@ public class EnemyAI : AIBase
         {
             alert.SetInvestigation(investProgress);
 
-            if (CanSeeBounds(playerCollider.bounds))
-            {
+            float visibility = ProportionBoundsVisible(playerCollider.bounds);
 
+            if (visibility != 0)
+            {
                 //can see player
                 //Distance is the 0-1 scale where 0 is closestest visiable and 1 is furthest video
                 float playerDistance = Mathf.InverseLerp(clippingPlanes.x, clippingPlanes.y, Vector3.Distance(eye.position, playerCollider.transform.position));
                 //Invest the player slower if they are further away
-                investProgress += Time.deltaTime * investigateRateOverDistance.Evaluate(playerDistance);
+                investProgress += Time.deltaTime * investigateRateOverDistance.Evaluate(playerDistance) * visibility;
             }
             else
             {
@@ -223,7 +204,7 @@ public class EnemyAI : AIBase
             }
 
 
-            if (investProgress < -1)
+            if (investProgress < -0.5f)
             {
                 //Cannot see player
                 StartBaseRoutine();
@@ -287,10 +268,11 @@ public class EnemyAI : AIBase
         agent.isStopped = true;
 
         Vector3 directionToPlayer;
-
+        Health playerHealth = playerCollider.GetComponent<Health>();
         bool movingToCatchPlayer = false;
         lookingAtTarget = playerCollider.transform;
-        while (true)
+        //Stop attacking the player after it has died
+        while (!playerHealth.dead)
         {
             directionToPlayer = playerCollider.transform.position - transform.position;
             if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
@@ -324,6 +306,8 @@ public class EnemyAI : AIBase
 
             yield return new WaitForEndOfFrame();
         }
+        //Once the player has died, return to normal routine to stop end looking janky
+        StartBaseRoutine();
     }
 
 
@@ -402,6 +386,48 @@ public class EnemyAI : AIBase
         }
         return false;
     }
+    public float ProportionBoundsVisible(Bounds b)
+    {
+        if (sightMode == SightMode.View)
+        {
+            viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
+            GeometryUtility.CalculateFrustumPlanes(viewMatrix * eye.worldToLocalMatrix, viewPlanes);
+
+            float visibility = 0;
+            int samples = 2;
+
+            for (int i = 0; i < samples; i++)
+            {
+                Vector3 testPoint = b.center;
+                testPoint.y += b.size.y * (i / (samples - 1f)) - b.extents.y;
+
+                foreach (var plane in viewPlanes)
+                {
+                    if (!plane.GetSide(testPoint))
+                    {
+                        //This point is not inside frustum, ignore it
+                        goto SkipPoint;
+                    }
+                }
+
+                //Line cast to point
+                if (!Physics.Linecast(eye.position, testPoint, out RaycastHit hit, visionBlockingMask, QueryTriggerInteraction.Ignore))
+                {
+                    //Add to visibility
+                    visibility += 1f / samples;
+
+                }
+
+            SkipPoint:
+                continue;
+
+            }
+
+            return visibility;
+        }
+
+        return 1;
+    }
 
     private void Update()
     {
@@ -409,7 +435,7 @@ public class EnemyAI : AIBase
         if (investigateOnSight)
         {
             var b = playerCollider.bounds;
-            if (CanSeeBounds(b))
+            if (ProportionBoundsVisible(b) != 0)
             {
                 //can see the player, interrupt current routine
                 ChangeRoutine(Investigate());
@@ -434,11 +460,16 @@ public class EnemyAI : AIBase
         if (playerCollider != null)
         {
             var b = playerCollider.bounds;
+
+            float visibility = ProportionBoundsVisible(b);
             if (CanSeeBounds(b))
             {
-                Gizmos.color = Color.red;
+                Gizmos.color = new Color(visibility, 0, 0);
+                Gizmos.DrawWireCube(b.center, b.size);
             }
-            Gizmos.DrawWireCube(b.center, b.size);
+
+
+
             if (sightMode == SightMode.View)
             {
                 Gizmos.color = Color.white;

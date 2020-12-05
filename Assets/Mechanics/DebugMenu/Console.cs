@@ -73,7 +73,9 @@ public class Console : MonoBehaviour
         string newText = string.Join(" ", segments) + " ";
         //set text without notify to give oppertunity to place caret
         input.SetTextWithoutNotify(newText);
+
         input.caretPosition = newText.Length;
+
         //Caret needs to be in the correct place before change to autofill correctly
         OnValueChanged(newText);
     }

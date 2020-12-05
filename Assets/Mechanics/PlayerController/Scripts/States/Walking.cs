@@ -25,11 +25,10 @@ namespace Armere.PlayerController
 
         //used to continue momentum when the controller hits a stair
         Vector3 lastVelocity;
-        Vector3 groundVelocity;
 
 
         //shooting variables for gizmos
-        [NonSerialized] public DebugMenu.DebugEntry entry;
+        [NonSerialized] DebugMenu.DebugEntry entry;
 
         bool forceForwardHeading = false;
         bool grounded;
@@ -69,7 +68,6 @@ namespace Armere.PlayerController
         [NonSerialized] public HoldableBody holding;
 
         //WEAPONS
-        bool holdingSecondary = false;
         [NonSerialized] Coroutine bowChargingRoutine;
         float bowCharge = 0;
         float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
@@ -652,8 +650,13 @@ namespace Armere.PlayerController
                         selections[type] = -1;
 
                         c.weaponGraphicsController.holdables[type].RemoveHeld();
-                        //Do not trigger over time - remove immediately
-                        c.StartCoroutine(SheathItem(type));
+
+                        if (!c.weaponGraphicsController.holdables[type].sheathed)
+                        {
+                            //No need to double sheath
+                            //Do not trigger over time - remove immediately
+                            c.StartCoroutine(SheathItem(type));
+                        }
                     }
                     else
                     {
@@ -955,6 +958,8 @@ namespace Armere.PlayerController
 
         IEnumerator SheathItem(ItemType type)
         {
+
+
             sheathing[type] = true;
             if (type == ItemType.Bow)
             {

@@ -20,8 +20,11 @@ public class InventoryController : MonoBehaviour
     public abstract class InventoryPanel
     {
         public readonly string name;
+        public readonly ItemType type;
         public OptionDelegate[] options;
         public uint limit;
+
+        public event Action<InventoryPanel> onPanelUpdated;
 
         public abstract bool AddItem(ItemName name, uint count);
         public abstract bool AddItem(int index, uint count);
@@ -31,11 +34,12 @@ public class InventoryController : MonoBehaviour
         public abstract uint ItemCount(int itemIndex);
         public abstract ItemName ItemAt(int index);
 
-        public InventoryPanel(string name, uint limit, params OptionDelegate[] options)
+        public InventoryPanel(string name, uint limit, ItemType type, params OptionDelegate[] options)
         {
             this.name = name;
             this.options = options;
             this.limit = limit;
+            this.type = type;
         }
         public abstract ItemStackBase this[int i]
         {
@@ -47,8 +51,8 @@ public class InventoryController : MonoBehaviour
             get;
         }
 
-        public event Action onPanelUpdated;
-        protected void OnPanelUpdated() => onPanelUpdated?.Invoke();
+
+        protected void OnPanelUpdated() => onPanelUpdated?.Invoke(this);
     }
 
     public class StackPanel : InventoryPanel
@@ -72,7 +76,7 @@ public class InventoryController : MonoBehaviour
 
         public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value as ItemStack; }
 
-        public StackPanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
+        public StackPanel(string name, uint limit, ItemType type, params OptionDelegate[] options) : base(name, limit, type, options)
         {
             items = new List<ItemStack>(limit > 20 ? 20 : (int)limit);
         }
@@ -174,7 +178,7 @@ public class InventoryController : MonoBehaviour
 
         public List<ItemStackBase> items;
 
-        public UniquesPanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
+        public UniquesPanel(string name, uint limit, ItemType type, params OptionDelegate[] options) : base(name, limit, type, options)
         {
             items = new List<ItemStackBase>(limit > 20 ? 20 : (int)limit);
         }
@@ -242,6 +246,7 @@ public class InventoryController : MonoBehaviour
             if (index < items.Count && index >= 0)
             {
                 items.RemoveAt(index);
+                OnPanelUpdated();
                 return true;
             }
             return false;
@@ -253,7 +258,7 @@ public class InventoryController : MonoBehaviour
     {
         public uint currency;
 
-        public ValuePanel(string name, uint limit, params OptionDelegate[] options) : base(name, limit, options)
+        public ValuePanel(string name, uint limit, ItemType type, params OptionDelegate[] options) : base(name, limit, type, options)
         {
             currency = 0;
         }
@@ -386,14 +391,14 @@ public class InventoryController : MonoBehaviour
 
     private void Awake()
     {
-        common = new StackPanel("Items", int.MaxValue);
-        quest = new UniquesPanel("Quest Items", int.MaxValue);
-        melee = new UniquesPanel("Weapons", 10, OnSelectItem, OnDropItem);
-        sideArm = new UniquesPanel("Side Arms", 10, OnSelectItem, OnDropItem);
+        common = new StackPanel("Items", int.MaxValue, ItemType.Common);
+        quest = new UniquesPanel("Quest Items", int.MaxValue, ItemType.Quest);
+        melee = new UniquesPanel("Weapons", 10, ItemType.Melee, OnSelectItem, OnDropItem);
+        sideArm = new UniquesPanel("Side Arms", 10, ItemType.SideArm, OnSelectItem, OnDropItem);
 
-        bow = new UniquesPanel("Bows", 10, OnSelectItem, OnDropItem);
-        ammo = new StackPanel("Ammo", int.MaxValue, OnSelectItem, OnDropItem);
-        currency = new ValuePanel("Currency", int.MaxValue);
+        bow = new UniquesPanel("Bows", 10, ItemType.Bow, OnSelectItem, OnDropItem);
+        ammo = new StackPanel("Ammo", int.MaxValue, ItemType.Ammo, OnSelectItem, OnDropItem);
+        currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
 
         singleton = this;
     }

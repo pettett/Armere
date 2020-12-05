@@ -14,18 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   title: Open The Mines
   stages:
-  - description: The Digga wants you to open the iron mines. First learn to use the
-      bow
+  - description: Get past the bandits and steal the key
     type: 1
-    receiver: 0
-    item: 0
-    count: 0
+    receiver: 9
+    item: 8
+    count: 1
     damage: 20
     quest: 
-  - description: Get past the bandits and steal the deed
-    type: 0
+    questTrigger:
+      name: 
+      requiredTriggerCount: 0
+      comparision: 0
+  - description: Talk to digga about the base
+    type: 2
     receiver: 9
     item: 1
     count: 1
     damage: 20
     quest: 
+    questTrigger:
+      name: 
+      requiredTriggerCount: 0
+      comparision: 0

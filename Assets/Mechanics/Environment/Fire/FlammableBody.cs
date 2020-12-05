@@ -11,9 +11,9 @@ public class FlammableBody : MonoBehaviour, IWaterObject
     public FireSpreadMode spreadMode;
     public bool startLit;
 
-    [System.Serializable]
-    public class BoolEvent : UnityEvent<bool> { }
-    public BoolEvent onFireLit;
+    public UnityEvent<bool> onFireLit;
+    public UnityEvent<bool> onFireExtinguish;
+
     public bool onFire = false;
     public bool waterExtinguishes = true;
 
@@ -46,13 +46,15 @@ public class FlammableBody : MonoBehaviour, IWaterObject
 
 
 
-
+    [MyBox.ButtonMethod]
     public void Light() => SetFire(true);
+    [MyBox.ButtonMethod]
     public void Extinguish() => SetFire(false);
     public void SetFire(bool enabled)
     {
         onFire = enabled;
         onFireLit.Invoke(enabled);
+        onFireExtinguish.Invoke(!enabled);
     }
 
     public void OnWaterEnter(WaterController waterController)

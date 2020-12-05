@@ -330,6 +330,18 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: 4fc60448a5cc98d459a3b9662c116da6
+    m_Address: Assets/Art/Items/Weapons/Torch/Torch Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 2da2b10d00f77094a8da3bd6b11caacf
+    m_Address: Assets/Art/Items/Weapons/Torch/Holdable Torch.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

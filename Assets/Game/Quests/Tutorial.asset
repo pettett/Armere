@@ -25,7 +25,8 @@ MonoBehaviour:
       name: 
       requiredTriggerCount: 0
       comparision: 0
-  - description: Get a sword
+  - description: Get a sword. The mayor said the blacksmith will procide them free
+      of charge, for some reason
     type: 1
     receiver: 0
     item: 2
@@ -36,7 +37,7 @@ MonoBehaviour:
       name: 
       requiredTriggerCount: 0
       comparision: 0
-  - description: Talk to the Digger
+  - description: You need to retrieve the dungeon Key. Talk to the Digger
     type: 2
     receiver: 9
     item: 0
@@ -47,47 +48,13 @@ MonoBehaviour:
       name: 
       requiredTriggerCount: 0
       comparision: 0
-  - description: Deliver Ore to the smithy, but that may be difficult while the mines
-      are closed
+  - description: Retrieve the dungeon key from the enemy stronghold
     type: 4
-    receiver: 9
-    item: 0
-    count: 0
-    damage: 0
-    quest: OpenTheMines
-    questTrigger:
-      name: 
-      requiredTriggerCount: 0
-      comparision: 0
-  - description: Deliver Ore to the smithy
-    type: 0
-    receiver: 11
-    item: 6
-    count: 10
-    damage: 0
-    quest: 
-    questTrigger:
-      name: 
-      requiredTriggerCount: 0
-      comparision: 0
-  - description: Retrieve the magic scripts
-    type: 0
-    receiver: 12
-    item: 7
-    count: 1
-    damage: 0
-    quest: 
-    questTrigger:
-      name: 
-      requiredTriggerCount: 0
-      comparision: 0
-  - description: Retrieve the dungeon key
-    type: 1
     receiver: 0
     item: 8
     count: 1
     damage: 0
-    quest: 
+    quest: OpenTheMines
     questTrigger:
       name: 
       requiredTriggerCount: 0

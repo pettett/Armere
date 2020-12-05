@@ -7,9 +7,8 @@
 cbuffer CB{
     float4 grassPositionBoundsMinMax;
     float4 grassDensityUVMinMax;
-
     float4 grassSizeMinMax;
-    
+    float grassHeightScale;
     int chunkID;
     int2 dispatchSize;
 }; 
@@ -22,6 +21,9 @@ SamplerState sampler_Gradient;
 
 Texture2D<float> _Density;
 SamplerState sampler_Density;
+Texture2D<unorm float> _Height;
+SamplerState sampler_Height;
+
 
 RWStructuredBuffer<uint> _IndirectArgs;
 
@@ -66,7 +68,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     if (testValue < density){
 
         m.position.xz = pos;
-        m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy) );
+        m.position.y = _Height.SampleLevel(sampler_Height, densityUV, 0) * grassHeightScale ;
+
+        m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
         m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));
 
         m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);

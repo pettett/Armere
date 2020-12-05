@@ -220,17 +220,20 @@ namespace Armere.PlayerController
         void GiveQuest(string[] arg)
         {
             string questName = arg[0];
+            Debug.Log(questName);
             for (int i = 0; i < talkingTarget.t.quests.Length; i++)
             {
                 if (talkingTarget.t.quests[i].name == questName)
                 {
                     QuestManager.AddQuest(talkingTarget.t.quests[i]);
+                    return;
                 }
             }
+            Debug.LogError($"Quest {questName} does not exist in the target's list");
         }
         void DeliverQuest(string[] arg) => QuestManager.ForfillDeliverQuest(arg[0]);
 
-        void TalkToQuest(string[] arg) => QuestManager.ForfillTalkToQuest(arg[0]);
+        void TalkToQuest(string[] arg) => QuestManager.ForfillTalkToQuest(arg[0], talkingTarget.npcName);
 
 
         private void CameraPan(string[] arg, System.Action onComplete)

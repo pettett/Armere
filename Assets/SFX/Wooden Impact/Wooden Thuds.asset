@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73d034ea742f0224a9139944e4078954, type: 3}
+  m_Name: Wooden Thuds
+  m_EditorClassIdentifier: 
+  clips:
+  - {fileID: 8300000, guid: f5195948090021c4bbf602b52e78d6ea, type: 3}
+  - {fileID: 8300000, guid: dadf1b42761725e43882632846a071f8, type: 3}
+  - {fileID: 8300000, guid: d819f9135b3ff4a4abe50691a3850dff, type: 3}
+  - {fileID: 8300000, guid: a7ddad63fca404b47af418b514d381bb, type: 3}
+  - {fileID: 8300000, guid: ad6d9ff5556bf5b498fae4d69511aa64, type: 3}
+  - {fileID: 8300000, guid: 00f630483de47464ea6ae6180ed9d572, type: 3}
+  - {fileID: 8300000, guid: 2c8c587c411695a4f80b77dc08750890, type: 3}
+  - {fileID: 8300000, guid: b2e0691d82e82a94ba6635013a690fc1, type: 3}
+  - {fileID: 8300000, guid: b6edb28e6ba30b342b57ba3e5cdf822b, type: 3}
+  - {fileID: 8300000, guid: d3f76f8fc23a62e439b553de56db6be7, type: 3}
+  - {fileID: 8300000, guid: 462d9716239f9dc4296521d81886117f, type: 3}

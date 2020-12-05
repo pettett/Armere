@@ -1,35 +1,38 @@
 title: Start
 ---
-<<if $Quest_OpenTheMines is "Inactive">>
-//Start talking when the mine hasnt been activated
-<<quest OpenTheMines>>
-Digga: The mine is shut, it has been taken over
-Digga: Don't tell the others, but we are trying a new tactic to get it back
-Digga: The <color=npcCol>New United High Concil</color> has told us to start using
-Digga: Diplomacy
-<<Animate wisper>>
-Digga: I don't know what that is, but they said not to fight, so we are going to sneak in and steal the <color=itemCol>Dungeon Key</color> 
-<<Animate talk>>
-Digga: Only problem is, no-one wants to do it or knows where it is.<wait 1>\nSo here we are.
--> I'll Do it!
-    Digga: Not like that you won't. You need equipment. Talk to me when you want to learn to use a bow
-    <<Animate dismis>>
-    Digga: <skip>
-    <<TalkToQuest OpenTheMines>>
--> <Exit>Have fun with that!
-    <<Exit>>
-
-<<elseif $QuestStage_OpenTheMines is 0>>
-  
-Digga: Lets get you kitted out with a bow
--> I'll Do it!
-    Digga: GOOD
--> <Exit>Not right now
-    <<Exit>>
-
+<<if $QuestStage_Tutorial is 2>>
+    <<if $Quest_OpenTheMines is "Inactive">>
+    //Start talking when the mine hasnt been activated
+    Digga: The mine is shut, it has been taken over
+    <<TalkToQuest Tutorial>>
+    Digga: Don't tell the others, but we are trying a new tactic to get it back
+    Digga: The <color=npcCol>New United High Concil</color> has told us to start using
+    Digga: Diplomacy
+    <<Animate wisper>>
+    Digga: I don't know what that is, but they said not to fight, so we are going to sneak in and steal the <color=itemCol>Dungeon Key</color> 
+    <<Animate talk>>
+    Digga: Only problem is, no-one wants to do it or knows where it is.<wait 1>\nSo here we are.
+    -> I'll Do it!
+        Digga: Nice!
+        <<quest OpenTheMines>>
+        <<Exit>>
+    -> <Exit>Have fun with that!
+        <<Exit>>
+    <<else>>
+        <<if $QuestStage_OpenTheMines is 0>>
+        Digga: Still not done it?\n If you dont get a move on, I'm gunna loose a bet<wait 0.5>\n I mean we won't iron ore <wait 1><size=60%>Much worse...
+        <<else>>
+            <<if $QuestStage_OpenTheMines is 1>>
+            Digga: So you got it... and they all dissapeared?
+            Digga: Well they didn't come through here. We were watching
+            Digga: Yep...
+            Digga: watching the door...
+            Digga: Please don't mention to the mayor they escaped, will you
+            <<TalkToQuest OpenTheMines>>
+            <<endif>>
+        <<endif>>
+    <<endif>>
 <<else>>
-
-Digga: Still not done it?\n If you dont get a move on, I'm gunna loose a bet<wait 0.5>\n I mean we won't iron ore <wait 1><size=60%>Much worse...
-
+    Digga: You are not permitted to be here yet
 <<endif>>
 ===

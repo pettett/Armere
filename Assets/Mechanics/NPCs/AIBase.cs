@@ -5,8 +5,8 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class AIBase : SpawnableBody
 {
-    protected NavMeshAgent agent;
-    protected Animator anim;
+    [System.NonSerialized] public NavMeshAgent agent;
+    [System.NonSerialized] public Animator anim;
     // Start is called before the first frame update
     protected virtual void Start()
     {
@@ -17,7 +17,7 @@ public abstract class AIBase : SpawnableBody
     protected IEnumerator GoToPosition(Vector3 position)
     {
         agent.SetDestination(position);
-        yield return new WaitUntil(() => !agent.pathPending && agent.remainingDistance < agent.stoppingDistance * 2 + 0.01f);
+        yield return new WaitUntil(() => gameObject == null || !agent.pathPending && agent.remainingDistance < agent.stoppingDistance * 2 + 0.01f);
     }
     protected void GoToPosition(Vector3 position, System.Action onComplete)
     {

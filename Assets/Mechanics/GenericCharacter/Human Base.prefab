@@ -90,6 +90,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 257
   pelvisOffset: 0
+  crouchOffset: 0
   pelvisVerticalSpeed: 0.861
   feetToIKPositionSpeed: 0.5
   leftFootAnimVariableName: LeftFootCurve
@@ -197,6 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff3c5222e6ed5884dbc988d6f19532ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stepVolume: 25
   footStepsSet: {fileID: 11400000, guid: 0df39b786bf2544479d9a7acd8bc9ab7, type: 2}
 --- !u!82 &8222275986114918330
 AudioSource:

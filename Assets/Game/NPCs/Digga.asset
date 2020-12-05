@@ -12,33 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36f5bf3b1c1dde14c9a36fbefa53d0ae, type: 3}
   m_Name: Digga
   m_EditorClassIdentifier: 
-  NPCName: 9
   dialogue: {fileID: 2480198943629176163, guid: c3ea0bee1b52bf24eb3d916b96798a09,
     type: 3}
-  quests: []
-  focusPoints:
-    reorderableList:
-      canAdd: 1
-      canRemove: 1
-      draggable: 1
-      expandable: 1
-      multipleSelection: 1
-      isExpanded: 0
-      label:
-        m_Text: Keys
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-      headerHeight: 18
-      footerHeight: 13
-      slideEasing: 0.15
-      verticalSpacing: 2
-      showDefaultBackground: 1
-      elementDisplayType: 0
-      elementNameProperty: 
-      elementNameOverride: 
-      elementIcon: {fileID: 0}
-    reqReferences: {fileID: 0}
-    isExpanded: 0
-    _keyValues: []
-    _keys: []
-    _values: []
+  quests:
+  - {fileID: 11400000, guid: 4e3a44ef418e2634cb98922d0f0cbe4f, type: 2}
+  defaultValues: []
+  buyMenuItems: []
+  routines:
+  - activateOnQuestComplete: 
+    stages:
+    - endTime: 0
+      activity: 0
+      animation: 0
+      location: 
+      conversationStartNode: Start

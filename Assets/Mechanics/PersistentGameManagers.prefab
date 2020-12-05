@@ -17,6 +17,8 @@ GameObject:
   - component: {fileID: 6225402510337564490}
   - component: {fileID: 1254477659995837600}
   - component: {fileID: 7523643276535000266}
+  - component: {fileID: 2088012362}
+  - component: {fileID: 327353094347504488}
   m_Layer: 0
   m_Name: PersistentGameManagers
   m_TagString: Untagged
@@ -224,3 +226,29 @@ MonoBehaviour:
   fogDensityRange: {x: 0, y: 0.03}
   weatherScaler: 0
   clouds: {fileID: 0}
+--- !u!114 &2088012362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c82cb7fab635ee64a9a302fd6daa6cf8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &327353094347504488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4ddb09c0865ae346866739aab76420a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeBeforeDeathScreen: 2
+  deathScreenTime: 5

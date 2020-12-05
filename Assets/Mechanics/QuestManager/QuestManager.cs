@@ -145,17 +145,20 @@ public class QuestManager : MonoBehaviour
                 return;
             }
     }
-    public static void ForfillTalkToQuest(string questName)
+    public static void ForfillTalkToQuest(string questName, NPCName talkingNPC)
     {
-        print(questName);
         for (int i = 0; i < singleton.quests.Count; i++)
             if (singleton.quests[i].quest.name == questName)
             {
-                if (singleton.quests[i].quest.stages[singleton.quests[i].stage].type != Quest.QuestType.TalkTo)
+                var stage = singleton.quests[i].quest.stages[singleton.quests[i].stage];
+                if (stage.type != Quest.QuestType.TalkTo)
                     throw new System.ArgumentException("Quest is not in talk to stage");
+                else if (stage.receiver != talkingNPC)
+                    throw new System.ArgumentException("Trying to progress quest with incorrect NPC");
                 ProgressQuest(i);
                 return;
             }
+        Debug.LogError("Trying to progress quest that is not in quest book");
     }
 
 

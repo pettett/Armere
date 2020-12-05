@@ -11,12 +11,19 @@ public class SimpleHealth : MonoBehaviour
 
 
     public UnityEvent onDeathEvent;
-    private void Start()
+    protected CollisionAudio audioSet;
+    protected virtual void Start()
     {
         health = maxHealth;
+        audioSet = GetComponent<CollisionAudio>();
     }
+
+
+
     public virtual AttackResult Damage(float amount, GameObject source)
     {
+        if (audioSet != null) audioSet.MakeNoise(transform.position, 20);
+
         health -= amount;
 
         currentHealth = health;

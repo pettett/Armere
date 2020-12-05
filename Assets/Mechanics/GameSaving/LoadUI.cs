@@ -24,9 +24,11 @@ public class LoadUI : UIMenu
     {
         base.OpenMenu();
         string rootDir = Application.persistentDataPath + "/saves/save1";
+
         if (Directory.Exists(rootDir))
         {
             string[] dirs = Directory.GetDirectories(rootDir);
+
             for (int i = dirs.Length - 1; i >= 0; i--)
             {
                 Instantiate(saveDispayPrefab, savesMenu).GetComponent<SaveDisplayUI>().Init(dirs[i]);

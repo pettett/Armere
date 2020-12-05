@@ -3,7 +3,10 @@ guid: 7b4bcca9e7916ac49823936d106cd5cd
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - optionalWaypoints: {instanceID: 0}
+  - idleRoutine: {fileID: 11400000, guid: ccd084dc16f27c0438e49d7b10633639, type: 2}
+  - body: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

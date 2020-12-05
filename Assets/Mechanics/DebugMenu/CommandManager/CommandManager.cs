@@ -96,7 +96,7 @@ public class CommandManager : ConsoleReceiver
     {
         foreach (T value in (T[])System.Enum.GetValues(typeof(T)))
         {
-            if (value.ToString().StartsWith(start))
+            if (value.ToString().ToLower().StartsWith(start.ToLower()))
             {
                 viableEntries.Add(value.ToString());
             }

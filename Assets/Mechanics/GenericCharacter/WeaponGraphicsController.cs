@@ -115,13 +115,13 @@ public class WeaponGraphicsController : MonoBehaviour
                     holdPoint.Anchor(gameObject.transform);
         }
 
-        public async void SetHeld(HoldableItemData holdable)
+        public async Task SetHeld(HoldableItemData holdable)
         {
             this.holdable = holdable;
-            if (gameObject != null) Destroy(gameObject);
-            gameObject = await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default);
+            if (gameObject != null) gameObject.Destroy();
+            gameObject = (await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default));
 
-            sheathed = true;
+            Anchor();
         }
 
         public void RemoveHeld()

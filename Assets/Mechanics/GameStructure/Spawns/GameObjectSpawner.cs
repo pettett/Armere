@@ -9,6 +9,7 @@ public class GameObjectSpawner : Spawner
     public static async Task<SpawnableBody> SpawnAsync(AssetReferenceGameObject gameObject, Vector3 position, Quaternion rotation, Transform parent = null)
     {
 
+
         var handle = Addressables.InstantiateAsync(gameObject, position, rotation, parent, false);
         var body = (await handle.Task).GetComponent<SpawnableBody>();
 
@@ -38,6 +39,7 @@ public class GameObjectSpawner : Spawner
 
     public override async Task<SpawnableBody> Spawn()
     {
+        Assert.IsTrue(spawnedObject.RuntimeKeyIsValid(), "Reference is null");
         return await SpawnAsync(spawnedObject, transform.position, transform.rotation);
     }
 

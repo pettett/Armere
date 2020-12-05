@@ -71,13 +71,16 @@ public class ScrollingSelectorUI : MonoBehaviour
 
     void OnScroll(InputAction.CallbackContext value)
     {
+        if (value.phase == InputActionPhase.Performed)
+        {
+            float d = value.ReadValue<Vector2>().y;
 
-        float d = value.ReadValue<Vector2>().y;
-        //Move the selection
-        internalScroll = Mathf.Clamp(internalScroll + d * scrollSensitivity, 0, panel.stackCount);
-        //Allow for un equipping items
-        selection = Mathf.RoundToInt(internalScroll) - 1;
-        SetTitleText();
+            //Move the selection by the direction of input
+            internalScroll = Mathf.Clamp(internalScroll + Mathf.Sign(d), 0, panel.stackCount);
+            //Allow for un equipping items
+            selection = Mathf.RoundToInt(internalScroll) - 1;
+            SetTitleText();
+        }
     }
     void SetTitleText()
     {

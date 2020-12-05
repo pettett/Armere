@@ -54,6 +54,8 @@ public class SaveManager : MonoBehaviour
         InventoryController.InventorySave inventory;
         Armere.PlayerController.PlayerController.PlayerSaveData player;
         NPCManager.NPCSaveData npc;
+        //TODO: Save Quest data
+
         public void GatherSaveData()
         {
             level = LevelController.currentLevel;
@@ -171,6 +173,12 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    public void LoadMostRecentSave()
+    {
+        string rootDir = Application.persistentDataPath + "/saves/save1";
+        //Load the first save in the directory
+        LoadSave(Directory.GetDirectories(rootDir)[0]);
+    }
 
     public void LoadSave(string dir)
     {
@@ -219,30 +227,24 @@ public class SaveManager : MonoBehaviour
         currentSaveState.GatherSaveData();
 
 
-        using (MemoryStream memoryStream = new MemoryStream())
+
+        //Current save state is updated during the game, so it can be stored raw
+
+        using (Stream stream = new FileStream(dir + save, FileMode.Create, FileAccess.Write, FileShare.None))
         {
-            //Current save state is updated during the game, so it can be stored raw
-            formatter.Serialize(memoryStream, currentSaveState);
-            using (Stream stream = new FileStream(dir + save, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                //Copy into storage in the background
-                await memoryStream.CopyToAsync(stream);
-            }
+
+            formatter.Serialize(stream, currentSaveState);
         }
+
 
         SaveInfo info = new SaveInfo(ScreenshotCapture.CaptureScreenshot(128, 128));
 
         info.saveTime = System.DateTime.Now;
 
-
-        using (MemoryStream memoryStream = new MemoryStream())
+        using (Stream stream = new FileStream(dir + metaSave, FileMode.Create, FileAccess.Write, FileShare.None))
         {
-            formatter.Serialize(memoryStream, info);
-            using (Stream stream = new FileStream(dir + metaSave, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                //Copy into storage in the background
-                await memoryStream.CopyToAsync(stream);
-            }
+            //Copy into storage in the background
+            formatter.Serialize(stream, info);
         }
 
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Assertions;
 
 public class NPCSpawn : Spawner
 {
@@ -36,6 +37,7 @@ public class NPCSpawn : Spawner
 
     public override async Task<SpawnableBody> Spawn()
     {
+        Assert.IsTrue(baseNPCReference.RuntimeKeyIsValid(), "Reference to npc base is null");
         return await GameObjectSpawner.SpawnAsync(baseNPCReference, transform.position, transform.rotation);
     }
 }

@@ -26,7 +26,7 @@ public class CurrencyDisplay : MonoBehaviour
         text.text = string.Format(format, currency);
         text.color = color;
     }
-    void OnCurrencyUpdated()
+    void OnCurrencyUpdated(InventoryController.InventoryPanel panel)
     {
         //Show animation, update value
         //Wait a bit, hide again

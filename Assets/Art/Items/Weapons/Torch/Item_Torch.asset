@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60fc06959602cb24aa1b98e68d579e74, type: 3}
+  m_Name: Item_Torch
+  m_EditorClassIdentifier: 
+  itemName: 19
+  type: 1
+  displaySprite:
+    m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
+    m_SubObjectName: 
+  displayName: Torch
+  description: Can be lit to provide light
+  sellable: 1
+  sellValue: 25
+  gameObject:
+    m_AssetGUID: 4fc60448a5cc98d459a3b9662c116da6
+    m_SubObjectName: 
+  clankProbability: 0.7
+  clankSet: {fileID: 0}
+  holdableGameObject:
+    m_AssetGUID: 2da2b10d00f77094a8da3bd6b11caacf
+    m_SubObjectName: 
+  damage: 10
+  hitSparkEffect:
+    m_AssetGUID: 4a996b38507c9814db35514c1719b533
+    m_SubObjectName: 

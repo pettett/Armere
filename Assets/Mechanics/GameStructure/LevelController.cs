@@ -11,11 +11,11 @@ public enum LevelName
 public static class LevelController
 {
     public static LevelName currentLevel;
-    static System.Action<Scene, LoadSceneMode> onLevelLoaded;
+    public static event System.Action<Scene, LoadSceneMode> onLevelLoaded;
     public static void ChangeToLevel(LevelName level, System.Action<Scene, LoadSceneMode> onLevelLoadedEvent = null)
     {
         currentLevel = level;
-        onLevelLoaded = onLevelLoadedEvent;
+        onLevelLoaded += onLevelLoadedEvent;
         LoadLevelAsync(level);
     }
     async static void LoadLevelAsync(LevelName level)

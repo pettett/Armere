@@ -32,9 +32,9 @@ public class Health : SimpleHealth, IAttackable
     /// Start is called on the frame when a script is enabled just before
     /// any of the Update methods is called the first time.
     /// </summary>
-    void Start()
+    protected override void Start()
     {
-        health = maxHealth;
+        base.Start();
         currentHealth = health;
     }
     public void Respawn()
@@ -49,6 +49,10 @@ public class Health : SimpleHealth, IAttackable
 
         if (dead)
             return AttackResult.None;
+
+
+        if (audioSet != null) audioSet.MakeNoise(transform.position, 20);
+
         //Test if the damage can be blocked based on the angle
         //TODO: Better blocking physics
         else if (blockingDamage && Vector3.Dot(transform.forward, (origin.transform.position - transform.position).normalized) > minBlockingDot)

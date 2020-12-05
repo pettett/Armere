@@ -229,8 +229,6 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
             yield return new WaitForEndOfFrame();
         }
 
-        print("Finished rotating");
-
     }
 
     public Transform GetTransform(Transform[] transforms, string name) => transforms.First(t => t.name == name);

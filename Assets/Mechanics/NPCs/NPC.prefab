@@ -45,7 +45,8 @@ GameObject:
   - component: {fileID: 2318585634096166322}
   - component: {fileID: 3580662529507969412}
   - component: {fileID: 2837012965508915846}
-  m_Layer: 0
+  - component: {fileID: 5771843177859263490}
+  m_Layer: 14
   m_Name: NPC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -179,6 +180,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   pelvisOffset: 0
+  crouchOffset: 0
   pelvisVerticalSpeed: 0.28
   feetToIKPositionSpeed: 0.5
   leftFootAnimVariableName: LeftFootCurve
@@ -192,9 +194,22 @@ MonoBehaviour:
   headLookAtPositionWeight: 0
   eyesLookAtPositionWeight: 0
   clampLookAtPositionWeight: 0
-  lookAtPosition: {x: 0, y: 0, z: 0}
   useAnimationHook: 0
   velocityScaler: 1
+--- !u!114 &5771843177859263490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2318585634096166333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50fb54f8aa7078d4a92e78ba1f86b9c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noiseThreshold: 25
+  pathfindNoiseVolume: 0
 --- !u!1 &3565130903746973744
 GameObject:
   m_ObjectHideFlags: 0

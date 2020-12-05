@@ -17,6 +17,7 @@ public class InventoryItemUI : MonoBehaviour
     AsyncOperationHandle<Sprite> asyncOperation;
     public void ChangeItemIndex(int newIndex)
     {
+
         itemIndex = newIndex;
         if (itemIndex != -1)
             SetupItemAsync(InventoryController.singleton.db[InventoryController.ItemAt(itemIndex, type)]);

@@ -5,11 +5,10 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Jobs;
-
+using System;
 
 public class GrassController : MonoBehaviour
 {
-    public readonly int texSize = 32;
     private const string k_RenderGrassTag = "Render Grass";
     private ProfilingSampler m_Grass_Profile;
     public static List<GrassPusher> pushers = new List<GrassPusher>();
@@ -22,9 +21,15 @@ public class GrassController : MonoBehaviour
 
     [Header("Grass Creation")]
     public float range;
+    public float offset;
     public ComputeShader createGrassInBoundsCompute;
     public Texture2D gradientTexture;
+
+    public Terrain terrain;
     public Texture2D grassDensity;
+    public RenderTexture grassHeight;
+
+
     public int groupsOf8PerCell = 3;
     Queue<GrassInstruction> grassInstructions = new Queue<GrassInstruction>();
 
@@ -126,12 +131,11 @@ public class GrassController : MonoBehaviour
             grassCountChanged = true;
             consumeBufferChanged = true;
 
-
             //Send the data needed and destroy grass
             cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsTransform",
-                new Vector4(bounds.center.x - c.transform.position.x,
-                            bounds.center.y - c.transform.position.y,
-                             bounds.center.z - c.transform.position.z,
+                new Vector4(bounds.center.x - c.bounds.center.x,
+                            bounds.center.y - c.bounds.center.y,
+                            bounds.center.z - c.bounds.center.z,
                             rotation));
 
             cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsExtents", bounds.extents);
@@ -172,28 +176,14 @@ public class GrassController : MonoBehaviour
     // Size() is a convenience funciton which returns the stride of the struct.
     private struct MeshProperties
     {
-        public Vector3 position;
-        public float yRot;
-        public Vector2 size;
-        public Vector3 color;
-        public int chunkID;
-        public static int Size()
-        {
-            return
-                //  rotation, position,size
-                sizeof(float) * (3 + 1 + 2 + 3) + sizeof(int);
-        }
+
+        //  rotation, position,size
+        public const int size = sizeof(float) * (3 + 1 + 2 + 3) + sizeof(int);
     }
 
     private struct MatricesStruct
     {
-        public Matrix4x4 matrix;
-        public Vector3 color;
-
-        public static int Size()
-        {
-            return sizeof(float) * (4 * 4 + 3);
-        }
+        public const int size = sizeof(float) * (4 * 4 + 3);
     }
 
 
@@ -219,10 +209,10 @@ public class GrassController : MonoBehaviour
 
         drawIndirectArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 
-        meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append, ComputeBufferMode.Immutable);
-        meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.Size(), ComputeBufferType.Append, ComputeBufferMode.Immutable);
+        meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
+        meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
 
-        matrixesBuffer = new ComputeBuffer(totalPopulation, MatricesStruct.Size(), ComputeBufferType.Default, ComputeBufferMode.Immutable);
+        matrixesBuffer = new ComputeBuffer(totalPopulation, MatricesStruct.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
         //matrixesBuffer.SetCounterValue(0);
 
@@ -260,7 +250,19 @@ public class GrassController : MonoBehaviour
 
         cmd.SetComputeBufferParam(createGrassInBoundsCompute, 0, "_Grass", meshPropertiesConsumeBuffer);
         cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, "_Gradient", gradientTexture);
+
+        if (grassDensity == null && terrain != null) grassDensity = terrain.terrainData.alphamapTextures[0];
+
         cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, "_Density", grassDensity);
+
+        if (terrain != null)
+        {
+            grassHeight = terrain.terrainData.heightmapTexture;
+
+            cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, "_Height", terrain.terrainData.heightmapTexture);
+            cmd.SetComputeFloatParam(createGrassInBoundsCompute, "grassHeightScale", terrain.terrainData.heightmapScale.y / 128f);
+        }
+
         cmd.SetComputeBufferParam(createGrassInBoundsCompute, 0, "_IndirectArgs", drawIndirectArgsBuffer);
 
     }
@@ -310,6 +312,7 @@ public class GrassController : MonoBehaviour
                 while (grassInstructions.Count != 0 && maxInstructionIterations > 0)
                 {
                     grassInstructions.Dequeue().Execute(this, cmd, ref grassCountChanged, ref consumeBufferChanged);
+
                     maxInstructionIterations--;
                 }
 
@@ -388,9 +391,17 @@ public class GrassController : MonoBehaviour
 
     void UpdateBounds()
     {
+        if (terrain != null)
+        {
+            offset = terrain.terrainData.bounds.extents.x;
+            range = terrain.terrainData.bounds.extents.x;
+        }
         // Boundary surrounding the meshes we will be drawing.  Used for occlusion.
-        bounds = new Bounds(transform.position, Vector3.one * (range * 2 + 1));
+        bounds = new Bounds(transform.position + new Vector3(offset, 0, offset), Vector3.one * (range * 2 + 1));
     }
+
+
+
 
     void UpdateThreadGroupSizes()
     {
@@ -404,6 +415,10 @@ public class GrassController : MonoBehaviour
 
     public void UpdateChunkTree()
     {
+        if (grassDensity == null && terrain != null) grassDensity = terrain.terrainData.alphamapTextures[0];
+
+        int texSize = grassDensity.width;
+
         Color[] pix = grassDensity.GetPixels();
         if (cells == null) cells = new bool[texSize, texSize];
 
@@ -578,23 +593,57 @@ public class GrassController : MonoBehaviour
 
     Vector4[] pushersData = new Vector4[0];
 
+
+
+
     private void Update()
     {
-        if (pushersData == null || pushersData.Length != pushers.Count)
-            pushersData = new Vector4[pushers.Count];
+        if (pushers.Count > 10)
+        {
+            (Vector4 data, float priority)[] pushingQueue = new (Vector4, float)[pushers.Count];
+
+            if (pushersData == null || pushersData.Length != 10)
+                pushersData = new Vector4[10];
+
+            for (int i = 0; i < pushers.Count; i++)
+            {
+                pushingQueue[i].data = pushers[i].Data;
+                pushingQueue[i].priority = Vector3.SqrMagnitude(pushers[i].transform.position - GrassPusher.mainPusher.transform.position);
+            }
+            //Order by distance to main pusher
+            pushingQueue.OrderBy(x => x.priority);
+
+            for (int i = 0; i < 10; i++)
+            {
+                pushersData[i] = pushingQueue[i].data;
+            }
+        }
+        else
+        {
+            //Big enough
+            if (pushersData == null || pushersData.Length != pushers.Count)
+                pushersData = new Vector4[pushers.Count];
+
+            for (int i = 0; i < pushers.Count; i++)
+            {
+                pushersData[i] = pushers[i].Data;
+            }
+        }
 
         for (int i = 0; i < pushersData.Length; i++)
         {
-            pushersData[i] = pushers[i].Data;
-            pushersData[i] -= new Vector4(transform.position.x, transform.position.y, transform.position.z);
+            pushersData[i] -= new Vector4(bounds.center.x, transform.position.y, bounds.center.z);
         }
+
+
 
 
         //Setup the call to draw the grass when the time comes
 
         if (inited)
+        {
             Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, drawIndirectArgsBuffer, castShadows: shadowCastingMode, receiveShadows: true);
-
+        }
 
         // Debug.Log(inited);
 

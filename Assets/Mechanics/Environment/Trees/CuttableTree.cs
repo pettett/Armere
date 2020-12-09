@@ -66,10 +66,10 @@ public class CuttableTree : MonoBehaviour, IAttackable
         UpdateMeshFilter(TriangleCutMode.Full);
     }
 
-    public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)
     {
-        return CutTree(hitPosition, controller.transform.position);
-
+        if (flags == AttackFlags.Blunt) return AttackResult.None;
+        else return CutTree(hitPosition, controller.transform.position);
     }
     private void OnEnable()
     {
@@ -86,9 +86,10 @@ public class CuttableTree : MonoBehaviour, IAttackable
         if (totalDamage >= profile.damageToCut)
         {
             //Tree already destroyed, this should never happen
-            Debug.LogWarning("Hit tree that has already been destroyed");
+            //Debug.LogWarning("Hit tree that has already been destroyed");
             return AttackResult.None;
         }
+
 
 
         float intensity = 0.2f;

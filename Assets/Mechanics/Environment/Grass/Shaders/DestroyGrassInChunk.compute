@@ -18,7 +18,7 @@ AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
+[numthreads(64,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = DispatchThreadToIndex(id,dispatchSize);

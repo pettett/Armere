@@ -30,6 +30,7 @@ MonoBehaviour:
     m_AssetGUID: 2da2b10d00f77094a8da3bd6b11caacf
     m_SubObjectName: 
   damage: 10
+  attackFlags: 0
   hitSparkEffect:
     m_AssetGUID: 4a996b38507c9814db35514c1719b533
     m_SubObjectName: 

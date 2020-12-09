@@ -29,6 +29,8 @@ public class PatrolRoutine : EnemyRoutine
 
     public override IEnumerator Routine(EnemyAI enemy)
     {
+
+
         SetupWeapon(enemy);
         enemy.animationController.TriggerTransition(enemy.transitionSet.swordWalking);
         enemy.weaponGraphics.holdables.melee.sheathed = !holdWeaponDrawn;
@@ -38,9 +40,11 @@ public class PatrolRoutine : EnemyRoutine
 
         //If the player is seen, switch out of this routine
         enemy.investigateOnSight = true;
+        enemy.searchOnEvent = true;
         enemy.agent.speed = patrolSpeed;
         while (true)
         {
+            enemy.debugText.SetText($"Patrolling to {waypoint}");
             yield return enemy.GoToWaypoint(waypoint);
 
             yield return new WaitForSeconds(waitTime);

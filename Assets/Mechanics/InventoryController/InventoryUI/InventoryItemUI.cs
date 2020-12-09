@@ -26,6 +26,15 @@ public class InventoryItemUI : MonoBehaviour
     public async void SetupItemAsync(ItemData item)
     {
         type = item.type;
+
+        switch (item)
+        {
+            case MeleeWeaponItemData melee:
+                infoText?.SetText(melee.damage.ToString());
+                if (countText != null) countText.enabled = false;
+                break;
+        }
+
         if (item.displaySprite.RuntimeKeyIsValid())
         {
             asyncOperation = Addressables.LoadAssetAsync<Sprite>(item.displaySprite);

@@ -42,14 +42,14 @@ public class CurrencyDisplay : MonoBehaviour
             time += Time.deltaTime;
             SetCurrencyDisplay((uint)Mathf.RoundToInt(Mathf.Lerp(currentCurrency, newCurrency, time / currencyChangeTime)));
 
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
         currentCurrency = newCurrency;
 
         while (time < currencyChangeTime + updateTime)
         {
             time += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
         gameObject.SetActive(false);
     }

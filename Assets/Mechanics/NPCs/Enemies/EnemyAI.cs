@@ -33,8 +33,11 @@ public class EnemyAI : AIBase
     public float knockoutTime = 4f;
 
     Coroutine currentRoutine;
-    public bool investigateOnSight = false;
-    bool engageOnAttack = true;
+
+    [System.NonSerialized] public bool investigateOnSight = false;
+    [System.NonSerialized] public bool searchOnEvent = false;
+    [System.NonSerialized] public bool engageOnAttack = true;
+
     public AnimationTransitionSet transitionSet;
     [System.NonSerialized] public WeaponGraphicsController weaponGraphics;
     [System.NonSerialized] public AnimationController animationController;
@@ -101,9 +104,20 @@ public class EnemyAI : AIBase
 
         base.Start();
 
+        GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
 
         await SetHeldWeapon(meleeWeapon);
     }
+
+
+    public void OnNoiseHeard(Vector3 position)
+    {
+        if (searchOnEvent)
+        {
+            ChangeRoutine(SearchForEvent(position));
+        }
+    }
+
 
     public async Task SetHeldWeapon(ItemName weapon)
     {
@@ -143,6 +157,7 @@ public class EnemyAI : AIBase
     IEnumerator DieRoutine()
     {
         investigateOnSight = false;
+        searchOnEvent = false;
         engageOnAttack = false;
 
         foreach (var x in weaponGraphics.holdables)
@@ -164,11 +179,10 @@ public class EnemyAI : AIBase
         }
         return waypoint;
     }
-    public IEnumerator GoToWaypoint(int index)
-    {
-        yield return GoToPosition(waypointGroup[index].position);
-        yield return RotateTo(waypointGroup[index].rotation, 0.2f);
-    }
+    public IEnumerator GoToWaypoint(int index) => GoToTransform(waypointGroup[index]);
+
+
+
 
 
     IEnumerator Investigate()
@@ -176,6 +190,7 @@ public class EnemyAI : AIBase
         //Do not re-enter investigate
         investigateOnSight = false;
         engageOnAttack = true;
+        searchOnEvent = false;
         if (alert == null || alert.gameObject == null)
             alert = IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
 
@@ -219,7 +234,7 @@ public class EnemyAI : AIBase
             }
 
 
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
     }
 
@@ -259,12 +274,34 @@ public class EnemyAI : AIBase
     {
         ChangeRoutine(Alert(0));
     }
+
+
+    IEnumerator SearchForEvent(Vector3 eventPos)
+    {
+        investigateOnSight = true;
+        searchOnEvent = true;//Go to more recent events than this
+
+
+        /*
+        Investigate routine:
+            Go to close enough distance to event
+            Rotate to event
+            Wait there, looking around a bit
+            go back to what we were doing before
+        */
+
+        debugText.SetText("Searching");
+        yield return RotateTo(Quaternion.LookRotation(eventPos - transform.position), agent.angularSpeed);
+        debugText.SetText("Searching - looking");
+        yield return new WaitForSeconds(3);
+    }
+
     IEnumerator EngagePlayer()
     {
         //Once they player has attacked or been seen, do not stop engageing until circumstances change
         engageOnAttack = false;
         investigateOnSight = false;
-
+        searchOnEvent = false;
         agent.isStopped = true;
 
         Vector3 directionToPlayer;
@@ -304,7 +341,7 @@ public class EnemyAI : AIBase
             //TODO: Test to see if the player is still in view
 
 
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
         //Once the player has died, return to normal routine to stop end looking janky
         StartBaseRoutine();

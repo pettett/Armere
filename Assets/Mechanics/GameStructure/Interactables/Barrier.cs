@@ -52,7 +52,7 @@ public class Barrier : MonoBehaviour, IInteractable
         {
             t += Time.deltaTime;
             transform.localPosition = Vector3.Lerp(h, pos, t);
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
         transform.localPosition = pos;
         moving = false;

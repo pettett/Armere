@@ -1,6 +1,7 @@
 Shader "Custom/InstancedIndirectColor" {
     Properties{
         [MainColor] _BaseMap("Texture", 2D) = "white" {}
+        [Enum(UnityEngine.Rendering.CullMode)] _CullMode("Cull Mode", Int) = 0
     }
     SubShader {
         Tags { "RenderType" = "Opaque" 
@@ -10,7 +11,8 @@ Shader "Custom/InstancedIndirectColor" {
             //Cull Off
             Name "ForwardLit"
             Tags {"LightMode"= "UniversalForward"}
-
+            // set cull mode inside subshader:
+            Cull [_CullMode]
 
             HLSLPROGRAM
             #pragma prefer_hlslcc gles
@@ -20,10 +22,7 @@ Shader "Custom/InstancedIndirectColor" {
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
+
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
@@ -40,7 +39,6 @@ Shader "Custom/InstancedIndirectColor" {
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-
 
             #pragma vertex vert
             #pragma fragment frag
@@ -59,10 +57,10 @@ Shader "Custom/InstancedIndirectColor" {
                 float4 tangentOS    : TANGENT;
                 float4 color    : COLOR;
 
-                                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f {
+                                
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
                 float4 vertex   : SV_POSITION;
@@ -79,15 +77,13 @@ Shader "Custom/InstancedIndirectColor" {
                 float3 normalWS                 : TEXCOORD3;
                 float3 viewDirectionWS : TEXCOORD5;
 
-                                UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             }; 
 
 
-            #include "MatrixStruct.cginc"
-
-            StructuredBuffer<MatrixStruct> _Properties;
-            
+            // UNITY_INSTANCING_BUFFER_START(Props)
+            //     UNITY_DEFINE_INSTANCED_PROP(MatrixStruct, _Properties)
+            // UNITY_INSTANCING_BUFFER_END(Props)
 
 
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID) {
@@ -95,16 +91,17 @@ Shader "Custom/InstancedIndirectColor" {
 
                 v2f o = (v2f)0;
 
- 
-                UNITY_SETUP_INSTANCE_ID(i);
-                UNITY_TRANSFER_INSTANCE_ID(i, o);
+
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-                //Apply matrix transformations
-                float4 pos = mul(_Properties[instanceID].mat, i.vertex);
 
-                float3 n = mul(_Properties[instanceID].mat, float4(i.normalOS,0)).xyz;
-                float4 t = mul(_Properties[instanceID].mat, i.tangentOS);
+                MatrixStruct p = _Properties[instanceID];
+
+                //Apply matrix transformations
+                float4 pos = mul(p.mat, i.vertex);
+
+                float3 n = mul(p.mat, float4(i.normalOS,0)).xyz;
+                float4 t = mul(p.mat, i.tangentOS);
 
                 // float4 pos = i.vertex;
                 // float3 n = i.normalOS;
@@ -118,7 +115,7 @@ Shader "Custom/InstancedIndirectColor" {
                 half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
                 o.viewDirectionWS = viewDirWS;
                 o.vertex = vertexInput.positionCS;  
-                o.color.rgb = _Properties[instanceID].color;
+                o.color.rgb = p.color;
                 o.color.a = 1;
                 o.texCoord = i.texCoord;
                 o.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
@@ -135,7 +132,6 @@ Shader "Custom/InstancedIndirectColor" {
             
             float4 frag(v2f i) : SV_Target {
 
-                UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 //Generate the color of the grass
@@ -195,10 +191,6 @@ Shader "Custom/InstancedIndirectColor" {
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
@@ -206,13 +198,11 @@ Shader "Custom/InstancedIndirectColor" {
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-
-
             #pragma vertex vert
             #pragma fragment frag
 
             #include "InstancedIndirectInput.hlsl"
-            #include "MatrixStruct.cginc"
+
 
                 half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
                 {
@@ -233,7 +223,6 @@ Shader "Custom/InstancedIndirectColor" {
                 float4 positionOS   : POSITION;
                 float3 normalOS     : NORMAL;
                 float2 texcoord     : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -259,7 +248,6 @@ Shader "Custom/InstancedIndirectColor" {
             }
 
 
-            uniform StructuredBuffer<MatrixStruct> _Properties;
             
 
 
@@ -269,16 +257,10 @@ Shader "Custom/InstancedIndirectColor" {
 
                 Varyings o = (Varyings)0;
 
- 
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 //Apply matrix transformations
                 input.positionOS = mul(_Properties[instanceID].mat, input.positionOS);
-
-
-                UNITY_SETUP_INSTANCE_ID(input);
 
                 o.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
                 o.positionCS = GetShadowPositionHClip(input);

@@ -16,6 +16,8 @@ public class CutLog : MonoBehaviour, IAttackable
 
     public Vector3 offset;
     Vector3 IScanable.offset => offset;
+
+
     public bool invincible = true;
     public IEnumerator Start()
     {
@@ -46,7 +48,7 @@ public class CutLog : MonoBehaviour, IAttackable
         Destroy(gameObject);
     }
 
-    public AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition)
+    public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)
     {
         if (!invincible)
         {

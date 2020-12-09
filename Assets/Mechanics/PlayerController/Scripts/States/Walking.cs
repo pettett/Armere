@@ -859,7 +859,7 @@ namespace Armere.PlayerController
             var bowAC = c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>();
             while (true)
             {
-                yield return new WaitForEndOfFrame();
+                yield return null;
 
                 c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
 
@@ -1009,7 +1009,7 @@ namespace Armere.PlayerController
             {
                 t += Time.deltaTime * invTime;
                 update(Mathf.Lerp(from, to, t));
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             update(to);
         }
@@ -1279,7 +1279,7 @@ namespace Armere.PlayerController
                 pos.x = xz.x;
                 pos.z = xz.y;
                 transform.position = pos;
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             entry.values[2] = 0;
             c.rb.isKinematic = false;

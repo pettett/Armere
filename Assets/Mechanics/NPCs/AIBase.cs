@@ -5,6 +5,9 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class AIBase : SpawnableBody
 {
+
+    public TMPro.TMP_Text debugText;
+
     [System.NonSerialized] public NavMeshAgent agent;
     [System.NonSerialized] public Animator anim;
     // Start is called before the first frame update
@@ -25,13 +28,22 @@ public abstract class AIBase : SpawnableBody
         StartCoroutine(WaitForAgent(onComplete));
     }
 
-    protected IEnumerator RotateTo(Quaternion rotation, float time)
+    protected IEnumerator GoToTransform(Transform t)
+    {
+        yield return GoToPosition(t.position);
+        yield return RotateTo(t.rotation, agent.angularSpeed);
+    }
+
+    protected IEnumerator RotateTo(Quaternion rotation, float angularSpeed)
     {
         float t = 0;
         Quaternion start = transform.rotation;
+
+        float time = Quaternion.Angle(start, rotation) / angularSpeed;
+
         while (t < 1)
         {
-            yield return new WaitForEndOfFrame();
+            yield return null;
             transform.rotation = Quaternion.Slerp(start, rotation, t);
             t += Time.deltaTime / time;
         }

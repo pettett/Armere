@@ -10,6 +10,8 @@ cbuffer CB{
     float4 grassSizeMinMax;
     float grassHeightScale;
     int chunkID;
+    int seed;
+    int densityLayer;
     int2 dispatchSize;
 }; 
 
@@ -19,7 +21,7 @@ AppendStructuredBuffer<MeshProperties> _Grass;
 Texture2D<float3> _Gradient;
 SamplerState sampler_Gradient;
 
-Texture2D<float> _Density;
+Texture2D<float4> _Density;
 SamplerState sampler_Density;
 Texture2D<unorm float> _Height;
 SamplerState sampler_Height;
@@ -55,14 +57,14 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     m.chunkID = chunkID;
     //Create the t value of the lerp for position and density uv
-    float2 positionLerp = hash22(grassPositionBoundsMinMax.zw + id.xy + 0.5f );
+    float2 positionLerp = hash22(grassPositionBoundsMinMax.zw + id.xy+seed);
 
     float2 pos = lerp(grassPositionBoundsMinMax.xy,grassPositionBoundsMinMax.zw, positionLerp);
     float2 densityUV = lerp(grassDensityUVMinMax.xy,grassDensityUVMinMax.zw,positionLerp);
     
 
     //Perform rejection sampling on grass based on desired density at position
-    float density = _Density.SampleLevel(sampler_Density, densityUV, 0);
+    float density = _Density.SampleLevel(sampler_Density, densityUV, 0)[densityLayer];
     float testValue = hash12(densityUV.xy + id.xy);
 
     if (testValue < density){

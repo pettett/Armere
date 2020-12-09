@@ -1,20 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-public interface IAttackable : IScanable
-{
-    AttackResult Attack(ItemName weapon, GameObject controller, Vector3 hitPosition);
-}
 
-[System.Flags]
-public enum AttackResult
-{
-    None = 0b0000,
-    Damaged = 0b0001,
-    Blocked = 0b0010,
-    Headshot = 0b0100,
-    Killed = 0b1000
-}
+
 
 [RequireComponent(typeof(SpawnableBody))]
 public class WeaponTrigger : MonoBehaviour
@@ -93,7 +81,8 @@ public class WeaponTrigger : MonoBehaviour
 
             if (other.TryGetComponent<IAttackable>(out var attackable))
             {
-                AttackResult attackResult = attackable.Attack(weaponItem, controller, hitPosition);
+                AttackResult attackResult = attackable.Attack(
+                    ((MeleeWeaponItemData)InventoryController.singleton.db[weaponItem]).attackFlags, weaponItem, controller, hitPosition);
                 //Attack the object, sending the result of the attack to the event listeners
                 onWeaponHit?.Invoke(attackResult);
             }

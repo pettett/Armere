@@ -30,7 +30,7 @@ public class CameraVolumeController
         this.overrideProfile = overrideProfile;
         while (t < blendTime)
         {
-            yield return new WaitForEndOfFrame();
+            yield return null;
             t += Time.deltaTime;
             overrideProfileBlend = t / blendTime;
         }

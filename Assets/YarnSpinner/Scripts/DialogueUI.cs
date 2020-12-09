@@ -469,7 +469,7 @@ namespace Yarn.Unity
             }
 
             // Avoid skipping lines if textSpeed == 0
-            yield return new WaitForEndOfFrame();
+            yield return null;
             // Hide the text and prompt
             onLineEnd?.Invoke();
 

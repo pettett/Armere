@@ -31,7 +31,7 @@ public class SceneChangeTrigger : PlayerTrigger
         {
             t += Time.deltaTime * m;
             d.m_PathPosition = t;
-            yield return new WaitForEndOfFrame();
+            yield return null;
             if (!faded && t > 0.6f)
             {
                 faded = true;

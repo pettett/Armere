@@ -177,7 +177,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
         {
             playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
     }
 
@@ -226,7 +226,7 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
         while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRot, Time.deltaTime * 800);
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
 
     }

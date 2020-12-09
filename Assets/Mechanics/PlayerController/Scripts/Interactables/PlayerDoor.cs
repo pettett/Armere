@@ -37,7 +37,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
         {
             doorPivot.localRotation = Quaternion.RotateTowards(doorPivot.localRotation, to, doorAngularSpeed * Time.deltaTime);
             diff = Quaternion.Angle(doorPivot.localRotation, to);
-            yield return new WaitForEndOfFrame();
+            yield return null;
         } while (diff > 0.5f);
 
         doorPivot.localRotation = to;

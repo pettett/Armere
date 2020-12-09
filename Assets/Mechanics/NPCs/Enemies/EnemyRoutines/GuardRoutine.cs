@@ -7,7 +7,11 @@ public class GuardRoutine : EnemyRoutine
 {
     public override IEnumerator Routine(EnemyAI enemy)
     {
+        enemy.debugText.SetText("Guarding");
+
         enemy.investigateOnSight = true;
+        enemy.searchOnEvent = true;
+
         int waypoint = enemy.GetClosestWaypoint();
         yield return enemy.GoToWaypoint(waypoint);
     }

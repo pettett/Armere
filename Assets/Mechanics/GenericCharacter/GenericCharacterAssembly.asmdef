@@ -8,7 +8,8 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "Game.UI",
-        "Game.Environment.Fire"
+        "Game.Environment.Fire",
+        "Game.Environment.Grass"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

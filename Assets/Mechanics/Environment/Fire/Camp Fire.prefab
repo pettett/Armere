@@ -128,6 +128,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  onFireExtinguish:
+    m_PersistentCalls:
+      m_Calls: []
   onFire: 0
   waterExtinguishes: 1
 --- !u!136 &4867292369161407329
@@ -263,7 +266,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208

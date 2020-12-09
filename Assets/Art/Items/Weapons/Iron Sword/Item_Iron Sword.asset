@@ -29,7 +29,8 @@ MonoBehaviour:
   holdableGameObject:
     m_AssetGUID: f1babff18934cc84180e3886476880a8
     m_SubObjectName: 
-  damage: 20
+  damage: 15
+  attackFlags: 1
   hitSparkEffect:
     m_AssetGUID: 4a996b38507c9814db35514c1719b533
     m_SubObjectName: 

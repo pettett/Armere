@@ -12,11 +12,11 @@ public class GradientTextureEditor : Editor
         base.OnInspectorGUI();
         GradientTexture t = (GradientTexture)target;
 
-        EditorGUILayout.LabelField($"Width: {IntPower(2, t.resolutionPower)}");
+        EditorGUILayout.LabelField($"Width: {1 << t.resolutionPower}");
 
         if (GUILayout.Button("Bake texture"))
         {
-            int width = IntPower(2, t.resolutionPower);
+            int width = 1 << t.resolutionPower;
             Texture2D gradient = new Texture2D(width, 1);
             Color[] cols = new Color[width];
             for (int i = 0; i < width; i++)
@@ -34,19 +34,6 @@ public class GradientTextureEditor : Editor
 
 
 
-    public static int IntPower(short x, short power)
-    {
-        if (power == 0) return 1;
-        if (power == 1) return x;
-        // ----------------------
-        int n = 15;
-        while ((power <<= 1) >= 0) n--;
 
-        int tmp = x;
-        while (--n > 0)
-            tmp = tmp * tmp *
-                 (((power <<= 1) < 0) ? x : 1);
-        return tmp;
-    }
 
 }

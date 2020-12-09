@@ -12,12 +12,14 @@ public class GrassController : MonoBehaviour
     [System.Serializable]
     public class GrassLayer
     {
+        public enum LayerType { Main, Detail }
         public bool enabled = true;
+        public LayerType layerType;
         public Vector3Int threadGroups = new Vector3Int(8, 1, 1);
         [System.NonSerialized] public Vector3Int threadGroupSize;
         [System.NonSerialized] public bool inited;
         public int totalPopulation;
-        public int groupsOf8PerCell = 3;
+        public int groupsOf8PerCellGroup = 3;
         public int currentGrassCellCapacity; //Theretical max grass loaded at once
         public int splatMapLayer = 0;
         public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
@@ -35,10 +37,10 @@ public class GrassController : MonoBehaviour
         public float viewDistanceScalar = 1;
 
         [Header("Quad tree generation")]
-        public int smallestCellGroupPower = 1;
-        public int greatestCellGroupPower = 5;
+        public ushort smallestCellGroupPower = 1;
+        public short greatestCellGroupPower = 5;
 
-        QuadTree chunkTree;
+        public QuadTree chunkTree;
         Queue<GrassInstruction> localInstructions = new Queue<GrassInstruction>();
         [System.NonSerialized] public QuadTreeEnd[] endsInRange = new QuadTreeEnd[0];
 
@@ -59,7 +61,7 @@ public class GrassController : MonoBehaviour
             }
 
             int tempID = 0;
-            chunkTree = new QuadTree(cells, Vector2.one * 0.5f, Vector2.one, ref tempID);
+            chunkTree = QuadTree.CreateQuadTree(cells, Vector2.one * 0.5f, Vector2.one, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower, ref tempID);
         }
 
         public int seed { get; private set; }
@@ -125,6 +127,7 @@ public class GrassController : MonoBehaviour
 
         public void SetBuffers(GrassController c, CommandBuffer cmd)
         {
+
             cmd.SetComputeBufferParam(c.compute, 0, "_Properties", meshPropertiesConsumeBuffer);
             cmd.SetComputeBufferParam(c.compute, 0, "_Output", matrixesBuffer);
 
@@ -152,6 +155,14 @@ public class GrassController : MonoBehaviour
                 cmd.CopyCounterValue(meshPropertiesConsumeBuffer, drawIndirectArgsBuffer, sizeof(uint));
             }
 
+            if (layerType == LayerType.Main)
+            {
+                cmd.SetComputeIntParam(c.compute, "pushers", c.pushersData.Length);
+            }
+            else
+            {
+                cmd.SetComputeIntParam(c.compute, "pushers", 0);
+            }
 
             //Copies Properties -> Output with processing
             cmd.DispatchCompute(c.compute, c.mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
@@ -172,12 +183,14 @@ public class GrassController : MonoBehaviour
 
             foreach (var chunk in removedChunks)
             {
-                localInstructions.Enqueue(new DestroyGrassInChunkInstruction(chunk.id, chunk.cellsWidth * chunk.cellsWidth));
+                localInstructions.Enqueue(new DestroyGrassInChunkInstruction(chunk.id,
+                       chunk.cellsWidth * chunk.cellsWidth));
             }
             foreach (var chunk in addedChunks)
             {
 
-                localInstructions.Enqueue(new CreateGrassInstruction(chunk.id, chunk.rect, chunk.cellsWidth * chunk.cellsWidth));
+                localInstructions.Enqueue(new CreateGrassInstruction(chunk.id, chunk.rect,
+                        chunk.cellsWidth * chunk.cellsWidth));
             }
 
             endsInRange = chunksInView;
@@ -304,7 +317,7 @@ public class GrassController : MonoBehaviour
             cmd.SetComputeIntParam(c.createGrassInBoundsCompute, "seed", layer.seed);
             cmd.SetComputeIntParam(c.createGrassInBoundsCompute, "densityLayer", layer.splatMapLayer);
 
-            int dispatch = cellsArea * layer.groupsOf8PerCell;
+            int dispatch = cellsArea * layer.groupsOf8PerCellGroup;
 
             cmd.DispatchCompute(c.createGrassInBoundsCompute, 0, dispatch, 1, 1);
 
@@ -419,7 +432,7 @@ public class GrassController : MonoBehaviour
 
             cmd.DispatchCompute(c.destroyGrassInChunk, 0, layer.threadGroups.x, layer.threadGroups.y, layer.threadGroups.z);
 
-            layer.currentGrassCellCapacity -= chunkArea * layer.groupsOf8PerCell * 8;
+            layer.currentGrassCellCapacity -= chunkArea * layer.groupsOf8PerCellGroup * 8;
 
             //Swap the buffers around
             (layer.meshPropertiesConsumeBuffer, layer.meshPropertiesAppendBuffer) = (layer.meshPropertiesAppendBuffer, layer.meshPropertiesConsumeBuffer);
@@ -510,7 +523,7 @@ public class GrassController : MonoBehaviour
             //Set common variables for movement
 
             cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
-            cmd.SetComputeIntParam(compute, "pushers", pushersData.Length);
+
 
 
             cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
@@ -794,6 +807,5 @@ public class GrassController : MonoBehaviour
                 }
             }
         }
-
     }
 }

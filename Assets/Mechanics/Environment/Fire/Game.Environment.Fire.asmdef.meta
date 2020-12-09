@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 808c70ca36d77eb40bc482704b7976e6
+=======
+<<<<<<< HEAD:Assets/Mechanics/GameControl/Game.Control.asmdef.meta
+guid: f4fd74cbd1bc2a9499a2d73b0e114844
+=======
+guid: 808c70ca36d77eb40bc482704b7976e6
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Game.Environment.Fire.asmdef.meta
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 AssemblyDefinitionImporter:
   externalObjects: {}
   userData: 

@@ -14,6 +14,9 @@ public class InteractableChest : ItemSpawnable, IInteractable
     public Vector3 offset => throw new System.NotImplementedException();
     public event System.Action onChestOpened;
 
+
+
+
     public void Interact(IInteractor c)
     {
 

@@ -524,11 +524,6 @@ public class GrassController : MonoBehaviour
 
             cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
 
-
-
-            cmd.SetComputeFloatParam(compute, "deltatime", Time.deltaTime);
-            cmd.SetComputeFloatParam(compute, "time", Time.time);
-
             int maxInstructionIterations = 8;
 
             List<GrassInstruction> instructionsThisFrame = new List<GrassInstruction>(Mathf.Min(grassInstructions.Count, maxInstructionIterations));
@@ -613,7 +608,6 @@ public class GrassController : MonoBehaviour
         // Boundary surrounding the meshes we will be drawing.  Used for occlusion.
         bounds = new Bounds(transform.position + new Vector3(offset, 0, offset), Vector3.one * (range * 2 + 1));
     }
-
 
 
 
@@ -742,9 +736,11 @@ public class GrassController : MonoBehaviour
 
 
 
-
     private void OnDrawGizmosSelected()
     {
+        //Draw quad tree structure
+
+
         Gizmos.DrawWireCube(bounds.center, bounds.size);
 
         Vector3 localPoint = testPoint - killingBounds.center;
@@ -763,12 +759,10 @@ public class GrassController : MonoBehaviour
         if (temp.Contains(localPoint))
         {
             Gizmos.color = Color.red;
-
         }
         else
         {
             Gizmos.color = Color.white;
-
         }
 
 

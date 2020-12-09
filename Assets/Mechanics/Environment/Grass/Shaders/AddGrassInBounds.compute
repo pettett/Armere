@@ -1,0 +1,57 @@
+#pragma kernel CSMain
+
+
+
+#define PI 3.141592
+
+cbuffer CB{
+    float4 boundsMinMax;
+    float4 grassSizeMinMax;
+    int chunkID;
+    int2 dispatchSize;
+}; 
+#include "MeshProperties.cginc"
+AppendStructuredBuffer<MeshProperties> _Grass;
+Texture2D<float3> _Gradient;
+SamplerState sampler_Gradient;
+
+
+//----------------------------------------------------------------------------------------
+///  2 out, 2 in...
+float2 hash22(float2 p)
+{
+	float3 p3 = frac(float3(p.xyx) * float3(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yzx+33.33);
+    return frac((p3.xx+p3.yz)*p3.zy);
+}
+
+
+//----------------------------------------------------------------------------------------
+//  1 out, 2 in...
+float hash12(float2 p)
+{
+	float3 p3  = frac(float3(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return frac((p3.x + p3.y) * p3.z);
+}
+
+
+// For the sake of simplicity, only using 1, 1, 1 threads.
+//lol no
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+    MeshProperties m = (MeshProperties)0;
+
+    m.chunkID = chunkID;
+    float2 pos = lerp(boundsMinMax.xy + float2(0.01,0.01),boundsMinMax.zw, hash22(boundsMinMax.zw + id.xy + 0.5f ));
+    
+    m.position.xz = pos;
+    m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy) );
+    m.yRot = lerp(-PI,PI,hash12(boundsMinMax.zy + id.xy));
+
+    m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(boundsMinMax.xw + id.xy),0) ,0);
+
+    _Grass.Append(m);
+    
+}

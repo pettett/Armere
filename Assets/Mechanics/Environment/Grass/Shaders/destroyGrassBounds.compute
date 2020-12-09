@@ -1,6 +1,5 @@
 #pragma kernel CSMain
 
-#include "MeshProperties.cginc"
 
 
 
@@ -9,6 +8,8 @@ cbuffer CB{
     float3 boundsExtents;
     int2 dispatchSize;
 }; 
+
+#include "MeshProperties.cginc"
 
 
 StructuredBuffer<uint> _ArgsData;
@@ -19,10 +20,10 @@ AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(64,1,1)]
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id,dispatchSize);
+    uint index = DispatchThreadToIndex(id);
 
     //Transform the point into bounds local space
     float3 p = _Grass[index].position - boundsTransform.xyz;

@@ -198,6 +198,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d84a2835f67a9c047821283a5f19790b,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ebd01afabba195a469caf7cd748c53b6, type: 2}
     - target: {fileID: -953342466816307569, guid: d84a2835f67a9c047821283a5f19790b,
         type: 3}
       propertyPath: m_LocalRotation.x
@@ -233,6 +238,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Wooden Chest
       objectReference: {fileID: 0}
+    - target: {fileID: 7418098771544918504, guid: d84a2835f67a9c047821283a5f19790b,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ebd01afabba195a469caf7cd748c53b6, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d84a2835f67a9c047821283a5f19790b, type: 3}
 --- !u!1 &5303768636042553271 stripped

@@ -17,9 +17,15 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Effects/StaticPointFire.vfx
     x: -39
     y: -190
     width: 1406
+=======
+    x: 106
+    y: -190
+    width: 1261
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Effects/PointFire.vfx
     height: 1411
 --- !u!114 &114350483966674976
 MonoBehaviour:
@@ -31,7 +37,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Effects/StaticPointFire.vfx
   m_Name: StaticPointFire
+=======
+  m_Name: PointFire
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Effects/PointFire.vfx
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -40,9 +50,12 @@ MonoBehaviour:
   - {fileID: 8926484042661614583}
   - {fileID: 8926484042661614585}
   - {fileID: 8926484042661614595}
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Effects/StaticPointFire.vfx
   - {fileID: 8926484042661614596}
   - {fileID: 8926484042661614607}
   - {fileID: 8926484042661614609}
+=======
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Effects/PointFire.vfx
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
@@ -59,7 +72,11 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Effects/StaticPointFire.vfx
   m_Name: StaticPointFire
+=======
+  m_Name: PointFire
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Effects/PointFire.vfx
   m_Graph: {fileID: 114350483966674976}
   m_Infos:
     m_RendererSettings:
@@ -1243,6 +1260,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Effects/StaticPointFire.vfx
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &8926484042661614595
@@ -1991,5 +2009,75 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
+=======
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Effects/PointFire.vfx
   m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114350483966674976}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots:
+  - {fileID: 8926484042661614596}
+  m_ExposedName: New Texture2DArray
+  m_Exposed: 0
+  m_Order: 0
+  m_Category: 
+  m_Min:
+    m_Type:
+      m_SerializableType: 
+    m_SerializableObject: 
+  m_Max:
+    m_Type:
+      m_SerializableType: 
+    m_SerializableObject: 
+  m_IsOutput: 0
+  m_Tooltip: 
+  m_Nodes: []
+--- !u!114 &8926484042661614596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8347149e9296104c91893e675633125, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614596}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614595}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Texture2DArray, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: o
+    m_serializedType:
+      m_SerializableType: UnityEngine.Texture2DArray, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  m_Direction: 1
   m_LinkedSlots: []

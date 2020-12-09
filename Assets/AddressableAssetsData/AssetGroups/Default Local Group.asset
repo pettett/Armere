@@ -245,6 +245,15 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+<<<<<<< HEAD
+=======
+  - m_GUID: f2d8a6cf457f24c48a77ea067ff4119e
+    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow WO.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
   - m_GUID: ad965d4eade25384a9b5ee1e0c421b5c
     m_Address: Assets/Art/Items/Weapons/Iron Sword/Short Sword Item.prefab
     m_ReadOnly: 0
@@ -300,6 +309,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+<<<<<<< HEAD
   - m_GUID: 6bcaa02e2267b8e4eb5832ee101d0f0b
     m_Address: Assets/Art/Items/Arrows/Arrow/arrow Item.prefab
     m_ReadOnly: 0
@@ -338,6 +348,10 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 2da2b10d00f77094a8da3bd6b11caacf
     m_Address: Assets/Art/Items/Weapons/Torch/Holdable Torch.prefab
+=======
+  - m_GUID: 4eacd5c5e938b0f43862c519337dfe78
+    m_Address: Assets/Mechanics/InventoryController/InventoryUI/Item Log Entry.prefab
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

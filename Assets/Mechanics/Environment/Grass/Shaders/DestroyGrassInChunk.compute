@@ -18,10 +18,17 @@ AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
+<<<<<<< HEAD
 [numthreads(64,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = DispatchThreadToIndex(id,dispatchSize);
+=======
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+    uint index = DispatchThreadToIndex(id);
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 
     if (_Grass[index].chunkID != chunkID && index < _ArgsData[1] ){
         _CulledGrass.Append(_Grass[index]);

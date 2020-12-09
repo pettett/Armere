@@ -14,6 +14,7 @@ public class InventoryItemUI : MonoBehaviour
     public Image thumbnail;
     public TMPro.TextMeshProUGUI countText;
     public TMPro.TextMeshProUGUI infoText;
+    public TMPro.TextMeshProUGUI nameText;
     AsyncOperationHandle<Sprite> asyncOperation;
     public void ChangeItemIndex(int newIndex)
     {

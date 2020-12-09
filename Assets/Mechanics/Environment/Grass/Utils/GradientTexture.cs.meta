@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 3c8ab3963fcba304abeb9bf5824adee6
+=======
+<<<<<<< HEAD:Assets/Mechanics/Environment/Grass/Editor/GrassControllerEditor.cs.meta
+guid: 1d8b9e4001afa6741951c78717aac0e7
+=======
+guid: 3c8ab3963fcba304abeb9bf5824adee6
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Grass/Utils/GradientTexture.cs.meta
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

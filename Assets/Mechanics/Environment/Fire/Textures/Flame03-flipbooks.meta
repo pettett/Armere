@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 8f346e900429bf34ba85fb99de0b73e3
+=======
+<<<<<<< HEAD:Assets/Art/Items/Weapons/Torch.meta
+guid: c318434d366413c4699648b9b22a1033
+=======
+guid: 8f346e900429bf34ba85fb99de0b73e3
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Textures/Flame03-flipbooks.meta
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

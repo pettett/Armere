@@ -6,7 +6,11 @@ TextureImporter:
   serializedVersion: 11
   mipmaps:
     mipMapMode: 0
+<<<<<<< HEAD
     enableMipMap: 0
+=======
+    enableMipMap: 1
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0

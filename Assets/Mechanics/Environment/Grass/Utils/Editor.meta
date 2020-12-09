@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 60e7906e97d7a5946b96f856a111ed56
+=======
+<<<<<<< HEAD:Assets/Mechanics/Environment/Grass/Editor.meta
+guid: 8971c444200c60640b9607ba3d29b5cd
+=======
+guid: 60e7906e97d7a5946b96f856a111ed56
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Grass/Utils/Editor.meta
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

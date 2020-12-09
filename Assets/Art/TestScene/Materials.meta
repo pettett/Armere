@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Assets/Art/TestScene/Materials.meta
 guid: 363e00704bbea6f48859d5f14cfd51da
+=======
+guid: 8e0aba02a80c938478a1dd68ab98ba5f
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Mechanics/Environment/Fire/Textures.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

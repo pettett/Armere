@@ -77,13 +77,24 @@ Shader "Custom/InstancedIndirectColor" {
                 float3 normalWS                 : TEXCOORD3;
                 float3 viewDirectionWS : TEXCOORD5;
 
+<<<<<<< HEAD
+=======
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
                 UNITY_VERTEX_OUTPUT_STEREO
             }; 
 
 
+<<<<<<< HEAD
             // UNITY_INSTANCING_BUFFER_START(Props)
             //     UNITY_DEFINE_INSTANCED_PROP(MatrixStruct, _Properties)
             // UNITY_INSTANCING_BUFFER_END(Props)
+=======
+            #include "MatrixStruct.cginc"
+
+            uniform StructuredBuffer<MatrixStruct> _Properties;
+            
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 
 
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID) {
@@ -91,7 +102,12 @@ Shader "Custom/InstancedIndirectColor" {
 
                 v2f o = (v2f)0;
 
+<<<<<<< HEAD
 
+=======
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_TRANSFER_INSTANCE_ID(i, o);
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 
@@ -108,6 +124,8 @@ Shader "Custom/InstancedIndirectColor" {
                 // float4 t = i.tangentOS;
 
 
+ 
+
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(pos.xyz);
                 o.posWS = vertexInput.positionWS;
                 VertexNormalInputs normalInput = GetVertexNormalInputs(n, t);
@@ -115,7 +133,11 @@ Shader "Custom/InstancedIndirectColor" {
                 half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
                 o.viewDirectionWS = viewDirWS;
                 o.vertex = vertexInput.positionCS;  
+<<<<<<< HEAD
                 o.color.rgb = p.color;
+=======
+                o.color.rgb = _Properties[instanceID].color;
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
                 o.color.a = 1;
                 o.texCoord = i.texCoord;
                 o.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
@@ -209,9 +231,6 @@ Shader "Custom/InstancedIndirectColor" {
                     return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
                 }
 
-            CBUFFER_START(UnityPerMaterial)
-            float4 _BaseMap_ST;
-            CBUFFER_END
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"

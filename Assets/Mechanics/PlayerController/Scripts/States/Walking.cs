@@ -882,7 +882,7 @@ namespace Armere.PlayerController
             GameCameras.s.shoulderViewStrength = 0;
 
             forceForwardHeading = false;
-            c.animationController.lookAtPositionWeight = 0; // Dont need to do others - master switch
+            c.animationController.lookAtPositionWeight = 0; // don't need to do others - master switch
             c.animator.SetBool("Holding Bow", false);
             c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
         }
@@ -1081,7 +1081,7 @@ namespace Armere.PlayerController
 
                 if (currentSidearm != -1)
                 {
-                    //Equip the sidearm if it wasnt
+                    //Equip the sidearm if it wasn't
                     if (!sheathing.sidearm && c.weaponGraphicsController.holdables.sidearm.sheathed)
                     {
                         print("Drawing sidearm");

@@ -45,7 +45,6 @@ public class WaterController : MonoBehaviour
         if (!other.isTrigger)
         {
             other.GetComponent<IWaterObject>()?.OnWaterEnter(this);
-
             CreateSplash(other);
         }
     }
@@ -56,7 +55,6 @@ public class WaterController : MonoBehaviour
         if (!other.isTrigger)
         {
             other.GetComponent<IWaterObject>()?.OnWaterExit(this);
-
             CreateSplash(other);
         }
     }

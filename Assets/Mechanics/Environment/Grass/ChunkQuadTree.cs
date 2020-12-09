@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public abstract class QuadTreeLeaf
 {
 
@@ -72,7 +71,6 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
         yield return this;
     }
 }
-
 public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
 {
     public QuadTreeLeaf topLeft;

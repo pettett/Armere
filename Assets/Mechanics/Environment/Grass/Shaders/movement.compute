@@ -1,16 +1,21 @@
 ﻿#pragma kernel CSMain
 
-#include "MeshProperties.cginc"
-#include "MatrixStruct.cginc"
+
 
 
 cbuffer CB{
     float4 _PusherPositions[10];
-    int pushers;
+    float3 cameraPosition;
     float deltatime;
     float time;
+    float2 viewRangeMinMax;
+
+    int pushers;
     int2 dispatchSize;
 }; 
+
+#include "MeshProperties.cginc"
+#include "MatrixStruct.cginc"
 
 
 StructuredBuffer<MeshProperties> _Properties;
@@ -84,7 +89,9 @@ float LerpAngle(float a, float b, float t)
 [numthreads(THREADGROUPX,THREADGROUPY,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id,dispatchSize);
+    uint index = DispatchThreadToIndex(id);
+
+    MeshProperties properties = _Properties[index];
 
     MeshProperties p = _Properties[index];
 
@@ -93,14 +100,23 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     float damp = 0;
     float3 dampDir = float3(0.01,0,0);
 
+<<<<<<< HEAD
     for (uint i = 0; i < pushers; i++){
         float effect =  distance(p.position, _PusherPositions[i].xyz);
+=======
+    for (int i = 0; i < pushers; i++){
+        float effect =  distance(properties.position, _PusherPositions[i].xyz);
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
         float radius = _PusherPositions[i].w;
 
         effect = (radius- clamp(0.0, radius, effect))/radius;
 
         damp = max(damp,effect);
+<<<<<<< HEAD
         dampDir += (p.position - _PusherPositions[i].xyz) * effect;
+=======
+        dampDir += (properties.position - _PusherPositions[i].xyz) * effect;
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
     }
 
     float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
@@ -111,8 +127,13 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     //_Properties[id.x].rotation.y += 1 * deltatime;
 
     float2 rot = float2(
+<<<<<<< HEAD
                 snoise(p.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
                 snoise(p.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+=======
+                snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
+                snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 
     // The amount of wind decreases as damp increases
     //_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
@@ -120,24 +141,43 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     
     float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
 
+<<<<<<< HEAD
     float4x4 mat_local_r = Rotation(rot.x ,p.yRot,rot.y);
+=======
+    float4x4 mat_local_r = Rotation(rot.x ,properties.yRot,rot.y);
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
    // float4x4 mat_local_r = Rotation(pi,0,0);
 
 
     // Create a new translation matrix which represents a move in a direction.
     float4x4 translation = float4x4(
+<<<<<<< HEAD
         1, 0, 0, p.position.x,
         0, 1, 0, p.position.y,
         0, 0, 1, p.position.z,
+=======
+        1, 0, 0, properties.position.x,
+        0, 1, 0, properties.position.y,
+        0, 0, 1, properties.position.z,
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
         0, 0, 0, 1
     );
 
     // Apply translation to existing matrix, which will be read in the shader.
 
+    float2 size = properties.size;
 
+   // size.y *= smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
+
+<<<<<<< HEAD
     _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(p.size)));
     _Output[index].color = p.color;
+=======
+    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
+    _Output[index].color = properties.color;
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 
+    //_Output[index].color.b = smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.
     float4x4 rotation = float4x4(

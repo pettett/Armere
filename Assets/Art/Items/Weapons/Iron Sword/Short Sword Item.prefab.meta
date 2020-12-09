@@ -1,6 +1,16 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: ad965d4eade25384a9b5ee1e0c421b5c
 PrefabImporter:
+=======
+<<<<<<< HEAD:Assets/Mechanics/Environment/Fire/Game.Environment.Fire.asmdef.meta
+guid: 808c70ca36d77eb40bc482704b7976e6
+AssemblyDefinitionImporter:
+=======
+guid: ad965d4eade25384a9b5ee1e0c421b5c
+PrefabImporter:
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2:Assets/Art/Items/Weapons/Iron Sword/Short Sword Item.prefab.meta
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
   externalObjects: {}
   userData: 
   assetBundleName: 

@@ -8,8 +8,14 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "Game.UI",
+<<<<<<< HEAD
         "Game.Environment.Fire",
         "Game.Environment.Grass"
+=======
+        "Game.WorldObjects",
+        "Game.WorldObjectData",
+        "Game.Environment.Fire"
+>>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

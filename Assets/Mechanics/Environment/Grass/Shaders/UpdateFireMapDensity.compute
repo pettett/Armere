@@ -6,7 +6,7 @@ cbuffer CB{
      int2 dispatchSize;   
 }
 
-#include "MeshProperties.cginc"
+#include "MeshProperties.hlsl"
 
 //Opposite of burn grass, using read only properties to got to rw texture
 RWTexture2D<float> FireDensityMap;

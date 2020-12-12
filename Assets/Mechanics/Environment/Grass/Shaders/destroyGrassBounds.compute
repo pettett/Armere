@@ -9,7 +9,7 @@ cbuffer CB{
     int2 dispatchSize;
 }; 
 
-#include "MeshProperties.cginc"
+#include "MeshProperties.hlsl"
 
 
 StructuredBuffer<uint> _ArgsData;

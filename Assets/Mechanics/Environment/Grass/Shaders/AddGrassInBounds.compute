@@ -10,7 +10,7 @@ cbuffer CB{
     int chunkID;
     int2 dispatchSize;
 }; 
-#include "MeshProperties.cginc"
+#include "MeshProperties.hlsl"
 AppendStructuredBuffer<MeshProperties> _Grass;
 Texture2D<float3> _Gradient;
 SamplerState sampler_Gradient;

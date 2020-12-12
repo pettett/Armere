@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine.Assertions;
 
 [System.Serializable]
 public class EquipmentSet<T> : IEnumerable<T>
@@ -119,6 +120,9 @@ public class WeaponGraphicsController : MonoBehaviour
         {
             this.holdable = holdable;
             if (gameObject != null) gameObject.Destroy();
+
+            Assert.IsTrue(holdable.holdableGameObject.RuntimeKeyIsValid(), "Reference to holdable is null");
+
             gameObject = (await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default));
 
             Anchor();

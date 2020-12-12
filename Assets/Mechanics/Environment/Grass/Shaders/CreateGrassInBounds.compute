@@ -16,7 +16,7 @@ cbuffer CB{
 }; 
 
 
-#include "MeshProperties.cginc"
+#include "MeshProperties.hlsl"
 AppendStructuredBuffer<MeshProperties> _Grass;
 Texture2D<float3> _Gradient;
 SamplerState sampler_Gradient;

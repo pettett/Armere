@@ -8,21 +8,24 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
-  baseLanguageID: 
-  stringIDs: []
-  compilationStatus: 0
-  isSuccesfullyCompiled: 0
+  baseLanguageID: en-GB
+  stringIDs:
+  - Saeberg-Start-0
+  - Saeberg-Start-1
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
   compilationErrorMessage: 'Error on line 1 at position 1:
 
     mismatched input
     ''<EOF>'' expecting {ID, HASHTAG}
 
-    
+
 
 
 
     Tokens:
 
     1:0 EOF "<EOF>"'
-  baseLanguage: {instanceID: 0}
+  baseLanguage: {fileID: 7128917941130120860, guid: 76e50c4393fd97f45a10cf773b8c0396,
+    type: 3}
   localizations: []

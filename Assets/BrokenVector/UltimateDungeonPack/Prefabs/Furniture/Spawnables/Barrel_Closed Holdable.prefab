@@ -156,11 +156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spreadMode: 1
-<<<<<<< HEAD
   startLit: 0
-=======
-  startLit: 1
->>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
   onFireLit:
     m_PersistentCalls:
       m_Calls:
@@ -177,11 +173,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   onFire: 0
-<<<<<<< HEAD
   waterExtinguishes: 1
-=======
-  damagePerSecond: 0
->>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
 --- !u!114 &4516970300953390654
 MonoBehaviour:
   m_ObjectHideFlags: 0

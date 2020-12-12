@@ -17,6 +17,8 @@ MonoBehaviour:
   m_BundleLocalCatalog: 0
   m_DisableCatalogUpdateOnStart: 0
   m_UniqueBundleIds: 0
+  m_maxConcurrentWebRequests: 500
+  m_ContiguousBundles: 0
   m_RemoteCatalogBuildPath:
     m_Id: 
   m_RemoteCatalogLoadPath:
@@ -24,6 +26,7 @@ MonoBehaviour:
   m_overridePlayerVersion: 
   m_GroupAssets:
   - {fileID: 11400000, guid: b4791bac3f836934293faf7a56814663, type: 2}
+  - {fileID: 0}
   - {fileID: 11400000, guid: 653aaa061cbf93b40af36953fa5d4782, type: 2}
   m_BuildSettings:
     m_CompileScriptsInVirtualMode: 0

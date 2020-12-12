@@ -20,12 +20,14 @@ public class GrassController : MonoBehaviour
         [System.NonSerialized] public bool inited;
         public int totalPopulation;
         public int groupsOf8PerCellGroup = 3;
-        public int currentGrassCellCapacity; //Theretical max grass loaded at once
+        public int currentGrassCellCapacity; //Theretical max grass loaded currentley
+        public int maxBlades;
         public int splatMapLayer = 0;
         public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
         public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
 
         public ShadowCastingMode shadowCastingMode = ShadowCastingMode.On;
+
         public ComputeBuffer meshPropertiesConsumeBuffer;
         public ComputeBuffer meshPropertiesAppendBuffer;
 
@@ -34,7 +36,7 @@ public class GrassController : MonoBehaviour
         public Mesh mesh;
         public Texture2D texture;
         [Range(0f, 1f)]
-        public float viewDistanceScalar = 1;
+        public float viewRadiusScalar = 1;
 
         [Header("Quad tree generation")]
         public ushort smallestCellGroupPower = 1;
@@ -43,7 +45,8 @@ public class GrassController : MonoBehaviour
         public QuadTree chunkTree;
         Queue<GrassInstruction> localInstructions = new Queue<GrassInstruction>();
         [System.NonSerialized] public QuadTreeEnd[] endsInRange = new QuadTreeEnd[0];
-
+        public int seed { get; private set; }
+        MaterialPropertyBlock block;
         public void UpdateChunkTree(GrassController c)
         {
             Texture2D grassDensity = c.terrain.terrainData.alphamapTextures[0];
@@ -64,8 +67,7 @@ public class GrassController : MonoBehaviour
             chunkTree = QuadTree.CreateQuadTree(cells, Vector2.one * 0.5f, Vector2.one, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower, ref tempID);
         }
 
-        public int seed { get; private set; }
-        MaterialPropertyBlock block;
+
         public void InitLayer(GrassController c, int index)
         {
             seed = Mathf.CeilToInt(c.range * 2 * index);
@@ -82,7 +84,7 @@ public class GrassController : MonoBehaviour
             block.SetBuffer("_Properties", matrixesBuffer);
             block.SetTexture("_BaseMap", texture);
         }
-        private void SetDispatchSize(ComputeShader shader, CommandBuffer cmd)
+        public void SetDispatchSize(ComputeShader shader, CommandBuffer cmd)
         {
             cmd.SetComputeIntParams(shader, "dispatchSize", threadGroups.x, threadGroups.y);
         }
@@ -103,9 +105,7 @@ public class GrassController : MonoBehaviour
             cmd.SetComputeBufferCounterValue(meshPropertiesAppendBuffer, 0);
             cmd.SetComputeBufferCounterValue(meshPropertiesConsumeBuffer, 0);
 
-            SetDispatchSize(c.compute, cmd);
-            SetDispatchSize(c.destroyGrassInBounds, cmd);
-            SetDispatchSize(c.destroyGrassInChunk, cmd);
+
 
 
             cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, "_Gradient", c.gradientTexture);
@@ -125,16 +125,7 @@ public class GrassController : MonoBehaviour
             inited = true;
         }
 
-        public void SetBuffers(GrassController c, CommandBuffer cmd)
-        {
 
-            cmd.SetComputeBufferParam(c.compute, 0, "_Properties", meshPropertiesConsumeBuffer);
-            cmd.SetComputeBufferParam(c.compute, 0, "_Output", matrixesBuffer);
-
-            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_Grass", meshPropertiesConsumeBuffer);
-
-            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_IndirectArgs", drawIndirectArgsBuffer);
-        }
         public void OnCameraBeginRendering(GrassController c, CommandBuffer cmd)
         {
             bool grassChanged = false;
@@ -164,6 +155,10 @@ public class GrassController : MonoBehaviour
                 cmd.SetComputeIntParam(c.compute, "pushers", 0);
             }
 
+            cmd.SetComputeBufferParam(c.compute, 0, "_Properties", meshPropertiesConsumeBuffer);
+            cmd.SetComputeBufferParam(c.compute, 0, "_Output", matrixesBuffer);
+            SetDispatchSize(c.compute, cmd);
+
             //Copies Properties -> Output with processing
             cmd.DispatchCompute(c.compute, c.mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
         }
@@ -171,10 +166,11 @@ public class GrassController : MonoBehaviour
         {
 
             Rect playerVision = new Rect(
-                (GrassPusher.mainPusher.transform.position.x - c.transform.position.x - c.viewDistance * viewDistanceScalar) / (c.range * 2),
-                (GrassPusher.mainPusher.transform.position.z - c.transform.position.z - c.viewDistance * viewDistanceScalar) / (c.range * 2),
-                c.viewDistance * viewDistanceScalar / c.range,
-                c.viewDistance * viewDistanceScalar / c.range);
+                (GrassPusher.mainPusher.transform.position.x - c.transform.position.x - c.viewRadius * viewRadiusScalar) / (c.range * 2),
+                (GrassPusher.mainPusher.transform.position.z - c.transform.position.z - c.viewRadius * viewRadiusScalar) / (c.range * 2),
+                c.viewRadius * viewRadiusScalar * 2f / c.range,
+                c.viewRadius * viewRadiusScalar * 2f / c.range);
+
 
             var chunksInView = chunkTree.GetLeavesInRect(playerVision).ToArray();
 
@@ -210,6 +206,11 @@ public class GrassController : MonoBehaviour
             threadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
             totalPopulation = threadGroups.x * threadGroups.y * threadGroups.z * (int)x * (int)y * (int)z;
 
+            int greatestWidth = 1 << greatestCellGroupPower;
+
+            //FIXME: May be too low if view distance is multiple of greatest cell group size
+            //Find number of biggest cells the view distance could see at one time
+            maxBlades = (int)(Mathf.Pow(Mathf.CeilToInt(c.viewRadius * 2 / greatestWidth), 2)) * groupsOf8PerCellGroup * greatestWidth * greatestWidth;
 
         }
 
@@ -256,7 +257,7 @@ public class GrassController : MonoBehaviour
     Queue<GrassInstruction> grassInstructions = new Queue<GrassInstruction>();
 
     [Header("Grass Rendering")]
-    public float viewDistance = 10;
+    public float viewRadius = 10;
     public ComputeShader compute;
     public ComputeShader destroyGrassInBounds;
     public ComputeShader destroyGrassInChunk;
@@ -309,6 +310,9 @@ public class GrassController : MonoBehaviour
                     textureRect.max.x * c.range * 2 - c.range,
                     textureRect.max.y * c.range * 2 - c.range));
 
+            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_Grass", layer.meshPropertiesConsumeBuffer);
+
+            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_IndirectArgs", layer.drawIndirectArgsBuffer);
 
             cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassSizeMinMax",
                 new Vector4(layer.quadWidthRange.x, layer.quadHeightRange.x, layer.quadWidthRange.y, layer.quadHeightRange.y));
@@ -350,6 +354,8 @@ public class GrassController : MonoBehaviour
             }
 
             consumeBufferChanged = true;
+
+            layer.SetDispatchSize(c.destroyGrassInBounds, cmd);
 
             //Send the data needed and destroy grass
             cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsTransform",
@@ -412,6 +418,8 @@ public class GrassController : MonoBehaviour
             grassCountChanged = true;
             consumeBufferChanged = true;
 
+
+            layer.SetDispatchSize(c.destroyGrassInChunk, cmd);
             //Send the data needed and destroy grass
 
             cmd.SetComputeIntParam(c.destroyGrassInChunk, "chunkID", chunkID);
@@ -550,9 +558,6 @@ public class GrassController : MonoBehaviour
                     //Execute all the commands queued from the last frame
 
 
-
-                    //Update references on compute shaders
-                    layers[i].SetBuffers(this, cmd);
                     //Execute global instructions
                     for (int ii = 0; ii < instructionsThisFrame.Count; ii++)
                     {
@@ -800,6 +805,7 @@ public class GrassController : MonoBehaviour
                     item.DrawGizmos();
                 }
             }
+            Gizmos.DrawWireSphere(GrassPusher.mainPusher.transform.position, viewRadius);
         }
     }
 }

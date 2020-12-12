@@ -47,12 +47,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 1a9f009d6a6d49840b29ba6c66c9abd9
-    m_Address: Assets/Art/Items/Common/IronOre/Iron Ore WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_Address: Assets/Art/Items/Stick/Stick.png
     m_ReadOnly: 0
@@ -107,12 +101,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: 628b35708d1b48849ae6ee2b707ee8f1
-    m_Address: Assets/BrokenVector/UltimateDungeonPack/Prefabs/Objects/Shield.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: 6b5a6a9f0eac4c24cb3a5b4ad9e78fe9
     m_Address: Assets/Art/Items/Currency/Sprites/Gold_Rupee_Icon.png
     m_ReadOnly: 0
@@ -127,12 +115,6 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 6c43f06be31de6f46be4dc406e8ad591
     m_Address: Assets/Art/Items/Currency/Sprites/Green_Rupee_Icon.png
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
-  - m_GUID: 71e00151d6a4f6d4ba18fef457b778a8
-    m_Address: Assets/Art/Items/Common/Meat/Meat WO.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -203,12 +185,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: acc191f85cff5c746a83691ee15a821b
-    m_Address: Assets/Art/Items/Common/Herb/Herb WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
   - m_GUID: b32317c7b58b11d4bbb63baf2262ce44
     m_Address: Assets/Art/Items/Stick/Stick.blend
     m_ReadOnly: 0
@@ -245,15 +221,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-<<<<<<< HEAD
-=======
-  - m_GUID: f2d8a6cf457f24c48a77ea067ff4119e
-    m_Address: Assets/Art/Items/Bows/Basic Bow/Basic Bow WO.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    m_MainAsset: {fileID: 0}
-    m_TargetAsset: {fileID: 0}
->>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
   - m_GUID: ad965d4eade25384a9b5ee1e0c421b5c
     m_Address: Assets/Art/Items/Weapons/Iron Sword/Short Sword Item.prefab
     m_ReadOnly: 0
@@ -309,7 +276,6 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-<<<<<<< HEAD
   - m_GUID: 6bcaa02e2267b8e4eb5832ee101d0f0b
     m_Address: Assets/Art/Items/Arrows/Arrow/arrow Item.prefab
     m_ReadOnly: 0
@@ -348,10 +314,12 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: 2da2b10d00f77094a8da3bd6b11caacf
     m_Address: Assets/Art/Items/Weapons/Torch/Holdable Torch.prefab
-=======
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   - m_GUID: 4eacd5c5e938b0f43862c519337dfe78
     m_Address: Assets/Mechanics/InventoryController/InventoryUI/Item Log Entry.prefab
->>>>>>> 50588ef6582aa230e035005b7444fbed58347fd2
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

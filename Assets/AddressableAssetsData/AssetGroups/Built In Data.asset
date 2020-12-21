@@ -15,16 +15,16 @@ MonoBehaviour:
   m_GroupName: Built In Data
   m_Data:
     m_SerializedData: []
-  m_GUID: 7a07001be70e2ae4297714d1af5c4241
+  m_GUID: 8e8c69f5dd38db143837aa2db0e6fc2e
   m_SerializeEntries:
-  - m_GUID: EditorSceneList
-    m_Address: EditorSceneList
+  - m_GUID: Resources
+    m_Address: Resources
     m_ReadOnly: 1
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: Resources
-    m_Address: Resources
+  - m_GUID: EditorSceneList
+    m_Address: EditorSceneList
     m_ReadOnly: 1
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

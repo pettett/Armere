@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine.Assertions;
 
 [System.Serializable]
-public class EquipmentSet<T> : IEnumerable<T>
+public struct EquipmentSet<T> : IEnumerable<T>
 {
     public T melee;
     public T sidearm;

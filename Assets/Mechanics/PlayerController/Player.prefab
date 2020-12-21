@@ -53,6 +53,7 @@ MonoBehaviour:
   steppingTime: 0.1
   jumpForce: 400
   dynamicFriction: 0.2
+  swordUseDelay: 0.2
   maxWaterStrideDepth: 1.4
   maxStridingDepthSpeedScalar: 0.6
   waterDrag: 1

@@ -8,7 +8,6 @@ using RotaryHeart;
 public class NPCTemplate : ScriptableObject
 {
     public YarnProgram dialogue;
-    public Quest[] quests;
 
     public Yarn.Unity.InMemoryVariableStorage.DefaultVariable[] defaultValues;
 
@@ -35,9 +34,9 @@ public class NPCTemplate : ScriptableObject
 
         for (int r = 0; r < routines.Length - 1; r++)
         {
-            for (int i = 0; i < QuestManager.singleton.completedQuests.Count; i++)
+            for (int i = 0; i < QuestManager.completedQuests.Count; i++)
             {
-                if (QuestManager.singleton.completedQuests[i].quest.name == routines[r].activateOnQuestComplete)
+                if (QuestManager.completedQuests[i].quest.name == routines[r].activateOnQuestComplete)
                 {
                     //Return the first routine that fits the current situation
                     return r;

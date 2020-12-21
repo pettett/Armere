@@ -10,14 +10,16 @@ BlackSmith: You want an iron sword? Or something more specialized?
 ->Iron Sword!
     BlackSmith: 1 Sec!
     BlackSmith: hmmm... <wait 1> \nOh? <wait 1>\n Aha!
-    <<GoTo storage>>
+    <<GoTo Storage>>
     BlackSmith: 1 Iron Sword! Thanks
-    <<GoTo till>>
+    <<GoTo Till>>
     <<set $NPC_swords to $NPC_swords-1>>
     BlackSmith: Now I only have {$NPC_swords} [plural {$NPC_swords} one="sword" other="swords"] left!
     <<GiveItems IronSword 1>>
 ->Something more specialized
     BlackSmith: Take a look at this
+    <<OfferToBuy>>
+    [[WaitForBuy]]
 ->Bye
     BlackSmith: Bye
 <<else>>
@@ -29,3 +31,29 @@ title: Sleep
 ---
 BlackSmith: PISS OFF
 ===
+
+
+title: WaitForBuy
+---
+Jimbo: Don't forget to take an iron sword for your travels
+-> <Exit>I need to go
+    Jimbo: See you around
+    <<StopBuy>>
+===
+
+title: Buy
+---
+Jimbo: So you want to take one?
+-> Yep!
+    Jimbo: Thanks! 1 more spot on the shelves
+    <<ConfirmBuy>>
+    [[WaitForBuy]]
+-> Nope!
+    Jimbo: Suit yourself
+    <<CancelBuy>>
+    [[WaitForBuy]]
+-> <Exit>I need to go
+    Jimbo: See you around
+    <<StopBuy>>
+===
+

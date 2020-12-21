@@ -4,6 +4,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Patrol Routine", menuName = "Game/Patrol Routine", order = 0)]
 public class PatrolRoutine : EnemyRoutine
 {
+    public override bool alertOnAttack => true;
+    public override bool searchOnEvent => true;
+    public override bool investigateOnSight => true;
+
     public float patrolSpeed = 3.5f;
     public float waitTime = 2;
 
@@ -39,8 +43,6 @@ public class PatrolRoutine : EnemyRoutine
         int waypoint = enemy.GetClosestWaypoint();
 
         //If the player is seen, switch out of this routine
-        enemy.investigateOnSight = true;
-        enemy.searchOnEvent = true;
         enemy.agent.speed = patrolSpeed;
         while (true)
         {

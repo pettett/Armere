@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
-
+using Armere.Inventory;
 
 
 

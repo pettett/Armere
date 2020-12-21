@@ -32,14 +32,26 @@ public enum Layers
 [System.Serializable]
 public struct AnimationTransition
 {
-    public string name;
+    int? _nameHash;
+    public int nameHash
+    {
+        get
+        {
+            if (!_nameHash.HasValue)
+                _nameHash = Animator.StringToHash(_name);
+            return _nameHash.Value;
+        }
+    }
+
+    public string _name;
     public float duration;
     public float offset;
     public Layers layers;
 
     public AnimationTransition(string name, float duration, float offset, Layers layers)
     {
-        this.name = name;
+        _nameHash = null;
+        _name = name;
         this.duration = duration;
         this.offset = offset;
         this.layers = layers;
@@ -109,10 +121,10 @@ public class AnimationController : MonoBehaviour
 
     void TriggerTransition(in AnimationTransition transition, int layer)
     {
-        anim.CrossFadeInFixedTime(transition.name, transition.duration, layer, transition.offset);
+        anim.CrossFadeInFixedTime(transition.nameHash, transition.duration, layer, transition.offset);
     }
 
-    public void TriggerTransition(AnimationTransition transition)
+    public void TriggerTransition(in AnimationTransition transition)
     {
         if (transition.layers.HasFlag(Layers.BaseLayer))
             TriggerTransition(transition, 0);

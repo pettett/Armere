@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Armere.Inventory;
 public class Health : SimpleHealth, IAttackable
 {
 

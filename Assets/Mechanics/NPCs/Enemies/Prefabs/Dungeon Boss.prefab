@@ -12,17 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7758a7051bdd5af4090265bd92d9086a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyBehaviour: 2
+  debugText: {fileID: 0}
   sightMode: 0
   meleeWeapon: 2
-  patrolData:
-    patrolSpeed: 3.5
-    waitTime: 2
-    path: []
+  idleRoutine: {fileID: 0}
+  autoEngage: 0
   health: {fileID: 0}
   clippingPlanes: {x: 0.2, y: 10.64}
   fov: 45
   eye: {fileID: 8588985409719432706}
+  visionBlockingMask:
+    serializedVersion: 2
+    m_Bits: 0
   investigateRateOverDistance:
     serializedVersion: 2
     m_Curve:
@@ -47,11 +48,13 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  waypointGroup: {fileID: 0}
   approachDistance: 1
   approachPlayer: 1
   knockoutTime: 4
   transitionSet: {fileID: 11400000, guid: 09849a1b142b98b409153e7f0bd5aee3, type: 2}
   height: 1.8
+  musicController: {fileID: 0}
   stageOneEndHealth: 0.6666667
   stageTwoEndHealth: 0.16666667
 --- !u!1001 &2099471065067438450
@@ -215,6 +218,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ConnectedAnchor.z
       value: 0.000010490417
+      objectReference: {fileID: 0}
+    - target: {fileID: 6553172001653972184, guid: 5e9630d24b6bb454b9de56014772ac3f,
+        type: 3}
+      propertyPath: radius
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6734290671558487673, guid: 5e9630d24b6bb454b9de56014772ac3f,
         type: 3}

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-
+using Armere.Inventory;
 public class ItemSpawnable : SpawnableBody
 {
     [System.NonSerialized] public ItemName item;

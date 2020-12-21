@@ -22,7 +22,9 @@ public enum ItemName
     PurpleCurrency = 16,
     SilverCurrency = 17,
     GoldCurrency = 18,
-    Torch
+    Torch,
+    EmptyBottle,
+    FilledBottle
 }
 
 public enum ItemType
@@ -33,7 +35,8 @@ public enum ItemType
     Ammo = 3,
     SideArm = 4,
     Quest = 5,
-    Currency = 6
+    Currency = 6,
+    Potion = 7,
 }
 
 

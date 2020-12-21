@@ -47,5 +47,21 @@ public class GameObjectSpawner : Spawner
     {
         await Spawn();
     }
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (Application.isPlaying) return;
+        Mesh m = spawnedObject.editorAsset.GetComponent<MeshFilter>().sharedMesh;
+        var mats = spawnedObject.editorAsset.GetComponent<MeshRenderer>().sharedMaterials;
+
+        for (int i = 0; i < m.subMeshCount; i++)
+        {
+            //Graphics.DrawMesh(m, transform.position, transform.rotation, mats[i], 0);
+            Gizmos.color = mats[i].color;
+            Gizmos.DrawMesh(m, i, transform.position, transform.rotation, transform.lossyScale);
+        }
+
+    }
+#endif
 
 }

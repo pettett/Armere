@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Armere.Inventory;
+
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIBase
 {
@@ -32,11 +34,8 @@ public class EnemyAI : AIBase
 
     public float knockoutTime = 4f;
 
+    IEnemyRoutine currentRoutineObject;
     Coroutine currentRoutine;
-
-    [System.NonSerialized] public bool investigateOnSight = false;
-    [System.NonSerialized] public bool searchOnEvent = false;
-    [System.NonSerialized] public bool engageOnAttack = true;
 
     public AnimationTransitionSet transitionSet;
     [System.NonSerialized] public WeaponGraphicsController weaponGraphics;
@@ -56,17 +55,31 @@ public class EnemyAI : AIBase
 
     public event System.Action<EnemyAI> onPlayerDetected;
 
+
+
+
+
+    void ChangeRoutine(IEnemyRoutine newRoutine)
+    {
+        if (currentRoutine != null)
+            StopCoroutine(currentRoutine);
+        currentRoutine = StartCoroutine(newRoutine.Routine(this));
+        currentRoutineObject = newRoutine;
+
+
+    }
+
     public void OnDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
-        if (engageOnAttack)
-            ChangeRoutine(Alert(1));
+        if (currentRoutineObject.alertOnAttack)
+            ChangeRoutine(new AlertRoutine(1));
     }
 
     [MyBox.ButtonMethod()]
     public void Ragdoll()
     {
-        ChangeRoutine(Knockout());
+        ChangeRoutine(new KnockoutRoutine());
     }
 
     private void OnValidate()
@@ -85,7 +98,7 @@ public class EnemyAI : AIBase
 
     public void Die(GameObject attacker, GameObject victim)
     {
-        ChangeRoutine(DieRoutine());
+        ChangeRoutine(new DieRoutine());
     }
 
     protected override async void Start()
@@ -112,9 +125,9 @@ public class EnemyAI : AIBase
 
     public void OnNoiseHeard(Vector3 position)
     {
-        if (searchOnEvent)
+        if (currentRoutineObject.searchOnEvent)
         {
-            ChangeRoutine(SearchForEvent(position));
+            ChangeRoutine(new SearchForEventRoutine(position));
         }
     }
 
@@ -146,26 +159,30 @@ public class EnemyAI : AIBase
         if (alert != null) Destroy(alert.gameObject);
         if (autoEngage)
         {
-            ChangeRoutine(Alert(0));
+            ChangeRoutine(new AlertRoutine(0));
         }
         else
         {
-            ChangeRoutine(idleRoutine.Routine(this));
+            ChangeRoutine(idleRoutine);
         }
     }
-
-    IEnumerator DieRoutine()
+    public struct DieRoutine : IEnemyRoutine
     {
-        investigateOnSight = false;
-        searchOnEvent = false;
-        engageOnAttack = false;
+        public bool alertOnAttack => false;
 
-        foreach (var x in weaponGraphics.holdables)
-            x.RemoveHeld();
+        public bool searchOnEvent => false;
 
-        ragdoller.RagdollEnabled = true;
-        yield return new WaitForSeconds(4);
-        Destroy(gameObject);
+        public bool investigateOnSight => false;
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+        {
+
+            foreach (var x in enemyAI.weaponGraphics.holdables)
+                x.RemoveHeld();
+
+            enemyAI.ragdoller.RagdollEnabled = true;
+            yield return new WaitForSeconds(4);
+            Destroy(enemyAI.gameObject);
+        }
     }
 
     public int GetClosestWaypoint()
@@ -184,167 +201,211 @@ public class EnemyAI : AIBase
 
 
 
-
-    IEnumerator Investigate()
+    public struct InvestigateRoutine : IEnemyRoutine
     {
-        //Do not re-enter investigate
-        investigateOnSight = false;
-        engageOnAttack = true;
-        searchOnEvent = false;
-        if (alert == null || alert.gameObject == null)
-            alert = IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
+        public bool alertOnAttack => true;
 
-        alert.EnableInvestigate(true);
-        alert.EnableAlert(false);
+        public bool searchOnEvent => false;
 
-        float investProgress = 0;
-        //Try to look at the player long enough to alert
-        while (true)
+        public bool investigateOnSight => false;
+
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
         {
-            alert.SetInvestigation(investProgress);
+            //Do not re-enter investigate
+            if (enemyAI.alert == null || enemyAI.alert.gameObject == null)
+                enemyAI.alert = IndicatorsUIController.singleton.CreateAlertIndicator(enemyAI.transform, Vector3.up * enemyAI.height);
 
-            float visibility = ProportionBoundsVisible(playerCollider.bounds);
+            enemyAI.alert.EnableInvestigate(true);
+            enemyAI.alert.EnableAlert(false);
 
-            if (visibility != 0)
+            float investProgress = 0;
+            //Try to look at the player long enough to alert
+            while (true)
             {
-                //can see player
-                //Distance is the 0-1 scale where 0 is closestest visiable and 1 is furthest video
-                float playerDistance = Mathf.InverseLerp(clippingPlanes.x, clippingPlanes.y, Vector3.Distance(eye.position, playerCollider.transform.position));
-                //Invest the player slower if they are further away
-                investProgress += Time.deltaTime * investigateRateOverDistance.Evaluate(playerDistance) * visibility;
-            }
-            else
-            {
-                investProgress -= Time.deltaTime;
-            }
+                enemyAI.alert.SetInvestigation(investProgress);
 
+                float visibility = enemyAI.ProportionBoundsVisible(enemyAI.playerCollider.bounds);
 
-            if (investProgress < -0.5f)
-            {
-                //Cannot see player
-                StartBaseRoutine();
-
-                break;
-            }
-            else if (investProgress >= 1)
-            {
-                //Seen player
-                ChangeRoutine(Alert(1));
-                break;
-            }
-
-
-            yield return null;
-        }
-    }
-
-    IEnumerator Knockout()
-    {
-        ragdoller.RagdollEnabled = true;
-        yield return new WaitForSeconds(knockoutTime);
-        ragdoller.RagdollEnabled = false;
-    }
-
-    IEnumerator Alert(float waitTime)
-    {
-        lookingAtTarget = playerCollider.transform;
-
-        onPlayerDetected?.Invoke(this);
-
-
-        animationController.TriggerTransition(transitionSet.surprised);
-        yield return new WaitForSeconds(1);
-
-        if (weaponGraphics.holdables.melee.sheathed)
-            yield return DrawItem(ItemType.Melee);
-
-
-        //If alert is null create one
-        alert = alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(transform, Vector3.up * height);
-
-        alert.EnableInvestigate(false);
-        alert.EnableAlert(true);
-        yield return new WaitForSeconds(1);
-        //print("Alerted");
-        Destroy(alert.gameObject);
-        ChangeRoutine(EngagePlayer());
-    }
-
-    public void ForceEngage()
-    {
-        ChangeRoutine(Alert(0));
-    }
-
-
-    IEnumerator SearchForEvent(Vector3 eventPos)
-    {
-        investigateOnSight = true;
-        searchOnEvent = true;//Go to more recent events than this
-
-
-        /*
-        Investigate routine:
-            Go to close enough distance to event
-            Rotate to event
-            Wait there, looking around a bit
-            go back to what we were doing before
-        */
-
-        debugText.SetText("Searching");
-        yield return RotateTo(Quaternion.LookRotation(eventPos - transform.position), agent.angularSpeed);
-        debugText.SetText("Searching - looking");
-        yield return new WaitForSeconds(3);
-    }
-
-    IEnumerator EngagePlayer()
-    {
-        //Once they player has attacked or been seen, do not stop engageing until circumstances change
-        engageOnAttack = false;
-        investigateOnSight = false;
-        searchOnEvent = false;
-        agent.isStopped = true;
-
-        Vector3 directionToPlayer;
-        Health playerHealth = playerCollider.GetComponent<Health>();
-        bool movingToCatchPlayer = false;
-        lookingAtTarget = playerCollider.transform;
-        //Stop attacking the player after it has died
-        while (!playerHealth.dead)
-        {
-            directionToPlayer = playerCollider.transform.position - transform.position;
-            if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
-            {
-                if (!movingToCatchPlayer)
+                if (visibility != 0)
                 {
-                    movingToCatchPlayer = true;
-                    yield return new WaitForSeconds(0.1f);
+                    //can see player
+                    //Distance is the 0-1 scale where 0 is closestest visiable and 1 is furthest video
+                    float playerDistance = Mathf.InverseLerp(enemyAI.clippingPlanes.x, enemyAI.clippingPlanes.y, Vector3.Distance(enemyAI.eye.position, enemyAI.playerCollider.transform.position));
+                    //Invest the player slower if they are further away
+                    investProgress += Time.deltaTime * enemyAI.investigateRateOverDistance.Evaluate(playerDistance) * visibility;
+                }
+                else
+                {
+                    investProgress -= Time.deltaTime;
                 }
 
-                agent.Move(directionToPlayer.normalized * Time.deltaTime * agent.speed);
+
+                if (investProgress < -0.5f)
+                {
+                    //Cannot see player
+                    enemyAI.StartBaseRoutine();
+
+                    break;
+                }
+                else if (investProgress >= 1)
+                {
+                    //Seen player
+                    enemyAI.ChangeRoutine(new AlertRoutine(1));
+                    break;
+                }
+
+
+                yield return null;
             }
-            else if (movingToCatchPlayer)
-            {
-                movingToCatchPlayer = false;
-                //Small delay to adjust to stopped movement
-                yield return new WaitForSeconds(0.1f);
-            }
-            else
-            {
-                //Within sword range of player
-                //Swing sword
-                yield return SwingSword();
-            }
-
-            directionToPlayer.y = 0;
-            transform.forward = directionToPlayer;
-
-            //TODO: Test to see if the player is still in view
-
-
-            yield return null;
         }
-        //Once the player has died, return to normal routine to stop end looking janky
-        StartBaseRoutine();
+
+    }
+
+    public struct KnockoutRoutine : IEnemyRoutine
+    {
+        public bool alertOnAttack => false;
+
+        public bool searchOnEvent => false;
+
+        public bool investigateOnSight => false;
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+        {
+            enemyAI.ragdoller.RagdollEnabled = true;
+            yield return new WaitForSeconds(enemyAI.knockoutTime);
+            enemyAI.ragdoller.RagdollEnabled = false;
+        }
+    }
+
+
+    public struct AlertRoutine : IEnemyRoutine
+    {
+        public bool alertOnAttack => false;
+
+        public bool searchOnEvent => false;
+
+        public bool investigateOnSight => false;
+
+        public float waitTime;
+        public AlertRoutine(float waitTime)
+        {
+            this.waitTime = waitTime;
+        }
+
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+        {
+
+            enemyAI.lookingAtTarget = enemyAI.playerCollider.transform;
+
+            enemyAI.onPlayerDetected?.Invoke(enemyAI);
+
+
+            enemyAI.animationController.TriggerTransition(enemyAI.transitionSet.surprised);
+            yield return new WaitForSeconds(1);
+
+            if (enemyAI.weaponGraphics.holdables.melee.sheathed)
+                yield return enemyAI.DrawItem(ItemType.Melee);
+
+
+            //If alert is null create one
+            enemyAI.alert = enemyAI.alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(enemyAI.transform, Vector3.up * enemyAI.height);
+
+            enemyAI.alert.EnableInvestigate(false);
+            enemyAI.alert.EnableAlert(true);
+            yield return new WaitForSeconds(1);
+            //print("Alerted");
+            Destroy(enemyAI.alert.gameObject);
+            enemyAI.ChangeRoutine(new EngagePlayerRoutine());
+        }
+    }
+    public void ForceEngage()
+    {
+        ChangeRoutine(new AlertRoutine(0));
+    }
+
+    public struct SearchForEventRoutine : IEnemyRoutine
+    {
+        public bool alertOnAttack => true;
+
+        public bool searchOnEvent => true;
+
+        public bool investigateOnSight => true;
+        Vector3 eventPos;
+        public SearchForEventRoutine(Vector3 eventPos)
+        {
+            this.eventPos = eventPos;
+        }
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+        {
+
+            /*
+            Investigate routine:
+                Go to close enough distance to event
+                Rotate to event
+                Wait there, looking around a bit
+                go back to what we were doing before
+            */
+
+            enemyAI.debugText.SetText("Searching");
+            yield return enemyAI.RotateTo(Quaternion.LookRotation(eventPos - enemyAI.transform.position), enemyAI.agent.angularSpeed);
+            enemyAI.debugText.SetText("Searching - looking");
+            yield return new WaitForSeconds(3);
+        }
+    }
+    public struct EngagePlayerRoutine : IEnemyRoutine
+    {
+        public bool alertOnAttack => false;
+
+        public bool searchOnEvent => false;
+
+        public bool investigateOnSight => false;
+        IEnumerator IEnemyRoutine.Routine(EnemyAI enemy)
+        {
+            //Once they player has attacked or been seen, do not stop engageing until circumstances change
+            enemy.agent.isStopped = true;
+
+            Vector3 directionToPlayer;
+            Health playerHealth = enemy.playerCollider.GetComponent<Health>();
+            bool movingToCatchPlayer = false;
+            enemy.lookingAtTarget = enemy.playerCollider.transform;
+            //Stop attacking the player after it has died
+            while (!playerHealth.dead)
+            {
+                directionToPlayer = enemy.playerCollider.transform.position - enemy.transform.position;
+                if (enemy.approachPlayer && directionToPlayer.sqrMagnitude > enemy.sqrApproachDistance)
+                {
+                    if (!movingToCatchPlayer)
+                    {
+                        movingToCatchPlayer = true;
+                        yield return new WaitForSeconds(0.1f);
+                    }
+
+                    enemy.agent.Move(directionToPlayer.normalized * Time.deltaTime * enemy.agent.speed);
+                }
+                else if (movingToCatchPlayer)
+                {
+                    movingToCatchPlayer = false;
+                    //Small delay to adjust to stopped movement
+                    yield return new WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    //Within sword range of player
+                    //Swing sword
+                    yield return enemy.SwingSword();
+                }
+
+                directionToPlayer.y = 0;
+                enemy.transform.forward = directionToPlayer;
+
+                //TODO: Test to see if the player is still in view
+
+
+                yield return null;
+            }
+            //Once the player has died, return to normal routine to stop end looking janky
+            enemy.StartBaseRoutine();
+        }
+
     }
 
 
@@ -397,12 +458,6 @@ public class EnemyAI : AIBase
     public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
-    void ChangeRoutine(IEnumerator newRoutine)
-    {
-        if (currentRoutine != null)
-            StopCoroutine(currentRoutine);
-        currentRoutine = StartCoroutine(newRoutine);
-    }
 
     public bool CanSeeBounds(Bounds b)
     {
@@ -469,13 +524,13 @@ public class EnemyAI : AIBase
     private void Update()
     {
         //Test if the enemy can see the player at this point
-        if (investigateOnSight)
+        if (currentRoutineObject?.investigateOnSight ?? false)
         {
             var b = playerCollider.bounds;
             if (ProportionBoundsVisible(b) != 0)
             {
                 //can see the player, interrupt current routine
-                ChangeRoutine(Investigate());
+                ChangeRoutine(new InvestigateRoutine());
             }
         }
 

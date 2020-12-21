@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-
+using Armere.Inventory;
 public class CommandManager : ConsoleReceiver
 {
     public string[] startingCommands;

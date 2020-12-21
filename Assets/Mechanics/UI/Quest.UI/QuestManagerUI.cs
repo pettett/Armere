@@ -14,12 +14,13 @@ public class QuestManagerUI : MonoBehaviour
     private void OnEnable()
     {
         if (QuestManager.singleton != null)
-            for (int i = 0; i < QuestManager.singleton.quests.Count; i++)
+            for (int i = 0; i < QuestManager.quests.Count; i++)
             {
+                Debug.Log(i);
                 var b = Instantiate(questButtonPrefab, questButtonContent);
                 int index = i;
                 b.GetComponent<Button>().onClick.AddListener(() => ViewQuest(index, false));
-                b.GetComponentInChildren<TextMeshProUGUI>().text = QuestManager.singleton.quests[i].quest.title;
+                b.GetComponentInChildren<TextMeshProUGUI>().text = QuestManager.quests[i].quest.title;
             }
     }
 
@@ -33,8 +34,8 @@ public class QuestManagerUI : MonoBehaviour
 
     void ViewQuest(int i, bool completed)
     {
-        questTitle.text = QuestManager.singleton.quests[i].quest.title;
-        Quest.QuestStage stage = QuestManager.singleton.quests[i].quest.stages[QuestManager.singleton.quests[i].stage];
+        questTitle.text = QuestManager.quests[i].quest.title;
+        Quest.QuestStage stage = QuestManager.quests[i].quest.stages[QuestManager.quests[i].stage];
         questDescription.text = stage.description;
 
         questGoal.text = string.Format("Deliver <color=#{0}>{1}</color> <color=#{2}>{3}</color> to <color=#{4}>{5}</color>",

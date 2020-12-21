@@ -86,7 +86,7 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
         //Debug.Log(endX - startX);
         if (endX - startX == minCellGroupSize)
         {
-            return new QuadTreeEnd(chunks[startX, startY], center, rect.size / 2, 1, ref chunkID);
+            return new QuadTreeEnd(chunks[startX, startY], center, rect.size / 2, minCellGroupSize, ref chunkID);
         }
         //This square is too big, 
         if (endX - startX > maxCellGroupSize)
@@ -120,7 +120,7 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
             if (allChunk)
             {
                 //Region is full
-                return new QuadTreeEnd(true, center, rect.size / 2, (endX - startX) / minCellGroupSize, ref chunkID);
+                return new QuadTreeEnd(true, center, rect.size / 2, (endX - startX), ref chunkID);
             }
             else
             {
@@ -131,7 +131,7 @@ public class QuadTree : QuadTreeLeaf, IEnumerable<QuadTreeLeaf>
         {
             //Nothing in this region
 
-            return new QuadTreeEnd(false, center, rect.size / 2, (endX - startX) / minCellGroupSize, ref chunkID);
+            return new QuadTreeEnd(false, center, rect.size / 2, (endX - startX), ref chunkID);
         }
 
     }

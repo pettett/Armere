@@ -28,12 +28,24 @@ public class NPCSpawn : Spawner
         npc.InitNPC(template, this, conversationGroupTargetsOverride);
     }
 
+
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (Application.isPlaying) return;
-        //draw a version of the npc template's mesh
-        Gizmos.DrawCube(transform.position + Vector3.up * 0.9f, new Vector3(0.2f, 1.8f, 0.2f));
+        SkinnedMeshRenderer r = baseNPCReference.editorAsset.GetComponentInChildren<SkinnedMeshRenderer>();
+        Mesh m = r.sharedMesh;
+        var mats = r.sharedMaterials;
+
+        for (int i = 0; i < m.subMeshCount; i++)
+        {
+            //Graphics.DrawMesh(m, transform.position, transform.rotation, mats[i], 0);
+            Gizmos.color = mats[i].color;
+            Gizmos.DrawMesh(m, i, transform.position, transform.rotation, r.transform.lossyScale);
+        }
+
     }
+#endif
 
     public override async Task<SpawnableBody> Spawn()
     {

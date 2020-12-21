@@ -78,7 +78,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da3d45318f06fb4bbb26bc5431887d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultTrackingOffset: 1.7
+  defaultTrackingOffset: 1.8
   defaultRigOffset: 0
   cameraTargetXOffset: 0
   shoulderViewProfile: {fileID: 11400000, guid: 0575fd98fef026144a6841270b0496a6,

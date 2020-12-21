@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fcd9daec4939c341a38bc6de7357803, type: 3}
   m_Name: Patrol With Torch
   m_EditorClassIdentifier: 
-  patrolSpeed: 3.5
+  patrolSpeed: 1.3
   waitTime: 2
   holdWeaponDrawn: 1
   overrideHeldWeapon: 1
   holdingWeapon: 19
+  lightFlammableBody: 1

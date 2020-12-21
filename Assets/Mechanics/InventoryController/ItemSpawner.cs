@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using System.Threading.Tasks;
 using UnityEngine.Assertions;
-
+using Armere.Inventory;
 public class ItemSpawner : Spawner
 {
     public ItemName item;

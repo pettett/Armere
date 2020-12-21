@@ -27,6 +27,7 @@ SOFTWARE.
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Armere.Inventory;
 
 namespace Yarn.Unity
 {

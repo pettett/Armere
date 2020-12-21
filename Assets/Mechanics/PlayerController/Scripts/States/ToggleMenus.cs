@@ -12,8 +12,8 @@ namespace Armere.PlayerController
 
         public override string StateName => "Enter Menus";
 
-        bool inMenus;
-        bool inConsole;
+        [NonSerialized] bool inMenus;
+        [NonSerialized] bool inConsole;
 
 
         public override void Start()

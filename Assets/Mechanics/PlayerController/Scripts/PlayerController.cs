@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Armere.Inventory;
 namespace Armere.PlayerController
 {
 
@@ -33,7 +34,7 @@ namespace Armere.PlayerController
         {
             return new PlayerSaveData(this);
         }
-        public void RestoreSave(PlayerSaveData data)
+        public void OnSaveStateLoaded(PlayerSaveData data)
         {
             print("Restored state");
 
@@ -107,6 +108,10 @@ namespace Armere.PlayerController
 
         [Range(0, 1)]
         public float dynamicFriction = 0.2f;
+
+        [Header("Weapons")]
+        public float swordUseDelay = 0.4f;
+
         [Header("Water")]
         public float maxWaterStrideDepth = 1;
         [Range(0, 1), Tooltip("0 means no movement in water, 1 means full speed at full depth")]

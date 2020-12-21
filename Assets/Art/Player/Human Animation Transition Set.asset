@@ -13,87 +13,97 @@ MonoBehaviour:
   m_Name: Human Animation Transition Set
   m_EditorClassIdentifier: 
   swingSword:
-    name: Sword Slash
+    _name: Sword Slash
     duration: 0.05
     offset: 0.15
     layers: 1
+  backSwingSword:
+    _name: Sword Back Slash
+    duration: 0.22
+    offset: 0.56
+    layers: 1
   sheathSword:
-    name: Sheath Sword
+    _name: Sheath Sword
     duration: 0.05
     offset: 0.15
     layers: 2
   drawSword:
-    name: Draw Sword
+    _name: Draw Sword
     duration: 0.05
     offset: 0.05
     layers: 2
   swordWalking:
-    name: Sword Walking
+    _name: Sword Walking
     duration: 0.05
     offset: 0.05
     layers: 1
+  sword180:
+    _name: Sword 180
+    duration: 0.05
+    offset: 0
+    layers: 1
   bowWalking:
-    name: Strafing Movement
+    _name: Strafing Movement
     duration: 0.05
     offset: 0.05
     layers: 1
   freeMovement:
-    name: Free Movement
+    _name: Free Movement
     duration: 0.05
     offset: 0.05
     layers: 1
   startSitting:
-    name: Start Sit
+    _name: Start Sit
     duration: 0.05
     offset: 0.05
     layers: 1
   stopSitting:
-    name: Stop Sit
+    _name: Stop Sit
     duration: 0.05
     offset: 0.05
     layers: 1
   shieldRaise:
-    name: Raise Shield
+    _name: Raise Shield
     duration: 0.05
     offset: 0.05
     layers: 2
   shieldLower:
-    name: Lower Shield
+    _name: Lower Shield
     duration: 0.05
     offset: 0.05
     layers: 2
   shieldImpact:
-    name: Shield Impact
+    _name: Shield Impact
     duration: 0.08
     offset: 0.11
     layers: -1
   swordBackImpact:
-    name: Back Impact
+    _name: Back Impact
     duration: 0.05
     offset: 0.05
     layers: 1
   swordFrontImpact:
-    name: Front Impact
+    _name: Front Impact
     duration: 0.05
     offset: 0.05
     layers: 1
   ladderClimb:
-    name: Climbing Ladder
+    _name: Climbing Ladder
     duration: 0.05
     offset: 0.05
     layers: 1
   stepDownFromLadder:
-    name: Step Down Exit
+    _name: Step Down Exit
     duration: 0.05
     offset: 0.05
     layers: 1
   climbUpFromLadder:
-    name: Climb Up Exit
+    _name: Climb Up Exit
     duration: 0.05
     offset: 0.05
     layers: 1
   surprised:
-    name: Surprised
+    _name: Surprised
     duration: 0.05
     offset: 0.15
     layers: 1

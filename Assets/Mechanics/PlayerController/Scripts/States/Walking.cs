@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Armere.Inventory.UI;
+using Armere.Inventory;
 
 namespace Armere.PlayerController
 {
@@ -72,10 +74,10 @@ namespace Armere.PlayerController
         float bowCharge = 0;
         float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
 
-        EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
-        EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
-        EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
-
+        [NonSerialized] EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
+        [NonSerialized] EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
+        [NonSerialized] EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
+        bool backSwingSword = false;
         ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[currentSidearm].name] as ShieldItemData;
         bool SidearmIsShield => SidearmAsShield is ShieldItemData;
 
@@ -230,10 +232,10 @@ namespace Armere.PlayerController
                                     c.runner.Add(restPoint.dialogue);
                                     c.runner.StartDialogue("Start");
 
-                                    c.runner.AddCommandHandler("Morning", (_) => Debug.Log("Morning"));
-                                    c.runner.AddCommandHandler("Noon", (_) => Debug.Log("Noon"));
-                                    c.runner.AddCommandHandler("Night", (_) => Debug.Log("Night"));
-                                    c.runner.AddCommandHandler("None", (_) => Debug.Log("None"));
+                                    c.runner.AddCommandHandler("Morning", _ => Debug.Log("Morning"));
+                                    c.runner.AddCommandHandler("Noon", _ => Debug.Log("Noon"));
+                                    c.runner.AddCommandHandler("Night", _ => Debug.Log("Night"));
+                                    c.runner.AddCommandHandler("None", _ => Debug.Log("None"));
 
                                     Yarn.Unity.DialogueUI.singleton.onDialogueEnd.AddListener(() =>
                                    {
@@ -306,7 +308,7 @@ namespace Armere.PlayerController
             if (activated.melee == true)
             {
                 //Cancell the sword swing
-                RemoveWeaponTrigger();
+                RemoveWeaponTrigger(true);
             }
 
         }
@@ -416,10 +418,18 @@ namespace Armere.PlayerController
             {
                 Quaternion walkingAngle = Quaternion.LookRotation(playerDirection);
 
-                //If not forcing heading, rotate towards walking
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * 800);
 
-                if (Quaternion.Angle(transform.rotation, walkingAngle) > 30f)
+
+                float angle = Quaternion.Angle(transform.rotation, walkingAngle);
+                //Debug.Log(angle);
+                if (angle > 170 && c.rb.velocity.sqrMagnitude > 0.5f)
+                {
+                    //Perform a 180 manuever
+
+                    desiredVelocity = Vector3.zero;
+                    c.StartCoroutine(Perform180());
+                }
+                else if (angle > 30f)
                 {
                     //Only allow the player to walk forward if they have finished turning to the direction
                     //But do allow the player to run at a slight angle
@@ -438,6 +448,9 @@ namespace Armere.PlayerController
                     desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
                 }
 
+                //If not forcing heading, rotate towards walking
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * 800);
+
             }
             else
             {
@@ -445,7 +458,28 @@ namespace Armere.PlayerController
                 desiredVelocity = Vector3.zero;
             }
         }
+        IEnumerator Perform180()
+        {
+            c.animationController.TriggerTransition(c.transitionSet.sword180);
+            c.rb.velocity = Vector3.zero;
+            //c.animator.runtimeAnimatorController.animationClips
+            inControl = false;
+            c.animator.applyRootMotion = true;
+            yield return null;
 
+            yield return new WaitForSeconds(c.animator.GetNextAnimatorClipInfo(0)[0].clip.length / 2 - Time.deltaTime);
+
+            if (c.weaponGraphicsController.holdables.melee.sheathed)
+            {
+                c.animationController.TriggerTransition(c.transitionSet.freeMovement);
+            }
+
+            animator.SetFloat(c.animatorVariables.vertical.id, 1);
+            //transform.forward = -transform.forward;
+            c.animator.applyRootMotion = false;
+            inControl = true;
+
+        }
 
         public override void FixedUpdate()
         {
@@ -519,11 +553,25 @@ namespace Armere.PlayerController
 
             //List<ContactPoint> groundCPs = new List<ContactPoint>();
 
+            float speedScalar = 1;
+
+            //Test for water
+
+            if (c.currentWater != null)
+            {
+                MoveThroughWater(ref speedScalar);
+            }
+
+
+            float currentMovementSpeed = walkingSpeeds[walkingType];
+
+            GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
+
+
             if (grounded)
             {
-
                 //step up onto the stair, reseting the velocity to what it was
-                if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, playerDirection))
+                if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, desiredVelocity))
                 {
                     //transform.position += stepUpOffset;
                     //c.rb.velocity = lastVelocity;
@@ -538,14 +586,7 @@ namespace Armere.PlayerController
                     //c.ChangeToState<Freefalling>();
                 }
             }
-            float speedScalar = 1;
 
-            //Test for water
-
-            if (c.currentWater != null)
-            {
-                MoveThroughWater(ref speedScalar);
-            }
 
             //c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
             if (c.holdingCrouchKey)
@@ -570,9 +611,6 @@ namespace Armere.PlayerController
 
             c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
-            float currentMovementSpeed = walkingSpeeds[walkingType];
-
-            GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
 
             Vector3 requiredForce = desiredVelocity - c.rb.velocity;
             requiredForce.y = 0;
@@ -796,7 +834,7 @@ namespace Armere.PlayerController
 
         public override void OnAttack(InputActionPhase phase)
         {
-            if (!inControl) return;
+
 
             if (holdingBody) PlaceHoldable();
 
@@ -810,11 +848,16 @@ namespace Armere.PlayerController
                     }
                     else if (Usable(ItemType.Melee))
                     {
-                        SwingSword();
+                        SwingSword(false);
                     }
+
+                }
+                else if (activated.melee)
+                {
+                    backSwingSword = true;
                 }
             }
-            else if (weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
+            else if (inControl && weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
             {
                 if (phase == InputActionPhase.Started)
                 {
@@ -985,37 +1028,8 @@ namespace Armere.PlayerController
                 trigger.controller = gameObject;
             }
         }
-
-        void RemoveWeaponTrigger()
-        {
-            //Clean up the trigger detection of the sword
-            var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
-            trigger.enableTrigger = false;
-
-            c.onSwingStateChanged = null;
-            inControl = true;
-            activated.melee = false;
-
-            float time = 0.07f;
-            c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, c.animationController.bodyLookAtPositionWeight, 0, time));
-            c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, c.animationController.lookAtPositionWeight, 0, time));
-        }
-
-        IEnumerator LerpNumber(Action<float> update, float from, float to, float time)
-        {
-            float t = 0;
-            float invTime = 1 / time;
-            while (t < 1)
-            {
-                t += Time.deltaTime * invTime;
-                update(Mathf.Lerp(from, to, t));
-                yield return null;
-            }
-            update(to);
-        }
-
         //Play the animation and use triggers to swing the player's sword
-        void SwingSword()
+        void SwingSword(bool backSwing)
         {
             c.rb.velocity = Vector3.zero; //Stop the player moving
             inControl = false;
@@ -1028,7 +1042,7 @@ namespace Armere.PlayerController
             float bestDot = -1;
             IAttackable closest = null;
             //Linear search for most direct target
-            for (int i = 1; i < nearAttackables.nearObjects.Count; i++)
+            for (int i = 0; i < nearAttackables.nearObjects.Count; i++)
             {
                 Vector3 direction = nearAttackables.nearObjects[i].transform.TransformPoint(nearAttackables.nearObjects[i].offset) - transform.position - nearAttackables.scanCenterOffset;
                 direction.y = 0;
@@ -1053,19 +1067,72 @@ namespace Armere.PlayerController
                 c.animationController.headLookAtPositionWeight = 0;
 
             }
-
-
             //This is easier. Animation graphs suck
-            c.animationController.TriggerTransition(c.transitionSet.swingSword);
+            if (backSwing)
+            {
+                c.animationController.TriggerTransition(c.transitionSet.backSwingSword);
+            }
+            else
+            {
+
+                c.animationController.TriggerTransition(c.transitionSet.swingSword);
+            }
+
 
 
             c.onSwingStateChanged = (bool on) =>
             {
                 if (on) AddWeaponTrigger();
-                else RemoveWeaponTrigger();
+                else RemoveWeaponTrigger(backSwing);
             };
 
         }
+        void RemoveWeaponTrigger(bool wasBackSwing)
+        {
+            //Clean up the trigger detection of the sword
+            var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
+            trigger.enableTrigger = false;
+
+            if (backSwingSword && !wasBackSwing)
+            {
+                SwingSword(true);
+            }
+            else
+            {
+                //Transition back to normal movement
+                c.onSwingStateChanged = null;
+                c.StartCoroutine(SwordUseCooldown());
+            }
+
+            backSwingSword = false;
+        }
+        IEnumerator SwordUseCooldown()
+        {
+            yield return new WaitForSeconds(c.swordUseDelay);
+            inControl = true;
+            activated.melee = false;
+            //Go back to walking
+            c.animationController.TriggerTransition(c.transitionSet.swordWalking);
+
+            float time = 0.07f;
+            c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, c.animationController.bodyLookAtPositionWeight, 0, time));
+            c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, c.animationController.lookAtPositionWeight, 0, time));
+        }
+
+        IEnumerator LerpNumber(Action<float> update, float from, float to, float time)
+        {
+            float t = 0;
+            float invTime = 1 / time;
+            while (t < 1)
+            {
+                t += Time.deltaTime * invTime;
+                update(Mathf.Lerp(from, to, t));
+                yield return null;
+            }
+            update(to);
+        }
+
+
 
         public override void OnAltAttack(InputActionPhase phase)
         {

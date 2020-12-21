@@ -9,19 +9,55 @@ using System;
 
 public class GrassController : MonoBehaviour
 {
+    public readonly int ID_cameraPosition = Shader.PropertyToID("cameraPosition");
+    public readonly int ID_PusherPositions = Shader.PropertyToID("_PusherPositions");
+    public readonly int ID_chunkID = Shader.PropertyToID("chunkID");
+    public readonly int ID_seed = Shader.PropertyToID("seed");
+    public readonly int ID_grassDensityUVMinMax = Shader.PropertyToID("grassDensityUVMinMax");
+    public readonly int ID_grassPositionBoundsMinMax = Shader.PropertyToID("grassPositionBoundsMinMax");
+    public readonly int ID_Grass = Shader.PropertyToID("_Grass");
+    public readonly int ID_pushers = Shader.PropertyToID("pushers");
+    public readonly int ID_viewRadiusMinMax = Shader.PropertyToID("viewRadiusMinMax");
+    public readonly int ID_Output = Shader.PropertyToID("_Output");
+    public readonly int ID_Properties = Shader.PropertyToID("_Properties");
+    public readonly int ID_IndirectArgs = Shader.PropertyToID("_IndirectArgs");
+    public readonly int ID_grassSizeMinMax = Shader.PropertyToID("grassSizeMinMax");
+    public readonly int ID_densityLayer = Shader.PropertyToID("densityLayer");
+    public readonly int ID_dispatchSize = Shader.PropertyToID("dispatchSize");
+    public readonly int ID_Gradient = Shader.PropertyToID("_Gradient");
+    public readonly int ID_Density = Shader.PropertyToID("_Density");
+    public readonly int ID_Height = Shader.PropertyToID("_Height");
+    public readonly int ID_grassHeightScale = Shader.PropertyToID("grassHeightScale");
+    public readonly int ID_CulledGrass = Shader.PropertyToID("_CulledGrass");
+    public readonly int ID_boundsExtents = Shader.PropertyToID("boundsExtents");
+    public readonly int ID_boundsTransform = Shader.PropertyToID("boundsTransform");
+
+
+
     [System.Serializable]
     public class GrassLayer
     {
         public enum LayerType { Main, Detail }
         public bool enabled = true;
         public LayerType layerType;
-        public Vector3Int threadGroups = new Vector3Int(8, 1, 1);
-        [System.NonSerialized] public Vector3Int threadGroupSize;
-        [System.NonSerialized] public bool inited;
-        public int totalPopulation;
+        public Vector3Int threadGroups { get; private set; }
+        public bool inited { get; private set; }
         public int groupsOf8PerCellGroup = 3;
-        public int currentGrassCellCapacity; //Theretical max grass loaded currentley
-        public int maxBlades;
+        [SerializeField] int _currentGrassCellCapacityInView; //Theretical max grass loaded currentley
+        public bool hasBlades { get; private set; }
+        public int currentGrassCellCapacityInView
+        {
+            get => _currentGrassCellCapacityInView;
+            set
+            {
+                threadGroups = new Vector3Int(
+                    Mathf.CeilToInt(value / 64f), 1, 1
+                    );
+                hasBlades = value != 0;
+                _currentGrassCellCapacityInView = value;
+            }
+        }
+        [SerializeField] int maxBladesInView;
         public int splatMapLayer = 0;
         public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
         public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
@@ -71,22 +107,31 @@ public class GrassController : MonoBehaviour
         public void InitLayer(GrassController c, int index)
         {
             seed = Mathf.CeilToInt(c.range * 2 * index);
+            currentGrassCellCapacityInView = 0;
 
             drawIndirectArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 
-            meshPropertiesConsumeBuffer = new ComputeBuffer(totalPopulation, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
-            meshPropertiesAppendBuffer = new ComputeBuffer(totalPopulation, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
 
-            matrixesBuffer = new ComputeBuffer(totalPopulation, MatricesStruct.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
+            int greatestWidth = 1 << greatestCellGroupPower;
+
+            //FIXME: May be too low if view distance is multiple of greatest cell group size
+            int maxLoadedChunks = (int)(Mathf.Pow(Mathf.CeilToInt(c.viewRadius * 2 / greatestWidth), 2));
+            //Find number of biggest cells the view distance could see at one time
+            maxBladesInView = maxLoadedChunks * groupsOf8PerCellGroup * 8 * greatestWidth * greatestWidth;
+
+            //Make immutable because should never be touched by cpu processes?
+            meshPropertiesConsumeBuffer = new ComputeBuffer(maxBladesInView, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
+            meshPropertiesAppendBuffer = new ComputeBuffer(maxBladesInView, MeshProperties.size, ComputeBufferType.Append, ComputeBufferMode.Immutable);
+            matrixesBuffer = new ComputeBuffer(maxBladesInView, MatricesStruct.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
             //material.SetBuffer("_Properties", matrixesBuffer);
             block = new MaterialPropertyBlock();
             block.SetBuffer("_Properties", matrixesBuffer);
             block.SetTexture("_BaseMap", texture);
         }
-        public void SetDispatchSize(ComputeShader shader, CommandBuffer cmd)
+        public void SetDispatchSize(GrassController c, ComputeShader shader, CommandBuffer cmd)
         {
-            cmd.SetComputeIntParams(shader, "dispatchSize", threadGroups.x, threadGroups.y);
+            cmd.SetComputeIntParams(shader, c.ID_dispatchSize, threadGroups.x, threadGroups.y);
         }
         public void InitComputeShaders(GrassController c, CommandBuffer cmd)
         {
@@ -108,18 +153,18 @@ public class GrassController : MonoBehaviour
 
 
 
-            cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, "_Gradient", c.gradientTexture);
+            cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, c.ID_Gradient, c.gradientTexture);
 
             Texture2D grassDensity = c.terrain.terrainData.alphamapTextures[0];
 
-            cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, "_Density", grassDensity);
+            cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, c.ID_Density, grassDensity);
 
             if (c.terrain != null)
             {
                 RenderTexture grassHeight = c.terrain.terrainData.heightmapTexture;
 
-                cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, "_Height", c.terrain.terrainData.heightmapTexture);
-                cmd.SetComputeFloatParam(c.createGrassInBoundsCompute, "grassHeightScale", c.terrain.terrainData.heightmapScale.y / 128f);
+                cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, c.ID_Height, c.terrain.terrainData.heightmapTexture);
+                cmd.SetComputeFloatParam(c.createGrassInBoundsCompute, c.ID_grassHeightScale, c.terrain.terrainData.heightmapScale.y / 128f);
             }
 
             inited = true;
@@ -128,16 +173,15 @@ public class GrassController : MonoBehaviour
 
         public void OnCameraBeginRendering(GrassController c, CommandBuffer cmd)
         {
+
+
+
+
             bool grassChanged = false;
-            bool consumeChanged = false;
+
             while (localInstructions.Count != 0)
             {
-                localInstructions.Dequeue().Execute(c, this, cmd, ref grassChanged, ref consumeChanged);
-            }
-
-            if (consumeChanged)
-            {
-                UpdateConsumeBufferBindings(c, cmd);
+                localInstructions.Dequeue().Execute(c, this, cmd, ref grassChanged);
             }
 
             if (grassChanged)
@@ -146,36 +190,41 @@ public class GrassController : MonoBehaviour
                 cmd.CopyCounterValue(meshPropertiesConsumeBuffer, drawIndirectArgsBuffer, sizeof(uint));
             }
 
-            if (layerType == LayerType.Main)
-            {
-                cmd.SetComputeIntParam(c.compute, "pushers", c.pushersData.Length);
-            }
-            else
-            {
-                cmd.SetComputeIntParam(c.compute, "pushers", 0);
-            }
-
-            cmd.SetComputeBufferParam(c.compute, 0, "_Properties", meshPropertiesConsumeBuffer);
-            cmd.SetComputeBufferParam(c.compute, 0, "_Output", matrixesBuffer);
-            SetDispatchSize(c.compute, cmd);
-
             //Copies Properties -> Output with processing
-            cmd.DispatchCompute(c.compute, c.mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
+            if (hasBlades)
+            {
+                SetDispatchSize(c, c.compute, cmd);
+
+                if (layerType == LayerType.Main)
+                {
+                    cmd.SetComputeIntParam(c.compute, c.ID_pushers, c.pushersData.Length);
+                }
+                else
+                {
+                    cmd.SetComputeIntParam(c.compute, c.ID_pushers, 0);
+                }
+
+                cmd.SetComputeVectorParam(c.compute, c.ID_viewRadiusMinMax, new Vector4(c.viewRadius * viewRadiusScalar - 1, c.viewRadius * viewRadiusScalar));
+
+                cmd.SetComputeBufferParam(c.compute, 0, c.ID_Properties, meshPropertiesConsumeBuffer);
+                cmd.SetComputeBufferParam(c.compute, 0, c.ID_Output, matrixesBuffer);
+                cmd.DispatchCompute(c.compute, c.mainKernel, threadGroups.x, threadGroups.y, threadGroups.z);
+            }
         }
         public void DrawGrassLayer(GrassController c)
         {
 
             Rect playerVision = new Rect(
-                (GrassPusher.mainPusher.transform.position.x - c.transform.position.x - c.viewRadius * viewRadiusScalar) / (c.range * 2),
-                (GrassPusher.mainPusher.transform.position.z - c.transform.position.z - c.viewRadius * viewRadiusScalar) / (c.range * 2),
-                c.viewRadius * viewRadiusScalar * 2f / c.range,
-                c.viewRadius * viewRadiusScalar * 2f / c.range);
+                (c.mainCamera.transform.position.x - c.transform.position.x - c.viewRadius * viewRadiusScalar) / (c.range * 2),
+                (c.mainCamera.transform.position.z - c.transform.position.z - c.viewRadius * viewRadiusScalar) / (c.range * 2),
+                c.viewRadius * viewRadiusScalar / c.range,
+                c.viewRadius * viewRadiusScalar / c.range);
 
 
-            var chunksInView = chunkTree.GetLeavesInRect(playerVision).ToArray();
+            var chunksInView = chunkTree.GetLeavesInRect(playerVision).Where(x => x.enabled).ToArray();
 
-            IEnumerable<QuadTreeEnd> addedChunks = chunksInView.Except(endsInRange);
-            IEnumerable<QuadTreeEnd> removedChunks = endsInRange.Except(chunksInView);
+            IEnumerable<QuadTreeEnd> addedChunks = chunksInView.Except(endsInRange);//Only try to add if chunk is enabled
+            IEnumerable<QuadTreeEnd> removedChunks = endsInRange.Except(chunksInView);//Only try to remove if chunk is enabled
 
             foreach (var chunk in removedChunks)
             {
@@ -184,7 +233,6 @@ public class GrassController : MonoBehaviour
             }
             foreach (var chunk in addedChunks)
             {
-
                 localInstructions.Enqueue(new CreateGrassInstruction(chunk.id, chunk.rect,
                         chunk.cellsWidth * chunk.cellsWidth));
             }
@@ -192,7 +240,7 @@ public class GrassController : MonoBehaviour
             endsInRange = chunksInView;
 
 
-            if (inited)
+            if (inited && hasBlades)
             {
                 Graphics.DrawMeshInstancedIndirect(
                     mesh, 0, c.material, c.bounds, drawIndirectArgsBuffer,
@@ -200,27 +248,6 @@ public class GrassController : MonoBehaviour
             }
         }
 
-        public void UpdateThreadGroupSizes(GrassController c)
-        {
-            c.compute.GetKernelThreadGroupSizes(0, out uint x, out uint y, out uint z);
-            threadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
-            totalPopulation = threadGroups.x * threadGroups.y * threadGroups.z * (int)x * (int)y * (int)z;
-
-            int greatestWidth = 1 << greatestCellGroupPower;
-
-            //FIXME: May be too low if view distance is multiple of greatest cell group size
-            //Find number of biggest cells the view distance could see at one time
-            maxBlades = (int)(Mathf.Pow(Mathf.CeilToInt(c.viewRadius * 2 / greatestWidth), 2)) * groupsOf8PerCellGroup * greatestWidth * greatestWidth;
-
-        }
-
-        public void UpdateConsumeBufferBindings(GrassController c, CommandBuffer cmd)
-        {
-            //Update the main grass with the new append buffer
-            cmd.SetComputeBufferParam(c.compute, 0, "_Properties", meshPropertiesConsumeBuffer);
-            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_Grass", meshPropertiesConsumeBuffer);
-
-        }
         public void DisposeBuffers()
         {
             DisposeBuffer(ref meshPropertiesConsumeBuffer);
@@ -276,7 +303,7 @@ public class GrassController : MonoBehaviour
 
     public interface GrassInstruction
     {
-        void Execute(GrassController controller, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged, ref bool consumeBufferChanged);
+        void Execute(GrassController controller, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged);
     }
 
     public readonly struct CreateGrassInstruction : GrassInstruction
@@ -291,42 +318,37 @@ public class GrassController : MonoBehaviour
             this.cellsArea = cells;
         }
 
-        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged, ref bool consumeBufferChanged)
+        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged)
         {
-            if (consumeBufferChanged)
-            {
-                layer.UpdateConsumeBufferBindings(c, cmd);
-                consumeBufferChanged = false;
-            }
 
             //These passes could be done once
-            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassDensityUVMinMax",
+            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, c.ID_grassDensityUVMinMax,
                 new Vector4(textureRect.min.x, textureRect.min.y, textureRect.max.x, textureRect.max.y));
 
-            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassPositionBoundsMinMax",
+            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, c.ID_grassPositionBoundsMinMax,
                 new Vector4(
                     textureRect.min.x * c.range * 2 - c.range,
                     textureRect.min.y * c.range * 2 - c.range,
                     textureRect.max.x * c.range * 2 - c.range,
                     textureRect.max.y * c.range * 2 - c.range));
 
-            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_Grass", layer.meshPropertiesConsumeBuffer);
+            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, c.ID_Grass, layer.meshPropertiesConsumeBuffer);
 
-            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, "_IndirectArgs", layer.drawIndirectArgsBuffer);
+            cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, c.ID_IndirectArgs, layer.drawIndirectArgsBuffer);
 
-            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "grassSizeMinMax",
+            cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, c.ID_grassSizeMinMax,
                 new Vector4(layer.quadWidthRange.x, layer.quadHeightRange.x, layer.quadWidthRange.y, layer.quadHeightRange.y));
 
-            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, "chunkID", chunkID);
-            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, "seed", layer.seed);
-            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, "densityLayer", layer.splatMapLayer);
+            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, c.ID_chunkID, chunkID);
+            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, c.ID_seed, layer.seed);
+            cmd.SetComputeIntParam(c.createGrassInBoundsCompute, c.ID_densityLayer, layer.splatMapLayer);
 
             int dispatch = cellsArea * layer.groupsOf8PerCellGroup;
 
             cmd.DispatchCompute(c.createGrassInBoundsCompute, 0, dispatch, 1, 1);
 
             //Only the max amount - rejection sampling makes this lower
-            layer.currentGrassCellCapacity += dispatch * 8;
+            layer.currentGrassCellCapacityInView += cellsArea * layer.groupsOf8PerCellGroup * 8;
             //Update the sizes
             //cmd.SetComputeBufferData(c.drawIndirectArgsBuffer, new uint[] { (uint)c.currentGrassCellCapacity }, 0, 1, 1);
 
@@ -344,8 +366,14 @@ public class GrassController : MonoBehaviour
             this.rotation = rotation;
         }
 
-        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged, ref bool consumeBufferChanged)
+        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged)
         {
+            if (!layer.hasBlades)
+            {
+                //No blades - nothing to try to destroy
+                return;
+            }
+
             grassCountChanged = true;
             if (grassCountChanged)
             {
@@ -353,18 +381,17 @@ public class GrassController : MonoBehaviour
                 cmd.CopyCounterValue(layer.meshPropertiesConsumeBuffer, layer.drawIndirectArgsBuffer, sizeof(uint));
             }
 
-            consumeBufferChanged = true;
 
-            layer.SetDispatchSize(c.destroyGrassInBounds, cmd);
+            layer.SetDispatchSize(c, c.destroyGrassInBounds, cmd);
 
             //Send the data needed and destroy grass
-            cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsTransform",
+            cmd.SetComputeVectorParam(c.destroyGrassInBounds, c.ID_boundsTransform,
                 new Vector4(bounds.center.x - c.bounds.center.x,
                             bounds.center.y - c.bounds.center.y,
                             bounds.center.z - c.bounds.center.z,
                             rotation));
 
-            cmd.SetComputeVectorParam(c.destroyGrassInBounds, "boundsExtents", bounds.extents);
+            cmd.SetComputeVectorParam(c.destroyGrassInBounds, c.ID_boundsExtents, bounds.extents);
 
 
 
@@ -379,9 +406,9 @@ public class GrassController : MonoBehaviour
             // destroyGrass.SetVector("boundsMin", killingBounds.min - transform.position);
             // destroyGrass.SetVector("boundsMax", killingBounds.max - transform.position);
 
-            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, "_Grass", layer.meshPropertiesConsumeBuffer);
-            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, "_CulledGrass", layer.meshPropertiesAppendBuffer);
-            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, "_ArgsData", layer.drawIndirectArgsBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, c.ID_Grass, layer.meshPropertiesConsumeBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, c.ID_CulledGrass, layer.meshPropertiesAppendBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, c.ID_IndirectArgs, layer.drawIndirectArgsBuffer);
 
 
             cmd.DispatchCompute(c.destroyGrassInBounds, 0, layer.threadGroups.x, layer.threadGroups.y, layer.threadGroups.z);
@@ -404,9 +431,13 @@ public class GrassController : MonoBehaviour
             this.chunkArea = area;
         }
 
-        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged, ref bool consumeBufferChanged)
+        public void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd, ref bool grassCountChanged)
         {
-
+            if (!layer.hasBlades)
+            {
+                //No blades - nothing to try to destroy
+                return;
+            }
 
             if (grassCountChanged)
             {
@@ -416,13 +447,13 @@ public class GrassController : MonoBehaviour
 
 
             grassCountChanged = true;
-            consumeBufferChanged = true;
 
 
-            layer.SetDispatchSize(c.destroyGrassInChunk, cmd);
+
+            layer.SetDispatchSize(c, c.destroyGrassInChunk, cmd);
             //Send the data needed and destroy grass
 
-            cmd.SetComputeIntParam(c.destroyGrassInChunk, "chunkID", chunkID);
+            cmd.SetComputeIntParam(c.destroyGrassInChunk, c.ID_chunkID, chunkID);
 
             //dispatch a compute shader that will take in buffer of all mesh data
             //And return an append buffer of mesh data remaining
@@ -434,13 +465,13 @@ public class GrassController : MonoBehaviour
             // destroyGrass.SetVector("boundsMin", killingBounds.min - transform.position);
             // destroyGrass.SetVector("boundsMax", killingBounds.max - transform.position);
 
-            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, "_Grass", layer.meshPropertiesConsumeBuffer);
-            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, "_CulledGrass", layer.meshPropertiesAppendBuffer);
-            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, "_ArgsData", layer.drawIndirectArgsBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, c.ID_Grass, layer.meshPropertiesConsumeBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, c.ID_CulledGrass, layer.meshPropertiesAppendBuffer);
+            cmd.SetComputeBufferParam(c.destroyGrassInChunk, 0, c.ID_IndirectArgs, layer.drawIndirectArgsBuffer);
 
             cmd.DispatchCompute(c.destroyGrassInChunk, 0, layer.threadGroups.x, layer.threadGroups.y, layer.threadGroups.z);
 
-            layer.currentGrassCellCapacity -= chunkArea * layer.groupsOf8PerCellGroup * 8;
+            layer.currentGrassCellCapacityInView -= chunkArea * layer.groupsOf8PerCellGroup * 8;
 
             //Swap the buffers around
             (layer.meshPropertiesConsumeBuffer, layer.meshPropertiesAppendBuffer) = (layer.meshPropertiesAppendBuffer, layer.meshPropertiesConsumeBuffer);
@@ -484,7 +515,6 @@ public class GrassController : MonoBehaviour
         //int frustumKernel = frustumCuller.FindKernel("CSMain");
         for (int i = 0; i < layers.Length; i++)
         {
-            layers[i].UpdateThreadGroupSizes(this);
             layers[i].InitLayer(this, i);
         }
 
@@ -530,9 +560,12 @@ public class GrassController : MonoBehaviour
 
             //Set common variables for movement
 
-            cmd.SetComputeVectorArrayParam(compute, "_PusherPositions", pushersData);
+            cmd.SetComputeVectorArrayParam(compute, ID_PusherPositions, pushersData);
+
+            cmd.SetComputeVectorParam(compute, ID_cameraPosition, mainCamera.transform.position - bounds.center);
 
             int maxInstructionIterations = 8;
+
 
             List<GrassInstruction> instructionsThisFrame = new List<GrassInstruction>(Mathf.Min(grassInstructions.Count, maxInstructionIterations));
             while (grassInstructions.Count != 0 && maxInstructionIterations > 0)
@@ -551,31 +584,28 @@ public class GrassController : MonoBehaviour
                 }
                 else if (layers[i].enabled)
                 {
-
-                    bool grassCountChanged = false;
-                    bool consumeBufferChanged = false;
-
-                    //Execute all the commands queued from the last frame
-
-
-                    //Execute global instructions
-                    for (int ii = 0; ii < instructionsThisFrame.Count; ii++)
+                    if (layers[i].layerType == GrassLayer.LayerType.Main)
                     {
-                        instructionsThisFrame[ii].Execute(this, layers[i], cmd, ref grassCountChanged, ref consumeBufferChanged);
-                    }
-                    //Execute local instructions
+                        //Only apply global commands to main layers
+                        bool grassCountChanged = false;
 
-                    if (consumeBufferChanged)
-                    {
-                        layers[i].UpdateConsumeBufferBindings(this, cmd);
-                    }
+                        //Execute all the commands queued from the last frame
 
-                    if (grassCountChanged)
-                    {
-                        //Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
-                        cmd.CopyCounterValue(layers[i].meshPropertiesConsumeBuffer, layers[i].drawIndirectArgsBuffer, sizeof(uint));
-                    }
 
+                        //Execute global instructions
+                        for (int ii = 0; ii < instructionsThisFrame.Count; ii++)
+                        {
+                            instructionsThisFrame[ii].Execute(this, layers[i], cmd, ref grassCountChanged);
+                        }
+                        //Execute local instructions
+
+
+                        if (grassCountChanged)
+                        {
+                            //Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
+                            cmd.CopyCounterValue(layers[i].meshPropertiesConsumeBuffer, layers[i].drawIndirectArgsBuffer, sizeof(uint));
+                        }
+                    }
                     layers[i].OnCameraBeginRendering(this, cmd);
 
 
@@ -684,7 +714,7 @@ public class GrassController : MonoBehaviour
             for (int i = 0; i < pushers.Count; i++)
             {
                 pushingQueue[i].data = pushers[i].Data;
-                pushingQueue[i].priority = Vector3.SqrMagnitude(pushers[i].transform.position - GrassPusher.mainPusher.transform.position);
+                pushingQueue[i].priority = Vector3.SqrMagnitude(pushers[i].transform.position - mainCamera.transform.position);
             }
             //Order by distance to main pusher
             pushingQueue.OrderBy(x => x.priority);
@@ -791,21 +821,26 @@ public class GrassController : MonoBehaviour
         Gizmos.matrix = mat;
         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
 
-        Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * range * 2);
+
 
 
 
         // UpdateChunkTree();
         if (Application.isPlaying)
         {
+            Gizmos.matrix = Matrix4x4.identity;
+            Gizmos.DrawWireSphere(mainCamera.transform.position, viewRadius);
+            Gizmos.matrix = Matrix4x4.TRS(transform.position + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * range * 2);
             for (int i = 0; i < layers.Length; i++)
             {
                 foreach (var item in layers[i].endsInRange)
                 {
+
                     item.DrawGizmos();
                 }
+
             }
-            Gizmos.DrawWireSphere(GrassPusher.mainPusher.transform.position, viewRadius);
+
         }
     }
 }

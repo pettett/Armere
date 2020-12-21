@@ -5,63 +5,66 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.AddressableAssets;
-public class NewItemPrompt : MonoBehaviour
+namespace Armere.Inventory.UI
 {
-    public static NewItemPrompt singleton;
-    public GameObject holder;
-    public ItemDatabase db;
-    public Image thumbnail;
-    public TextMeshProUGUI title;
-    public TextMeshProUGUI description;
-
-    public async void ShowPrompt(ItemName item, uint count, System.Action onPromptRemoved)
+    public class NewItemPrompt : MonoBehaviour
     {
-        if (count == 0)
+        public static NewItemPrompt singleton;
+        public GameObject holder;
+        public ItemDatabase db;
+        public Image thumbnail;
+        public TextMeshProUGUI title;
+        public TextMeshProUGUI description;
+
+        public async void ShowPrompt(ItemName item, uint count, System.Action onPromptRemoved)
         {
-            Debug.LogWarning("Giving prompt for 0 items!");
-            return;
+            if (count == 0)
+            {
+                Debug.LogWarning("Giving prompt for 0 items!");
+                return;
+            }
+
+            holder.SetActive(true);
+
+            if (count == 1)
+                title.text = db[item].name;
+            else //Tell the player how many items they are getting
+                title.text = string.Format("{0} x{1}", db[item].name, count);
+
+            description.text = db[item].description;
+
+
+
+            InventoryController.AddItem(item, count, true);
+
+            thumbnail.sprite = await db[item].displaySprite.LoadAssetAsync().Task;
+
+            StartCoroutine(WaitForClosePrompt(onPromptRemoved));
         }
-
-        holder.SetActive(true);
-
-        if (count == 1)
-            title.text = db[item].name;
-        else //Tell the player how many items they are getting
-            title.text = string.Format("{0} x{1}", db[item].name, count);
-
-        description.text = db[item].description;
-
-
-
-        InventoryController.AddItem(item, count, true);
-
-        thumbnail.sprite = await db[item].displaySprite.LoadAssetAsync().Task;
-
-        StartCoroutine(WaitForClosePrompt(onPromptRemoved));
-    }
-    IEnumerator WaitForClosePrompt(System.Action onPromptRemoved)
-    {
-        //force show the prompt for a short time
-        yield return new WaitForSecondsRealtime(1);
-        //then wait for user to remove it
-
-
-        var continueAction = new InputAction(binding: "/*/<button>");
-
-        continueAction.performed += (context) =>
+        IEnumerator WaitForClosePrompt(System.Action onPromptRemoved)
         {
-            //Remove the prompt
-            Addressables.Release(thumbnail.sprite);
-            continueAction.Dispose();
-            holder.SetActive(false);
-            onPromptRemoved?.Invoke();
-        };
-        continueAction.Enable();
+            //force show the prompt for a short time
+            yield return new WaitForSecondsRealtime(1);
+            //then wait for user to remove it
 
-    }
-    private void Start()
-    {
-        holder.SetActive(false);
-        singleton = this;
+
+            var continueAction = new InputAction(binding: "/*/<button>");
+
+            continueAction.performed += (context) =>
+            {
+                //Remove the prompt
+                Addressables.Release(thumbnail.sprite);
+                continueAction.Dispose();
+                holder.SetActive(false);
+                onPromptRemoved?.Invoke();
+            };
+            continueAction.Enable();
+
+        }
+        private void Start()
+        {
+            holder.SetActive(false);
+            singleton = this;
+        }
     }
 }

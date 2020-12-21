@@ -197,6 +197,7 @@ MonoBehaviour:
   baseNPCReference:
     m_AssetGUID: ad9e2e1f5f67b1044993dae521cb27ce
     m_SubObjectName: 
+    m_SubObjectType: 
   conversationGroupTargetsOverride: []
   focusPoints: []
   walkingPoints:

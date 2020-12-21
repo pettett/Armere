@@ -17,20 +17,19 @@ MonoBehaviour:
   displaySprite:
     m_AssetGUID: 
     m_SubObjectName: 
+    m_SubObjectType: 
   displayName: Basic Shield
   description: The most basic Shield. Be carefull around fire
   sellable: 1
   sellValue: 25
-  staticPickup: 0
-  spawnedGameobject:
-    m_AssetGUID: 628b35708d1b48849ae6ee2b707ee8f1
+  gameObject:
+    m_AssetGUID: fee3c34d8fcfb35429d190379295dc75
     m_SubObjectName: 
-  worldObjectData:
-    m_AssetGUID: 2cc9bdf09aff63e4397235a8552c210e
-    m_SubObjectName: 
+    m_SubObjectType: 
   clankProbability: 0.7
   clankSet: {fileID: 0}
-  holdableWorldObjectData:
-    m_AssetGUID: 90d99b217b4074942bfaecf6ccaafe4d
+  holdableGameObject:
+    m_AssetGUID: f78a5f0710017644d9b10e742a3cece4
     m_SubObjectName: 
+    m_SubObjectType: 
   minBlockingDot: 0.2

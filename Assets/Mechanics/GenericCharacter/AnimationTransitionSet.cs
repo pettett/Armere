@@ -6,12 +6,15 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Animation Transition Set", menuName = "Game/Animation Transition Set", order = 0)]
 public class AnimationTransitionSet : ScriptableObject
 {
-
+    [Header("Swords")]
     public AnimationTransition swingSword = new AnimationTransition("Sword Slash", 0.05f, 0.15f, Layers.BaseLayer);
+    public AnimationTransition backSwingSword = new AnimationTransition("Sword Back Slash", 0.05f, 0.15f, Layers.BaseLayer);
     public AnimationTransition sheathSword = new AnimationTransition("Sheath Sword", 0.05f, 0.15f, Layers.UpperBody);
     public AnimationTransition drawSword = new AnimationTransition("Draw Sword", 0.05f, 0.05f, Layers.UpperBody);
 
     public AnimationTransition swordWalking = new AnimationTransition("Sword Walking", 0.05f, 0.05f, Layers.BaseLayer);
+    public AnimationTransition sword180 = new AnimationTransition("Sword 180", 0.05f, 0.05f, Layers.BaseLayer);
+    [Header("Movement")]
     public AnimationTransition bowWalking = new AnimationTransition("Strafing Movement", 0.05f, 0.05f, Layers.BaseLayer);
 
 

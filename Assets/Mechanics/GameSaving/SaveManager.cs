@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Profiling;
+using Armere.Inventory;
 
 public class SaveManager : MonoBehaviour
 {
@@ -54,6 +55,8 @@ public class SaveManager : MonoBehaviour
         InventoryController.InventorySave inventory;
         Armere.PlayerController.PlayerController.PlayerSaveData player;
         NPCManager.NPCSaveData npc;
+        QuestManager.QuestBook quests;
+
         //TODO: Save Quest data
 
         public void GatherSaveData()
@@ -62,12 +65,22 @@ public class SaveManager : MonoBehaviour
             inventory = InventoryController.singleton.CreateSave();
             npc = NPCManager.singleton.data;
             player = Armere.PlayerController.PlayerController.activePlayerController.CreateSaveData();
+            quests = QuestManager.singleton.questBook;
+        }
+
+        public void CreateEmptySave()
+        {
+            level = LevelController.currentLevel;
+            inventory = new InventoryController.InventorySave();
+            npc = NPCManager.singleton.data;
+            quests = QuestManager.singleton.questBook;
+
+
         }
 
         public void RestoreGameState()
         {
             LevelController.ChangeToLevel(level, OnSceneLoaded);
-
         }
 
         void OnSceneLoaded(Scene scene, LoadSceneMode loadMode)
@@ -75,10 +88,17 @@ public class SaveManager : MonoBehaviour
             //attempt to retore all the saveables
             print("Loaded save");
 
+            ActivateSaveReceivers();
 
-            InventoryController.singleton.RestoreSave(inventory);
-            Armere.PlayerController.PlayerController.activePlayerController.RestoreSave(player);
+        }
+        public void ActivateSaveReceivers()
+        {
+            InventoryController.singleton.OnSaveStateLoaded(inventory);
+            QuestManager.singleton.OnSaveStateLoaded(quests);
             NPCManager.singleton.data = npc;
+
+            if (player.parallels != null)
+                Armere.PlayerController.PlayerController.activePlayerController.OnSaveStateLoaded(player);
 
             //TODO: Reset all addressable assets and stuff
 
@@ -133,6 +153,8 @@ public class SaveManager : MonoBehaviour
 
     [System.NonSerialized] public SaveState currentSaveState = null;
 
+
+
     private void Start()
     {
         if (singleton != null)
@@ -144,11 +166,16 @@ public class SaveManager : MonoBehaviour
         singleton = this;
         DontDestroyOnLoad(this);
 
+        print("Creating first save state");
+
+        currentSaveState = new SaveState();
+        currentSaveState.CreateEmptySave();
+        currentSaveState.ActivateSaveReceivers();
+
+
         lastSave = Time.realtimeSinceStartup - 5;
         quicksaveAction.performed += OnQuicksave;
         quicksaveAction.Enable();
-        print("Creating first save state");
-        currentSaveState = new SaveState();
     }
 
     public void OnQuicksave(InputAction.CallbackContext c)

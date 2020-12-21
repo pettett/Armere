@@ -14,18 +14,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dialogue: {fileID: 2480198943629176163, guid: 872d84ad1b84d6f4f806aff8ed9eb954,
     type: 3}
-  quests: []
   defaultValues:
   - name: swords
     value: 500
     type: 0
-  buyMenuItems: []
-  routine:
-  - endTime: 6
-    activity: 0
-    location: hhhhhhh
-    conversationStartNode: Sleep
-  - endTime: 20
-    activity: 0
-    location: Here
-    conversationStartNode: Start
+  buyMenuItems:
+  - item: 19
+    count: 1
+    stock: 2
+    cost: 25
+  - item: 9
+    count: 1
+    stock: 2
+    cost: 75
+  routines:
+  - activateOnQuestComplete: 
+    stages:
+    - endTime: 0
+      activity: 0
+      animation: 0
+      location: 
+      conversationStartNode: Start

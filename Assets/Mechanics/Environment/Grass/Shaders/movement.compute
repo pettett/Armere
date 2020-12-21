@@ -5,10 +5,12 @@
 
 cbuffer CB{
     float4 _PusherPositions[10];
+
     float3 cameraPosition;
     float deltatime;
+
     float time;
-    float2 viewRangeMinMax;
+    float2 viewRadiusMinMax;
 
     int pushers;
     int2 dispatchSize;
@@ -142,13 +144,17 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     // Apply translation to existing matrix, which will be read in the shader.
 
     float2 size = properties.size;
+    float distance = length(properties.position.xyz - cameraPosition);
+    float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
 
-   // size.y *= smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
+    size.y *= view;
+    //If over the threshold completely disappear it
+    size.x *= 1 - step(viewRadiusMinMax.y,distance);
 
-    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(p.size)));
+    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
     _Output[index].color = p.color;
 
-    //_Output[index].color.b = smoothstep(viewRangeMinMax.y,viewRangeMinMax.x,length(properties.position.xyz - cameraPosition));
+    //_Output[index].color = view;
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.
     float4x4 rotation = float4x4(

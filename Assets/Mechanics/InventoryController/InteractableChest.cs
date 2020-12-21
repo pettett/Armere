@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Armere.Inventory.UI;
 public class InteractableChest : ItemSpawnable, IInteractable
 {
 

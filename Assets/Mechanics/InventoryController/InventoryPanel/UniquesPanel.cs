@@ -3,25 +3,26 @@ using System.Collections.Generic;
 
 namespace Armere.Inventory
 {
-    public class UniquesPanel : InventoryPanel
+    [System.Serializable]
+    public class UniquesPanel<UniqueT> : InventoryPanel where UniqueT : ItemStackBase
     {
 
-        public List<ItemStackBase> items;
+        public List<UniqueT> items;
 
         public UniquesPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options) : base(name, limit, type, options)
         {
             //items = new List<ItemStackBase>(limit > 20 ? 20 : (int)limit);
         }
 
-        public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value; }
+        public override ItemStackBase this[int i] { get => items[i]; set => items[i] = (UniqueT)value; }
 
         public override int stackCount => items.Count;
 
-        public override bool AddItem(ItemName name, uint count)
+        public bool AddItem(ItemName name)
         {
             if (items.Count < limit)
             {
-                items.Add(new ItemStackBase(name));
+                items.Add((UniqueT)System.Activator.CreateInstance(typeof(UniqueT), name));
                 OnPanelUpdated();
                 return true;
             }
@@ -31,12 +32,23 @@ namespace Armere.Inventory
             }
         }
 
+        public override int AddItem(ItemName name, uint count)
+        {
+            //Add every item until no more can be
+            for (int i = 0; i < count; i++)
+            {
+                if (!AddItem(name)) return -1;
+            }
+
+            return items.Count - 1;
+        }
+
         public override bool AddItem(int index, uint count)
         {
             return false; //cannot add item at index as no stacking
         }
 
-        public override ItemName ItemAt(int index) => items[index].name;
+        public override ItemStackBase ItemAt(int index) => items[index];
 
 
         public override uint ItemCount(ItemName item)

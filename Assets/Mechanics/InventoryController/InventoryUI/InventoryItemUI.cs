@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+
 namespace Armere.Inventory.UI
 {
     public class InventoryItemUI : MonoBehaviour
@@ -23,30 +24,40 @@ namespace Armere.Inventory.UI
 
             itemIndex = newIndex;
             if (itemIndex != -1)
-                SetupItemAsync(InventoryController.singleton.db[InventoryController.ItemAt(itemIndex, type)]);
+                SetupItemAsync(InventoryController.ItemAt(itemIndex, type));
         }
 
-        public async void SetupItemAsync(ItemData item)
+        public async void SetupItemAsync(ItemStackBase item)
         {
-            type = item.type;
+            ItemData data = InventoryController.singleton.db[item.name];
+            type = data.type;
 
-            switch (item)
+            switch (data)
             {
                 case MeleeWeaponItemData melee:
                     infoText?.SetText(melee.damage.ToString());
                     if (countText != null) countText.enabled = false;
+
+                    break;
+                default:
+                    if (infoText != null)
+                        Destroy(infoText.transform.parent.gameObject);
+
                     break;
             }
-            nameText?.SetText(item.displayName);
 
-            if (item.displaySprite.RuntimeKeyIsValid())
+            if (data.displaySprite.RuntimeKeyIsValid())
             {
-                asyncOperation = Addressables.LoadAssetAsync<Sprite>(item.displaySprite);
-
+                asyncOperation = Addressables.LoadAssetAsync<Sprite>(data.displaySprite);
                 Sprite s = await asyncOperation.Task;
                 //The image may have been destroyed before finishing
                 if (thumbnail != null) thumbnail.sprite = s;
             }
+            nameText?.SetText(data.displayName);
+
+
+
+
         }
 
 

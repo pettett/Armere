@@ -12,7 +12,6 @@ namespace Armere.Inventory.UI
         public GameObject gridPanelTemplate;
         public GameObject template;
         public GameObject blankSlotTemplate;
-
         public ItemDatabase db;
         public Transform gridPanelHolder;
         public ItemInfoDisplay selectedDisplay;
@@ -21,11 +20,8 @@ namespace Armere.Inventory.UI
         public ScrollRect scroll;
         GameObject contextMenu;
 
-        [System.Serializable]
-        public class BoolEvent : UnityEngine.Events.UnityEvent<bool> { }
-
-        public BoolEvent onContextMenuEnabled;
-        public BoolEvent onContextMenuDisabled;
+        public UnityEngine.Events.UnityEvent<bool> onContextMenuEnabled;
+        public UnityEngine.Events.UnityEvent<bool> onContextMenuDisabled;
 
         Dictionary<ItemType, SelectableInventoryItemUI[]> inventoryUIPanels = null;
 
@@ -37,7 +33,7 @@ namespace Armere.Inventory.UI
 
             switch (panel[index])
             {
-                case StackPanel.ItemStack stack:
+                case ItemStack stack:
                     item.countText.text = stack.count == 1 ? "" : stack.count.ToString();
                     break;
                 default:
@@ -89,7 +85,7 @@ namespace Armere.Inventory.UI
                 (contextMenu.transform as RectTransform).pivot = new Vector2(0f, 1f);
                 (contextMenu.transform as RectTransform).position = mousePosition + new Vector2(-10, 10);
 
-                ItemData item = db[InventoryController.ItemAt(index, type)];
+                ItemData item = db[InventoryController.ItemAt(index, type).name];
                 InventoryPanel p = InventoryController.singleton.GetPanelFor(type);
                 for (int i = 0; i < p.options.Length; i++)
                 {
@@ -148,7 +144,7 @@ namespace Armere.Inventory.UI
             return go.transform;
         }
 
-        public void OnItemSelected(ItemName item)
+        public void OnItemSelected(ItemStackBase item)
         {
             selectedDisplay.ShowInfo(item, db);
         }
@@ -215,6 +211,7 @@ namespace Armere.Inventory.UI
             RemoveItemGroup(InventoryController.singleton.bow);
             RemoveItemGroup(InventoryController.singleton.ammo);
             RemoveItemGroup(InventoryController.singleton.quest);
+            RemoveItemGroup(InventoryController.singleton.potions);
         }
 
         private void OnEnable()
@@ -229,6 +226,7 @@ namespace Armere.Inventory.UI
             AddItemGroup(InventoryController.singleton.bow);
             AddItemGroup(InventoryController.singleton.ammo);
             AddItemGroup(InventoryController.singleton.quest);
+            AddItemGroup(InventoryController.singleton.potions);
         }
     }
 }

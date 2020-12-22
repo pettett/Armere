@@ -3,24 +3,27 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
-public class ItemInfoDisplay : MonoBehaviour
+namespace Armere.Inventory.UI
 {
-    public Image thumbnail;
-    public TextMeshProUGUI title;
-    public TextMeshProUGUI description;
-    AsyncOperationHandle<Sprite> spriteAsyncOperation;
-    public async void ShowInfo(ItemName item, ItemDatabase db)
+    public class ItemInfoDisplay : MonoBehaviour
     {
-        title.text = db[item].displayName;
-        description.text = db[item].description;
-        //Load the sprite
-        spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(db[item].displaySprite);
-        thumbnail.sprite = await spriteAsyncOperation.Task;
-    }
+        public Image thumbnail;
+        public TextMeshProUGUI title;
+        public TextMeshProUGUI description;
+        AsyncOperationHandle<Sprite> spriteAsyncOperation;
+        public async void ShowInfo(ItemStackBase stackBase, ItemDatabase db)
+        {
+            title.text = db[stackBase.name].displayName;
+            description.text = db[stackBase.name].description;
+            //Load the sprite
+            spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(db[stackBase.name].displaySprite);
+            thumbnail.sprite = await spriteAsyncOperation.Task;
+        }
 
-    private void OnDestroy()
-    {
-        if (spriteAsyncOperation.IsValid())
-            Addressables.Release(spriteAsyncOperation);
+        private void OnDestroy()
+        {
+            if (spriteAsyncOperation.IsValid())
+                Addressables.Release(spriteAsyncOperation);
+        }
     }
 }

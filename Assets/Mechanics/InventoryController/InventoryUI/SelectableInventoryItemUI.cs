@@ -10,7 +10,7 @@ namespace Armere.Inventory.UI
 {
     public class SelectableInventoryItemUI : InventoryItemUI, ISelectHandler, IPointerEnterHandler, IPointerClickHandler
     {
-        public event System.Action<ItemName> onSelect;
+        public event System.Action<ItemStackBase> onSelect;
         public InventoryUI inventoryUI;
         public void OnPointerClick(PointerEventData eventData)
         {

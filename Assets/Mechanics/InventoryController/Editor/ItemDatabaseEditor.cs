@@ -1,50 +1,53 @@
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(ItemDatabase))]
-public class ItemDatabaseEditor : Editor
+namespace Armere.Inventory
 {
-    ItemName editingItem;
-    SerializedProperty itemArray;
-    SerializedProperty editingProperty;
-    private void OnEnable()
+    [CustomEditor(typeof(ItemDatabase))]
+    public class ItemDatabaseEditor : Editor
     {
-        itemArray = serializedObject.FindProperty("itemData");
-        var t = target as ItemDatabase;
-        var names = System.Enum.GetValues(typeof(ItemName)) as ItemName[];
-
-        if (t.itemData.Length != names.Length)
+        ItemName editingItem;
+        SerializedProperty itemArray;
+        SerializedProperty editingProperty;
+        private void OnEnable()
         {
-            var newArray = new ItemData[names.Length];
+            itemArray = serializedObject.FindProperty("itemData");
+            var t = target as ItemDatabase;
+            var names = System.Enum.GetValues(typeof(ItemName)) as ItemName[];
 
-            t.itemData.CopyTo(newArray, 0);
-            t.itemData = newArray;
-        }
+            if (t.itemData.Length != names.Length)
+            {
+                var newArray = new ItemData[names.Length];
 
-        editingItem = (ItemName)0;
-        UpdateEditingProperty();
-    }
-    void UpdateEditingProperty()
-    {
-        editingProperty = itemArray.GetArrayElementAtIndex((int)editingItem);
-        editingProperty.isExpanded = true;
-    }
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-        EditorGUI.BeginChangeCheck();
-        editingItem = (ItemName)EditorGUILayout.EnumPopup(editingItem);
-        if (EditorGUI.EndChangeCheck())
-        {
-            //Changed edited property
+                t.itemData.CopyTo(newArray, 0);
+                t.itemData = newArray;
+            }
+
+            editingItem = (ItemName)0;
             UpdateEditingProperty();
         }
-        EditorGUI.BeginChangeCheck();
-        EditorGUILayout.PropertyField(editingProperty, GUIContent.none, true);
-        if (EditorGUI.EndChangeCheck())
+        void UpdateEditingProperty()
         {
-            serializedObject.ApplyModifiedProperties();
+            editingProperty = itemArray.GetArrayElementAtIndex((int)editingItem);
+            editingProperty.isExpanded = true;
         }
-    }
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            EditorGUI.BeginChangeCheck();
+            editingItem = (ItemName)EditorGUILayout.EnumPopup(editingItem);
+            if (EditorGUI.EndChangeCheck())
+            {
+                //Changed edited property
+                UpdateEditingProperty();
+            }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(editingProperty, GUIContent.none, true);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
 
+    }
 }

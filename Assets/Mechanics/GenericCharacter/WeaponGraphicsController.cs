@@ -5,6 +5,7 @@ using UnityEngine.VFX;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Assertions;
+using Armere.Inventory;
 
 [System.Serializable]
 public struct EquipmentSet<T> : IEnumerable<T>

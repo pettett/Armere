@@ -17,14 +17,18 @@ MonoBehaviour:
   displaySprite:
     m_AssetGUID: ac35566b90ee1ee44aa121ca0a1318ac
     m_SubObjectName: 
+    m_SubObjectType: 
   displayName: Meat
   description: This item has no description
   sellable: 1
   sellValue: 25
-  staticPickup: 0
-  spawnedGameobject:
-    m_AssetGUID: 
+  potionIngredient: 1
+  potionWorksFrom: 20
+  changePotionType: 0
+  newPotionType: 22
+  increasedDuration: 0
+  increasedPotency: 2
+  gameObject:
+    m_AssetGUID: 6fa338c44822bf045a6eb6a7ef7409fd
     m_SubObjectName: 
-  worldObjectData:
-    m_AssetGUID: 71e00151d6a4f6d4ba18fef457b778a8
-    m_SubObjectName: 
+    m_SubObjectType: 

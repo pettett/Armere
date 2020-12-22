@@ -42,7 +42,7 @@ namespace Armere.Inventory.UI
             InventoryController.singleton.onItemAdded -= OnItemAdded;
         }
 
-        async void OnItemAdded(ItemName item, bool hidden)
+        async void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hidden)
         {
             if (!hidden)
             {
@@ -50,7 +50,7 @@ namespace Armere.Inventory.UI
 
                 GameObject go = await operation.Task;
 
-                go.GetComponent<InventoryItemUI>().SetupItemAsync(InventoryController.singleton.db[item]);
+                go.GetComponent<InventoryItemUI>().SetupItemAsync(stack);
 
                 entries.Enqueue(new Entry(go, Time.time, operation));
             }

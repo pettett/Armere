@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Armere.Inventory;
+
 public class Animal : MonoBehaviour
 {
     enum State : byte

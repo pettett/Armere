@@ -2,26 +2,33 @@ using System.Collections.Generic;
 
 namespace Armere.Inventory
 {
-    public class StackPanel : InventoryPanel
-    {
-        [System.Serializable]
-        public class ItemStack : ItemStackBase
-        {
-            public uint count;
 
-            public ItemStack(ItemName n, uint count) : base(n)
-            {
-                this.count = count;
-            }
+    [System.Serializable]
+    public class ItemStack : ItemStackBase
+    {
+        public uint count;
+
+        public ItemStack() : base(ItemName.Stick)
+        {
         }
 
+        public ItemStack(ItemName n, uint count) : base(n)
+        {
+            this.count = count;
+        }
+    }
 
-        public List<ItemStack> items;
+    public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack, new()
+    {
+
+
+
+        public List<StackT> items;
 
         public override int stackCount => items.Count;
 
 
-        public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value as ItemStack; }
+        public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value as StackT; }
 
         public StackPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options) : base(name, limit, type, options)
         {
@@ -49,25 +56,29 @@ namespace Armere.Inventory
 
 
 
-        public override bool AddItem(ItemName item, uint count)
+        public override int AddItem(ItemName item, uint count)
         {
 
-            ItemStack stack = items.Find(s => s.name == item);
-            if (stack != null)
+            int stackIndex = items.FindIndex(s => s.name == item);
+
+
+            if (stackIndex != -1)
             {
-                stack.count += count;
+                items[stackIndex].count += count;
             }
             else if (items.Count < limit)
             {
-                items.Add(new ItemStack(item, count));
+                items.Add((StackT)System.Activator.CreateInstance(typeof(StackT), new object[] { item, count }));
+                stackIndex = items.Count - 1;
             }
             else
             {
-                return false;
+                return -1;
             }
 
             OnPanelUpdated();
-            return true;
+
+            return stackIndex;
         }
         public override bool AddItem(int index, uint count)
         {
@@ -116,7 +127,7 @@ namespace Armere.Inventory
             else return false;
         }
 
-        public override ItemName ItemAt(int index) => items[index].name;
+        public override ItemStackBase ItemAt(int index) => items[index];
 
 
     }

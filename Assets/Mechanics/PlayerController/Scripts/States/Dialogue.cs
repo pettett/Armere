@@ -28,7 +28,7 @@ public class Dialogue : MovementState
 
             if (d is IVariableAddon a)
             {
-                (runner.variableStorage as InMemoryVariableStorage).addon = a;
+                (runner.variableStorage as InMemoryVariableStorage).addons.Add(a);
             }
 
             StartDialogue(d);

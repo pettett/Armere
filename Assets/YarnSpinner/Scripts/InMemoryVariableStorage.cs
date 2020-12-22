@@ -27,7 +27,7 @@ SOFTWARE.
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Armere.Inventory;
+
 
 namespace Yarn.Unity
 {
@@ -71,7 +71,7 @@ namespace Yarn.Unity
         private Dictionary<string, Value> variables = new Dictionary<string, Value>();
 
 
-        public IVariableAddon addon;
+        public List<IVariableAddon> addons = new List<IVariableAddon>();
 
 
         /// <summary>
@@ -196,19 +196,21 @@ namespace Yarn.Unity
         /// <param name="value">The value to store.</param>
         public override void SetValue(string variableName, Value value)
         {
-            if (variableName.StartsWith(addon.prefix))
+            foreach (var addon in addons)
             {
-                addon[variableName.Substring(addon.prefix.Length)] = new Value(value);
+                if (variableName.StartsWith(addon.prefix))
+                {
+                    addon[variableName.Substring(addon.prefix.Length)] = new Value(value);
+                    return;
+                }
             }
-            else
-            {
-                // Copy this value into our list
-                variables[variableName] = new Value(value);
-            }
+
+            // Copy this value into our list
+            variables[variableName] = new Value(value);
+
         }
-        const string questPrefix = "$Quest_";
-        const string itemPrefix = "$Item_";
-        const string questStagePrefix = "$QuestStage_";
+
+
 
         /// <summary>
         /// Retrieves a <see cref="Value"/> by name.
@@ -223,54 +225,21 @@ namespace Yarn.Unity
             // If we don't have a variable with this name, return the null
             // value
 
-            if (variableName.StartsWith(questPrefix))
+
+
+            foreach (var addon in addons)
             {
-                //it is a quest
-                string quest = variableName.Substring(questPrefix.Length);
-
-                if (QuestManager.TryGetQuest(quest, out var q))
-
-                    //there is a quest with this name, return it's current state
-                    return new Value("Active");
-                else if (QuestManager.TryGetCompletedQuest(quest, out var qw))
-
-                    //there is a quest with this name, return it's current state
-                    return new Value("Completed");
-                else
-                    return new Value("Inactive");
+                if (variableName.StartsWith(addon.prefix))
+                {
+                    return addon[variableName.Substring(addon.prefix.Length)];
+                }
             }
 
 
-            else if (variableName.StartsWith(questStagePrefix))
-            {
-                //it is a quest
-                string quest = variableName.Substring(questStagePrefix.Length);
-
-                if (QuestManager.TryGetQuest(quest, out var q))
-
-                    //there is a quest with this name, return it's current state
-                    return new Value(q.stage);
-                else if (QuestManager.TryGetCompletedQuest(quest, out var qw))
-
-                    //there is a quest with this name, return it's current state
-                    return new Value(qw.stage + 1);
-                else
-                    return new Value(-1);
-            }
-
-            else if (addon != null && variableName.StartsWith(addon.prefix))
-            {
-                return addon[variableName.Substring(addon.prefix.Length)];
-            }
-
-            else if (variableName.StartsWith(itemPrefix))
-            {
-                ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), variableName.Substring(itemPrefix.Length));
-                return new Value(InventoryController.ItemCount(item));
-            }
 
 
-            else if (variables.ContainsKey(variableName) == false)
+
+            if (variables.ContainsKey(variableName) == false)
             {
                 print("null variable");
                 return Value.NULL;

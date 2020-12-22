@@ -638,13 +638,13 @@ namespace Armere.PlayerController
                 if (holdingBody && !movingHoldable) PlaceHoldable();
         }
 
-        public void OnItemAdded(ItemName item, bool hiddenAddition)
+        public void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hiddenAddition)
         {
             //If this is ammo and none is equipped, equip it
-            if (currentAmmo == -1 && InventoryController.singleton.db[item].type == ItemType.Ammo)
+            if (currentAmmo == -1 && type == ItemType.Ammo)
             {
                 //Ammo is only allowed to be -1 if none is left
-                SelectAmmo(0);
+                SelectAmmo(index);
             }
         }
 
@@ -698,7 +698,7 @@ namespace Armere.PlayerController
                     }
                     else
                     {
-                        ItemName name = InventoryController.ItemAt(index, type);
+                        ItemName name = InventoryController.ItemAt(index, type).name;
                         if (c.db[name] is HoldableItemData holdableItemData)
                         {
                             selections[type] = index;
@@ -961,15 +961,13 @@ namespace Armere.PlayerController
             {
                 NotchArrow();
             }
-
         }
-
 
         public void NotchArrow()
         {
             if (selections[ItemType.Bow] != -1)
             {
-                ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo);
+                ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo).name;
                 c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammoName);
             }
         }

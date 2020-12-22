@@ -13,6 +13,9 @@ namespace Armere.PlayerController
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
     {
+
+
+
         [Serializable]
         public readonly struct PlayerSaveData
         {

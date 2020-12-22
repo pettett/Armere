@@ -3,17 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Yarn.Unity;
+using Yarn;
 
 namespace Armere.Inventory
 {
 
-    public delegate void InventoryNewItemDelegate(ItemName item, bool hiddenAddition);
+    public delegate void InventoryNewItemDelegate(ItemStackBase item, ItemType type, int index, bool hiddenAddition);
     public delegate void InventoryOptionDelegate(ItemType type, int itemIndex);
 
     [System.Serializable]
     public class ItemStackBase
     {
-        public readonly ItemName name;
+        public ItemName name;
 
         public ItemStackBase(ItemName name)
         {
@@ -22,11 +24,27 @@ namespace Armere.Inventory
     }
 
 
-    public class InventoryController : MonoBehaviour
+    public class InventoryController : MonoBehaviour, IVariableAddon
     {
         public InventoryNewItemDelegate onItemAdded;
 
         public ItemDatabase db;
+        const string itemPrefix = "$Item_";
+
+        public string prefix => itemPrefix;
+
+        public Value this[string name]
+        {
+            get
+            {
+                ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name.Substring(itemPrefix.Length));
+                return new Value(InventoryController.ItemCount(item));
+            }
+            set => throw new System.NotImplementedException("Cannot set stage of quest");
+        }
+
+
+
 
         public InventoryPanel GetPanelFor(ItemType t)
         {
@@ -39,6 +57,7 @@ namespace Armere.Inventory
                 case ItemType.Ammo: return ammo;
                 case ItemType.Bow: return bow;
                 case ItemType.Currency: return currency;
+                case ItemType.Potion: return potions;
                 default: return null;
             }
         }
@@ -48,21 +67,23 @@ namespace Armere.Inventory
         [System.Serializable]
         public class InventorySave
         {
-            public List<StackPanel.ItemStack> common;
+            public List<ItemStack> common;
             public List<ItemStackBase> quest;
             public List<ItemStackBase> weapon;
             public List<ItemStackBase> sideArm;
             public List<ItemStackBase> bow;
-            public List<StackPanel.ItemStack> ammo;
+            public List<ItemStack> ammo;
+            public List<PotionItemUnique> potions;
             public uint currency;
             public InventorySave()
             {
-                common = new List<StackPanel.ItemStack>();
+                common = new List<ItemStack>();
                 quest = new List<ItemStackBase>();
                 weapon = new List<ItemStackBase>();
                 sideArm = new List<ItemStackBase>();
                 bow = new List<ItemStackBase>();
-                ammo = new List<StackPanel.ItemStack>();
+                ammo = new List<ItemStack>();
+                potions = new List<PotionItemUnique>();
                 currency = 0;
             }
 
@@ -74,6 +95,7 @@ namespace Armere.Inventory
                 sideArm = c.sideArm.items;
                 bow = c.bow.items;
                 ammo = c.ammo.items;
+                potions = c.potions.items;
                 currency = c.currency.currency;
             }
         }
@@ -84,12 +106,14 @@ namespace Armere.Inventory
         }
 
 
-        public StackPanel common;
-        public UniquesPanel quest;
-        public UniquesPanel melee;
-        public UniquesPanel bow;
-        public StackPanel ammo;
-        public UniquesPanel sideArm;
+        public StackPanel<ItemStack> common;
+        public UniquesPanel<ItemStackBase> quest;
+        public UniquesPanel<ItemStackBase> melee;
+        public UniquesPanel<ItemStackBase> bow;
+        public StackPanel<ItemStack> ammo;
+        public UniquesPanel<ItemStackBase> sideArm;
+        public UniquesPanel<PotionItemUnique> potions;
+
         public ValuePanel currency;
 
 
@@ -116,15 +140,23 @@ namespace Armere.Inventory
             singleton = this;
 
         }
+        private void Start()
+        {
+            DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
+        }
+
         public void OnSaveStateLoaded(InventorySave save)
         {
 
-            common = new StackPanel("Items", int.MaxValue, ItemType.Common);
-            quest = new UniquesPanel("Quest Items", int.MaxValue, ItemType.Quest);
-            melee = new UniquesPanel("Weapons", 10, ItemType.Melee, OnSelectItem, OnDropItem);
-            sideArm = new UniquesPanel("Side Arms", 10, ItemType.SideArm, OnSelectItem, OnDropItem);
-            bow = new UniquesPanel("Bows", 10, ItemType.Bow, OnSelectItem, OnDropItem);
-            ammo = new StackPanel("Ammo", int.MaxValue, ItemType.Ammo, OnSelectItem, OnDropItem);
+            common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common);
+            quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest);
+            melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, OnSelectItem, OnDropItem);
+            sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, OnSelectItem, OnDropItem);
+            bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, OnSelectItem, OnDropItem);
+
+            potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion);
+
+            ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, OnSelectItem, OnDropItem);
             currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
 
             common.items = save.common;
@@ -133,6 +165,7 @@ namespace Armere.Inventory
             sideArm.items = save.sideArm;
             bow.items = save.bow;
             ammo.items = save.ammo;
+            potions.items = save.potions;
             currency.currency = save.currency;
 
         }
@@ -140,10 +173,15 @@ namespace Armere.Inventory
 
         public static bool AddItem(ItemName n, uint count, bool hiddenAddition)
         {
-            var b = singleton.GetPanelFor(singleton.db[n].type).AddItem(n, count);
-            if (b)
-                singleton.onItemAdded?.Invoke(n, hiddenAddition);
-            return b;
+            InventoryPanel p = singleton.GetPanelFor(singleton.db[n].type);
+            var addedIndex = p.AddItem(n, count);
+
+            if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
+            {
+                InventoryController.singleton.onItemAdded?.Invoke(p[addedIndex], singleton.db[n].type, addedIndex, hiddenAddition);
+            }
+
+            return addedIndex != -1;
         }
 
 
@@ -153,12 +191,13 @@ namespace Armere.Inventory
         {
             var b = singleton.GetPanelFor(type).AddItem(index, count);
             if (b) //Use itemat command to find the type of item that was added
-                singleton.onItemAdded?.Invoke(singleton.GetPanelFor(type).ItemAt(index), hiddenAddition);
+                singleton.onItemAdded?.Invoke(ItemAt(index, type), type, index, hiddenAddition);
             return b;
         }
         public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.GetPanelFor(type).TakeItem(index, count);
         public static uint ItemCount(ItemName n) => singleton.GetPanelFor(singleton.db[n].type).ItemCount(n);
         public static uint ItemCount(int index, ItemType type) => singleton.GetPanelFor(type).ItemCount(index);
-        public static ItemName ItemAt(int index, ItemType type) => singleton.GetPanelFor(type)[index].name;
+        public static ItemStackBase ItemAt(int index, ItemType type) => singleton.GetPanelFor(type)[index];
+
     }
 }

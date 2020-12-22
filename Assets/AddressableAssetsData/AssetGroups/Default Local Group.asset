@@ -131,8 +131,8 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
-  - m_GUID: d6f50d76ea0755444a62d89f860d1cca
-    m_Address: Assets/Art/Items/Common/Stick/Stick.prefab
+  - m_GUID: 6fa338c44822bf045a6eb6a7ef7409fd
+    m_Address: Assets/Art/Items/Common/Meat/Meat Item.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
@@ -266,6 +266,30 @@ MonoBehaviour:
     m_TargetAsset: {fileID: 0}
   - m_GUID: ce8d003e037fb6f41bdd29f5edd395bd
     m_Address: Assets/Art/Items/Potions/white_potion.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 34438ae4e1a601a4785c5cc084a82c7e
+    m_Address: Assets/Art/Items/Common/Stick/Stick Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 94abcdb6ada462e48896707639f82d36
+    m_Address: Assets/Art/Items/Weapons/Walking Stick/Walking Stick Item.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: a494c49f92317d4439b232e1f7209253
+    m_Address: Assets/Art/Items/Weapons/Walking Stick/Walking Stick Holdable.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: ac35566b90ee1ee44aa121ca0a1318ac
+    m_Address: Assets/Art/Items/Common/Meat/meatthumb.png
     m_ReadOnly: 0
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}

@@ -11,6 +11,7 @@ namespace Yarn.Unity
         public InMemoryVariableStorage inMemoryVariableStorage;
         private void Awake()
         {
+            print("Set singleton");
             singleton = this;
         }
     }

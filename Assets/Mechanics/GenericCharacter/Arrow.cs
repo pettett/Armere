@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[RequireComponent(typeof(MeshFilter)),
-RequireComponent(typeof(MeshRenderer)),
-RequireComponent(typeof(Collider)),
+using Armere.Inventory;
+
+
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(Collider)),
 RequireComponent(typeof(Rigidbody))]
 public class Arrow : SpawnableBody
 {

@@ -53,6 +53,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   db: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
+  quest:
+    limit: 0
+    items: []
+  melee:
+    limit: 0
+    items: []
+  bow:
+    limit: 0
+    items: []
+  sideArm:
+    limit: 0
+    items: []
+  potions:
+    limit: 0
+    items: []
 --- !u!114 &4832598259131234589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,8 +81,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qdb: {fileID: 11400000, guid: a5be63a84bd90c74790a8163832869f0, type: 2}
-  quests: []
-  completedQuests: []
+  questBook:
+    quests: []
+    completedQuests: []
 --- !u!114 &4832598259131234585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,6 +159,8 @@ MonoBehaviour:
   - give Arrow 20
   - give GreenCurrency 60
   - givequest Tutorial
+  - give EmptyPotion 10
+  - give Stick 10
 --- !u!114 &1254477659995837600
 MonoBehaviour:
   m_ObjectHideFlags: 0

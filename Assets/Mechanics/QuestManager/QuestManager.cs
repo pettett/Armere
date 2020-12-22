@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
+using Yarn.Unity;
+
 public class QuestManager : MonoBehaviour
 {
     public static QuestManager singleton;
@@ -53,6 +55,12 @@ public class QuestManager : MonoBehaviour
     {
         //Add listener for new item event
         InventoryController.singleton.onItemAdded += OnInventoryItemAdded;
+
+        DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStageYarnAddon());
+        DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStatusYarnAddon());
+
+
+
     }
 
 
@@ -139,14 +147,14 @@ public class QuestManager : MonoBehaviour
         ProgressQuest(quests.Count - 1);
     }
 
-    public void OnInventoryItemAdded(ItemName newItem, bool hiddenAddition)
+    public void OnInventoryItemAdded(ItemStackBase stack, ItemType type, int index, bool hiddenAddition)
     {
         //test if any quests are listening for this event
         for (int i = 0; i < quests.Count; i++)
         {
             if (quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Acquire && //if is listening for any item
-                quests[i].quest.stages[quests[i].stage].item == newItem &&  //and is listening for this item
-                InventoryController.ItemCount(newItem) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
+                quests[i].quest.stages[quests[i].stage].item == stack.name &&  //and is listening for this item
+                InventoryController.ItemCount(stack.name) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
             )
             {
                 ProgressQuest(i);

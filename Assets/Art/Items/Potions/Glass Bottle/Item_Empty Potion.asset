@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5da3c6cf6f1c80041b8fceace9075898, type: 3}
-  m_Name: Glass Bottle
+  m_Name: Item_Empty Potion
   m_EditorClassIdentifier: 
   itemName: 20
   type: 7
@@ -22,3 +22,9 @@ MonoBehaviour:
   description: To be filled with potion
   sellable: 0
   sellValue: 25
+  potionIngredient: 0
+  potionWorksFrom: 0
+  changePotionType: 0
+  newPotionType: 0
+  increasedDuration: 0
+  increasedPotency: 0

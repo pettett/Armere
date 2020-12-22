@@ -12,13 +12,13 @@ namespace Armere.Inventory
 
         public event Action<InventoryPanel> onPanelUpdated;
 
-        public abstract bool AddItem(ItemName name, uint count);
+        public abstract int AddItem(ItemName name, uint count);
         public abstract bool AddItem(int index, uint count);
         public abstract bool TakeItem(ItemName name, uint count);
         public abstract bool TakeItem(int index, uint count);
         public abstract uint ItemCount(ItemName item);
         public abstract uint ItemCount(int itemIndex);
-        public abstract ItemName ItemAt(int index);
+        public abstract ItemStackBase ItemAt(int index);
 
         public InventoryPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options)
         {

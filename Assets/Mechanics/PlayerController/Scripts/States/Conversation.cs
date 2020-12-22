@@ -143,7 +143,7 @@ namespace Armere.PlayerController
             runner.AddCommandHandler(OfferToBuyCommand, OfferToBuy);
             runner.AddCommandHandler(GoToCommand, GoTo);
 
-            (runner.variableStorage as InMemoryVariableStorage).addon = talkingTarget;
+            (runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget);
         }
 
         public override void CleanUpRunner()
@@ -166,7 +166,7 @@ namespace Armere.PlayerController
             runner.RemoveCommandHandler(GoToCommand);
 
 
-            (runner.variableStorage as InMemoryVariableStorage).addon = null;
+            (runner.variableStorage as InMemoryVariableStorage).addons.Remove(talkingTarget);
         }
 
 
@@ -350,7 +350,7 @@ namespace Armere.PlayerController
 
                 //TODO - Add amount control
                 //Pay the player for the item
-                InventoryController.AddItem(InventoryController.ItemAt(itemIndex, type), 1, true);
+                InventoryController.singleton.currency.TakeItem(InventoryController.ItemAt(itemIndex, type).name, 1);
                 //Remove the item from the inventory
                 InventoryController.TakeItem(itemIndex, type);
 

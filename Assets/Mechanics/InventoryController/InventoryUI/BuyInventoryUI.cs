@@ -62,9 +62,10 @@ namespace Armere.Inventory.UI
                 WaitForBuyConfirmation();
             }
         }
+
         public void ShowInfo(int index)
         {
-            selectedDisplay.ShowInfo(inventory[index].item, db);
+            selectedDisplay.ShowInfo(new ItemStackBase(inventory[index].item), db);
         }
         public void WaitForBuyConfirmation()
         {

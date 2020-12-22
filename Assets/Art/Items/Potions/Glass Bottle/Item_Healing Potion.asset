@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3c6cf6f1c80041b8fceace9075898, type: 3}
+  m_Name: Item_Healing Potion
+  m_EditorClassIdentifier: 
+  itemName: 22
+  type: 7
+  displaySprite:
+    m_AssetGUID: cde2933d8ae0e8c49ab4f487fb7d61d0
+    m_SubObjectName: 
+    m_SubObjectType: 
+  displayName: Healing Potion
+  description: Heals some health
+  sellable: 0
+  sellValue: 25
+  potionIngredient: 0
+  potionWorksFrom: 0
+  changePotionType: 0
+  newPotionType: 0
+  increasedDuration: 0
+  increasedPotency: 0

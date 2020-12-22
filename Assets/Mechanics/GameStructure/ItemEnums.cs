@@ -23,8 +23,17 @@ public enum ItemName
     SilverCurrency = 17,
     GoldCurrency = 18,
     Torch,
-    EmptyBottle,
-    FilledBottle
+    EmptyPotion = 20,
+    WaterPotion = 21,
+    HealingPotion = 22,
+    WalkingStick
+}
+//Subset of item name
+public enum PotionItemName
+{
+    EmptyPotion = 20,
+    WaterPotion = 21,
+    HealingPotion = 22,
 }
 
 public enum ItemType

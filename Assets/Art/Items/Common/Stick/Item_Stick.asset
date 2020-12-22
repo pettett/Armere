@@ -17,13 +17,18 @@ MonoBehaviour:
   displaySprite:
     m_AssetGUID: 1f47375c58888fd45b1e33aad3e02ed5
     m_SubObjectName: 
+    m_SubObjectType: 
   displayName: Stick
   description: Someone said jeff was looking for some
   sellable: 1
   sellValue: 25
-  worldObjectData:
-    m_AssetGUID: 0a5462bf8dce8d34aaff0908fd278bf4
-    m_SubObjectName: 
+  potionIngredient: 1
+  potionWorksFrom: 20
+  changePotionType: 0
+  newPotionType: 22
+  increasedDuration: 0
+  increasedPotency: 0
   gameObject:
-    m_AssetGUID: d6f50d76ea0755444a62d89f860d1cca
+    m_AssetGUID: 34438ae4e1a601a4785c5cc084a82c7e
     m_SubObjectName: 
+    m_SubObjectType: 

@@ -26,7 +26,14 @@ public enum ItemName
     EmptyPotion = 20,
     WaterPotion = 21,
     HealingPotion = 22,
-    WalkingStick
+    WalkingStick,
+
+    Amethyst,
+    Diamond,
+    Emerald,
+    Sapphire,
+    Ruby,
+    Topaz
 }
 //Subset of item name
 public enum PotionItemName

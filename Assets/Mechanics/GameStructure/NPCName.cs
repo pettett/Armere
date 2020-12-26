@@ -13,4 +13,5 @@
     Mayor,
     BlackSmith,
     Wizard,
+    Merchant
 }

@@ -102,19 +102,6 @@ namespace Armere.PlayerController
         }
 
 
-        public void RunSellMenu(System.Action<ItemType, int> onSelectItem)
-        {
-            UIController.singleton.sellMenu.SetActive(true);
-            //Wait for a buy
-            UIController.singleton.sellMenu.GetComponentInChildren<InventoryUI>().onItemSelected = onSelectItem;
-        }
-        public void CloseSellMenu()
-        {
-            //Close the buy menu
-            UIController.singleton.sellMenu.SetActive(false);
-            UIController.singleton.sellMenu.GetComponentInChildren<InventoryUI>().onItemSelected = null;
-        }
-
         public override void OnAnimatorIK(int layerIndex)
         {
             //Make head look at npc
@@ -328,54 +315,24 @@ namespace Armere.PlayerController
             runner.StartDialogue("Buy");
         }
 
-        public void OfferToSell(string[] arg)
+        public async void OfferToSell(string[] arg)
         {
             print("Selling");
-
-            runner.AddCommandHandler("StopSell", StopSell);
             //Show the Inventory UI
-            RunSellMenu(OnSellMenuItemSelected);
-            //Wait for the player to select an item
-        }
+            //Wait for the player to select an item      
 
+            DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+            (ItemType type, int index) = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].sellable);
+            DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+            OnSellMenuItemSelected(type, index);
+        }
 
         void OnSellMenuItemSelected(ItemType type, int itemIndex)
         {
-
-            //Buy the item
-            runner.AddCommandHandler("ConfirmSell", (string[] arg) =>
-            {
-                //Buy the item
-                print("Sold Item");
-
-                //TODO - Add amount control
-                //Pay the player for the item
-                InventoryController.singleton.currency.TakeItem(InventoryController.ItemAt(itemIndex, type).name, 1);
-                //Remove the item from the inventory
-                InventoryController.TakeItem(itemIndex, type);
-
-
-                ReEnableSellMenu();
-            });
-
-            runner.AddCommandHandler("CancelSell", (string[] arg) =>
-            {
-                //Go back to selecting
-                print("Cancelled selection");
-                ReEnableSellMenu();
-            });
-
-            print("Selected item " + type.ToString());
-
-
-            //update the buy menu with revised amounts
-
-            //Restart the dialog
-            DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-            runner.Stop();
-            HideAllDialogueButtons();
-            DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-            runner.StartDialogue("Sell");
+            //Pay the player for the item
+            InventoryController.singleton.currency.TakeItem(InventoryController.ItemAt(itemIndex, type).name, 1);
+            //Remove the item from the inventory
+            InventoryController.TakeItem(itemIndex, type);
         }
 
         void HideAllDialogueButtons()
@@ -386,20 +343,7 @@ namespace Armere.PlayerController
             }
         }
 
-        void ReEnableSellMenu()
-        {
-            runner.RemoveCommandHandler("ConfirmSell");
-            runner.RemoveCommandHandler("CancelSell");
-            // runner.StartDialogue("WaitForSell");
-        }
 
-        void StopSell(string[] arg)
-        {
-            runner.RemoveCommandHandler("ConfirmSell");
-            runner.RemoveCommandHandler("CancelSell");
-            runner.RemoveCommandHandler("StopSell");
-            CloseSellMenu();
-        }
         void TurnPlayerToTarget(string[] arg, System.Action onComplete)
         {
             Vector3 target = talkingTarget.GetFocusPoint(arg[0]).position;

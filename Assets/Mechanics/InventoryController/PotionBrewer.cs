@@ -2,39 +2,58 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
+using Armere.Inventory.UI;
+using Yarn.Unity;
 
 public class PotionBrewer : MonoBehaviour, IInteractable
 {
     public bool canInteract { get; set; } = true;
     public float requiredLookDot => 0;
     public string interactionDescription => "Brew Potion";
-    [System.Serializable]
-    public struct PotionCreationTemplate
-    {
-        public ItemName ingredient;
-    }
 
-    public PotionCreationTemplate template;
 
-    public void Interact(IInteractor interactor)
+    public YarnProgram selectionDialogue;
+
+    public async void Interact(IInteractor interactor)
     {
-        //TODO: Reuse sell menu to select potion ingredient
+        interactor.PauseControl();
+
+        DialogueRunner.singleton.Add(selectionDialogue);
+
+        // Reuse sell menu to select potion ingredient
+        var selection = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].potionIngredient);
+
+        DialogueRunner.singleton.Clear();
+        DialogueRunner.singleton.ClearStringTable();
+
+        DialogueInstances.singleton.dialogueUI.FinishDialogue();
+
+
+        ItemName ingredient = InventoryController.ItemAt(selection.index, selection.type).name;
+
+
         for (int i = 0; i < InventoryController.singleton.potions.stackCount; i++)
         {
-            if (InventoryController.singleton.potions.items[i].name == (ItemName)InventoryController.singleton.db[template.ingredient].potionWorksFrom)
+            if (InventoryController.singleton.potions.items[i].name == (ItemName)InventoryController.singleton.db[ingredient].potionWorksFrom)
             {
-                if (InventoryController.TakeItem(template.ingredient))
+                if (InventoryController.TakeItem(ingredient))
                 {
                     //Take the item and change the contents
+                    InventoryController.singleton.potions.TakeItem(i, 1);
 
-                    InventoryController.singleton.potions.items[i].name = (ItemName)InventoryController.singleton.db[template.ingredient].newPotionType;
-                    InventoryController.singleton.onItemAdded?.Invoke(InventoryController.singleton.potions.items[i], ItemType.Potion, i, false);
+                    PotionItemUnique pot = new PotionItemUnique((ItemName)InventoryController.singleton.db[ingredient].newPotionType);
+
+                    pot.potency = InventoryController.singleton.db[ingredient].increasedPotency;
+                    InventoryController.singleton.potions.AddItem(pot);
+
                 }
 
 
                 break;
             }
         }
+
+        interactor.ResumeControl();
 
     }
 

@@ -8,7 +8,7 @@ namespace Armere.Inventory
     {
         public uint currency;
 
-        public ValuePanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options) : base(name, limit, type, options)
+        public ValuePanel(string name, uint limit, ItemType type) : base(name, limit, type, ItemInteractionCommands.None)
         {
             currency = 0;
         }

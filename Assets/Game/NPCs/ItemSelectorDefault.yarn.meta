@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 71d12886f63ccfd49932e6e53a4f6ac1
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: 
+  stringIDs:
+  - ItemSelectorDefault-WaitForSell-0
+  - ItemSelectorDefault-WaitForSell-1
+  - ItemSelectorDefault-Sell-2
+  - ItemSelectorDefault-Sell-3
+  - ItemSelectorDefault-Sell-4
+  - ItemSelectorDefault-Sell-5
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {instanceID: 0}
+  localizations: []

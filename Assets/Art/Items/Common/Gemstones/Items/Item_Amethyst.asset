@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9efb734574eaa043b9c74102f44090a, type: 3}
+  m_Name: Item_Amethyst
+  m_EditorClassIdentifier: 
+  itemName: 24
+  type: 0
+  displaySprite:
+    m_AssetGUID: a6c77bc304bc3df4fbfbf5c7aaf4c396
+    m_SubObjectName: 
+    m_SubObjectType: 
+  displayName: Amethyst
+  description: This item has no description
+  sellable: 1
+  sellValue: 25
+  potionIngredient: 0
+  potionWorksFrom: 0
+  changePotionType: 0
+  newPotionType: 0
+  increasedDuration: 0
+  increasedPotency: 0
+  disabledCommands: 0
+  gameObject:
+    m_AssetGUID: c7036e5d57e9aee41bc288d41960d679
+    m_SubObjectName: 
+    m_SubObjectType: 

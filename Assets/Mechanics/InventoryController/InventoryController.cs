@@ -12,6 +12,16 @@ namespace Armere.Inventory
     public delegate void InventoryNewItemDelegate(ItemStackBase item, ItemType type, int index, bool hiddenAddition);
     public delegate void InventoryOptionDelegate(ItemType type, int itemIndex);
 
+    [Flags]
+    public enum ItemInteractionCommands
+    {
+        None = 0,
+        Drop = 1 << 0,
+        Equip = 1 << 1,
+        Consume = 1 << 2
+    }
+
+
     [System.Serializable]
     public class ItemStackBase
     {
@@ -37,7 +47,7 @@ namespace Armere.Inventory
         {
             get
             {
-                ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name.Substring(itemPrefix.Length));
+                ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name);
                 return new Value(InventoryController.ItemCount(item));
             }
             set => throw new System.NotImplementedException("Cannot set stage of quest");
@@ -121,16 +131,22 @@ namespace Armere.Inventory
         public static InventoryController singleton;
         public event InventoryOptionDelegate OnSelectItemEvent;
         public event InventoryOptionDelegate OnDropItemEvent;
+        public event InventoryOptionDelegate OnConsumeItemEvent;
 
 
         public void OnSelectItem(ItemType type, int itemIndex)
         {
-            print("Selected " + itemIndex.ToString());
+            //print("Selected " + itemIndex.ToString());
             OnSelectItemEvent?.Invoke(type, itemIndex);
+        }
+        public void OnConsumeItem(ItemType type, int itemIndex)
+        {
+            //print("Consumed " + itemIndex.ToString());
+            OnConsumeItemEvent?.Invoke(type, itemIndex);
         }
         public void OnDropItem(ItemType type, int itemIndex)
         {
-            print("Dropped " + itemIndex.ToString());
+            //print("Dropped " + itemIndex.ToString());
             OnDropItemEvent?.Invoke(type, itemIndex);
         }
 
@@ -148,15 +164,16 @@ namespace Armere.Inventory
         public void OnSaveStateLoaded(InventorySave save)
         {
 
-            common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common);
-            quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest);
-            melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, OnSelectItem, OnDropItem);
-            sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, OnSelectItem, OnDropItem);
-            bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, OnSelectItem, OnDropItem);
+            common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common, ItemInteractionCommands.None);
+            quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
 
-            potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion);
+            melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+            sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+            bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
 
-            ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, OnSelectItem, OnDropItem);
+            potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
+
+            ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
             currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
 
             common.items = save.common;

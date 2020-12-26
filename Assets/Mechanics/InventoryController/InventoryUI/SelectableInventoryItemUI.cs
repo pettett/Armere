@@ -8,23 +8,48 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Armere.Inventory.UI
 {
-    public class SelectableInventoryItemUI : InventoryItemUI, ISelectHandler, IPointerEnterHandler, IPointerClickHandler
+    public class SelectableInventoryItemUI : InventoryItemUI, IPointerClickHandler
     {
         public event System.Action<ItemStackBase> onSelect;
-        public InventoryUI inventoryUI;
+        [HideInInspector] public InventoryUI inventoryUI;
+
         public void OnPointerClick(PointerEventData eventData)
         {
-            inventoryUI.ShowContextMenu(type, itemIndex, eventData.position);
+            if (interactable)
+            {
+                inventoryUI.ShowContextMenu(type, itemIndex, eventData.position);
+                TooltipUI.current.OnCursorExitItemUI();
+            }
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public override void OnPointerEnter(PointerEventData eventData)
         {
-            onSelect?.Invoke(InventoryController.ItemAt(itemIndex, type));
+            if (interactable)
+            {
+                var stack = InventoryController.ItemAt(itemIndex, type);
+                onSelect?.Invoke(stack);
+                TooltipUI.current.OnCursorEnterItemUI(stack);
+
+            }
+
+            inventoryUI.RemoveContextMenu();
+
+            base.OnPointerEnter(eventData);
+        }
+        public override void OnPointerExit(PointerEventData eventData)
+        {
+            if (interactable)
+                TooltipUI.current.OnCursorExitItemUI();
+
+
+            base.OnPointerExit(eventData);
         }
 
-        public void OnSelect(BaseEventData eventData)
+        public override void OnSelect(BaseEventData eventData)
         {
-            onSelect?.Invoke(InventoryController.ItemAt(itemIndex, type));
+            if (interactable)
+                onSelect?.Invoke(InventoryController.ItemAt(itemIndex, type));
+            base.OnSelect(eventData);
         }
     }
 }

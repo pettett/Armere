@@ -4,17 +4,23 @@ using UnityEngine.Events;
 public class SimpleHealth : MonoBehaviour
 {
     //so you can see health in inspector
-    [ReadOnly] public float currentHealth;
 
-    public float health { get; protected set; }
-    public float maxHealth;
+    public float health = 100;
+    public float maxHealth = 100;
+    public float startingHealth = 100;
 
 
     public UnityEvent onDeathEvent;
     protected CollisionAudio audioSet;
     protected virtual void Start()
     {
-        health = maxHealth;
+        health = Mathf.Clamp(startingHealth, 0, maxHealth);
+        if (health == 0)
+        {
+            health = maxHealth;
+        }
+
+
         audioSet = GetComponent<CollisionAudio>();
     }
 
@@ -25,8 +31,6 @@ public class SimpleHealth : MonoBehaviour
         if (audioSet != null) audioSet.MakeNoise(transform.position, 20);
 
         health -= amount;
-
-        currentHealth = health;
 
         if (health < 0)
         {

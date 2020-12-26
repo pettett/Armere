@@ -46,7 +46,7 @@ namespace Armere.PlayerController
             }
 
 
-            Vector3 playerDirection = c.cameraController.TransformInput(c.input.horizontal) * c.waterMovementForce * Time.fixedDeltaTime;
+            Vector3 playerDirection = GameCameras.s.TransformInput(c.input.horizontal) * c.waterMovementForce * Time.fixedDeltaTime;
             c.rb.AddForce(playerDirection);
 
             //Always force player to be on water surface while simming

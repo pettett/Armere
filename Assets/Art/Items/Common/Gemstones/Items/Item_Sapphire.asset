@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9efb734574eaa043b9c74102f44090a, type: 3}
+  m_Name: Item_Sapphire
+  m_EditorClassIdentifier: 
+  itemName: 27
+  type: 0
+  displaySprite:
+    m_AssetGUID: 8fa8a7348547ed44da021693de5e0a3d
+    m_SubObjectName: 
+    m_SubObjectType: 
+  displayName: Sapphire
+  description: This item has no description
+  sellable: 1
+  sellValue: 25
+  potionIngredient: 0
+  potionWorksFrom: 0
+  changePotionType: 0
+  newPotionType: 0
+  increasedDuration: 0
+  increasedPotency: 0
+  disabledCommands: 0
+  gameObject:
+    m_AssetGUID: 0c339e0b2330d1646a735e89ba144a32
+    m_SubObjectName: 
+    m_SubObjectType: 

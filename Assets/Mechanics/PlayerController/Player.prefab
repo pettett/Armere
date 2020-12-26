@@ -30,10 +30,6 @@ MonoBehaviour:
   holdingCrouchKey: 0
   db: {fileID: 11400000, guid: 0591115b4d9ddef47baed987f7523191, type: 2}
   playerInput: {fileID: 0}
-  cameraController:
-    updateWhilePaused: 0
-    canBeTargeted: 1
-    lockingMouse: 1
   runner: {fileID: 0}
   currentRoom: {fileID: 0}
   shoulderViewXOffset: 0.6
@@ -461,6 +457,16 @@ PrefabInstance:
     - target: {fileID: 8716322609640156541, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd,
         type: 3}
       propertyPath: maxHealth
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716322609640156541, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd,
+        type: 3}
+      propertyPath: useUI
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716322609640156541, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd,
+        type: 3}
+      propertyPath: startingHealth
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8822622876431628894, guid: 2e7a6d0b2c5754c40951883a6d0ca0dd,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 using System.Linq;
+using UnityEngine.InputSystem;
 
 public class GameCameras : MonoBehaviour
 {
@@ -26,6 +27,82 @@ public class GameCameras : MonoBehaviour
     public LayerMask doNotCollideWithCamera;
     public Transform cameraCollisionTarget;
     Camera regularCamera;
+
+    bool controlling = true;
+    public bool lockingMouse = true;
+    Vector2 mouseDelta;
+
+    //used to change how the height of the camera will change for a short time
+    [System.NonSerialized] DebugMenu.DebugEntry<float, float> entry;
+
+    private void Awake()
+    {
+        s = this;
+        Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
+    }
+    public void Start()
+    {
+        entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
+
+        cameraTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
+        regularCamera = cameraTransform.GetComponent<Camera>();
+
+        cameraCollisionTarget = cameraTarget;
+    }
+
+    public void End()
+    {
+        DebugMenu.RemoveEntry(entry);
+    }
+
+    public Vector3 TransformInput(Vector2 input)
+    {
+        Vector3 direction = new Vector3(input.x, 0, input.y);
+        direction = Quaternion.Euler(0, GameCameras.s.cameraTransform.eulerAngles.y, 0) * direction;
+        return direction;
+    }
+
+    public void DisableControl()
+    {
+        controlling = false;
+        mouseDelta = Vector2.zero;
+        GameCameras.s.freeLook.Priority = 0;
+    }
+    public void EnableControl()
+    {
+        //start the transition from free camare to game camera
+        controlling = true;
+        GameCameras.s.freeLook.Priority = 10;
+    }
+
+
+    float GetInputAxis(string axisName)
+    {
+        switch (axisName)
+        {
+            case "Mouse X":
+                return -mouseDelta.x;
+            case "Mouse Y":
+                return -mouseDelta.y;
+            default:
+                return 0;
+        }
+    }
+
+    public void LateUpdate()
+    {
+
+        if (controlling)
+            mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
+        Cursor.lockState = lockingMouse ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !lockingMouse;
+
+
+        CameraVolumeController.UpdateVolumeEffect(transform.position);
+
+    }
+
+
 
     public float playerTrackingOffset
     {
@@ -74,17 +151,7 @@ public class GameCameras : MonoBehaviour
             return halfExtends;
         }
     }
-    private void Awake()
-    {
-        s = this;
-    }
-    private void Start()
-    {
-        cameraTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
-        regularCamera = cameraTransform.GetComponent<Camera>();
 
-        cameraCollisionTarget = cameraTarget;
-    }
 
     Vector3 targetVel;
     private void Update()

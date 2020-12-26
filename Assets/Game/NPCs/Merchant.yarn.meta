@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 3492b33417943614d8d0fb1c7e8ee9b7
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - Baker-Start-0
+  - Baker-Start-1
+  - Baker-Start-2
+  - Baker-Start-3
+  - Baker-Start-4
+  - Baker-Start-5
+  - Baker-Start-6
+  - Baker-Start-7
+  - Baker-Start-8
+  - Baker-Start-9
+  - Baker-Start-10
+  - Baker-Start-11
+  - Baker-Start-12
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {fileID: 7128917941130120860, guid: 53e64907aaf5b1746bbc503637f204ca,
+    type: 3}
+  localizations: []

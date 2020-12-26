@@ -32,6 +32,9 @@ namespace Armere.Inventory
 
         [Tooltip("If changing potion type, this will be the base potency"), MyBox.ConditionalField("potionIngredient")]
         public float increasedPotency;
+        [Header("Interaction")]
+        [Tooltip("Should be none for most normal items")]
+        public ItemInteractionCommands disabledCommands;
 
     }
 }

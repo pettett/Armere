@@ -7,11 +7,12 @@ using UnityEngine;
 public class BuoyantBox : BuoyantBody
 {
     public Vector3[,,] voxels;
+    public Vector3[,,] forces;
     public Vector3 voxelSize;
     public Vector3Int voxelCount = new Vector3Int(2, 2, 2);
     new BoxCollider collider;
 
-    float voxelSubmersionSpan;
+    float voxelSpan;
 
     private void Start()
     {
@@ -19,11 +20,12 @@ public class BuoyantBox : BuoyantBody
         collider = GetComponent<BoxCollider>();
         CalculateVoxels();
         rb.mass = collider.size.x * collider.size.y * collider.size.z * density;
-        voxelSubmersionSpan = Mathf.Min(voxelSize.x, voxelSize.y, voxelSize.z);
+        voxelSpan = Mathf.Max(voxelSize.x, voxelSize.y, voxelSize.z);
     }
     void CalculateVoxels()
     {
         voxels = new Vector3[voxelCount.x, voxelCount.y, voxelCount.z];
+        forces = new Vector3[voxelCount.x, voxelCount.y, voxelCount.z];
         voxelSize = new Vector3(collider.size.x / voxelCount.x, collider.size.y / voxelCount.y, collider.size.z / voxelCount.z);
         Vector3 halfVoxelSize = voxelSize / 2;
 
@@ -39,18 +41,24 @@ public class BuoyantBox : BuoyantBody
         }
     }
 
-    public float VoxelSubmersion(Vector3 voxel, Bounds bounds)
+    public float VoxelSubmersion(in Vector3 voxel, in Bounds bounds)
     {
-        return Mathf.Clamp01((voxel.y - (bounds.center.y + bounds.extents.y) + 0.5f) * voxelSubmersionSpan);
+        return Mathf.Clamp01((bounds.max.y - voxel.y) / voxelSpan + 0.5f);
     }
 
     private void FixedUpdate()
     {
-        Matrix4x4 localToWorld = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-
-        float voxelContrib = 1f / voxels.Length;
-
         if (volume != null)
+        {
+            Matrix4x4 localToWorld = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+
+            float voxelContrib = 1f / voxels.Length;
+            float voxelVolume = voxelSize.x * voxelSize.y * voxelSize.z;
+            //Apply drag
+            float voxelMass = voxelVolume * density;
+
+            Vector3 buoyantForce = -Physics.gravity * voxelVolume * volume.density;
+
             for (int x = 0; x < voxelCount.x; x++)
             {
                 for (int y = 0; y < voxelCount.y; y++)
@@ -58,24 +66,26 @@ public class BuoyantBox : BuoyantBody
                     for (int z = 0; z < voxelCount.z; z++)
                     {
                         Vector3 point = localToWorld.MultiplyPoint(voxels[x, y, z]);
-                        if (volume.bounds.Contains(point))
-                        {
-                            Vector3 velocity = rb.GetRelativePointVelocity(voxels[x, y, z]);
+                        float submersion = VoxelSubmersion(point, volume.bounds);
 
-                            float voxelVolume = voxelSize.x * voxelSize.y * voxelSize.z;
-                            //Apply drag
-                            float voxelMass = voxelVolume * density;
-                            rb.AddForceAtPosition(
-                                -Physics.gravity * voxelVolume * volume.density,
-                                point);
-                            rb.AddForceAtPosition(
-                                -velocity * voxelContrib * waterDrag,
-                                point, ForceMode.VelocityChange);
+                        if (submersion > 0)
+                        {
+                            Vector3 velocity = rb.GetPointVelocity(point);
+
+                            Vector3 localDamping = -(velocity * waterDrag * voxelMass);
+
+
+
+                            Vector3 force = localDamping + Mathf.Sqrt(submersion) * buoyantForce;
+
+                            rb.AddForceAtPosition(force, point);
+                            forces[x, y, z] = force;
 
                         }
                     }
                 }
             }
+        }
     }
     private void OnDrawGizmos()
     {
@@ -86,9 +96,13 @@ public class BuoyantBox : BuoyantBody
             Gizmos.DrawWireCube(volume.bounds.center, volume.bounds.size);
 
 
-            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-            Matrix4x4 localToWorld = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
+            Matrix4x4 localToWorld = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+            Matrix4x4 worldToLocal = localToWorld.inverse;
+            Gizmos.matrix = localToWorld;
+
+            float voxelVolume = voxelSize.x * voxelSize.y * voxelSize.z;
+            float voxelMass = voxelVolume * density;
 
             for (int x = 0; x < voxelCount.x; x++)
             {
@@ -96,11 +110,14 @@ public class BuoyantBox : BuoyantBody
                 {
                     for (int z = 0; z < voxelCount.z; z++)
                     {
-                        Vector3 p = localToWorld.MultiplyPoint(voxels[x, y, z]);
-                        Gizmos.color = Color.Lerp(Color.red, Color.white, VoxelSubmersion(p, volume.bounds));
+                        Vector3 point = localToWorld.MultiplyPoint(voxels[x, y, z]);
+                        float sub = VoxelSubmersion(point, volume.bounds);
+                        Gizmos.color = Color.Lerp(Color.white, Color.red, sub);
 
 
                         Gizmos.DrawWireCube(voxels[x, y, z], voxelSize);
+
+                        Gizmos.DrawLine(voxels[x, y, z], voxels[x, y, z] + worldToLocal.MultiplyVector(forces[x, y, z] / rb.mass));
 
                     }
                 }

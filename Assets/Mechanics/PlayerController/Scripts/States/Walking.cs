@@ -495,7 +495,7 @@ namespace Armere.PlayerController
             if (!inControl) return; //currently being controlled by some other movement coroutine
 
             Vector3 velocity = c.rb.velocity;
-            Vector3 playerDirection = c.cameraController.TransformInput(c.input.horizontal);
+            Vector3 playerDirection = GameCameras.s.TransformInput(c.input.horizontal);
 
             grounded = FindGround(out groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
@@ -758,7 +758,7 @@ namespace Armere.PlayerController
 
         public override void OnSelectWeapon(int index, InputActionPhase phase)
         {
-            if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common)
+            if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common && !c.paused)
             {
                 selectingSlot = ItemTypeFromID(index);
 
@@ -771,7 +771,7 @@ namespace Armere.PlayerController
                 inControl = false;
                 c.Pause();
             }
-            else if (phase == InputActionPhase.Canceled)
+            else if (phase == InputActionPhase.Canceled && selectingSlot != ItemType.Common)
             {
                 var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
                 //Select this item for the weapon controls

@@ -16,7 +16,6 @@ public class QuestManagerUI : MonoBehaviour
         if (QuestManager.singleton != null)
             for (int i = 0; i < QuestManager.quests.Count; i++)
             {
-                Debug.Log(i);
                 var b = Instantiate(questButtonPrefab, questButtonContent);
                 int index = i;
                 b.GetComponent<Button>().onClick.AddListener(() => ViewQuest(index, false));

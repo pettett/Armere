@@ -294,6 +294,72 @@ MonoBehaviour:
     m_SerializedLabels: []
     m_MainAsset: {fileID: 0}
     m_TargetAsset: {fileID: 0}
+  - m_GUID: a6c77bc304bc3df4fbfbf5c7aaf4c396
+    m_Address: Assets/Art/Items/Common/Gemstones/Thumbnails/thumb_amethyst.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 83eb84742f3ca7144994cbce8795a370
+    m_Address: Assets/Art/Items/Common/Gemstones/Thumbnails/thumb_emerald.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 96e2267ed3b51ff44b3985feea95d7be
+    m_Address: Assets/Art/Items/Common/Gemstones/Thumbnails/thumb_ruby.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 8fa8a7348547ed44da021693de5e0a3d
+    m_Address: Assets/Art/Items/Common/Gemstones/Thumbnails/thumb_sapphire.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 4a69b43e56fcff34db4d3283398183e3
+    m_Address: Assets/Art/Items/Common/Gemstones/Thumbnails/thumb_topaz.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: c7036e5d57e9aee41bc288d41960d679
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Amethyst.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 0ee0c9eedecf5ba45b0177d0ef0f8002
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Diamond.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: b6e92e669705eee438a69f08f3287094
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Emerald.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 42a29cdc016ef134f91e91d25a38f9af
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Ruby.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 0c339e0b2330d1646a735e89ba144a32
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Sappfire.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
+  - m_GUID: 58de29b773cce134c967bde8ec3dc300
+    m_Address: Assets/Art/Items/Common/Gemstones/Gem_Topaz.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 0}
+    m_TargetAsset: {fileID: 0}
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7d4c1f55bd5f6da409c84e0ffad67b2f, type: 2}
   m_SchemaSet:

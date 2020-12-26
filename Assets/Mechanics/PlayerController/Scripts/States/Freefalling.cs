@@ -19,7 +19,7 @@ namespace Armere.PlayerController
 
         public override void FixedUpdate()
         {
-            desiredVelocity = c.cameraController.TransformInput(c.input.horizontal);
+            desiredVelocity = GameCameras.s.TransformInput(c.input.horizontal);
 
             c.rb.AddForce(desiredVelocity);
 

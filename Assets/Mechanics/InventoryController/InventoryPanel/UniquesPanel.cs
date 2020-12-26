@@ -9,7 +9,7 @@ namespace Armere.Inventory
 
         public List<UniqueT> items;
 
-        public UniquesPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options) : base(name, limit, type, options)
+        public UniquesPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands) : base(name, limit, type, commands)
         {
             //items = new List<ItemStackBase>(limit > 20 ? 20 : (int)limit);
         }
@@ -23,6 +23,19 @@ namespace Armere.Inventory
             if (items.Count < limit)
             {
                 items.Add((UniqueT)System.Activator.CreateInstance(typeof(UniqueT), name));
+                OnPanelUpdated();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public bool AddItem(UniqueT item)
+        {
+            if (items.Count < limit)
+            {
+                items.Add(item);
                 OnPanelUpdated();
                 return true;
             }
@@ -49,6 +62,7 @@ namespace Armere.Inventory
         }
 
         public override ItemStackBase ItemAt(int index) => items[index];
+
 
 
         public override uint ItemCount(ItemName item)

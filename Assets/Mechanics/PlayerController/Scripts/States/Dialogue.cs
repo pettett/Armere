@@ -60,9 +60,9 @@ public class Dialogue : MovementState
     {
         dialogue = d;
         //Setup PlayerController for static conversation
-        c.cameraController.lockingMouse = false;
+        GameCameras.s.lockingMouse = false;
         c.rb.velocity = Vector3.zero;
-        c.cameraController.DisableControl();
+        GameCameras.s.DisableControl();
         c.rb.isKinematic = true;
         GameCameras.s.cutsceneCamera.Priority = 50;
 
@@ -122,9 +122,9 @@ public class Dialogue : MovementState
     {
         CleanUpRunner();
 
-        c.cameraController.lockingMouse = true;
+        GameCameras.s.lockingMouse = true;
         c.rb.isKinematic = false;
-        c.cameraController.EnableControl();
+        GameCameras.s.EnableControl();
         GameCameras.s.cutsceneCamera.Priority = 0;
     }
 }

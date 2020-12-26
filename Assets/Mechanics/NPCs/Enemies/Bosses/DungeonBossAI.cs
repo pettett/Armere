@@ -60,7 +60,7 @@ public class DungeonBossAI : BossAI
     public void OnBossDamageTaken(GameObject attacker, GameObject victim)
     {
         //Push the ai back
-        float currentProportion = health.currentHealth / health.maxHealth;
+        float currentProportion = health.health / health.maxHealth;
 
 
 

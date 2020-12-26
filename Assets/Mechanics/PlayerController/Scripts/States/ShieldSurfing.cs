@@ -44,8 +44,8 @@ namespace Armere.PlayerController
         {
             animator.SetBool("IsSurfing", true);
             animator.SetBool("IsGrounded", c.onGround);
-            animator.SetFloat("InputHorizontal", c.cameraController.TransformInput(c.input.horizontal).x);
-            animator.SetFloat("InputVertical", c.cameraController.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
+            animator.SetFloat("InputHorizontal", GameCameras.s.TransformInput(c.input.horizontal).x);
+            animator.SetFloat("InputVertical", GameCameras.s.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
             animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
 
         }

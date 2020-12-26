@@ -19,8 +19,6 @@ public class Health : SimpleHealth, IAttackable
 
     public delegate void HealthEvent(GameObject attacker, GameObject victim);
 
-    public delegate void ShieldDamage(ref float damage, GameObject attacker, GameObject victim);
-
     public event HealthEvent onDeath;
     public bool blockingDamage = false;
     [Range(-1, 1)]
@@ -36,12 +34,11 @@ public class Health : SimpleHealth, IAttackable
     protected override void Start()
     {
         base.Start();
-        currentHealth = health;
+        UpdateUI();
     }
     public void Respawn()
     {
-        health = maxHealth;
-        currentHealth = health;
+        SetHealth(maxHealth);
         dead = false;
     }
 
@@ -63,6 +60,7 @@ public class Health : SimpleHealth, IAttackable
         }
 
         AttackResult r = AttackResult.Damaged;
+
 
         SetHealth(health - amount);
 
@@ -86,7 +84,8 @@ public class Health : SimpleHealth, IAttackable
     public void SetHealth(float newHealth)
     {
         health = Mathf.Clamp(newHealth, 0, maxHealth);
-        currentHealth = health;
+
+        UpdateUI();
     }
 
     private void OnDrawGizmosSelected()

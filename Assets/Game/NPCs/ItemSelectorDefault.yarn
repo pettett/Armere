@@ -1,0 +1,19 @@
+
+title: WaitForSelection
+---
+Potion: Please select an item
+-> <Exit>I need to go
+    <<StopSelection>>
+===
+
+title: Select
+---
+Potion:Are you sure?
+-> Yes
+    <<ConfirmSelection>>
+-> Actually, I'll Keep it
+    <<CancelSelection>>
+    [[WaitForSelection]]
+-> <Exit>I need to go
+    <<StopSelection>>
+===

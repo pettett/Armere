@@ -21,16 +21,13 @@ namespace Armere.Inventory
     public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack, new()
     {
 
-
-
         public List<StackT> items;
 
         public override int stackCount => items.Count;
 
-
         public override ItemStackBase this[int i] { get => items[i]; set => items[i] = value as StackT; }
 
-        public StackPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options) : base(name, limit, type, options)
+        public StackPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands) : base(name, limit, type, commands)
         {
             //items = new List<ItemStack>(limit > 20 ? 20 : (int)limit);
         }

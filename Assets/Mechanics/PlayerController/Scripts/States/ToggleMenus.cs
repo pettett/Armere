@@ -30,7 +30,11 @@ namespace Armere.PlayerController
         {
             if (!inConsole && context.action.name == "TabMenu" && context.phase == InputActionPhase.Started)
             {
-                inMenus = !inMenus;
+                //Only enter if the game is not paused
+                if (inMenus) inMenus = false;
+                else if (!c.paused) inMenus = true;
+                else return true;
+
                 UpdateMenus();
                 return false;
             }
@@ -64,33 +68,19 @@ namespace Armere.PlayerController
 
         void UpdateMenus()
         {
-            if (inMenus)
-            {
-                UIController.SetTabMenu(true);
-                SetPaused(true);
-            }
-            else
-            {
-                UIController.SetTabMenu(false);
-                SetPaused(false);
-            }
+            UIController.SetTabMenu(inMenus);
+            SetPaused(inMenus);
         }
 
         void SetPaused(bool p)
         {
             if (p)
             {
-                c.Pause();
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-                c.cameraController.lockingMouse = false;
+                c.PauseControl();
             }
             else
             {
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
-                c.cameraController.lockingMouse = true;
-                c.Play();
+                c.ResumeControl();
             }
         }
     }

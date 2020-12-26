@@ -27,7 +27,7 @@ MonoBehaviour:
   changePotionType: 0
   newPotionType: 22
   increasedDuration: 0
-  increasedPotency: 0
+  increasedPotency: 20
   gameObject:
     m_AssetGUID: 34438ae4e1a601a4785c5cc084a82c7e
     m_SubObjectName: 

@@ -1,0 +1,63 @@
+title: Start
+---
+
+Merchant: What can I do for you?
+-> Looking to buy
+    <<OfferToBuy>>
+    [[WaitForBuy]]
+-> Looking to Sell
+    <<OfferToSell>>
+    [[WaitForSelection]]
+-> <Exit>Just checking up
+    Merchant: See ya
+
+===
+
+title: WaitForSelection
+---
+
+Merchant: I'll take those items off your hands!
+-> <Exit>I need to go
+    Merchant: See you around
+    <<StopSelection>>
+===
+
+title: Select
+---
+Merchant: So you want to Selection that?
+-> You can take it
+    Merchant: Thanks! I'll take whatever
+    <<ConfirmSelection>>
+    [[WaitForSelection]]
+-> Actually, I'll Keep it
+    Merchant: Suit yourself
+    <<CancelSelection>>
+    [[WaitForSelection]]
+-> <Exit>I need to go
+    Merchant: See you around
+    <<StopSelection>>
+===
+
+title: WaitForBuy
+---
+Merchant: I've got good meats!
+-> <Exit>I need to go
+    Merchant: See you around
+    <<StopBuy>>
+===
+
+title: Buy
+---
+Merchant: So you want to take one?
+-> Yep!
+    Merchant: Thanks! Get it out of here!
+    <<ConfirmBuy>>
+    [[WaitForBuy]]
+-> Nope!
+    Merchant: Suit yourself
+    <<CancelBuy>>
+    [[WaitForBuy]]
+-> <Exit>I need to go
+    Merchant: See you around
+    <<StopBuy>>
+===

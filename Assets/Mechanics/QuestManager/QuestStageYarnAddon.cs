@@ -12,13 +12,12 @@ public class QuestStageYarnAddon : IVariableAddon
         get
         {
             //it is a quest
-            string quest = name.Substring(questStagePrefix.Length);
 
-            if (QuestManager.TryGetQuest(quest, out var q))
+            if (QuestManager.TryGetQuest(name, out var q))
 
                 //there is a quest with this name, return it's current state
                 return new Value(q.stage);
-            else if (QuestManager.TryGetCompletedQuest(quest, out var qw))
+            else if (QuestManager.TryGetCompletedQuest(name, out var qw))
 
                 //there is a quest with this name, return it's current state
                 return new Value(qw.stage + 1);

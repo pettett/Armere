@@ -163,13 +163,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18026db7e38661a478b3ffbaa6cc1316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentHealth: 0
+  health: 0
   maxHealth: 100
   onDeathEvent:
     m_PersistentCalls:
       m_Calls: []
   headshotHeight: 1.58
-  useUI: 1
+  useUI: 0
   uiName: health
   centerOffset: {x: 0, y: 1.18, z: 0}
   blockingDamage: 0
@@ -329,6 +329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 0.7
   offset: {x: 0, y: 0, z: 0}
+  setMainPusher: 0
 --- !u!54 &4758277108601243638
 Rigidbody:
   m_ObjectHideFlags: 0

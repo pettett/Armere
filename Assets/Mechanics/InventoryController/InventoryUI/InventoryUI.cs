@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Linq;
+
 namespace Armere.Inventory.UI
 {
     public class InventoryUI : MonoBehaviour, IPointerClickHandler
@@ -17,13 +19,17 @@ namespace Armere.Inventory.UI
         public ItemInfoDisplay selectedDisplay;
         public bool sellMenu;
         public System.Action<ItemType, int> onItemSelected;
-        public ScrollRect scroll;
         GameObject contextMenu;
+
+        public GameObject contextMenuPrefab;
+        public GameObject contextMenuButtonPrefab;
 
         public UnityEngine.Events.UnityEvent<bool> onContextMenuEnabled;
         public UnityEngine.Events.UnityEvent<bool> onContextMenuDisabled;
 
         Dictionary<ItemType, SelectableInventoryItemUI[]> inventoryUIPanels = null;
+
+        System.Predicate<ItemStackBase> currentPredicate;
 
         public SelectableInventoryItemUI CreateTemplate(Transform itemGridPanel, InventoryPanel panel, int index)
         {
@@ -52,6 +58,9 @@ namespace Armere.Inventory.UI
             //     item.optionDelegates = new InventoryController.OptionDelegate[] { OnSelectItem };
 
             item.ChangeItemIndex(index);
+            //Change selectable based on predicate,
+            //Allows some items to be removed for selection
+            item.interactable = currentPredicate(panel.ItemAt(index));
 
             return item;
         }
@@ -59,13 +68,40 @@ namespace Armere.Inventory.UI
         public void OnPointerClick(PointerEventData eventData)
         {
             //If the user has clicked on the background, they do not want to use the context menu
-            if (contextMenu != null) RemoveContextMenu();
+            RemoveContextMenu();
         }
 
         public void RemoveContextMenu()
         {
-            Destroy(contextMenu);
-            EnableContextMenu(false);
+            if (contextMenu != null)
+            {
+                Destroy(contextMenu);
+                EnableContextMenu(false);
+            }
+        }
+
+        IEnumerable<ItemInteractionCommands> CommandsEnabled(InventoryPanel panel)
+        {
+            foreach (ItemInteractionCommands c in System.Enum.GetValues(typeof(ItemInteractionCommands)))
+            {
+                if (c != ItemInteractionCommands.None && panel.commands.HasFlag(c)) yield return c;
+            }
+        }
+
+        public void Callback(ItemInteractionCommands commands, ItemType type, int index)
+        {
+            switch (commands)
+            {
+                case ItemInteractionCommands.Drop:
+                    InventoryController.singleton.OnDropItem(type, index);
+                    break;
+                case ItemInteractionCommands.Equip:
+                    InventoryController.singleton.OnSelectItem(type, index);
+                    break;
+                case ItemInteractionCommands.Consume:
+                    InventoryController.singleton.OnConsumeItem(type, index);
+                    break;
+            }
         }
 
         public void ShowContextMenu(ItemType type, int index, Vector2 mousePosition)
@@ -76,43 +112,52 @@ namespace Armere.Inventory.UI
             }
             else
             {
-                if (contextMenu != null) RemoveContextMenu();
+                RemoveContextMenu();
 
-                contextMenu = new GameObject("Menu", typeof(RectTransform), typeof(Image), typeof(LayoutElement), typeof(VerticalLayoutGroup));
-                contextMenu.GetComponent<LayoutElement>().ignoreLayout = true;
 
-                contextMenu.transform.SetParent(gridPanelHolder);
-                (contextMenu.transform as RectTransform).pivot = new Vector2(0f, 1f);
-                (contextMenu.transform as RectTransform).position = mousePosition + new Vector2(-10, 10);
 
-                ItemData item = db[InventoryController.ItemAt(index, type).name];
+
                 InventoryPanel p = InventoryController.singleton.GetPanelFor(type);
-                for (int i = 0; i < p.options.Length; i++)
+                ItemInteractionCommands[] commands = CommandsEnabled(p).ToArray();
+
+                if (commands.Length != 0)
                 {
-                    //Add the buttons
-                    var button = new GameObject(p.options[i].Method.Name, typeof(Image), typeof(Button));
-                    button.transform.SetParent(contextMenu.transform);
-                    int callbackIndex = i;
-                    //When this button is clicked, apply it and close the menu
-                    button.GetComponent<Button>().onClick.AddListener(() => p.options[callbackIndex](type, index));
-                    button.GetComponent<Button>().onClick.AddListener(RemoveContextMenu);
+                    ItemData item = db[InventoryController.ItemAt(index, type).name];
 
-                    var textObject = new GameObject("Text", typeof(TextMeshProUGUI));
-                    textObject.transform.SetParent(button.transform);
+                    contextMenu = Instantiate(contextMenuPrefab, transform);
 
-                    //Make the text occupy the entire button (Very annoying)
-                    (textObject.transform as RectTransform).anchorMin = Vector2.zero;
-                    (textObject.transform as RectTransform).anchorMax = Vector2.one;
-                    (textObject.transform as RectTransform).anchoredPosition = Vector2.zero;
-                    (textObject.transform as RectTransform).sizeDelta = Vector2.zero;
-                    textObject.GetComponent<TextMeshProUGUI>().text = p.options[i].Method.Name;
-                    textObject.GetComponent<TextMeshProUGUI>().fontSize = 12;
-                    textObject.GetComponent<TextMeshProUGUI>().color = Color.black;
+                    (contextMenu.transform as RectTransform).pivot = new Vector2(0f, 1f);
+                    (contextMenu.transform as RectTransform).position = mousePosition + new Vector2(20, 10);
+
+                    for (int i = 0; i < commands.Length; i++)
+                    {
+                        //Add the buttons
+                        var button = Instantiate(contextMenuButtonPrefab, contextMenu.transform);
+
+                        int callbackIndex = i;
+                        var text = button.GetComponentInChildren<TextMeshProUGUI>();
+                        if (item.disabledCommands.HasFlag(commands[i]))
+                        {
+                            //When this button is clicked, do nothing
+                            button.GetComponent<Button>().interactable = false;
+                            text.color = button.GetComponent<Button>().colors.disabledColor;
+                        }
+                        else
+                        {
+                            //When this button is clicked, apply it and close the menu
+                            button.GetComponent<Button>().onClick.AddListener(() => Callback(commands[callbackIndex], type, index));
+                            button.GetComponent<Button>().onClick.AddListener(RemoveContextMenu);
+                        }
 
 
+                        text.SetText(commands[i].ToString());
+
+
+                    }
+
+                    EnableContextMenu(true);
                 }
 
-                EnableContextMenu(true);
             }
         }
         void EnableContextMenu(bool enabled)
@@ -132,7 +177,6 @@ namespace Armere.Inventory.UI
 
         public void OnSelectItem(ItemType type, int itemIndex)
         {
-            print("Selected " + itemIndex.ToString());
             onItemSelected?.Invoke(type, itemIndex);
         }
 
@@ -157,6 +201,7 @@ namespace Armere.Inventory.UI
             for (int i = 0; i < panel.stackCount; i++)
             {
                 inventoryUIPanels[panel.type][i] = CreateTemplate(grid, panel, i);
+
             }
             int blankCount;
             if (panel.limit == int.MaxValue)
@@ -178,6 +223,8 @@ namespace Armere.Inventory.UI
             for (int i = 0; i < panel.stackCount; i++)
             {
                 inventoryUIPanels[panel.type][i].ChangeItemIndex(i);
+                //Test if selectable from predicate
+                inventoryUIPanels[panel.type][i].interactable = currentPredicate(panel.ItemAt(i));
             }
             for (int i = panel.stackCount; i < inventoryUIPanels[panel.type].Length; i++)
             {
@@ -204,6 +251,17 @@ namespace Armere.Inventory.UI
         }
         private void OnDisable()
         {
+            if (!sellMenu)
+                DisableMenu();
+        }
+
+        private void OnEnable()
+        {
+            if (!sellMenu)
+                EnableMenu(_ => true);
+        }
+        public void DisableMenu()
+        {
             inventoryUIPanels = null;
             RemoveItemGroup(InventoryController.singleton.common);
             RemoveItemGroup(InventoryController.singleton.melee);
@@ -212,11 +270,19 @@ namespace Armere.Inventory.UI
             RemoveItemGroup(InventoryController.singleton.ammo);
             RemoveItemGroup(InventoryController.singleton.quest);
             RemoveItemGroup(InventoryController.singleton.potions);
-        }
 
-        private void OnEnable()
-        {
+
             CleanUpInventory();
+
+
+            TooltipUI.current.OnCursorExitItemUI();
+        }
+        public void EnableMenu(System.Predicate<ItemStackBase> predicate)
+        {
+            currentPredicate = predicate;
+
+            CleanUpInventory();
+            //print("Creating inventory");
             inventoryUIPanels = new Dictionary<ItemType, SelectableInventoryItemUI[]>();
             //Currency if left for the currency display
 

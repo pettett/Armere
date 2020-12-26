@@ -1,0 +1,2 @@
+camera angle -  atan(4 / 3)r down, 45deg around
+use lilienstein hdri

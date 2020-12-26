@@ -72,6 +72,8 @@ namespace Yarn.Unity
         /// </summary>
         public DialogueUIBehaviour dialogueUI;
 
+        public static DialogueRunner singleton;
+
         /// <summary>The name of the node to start from.</summary>
         /// <remarks>
         /// This value is used to select a node to start from when
@@ -514,7 +516,10 @@ namespace Yarn.Unity
             strings = new Dictionary<string, string>();
         }
 
-
+        private void Awake()
+        {
+            singleton = this;
+        }
         /// Start the dialogue
         void Start()
         {

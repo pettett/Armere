@@ -151,7 +151,7 @@ namespace Armere.PlayerController
 
             if (onSurface)
             {
-                playerDirection = c.cameraController.TransformInput(c.input.horizontal);
+                playerDirection = GameCameras.s.TransformInput(c.input.horizontal);
                 playerDirection.y = 0;
                 playerDirection *= c.waterMovementForce * Time.fixedDeltaTime;
             }

@@ -28,3 +28,4 @@ MonoBehaviour:
   newPotionType: 0
   increasedDuration: 0
   increasedPotency: 0
+  disabledCommands: -1

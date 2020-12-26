@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Armere.Inventory.UI
 {
-    public class InventoryItemUI : MonoBehaviour
+    public class InventoryItemUI : Selectable
     {
         //Set by script
         public int itemIndex;
@@ -19,6 +19,9 @@ namespace Armere.Inventory.UI
         public TMPro.TextMeshProUGUI infoText;
         public TMPro.TextMeshProUGUI nameText;
         AsyncOperationHandle<Sprite> asyncOperation;
+
+
+
         public void ChangeItemIndex(int newIndex)
         {
 

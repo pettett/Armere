@@ -15,7 +15,7 @@ namespace Armere.PlayerController
         public override void Start()
         {
             canBeTargeted = false;
-            c.cameraController.EnableControl();
+            GameCameras.s.EnableControl();
             c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = true;
         }
     }

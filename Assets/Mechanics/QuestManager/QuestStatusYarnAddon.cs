@@ -13,13 +13,12 @@ public class QuestStatusYarnAddon : IVariableAddon
         get
         {
             //it is a quest
-            string quest = name.Substring(questStatusPrefix.Length);
 
-            if (QuestManager.TryGetQuest(quest, out var q))
+            if (QuestManager.TryGetQuest(name, out var q))
 
                 //there is a quest with this name, return it's current state
                 return new Value("Active");
-            else if (QuestManager.TryGetCompletedQuest(quest, out var qw))
+            else if (QuestManager.TryGetCompletedQuest(name, out var qw))
 
                 //there is a quest with this name, return it's current state
                 return new Value("Completed");

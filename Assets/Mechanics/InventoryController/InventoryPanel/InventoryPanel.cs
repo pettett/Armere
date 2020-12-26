@@ -7,7 +7,8 @@ namespace Armere.Inventory
     {
         public readonly string name;
         public readonly ItemType type;
-        public InventoryOptionDelegate[] options;
+        public readonly ItemInteractionCommands commands;
+
         public uint limit;
 
         public event Action<InventoryPanel> onPanelUpdated;
@@ -20,12 +21,12 @@ namespace Armere.Inventory
         public abstract uint ItemCount(int itemIndex);
         public abstract ItemStackBase ItemAt(int index);
 
-        public InventoryPanel(string name, uint limit, ItemType type, params InventoryOptionDelegate[] options)
+        public InventoryPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands)
         {
             this.name = name;
-            this.options = options;
             this.limit = limit;
             this.type = type;
+            this.commands = commands;
         }
         public abstract ItemStackBase this[int i]
         {

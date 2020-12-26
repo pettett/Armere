@@ -102,7 +102,7 @@ namespace Yarn.Unity
 
         // When true, the DialogueRunner is waiting for the user to press
         // one of the option buttons.
-        private bool waitingForOptionSelection = false;
+        bool waitingForOptionSelection = false;
         /// <summary>
         /// A <see cref="UnityEngine.Events.UnityEvent"/> that is called
         /// when the dialogue starts.
@@ -405,7 +405,7 @@ namespace Yarn.Unity
                             float t = float.Parse(time);
                             //only make the user wait if they have not requested the next line
                             if (!userRequestedNextLine)
-                                yield return new WaitForSeconds(t);
+                                yield return new WaitForSecondsRealtime(t);
                         }
                         else
                         {
@@ -433,7 +433,7 @@ namespace Yarn.Unity
                         // If the user has requested the next line, the text should be built instantly
                         onLineUpdate?.Invoke(stringBuilder.ToString());
 
-                        yield return new WaitForSeconds(textSpeed);
+                        yield return new WaitForSecondsRealtime(textSpeed);
                     }
 
                 }
@@ -579,6 +579,13 @@ namespace Yarn.Unity
                 yield return null;
             }
 
+            CleanUpButtons();
+
+            onOptionsEnd?.Invoke();
+        }
+
+        public void CleanUpButtons()
+        {
             // Hide all the buttons
             foreach (var button in optionButtons)
             {
@@ -588,10 +595,7 @@ namespace Yarn.Unity
                 buttonIDs[inde] = -1;
 
             escapeOption = -1;
-            onOptionsEnd?.Invoke();
         }
-
-
 
         /// Runs a command.
         /// <inheritdoc/>
@@ -631,9 +635,8 @@ namespace Yarn.Unity
             cachedLine = null;
         }
         //because lines have to be cached to display options and text at the same time, the last line must be displayed separately
-        void FinishDialogue()
+        public void FinishDialogue()
         {
-            print("finished the dialogue");
             onDialogueEnd?.Invoke();
 
             // Hide the dialogue interface.

@@ -78,7 +78,6 @@ namespace Armere.PlayerController
 
         [NonSerialized] private MovementState[] parallelStates = new MovementState[0];
 
-        public CameraControl cameraController;
 
         public Yarn.Unity.DialogueRunner runner;
 
@@ -228,10 +227,6 @@ namespace Armere.PlayerController
 
             entry = DebugMenu.CreateEntry("Player", "State(s): {0}", "");
 
-            cameraController = new CameraControl();
-            cameraController.Init(this);
-            cameraController.Start();
-
 
             if (loadedStates)
             {
@@ -251,6 +246,7 @@ namespace Armere.PlayerController
 
             GetComponent<Ragdoller>().RagdollEnabled = false;
             InventoryController.singleton.OnDropItemEvent += OnDropItem;
+            InventoryController.singleton.OnConsumeItemEvent += OnConsumeItem;
 
         }
 
@@ -282,7 +278,7 @@ namespace Armere.PlayerController
                 {
                     //value has changed
                     if (value)
-                        Pause();
+                        PauseControl();
                     else
                         Play();
                 }
@@ -301,7 +297,23 @@ namespace Armere.PlayerController
             Time.timeScale = 1;
             _paused = false;
         }
+        public void PauseControl()
+        {
+            GameCameras.s.DisableControl();
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            GameCameras.s.lockingMouse = false;
+            Pause();
+        }
+        public void ResumeControl()
+        {
+            GameCameras.s.EnableControl();
 
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+            GameCameras.s.lockingMouse = true;
+            Play();
+        }
 
 
         public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
@@ -378,6 +390,20 @@ namespace Armere.PlayerController
             //TODO - Add way to drop multiple items
             if (InventoryController.TakeItem(itemIndex, type))
                 await ItemSpawner.SpawnItemAsync(name, transform.position + Vector3.up * 0.1f + transform.forward, transform.rotation);
+        }
+        public void OnConsumeItem(ItemType type, int itemIndex)
+        {
+            if (type == ItemType.Potion)
+            {
+                //Consume the potion
+                PotionItemUnique pot = InventoryController.singleton.potions.items[itemIndex];
+                if (pot.name == ItemName.HealingPotion)
+                {
+                    health.SetHealth(health.health + pot.potency);
+                }
+                InventoryController.singleton.potions.TakeItem(itemIndex, 1);
+
+            }
         }
 
 
@@ -552,13 +578,12 @@ namespace Armere.PlayerController
 
         public void FillAllStates()
         {
-            allStates = new MovementState[parallelStates.Length + 2];
+            allStates = new MovementState[parallelStates.Length + 1];
             for (int i = 0; i < parallelStates.Length; i++)
             {
                 allStates[i] = parallelStates[i];
             }
             allStates[parallelStates.Length] = currentState;
-            allStates[parallelStates.Length + 1] = cameraController;
         }
         public void StartAllStates(params object[] parameters)
         {
@@ -625,5 +650,7 @@ namespace Armere.PlayerController
         {
             currentWater = null;
         }
+
+
     }
 }

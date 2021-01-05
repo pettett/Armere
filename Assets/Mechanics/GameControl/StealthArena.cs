@@ -11,7 +11,8 @@ public class StealthArena : MonoBehaviour
         //Pause the game
 
         //Focus on the enemy
-        GameCameras.s.FocusCutsceneCameraToTargets(enemy.transform);
+        GameCameras.s.SetCameraTargets(enemy.transform);
+        GameCameras.s.EnableCutsceneCamera();
         //Lock down the area
         foreach (var barrier in lockdownBarriers)
         {

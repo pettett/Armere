@@ -33,7 +33,9 @@ public enum ItemName
     Emerald,
     Sapphire,
     Ruby,
-    Topaz
+    Topaz,
+    ManlyCape,
+    CommonTrousers
 }
 //Subset of item name
 public enum PotionItemName
@@ -53,6 +55,7 @@ public enum ItemType
     Quest = 5,
     Currency = 6,
     Potion = 7,
+    Armour,
 }
 
 

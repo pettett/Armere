@@ -9,7 +9,8 @@
         "Unity.ResourceManager",
         "Game.UI",
         "Game.Environment.Fire",
-        "Game.Environment.Grass"
+        "Game.Environment.Grass",
+        "MyBox"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

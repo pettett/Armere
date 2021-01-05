@@ -12,9 +12,11 @@ namespace Armere.Inventory
         public uint limit;
 
         public event Action<InventoryPanel> onPanelUpdated;
+        public event Action<InventoryPanel, int> onItemRemoved;
 
         public abstract int AddItem(ItemName name, uint count);
         public abstract bool AddItem(int index, uint count);
+        public abstract bool AddItem(ItemStackBase stack);
         public abstract bool TakeItem(ItemName name, uint count);
         public abstract bool TakeItem(int index, uint count);
         public abstract uint ItemCount(ItemName item);
@@ -40,5 +42,6 @@ namespace Armere.Inventory
 
 
         protected void OnPanelUpdated() => onPanelUpdated?.Invoke(this);
+        protected void OnItemRemoved(int index) => onItemRemoved?.Invoke(this, index);
     }
 }

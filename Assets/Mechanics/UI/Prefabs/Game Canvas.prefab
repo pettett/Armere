@@ -2430,11 +2430,11 @@ RectTransform:
   m_Father: {fileID: 8757947123913629519}
   m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 104, y: 38.41}
-  m_SizeDelta: {x: 286.80807, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 0}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &1174256179475620704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3601,8 +3601,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventoryUI: {fileID: 1105710383274151200}
   holder: {fileID: 2673927932793531457}
-  selectionDialogue: {fileID: 2480198943629176163, guid: 71d12886f63ccfd49932e6e53a4f6ac1,
-    type: 3}
 --- !u!1 &3166006663815108398
 GameObject:
   m_ObjectHideFlags: 0
@@ -4187,7 +4185,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 1
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 3.2106018, y: 0, z: 0, w: 0}
+  m_margin: {x: 9.272944, y: 0, z: 0, w: 9.615174}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -6788,7 +6786,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 4bd29b9f87896054c9bf38df3c8e910c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8145,6 +8143,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Skip Key
       m_Flags: 0
+    - m_Name: 
+      m_Id: 267ca498-35fb-475a-9696-4afcd214ac59
+      m_Path: <Mouse>/leftButton
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Skip Key
+      m_Flags: 0
   option1Key:
     m_Name: Option 1 Key
     m_Type: 0
@@ -8936,8 +8942,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 15}
+  m_SizeDelta: {x: 0, y: -30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6330591703240942093
 GameObject:
@@ -9495,7 +9501,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -11078,7 +11084,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alertIndicatorPrefab: {fileID: 842604885400949450, guid: 368775f9514860741a0d217a803000a1,
     type: 3}
-  focusableIndicatorPrefab: {fileID: 0}
+  focusableIndicatorPrefab: {fileID: 842604885400949450, guid: d932ad69a92466748819cd52f1ea523f,
+    type: 3}
 --- !u!1 &7471925057482745867
 GameObject:
   m_ObjectHideFlags: 0
@@ -12192,7 +12199,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: awdawdawd
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 239b399676287df40a61c90e02e13e83, type: 2}
   m_sharedMaterial: {fileID: -57164230079202175, guid: 239b399676287df40a61c90e02e13e83,
@@ -12256,7 +12263,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 1
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 3.2106018, y: 0, z: 0, w: 0}
+  m_margin: {x: 9.735185, y: 0, z: 0, w: 7.89817}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -12642,7 +12649,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabMenu: {fileID: 4459811912887922365}
   buyMenu: {fileID: 2896701028748484181}
-  sellMenu: {fileID: 3127351919821310850}
   itemIndicator: {fileID: 6516363461091429037}
   npcIndicator: {fileID: 4540249636432598725}
   fadeoutImage: {fileID: 7338750618785563035}
@@ -13400,9 +13406,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'HEALTH
-
-'
+  m_text: Health
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 239b399676287df40a61c90e02e13e83, type: 2}
   m_sharedMaterial: {fileID: -57164230079202175, guid: 239b399676287df40a61c90e02e13e83,
@@ -13438,7 +13442,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -13692,7 +13696,7 @@ PrefabInstance:
     - target: {fileID: 4876370519615061574, guid: f63e7c823e90ce34faab03e9eafd8122,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.000030517578
+      value: -0.000061035156
       objectReference: {fileID: 0}
     - target: {fileID: 4876370519615061574, guid: f63e7c823e90ce34faab03e9eafd8122,
         type: 3}

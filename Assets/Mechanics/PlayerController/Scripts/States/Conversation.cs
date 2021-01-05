@@ -50,24 +50,25 @@ namespace Armere.PlayerController
             c.animationController.clampLookAtPositionWeight = 0.5f; //Half rotation away
             c.animationController.lookAtPosition = talkingTarget.headPosition.position;
 
+            //GameCameras.s.freeLookTarget = GameCameras.s.cameraTrackingTarget;
+
             //Setup camera
             int targets = Mathf.Max(2, talkingTarget.conversationGroupOverride.Length + 1);
             //Add all targets including the player
-            GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[targets];
-            GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(transform);
-
+            Transform[] targetTransforms = new Transform[targets];
             if (talkingTarget.conversationGroupOverride.Length != 0)
             {
                 for (int i = 0; i < talkingTarget.conversationGroupOverride.Length; i++)
                 {
-                    GameCameras.s.conversationGroup.m_Targets[i + 1] = GenerateTarget(talkingTarget.conversationGroupOverride[i]);
+                    targetTransforms[i + 1] = talkingTarget.conversationGroupOverride[i];
                 }
             }
             else
             {
-                GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(talkingTarget.transform);
+                targetTransforms[1] = talkingTarget.transform;
             }
 
+            GameCameras.s.SetCameraTargets(targetTransforms);
             GameCameras.s.conversationGroup.DoUpdate();
 
             //Add the variables for this NPC
@@ -83,6 +84,7 @@ namespace Armere.PlayerController
         public override void End()
         {
             base.End();
+
 
 
             c.animationController.headLookAtPositionWeight = 0;
@@ -315,24 +317,44 @@ namespace Armere.PlayerController
             runner.StartDialogue("Buy");
         }
 
-        public async void OfferToSell(string[] arg)
+        public void OfferToSell(string[] arg)
         {
             print("Selling");
             //Show the Inventory UI
             //Wait for the player to select an item      
+            RunSellMenu();
+        }
+        public async void RunSellMenu()
+        {
 
             DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
             (ItemType type, int index) = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].sellable);
-            DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-            OnSellMenuItemSelected(type, index);
+
+            if (index != -1)
+            {
+                DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+                OnSellMenuItemSelected(type, index);
+            }//else the dialogue will handle it
+            else if (!DialogueRunner.singleton.IsDialogueRunning)
+            {
+                OnDialogueComplete();
+            }
+            else
+            {
+                DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+            }
+
         }
 
         void OnSellMenuItemSelected(ItemType type, int itemIndex)
         {
             //Pay the player for the item
-            InventoryController.singleton.currency.TakeItem(InventoryController.ItemAt(itemIndex, type).name, 1);
+            InventoryController.singleton.currency.AddItem(InventoryController.ItemAt(itemIndex, type).name, 1);
+
             //Remove the item from the inventory
             InventoryController.TakeItem(itemIndex, type);
+
+            RunSellMenu();
         }
 
         void HideAllDialogueButtons()

@@ -32,7 +32,7 @@ public class SaveUI : UIMenu
         confirm.gameObject.SetActive(false);
         text.text = savingText;
 
-        await SaveManager.singleton.SaveGameStateAsync();
+        SaveManager.singleton.SaveGameStateAsync();
 
         text.text = savedText;
         await Task.Delay(100);

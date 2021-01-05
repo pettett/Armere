@@ -107,6 +107,7 @@ public class WeaponGraphicsController : MonoBehaviour
         {
             holdPoint.Init(a);
             sheathedPoint.Init(a);
+
         }
         public void Anchor()
         {
@@ -123,6 +124,8 @@ public class WeaponGraphicsController : MonoBehaviour
             if (gameObject != null) gameObject.Destroy();
 
             Assert.IsTrue(holdable.holdableGameObject.RuntimeKeyIsValid(), "Reference to holdable is null");
+
+
 
             gameObject = (await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default));
 
@@ -146,6 +149,8 @@ public class WeaponGraphicsController : MonoBehaviour
             }
         }
     }
+
+    public CharacterMeshController characterMesh;
 
     public AudioSource source;
     // public HoldableObject weapon;
@@ -221,8 +226,9 @@ public class WeaponGraphicsController : MonoBehaviour
 
     private void Start()
     {
-        animator = GetComponent<Animator>();
         animationController = GetComponent<AnimationController>();
+
+        animator = GetComponent<Animator>();
 
         foreach (HoldableObject h in holdables)
             h.Init(animator);

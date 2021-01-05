@@ -262,8 +262,12 @@ public class AnimationController : MonoBehaviour
     }
     void AdjustFeetTarget(ref Vector3 feetPosition, HumanBodyBones foot)
     {
-        feetPosition = anim.GetBoneTransform(foot).position;
-        feetPosition.y = transform.position.y + heightFromGroundRaycast;
+        Transform f = anim.GetBoneTransform(foot);
+        if (f != null)
+        {
+            feetPosition = f.position;
+            feetPosition.y = transform.position.y + heightFromGroundRaycast;
+        }
     }
     #endregion
 

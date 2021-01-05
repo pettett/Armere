@@ -8,7 +8,6 @@ public class UIController : MonoBehaviour
 
     public UIMenu tabMenu;
     public GameObject buyMenu;
-    public GameObject sellMenu;
     public WorldIndicator itemIndicator;
     public WorldIndicator npcIndicator;
     public static UIController singleton;

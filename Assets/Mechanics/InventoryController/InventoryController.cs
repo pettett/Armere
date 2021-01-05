@@ -54,8 +54,6 @@ namespace Armere.Inventory
         }
 
 
-
-
         public InventoryPanel GetPanelFor(ItemType t)
         {
             switch (t)
@@ -67,6 +65,7 @@ namespace Armere.Inventory
                 case ItemType.Ammo: return ammo;
                 case ItemType.Bow: return bow;
                 case ItemType.Currency: return currency;
+                case ItemType.Armour: return armour;
                 case ItemType.Potion: return potions;
                 default: return null;
             }
@@ -82,6 +81,7 @@ namespace Armere.Inventory
             public List<ItemStackBase> weapon;
             public List<ItemStackBase> sideArm;
             public List<ItemStackBase> bow;
+            public List<ItemStackBase> armour;
             public List<ItemStack> ammo;
             public List<PotionItemUnique> potions;
             public uint currency;
@@ -92,6 +92,7 @@ namespace Armere.Inventory
                 weapon = new List<ItemStackBase>();
                 sideArm = new List<ItemStackBase>();
                 bow = new List<ItemStackBase>();
+                armour = new List<ItemStackBase>();
                 ammo = new List<ItemStack>();
                 potions = new List<PotionItemUnique>();
                 currency = 0;
@@ -104,6 +105,7 @@ namespace Armere.Inventory
                 weapon = c.melee.items;
                 sideArm = c.sideArm.items;
                 bow = c.bow.items;
+                armour = c.armour.items;
                 ammo = c.ammo.items;
                 potions = c.potions.items;
                 currency = c.currency.currency;
@@ -120,6 +122,7 @@ namespace Armere.Inventory
         public UniquesPanel<ItemStackBase> quest;
         public UniquesPanel<ItemStackBase> melee;
         public UniquesPanel<ItemStackBase> bow;
+        public UniquesPanel<ItemStackBase> armour;
         public StackPanel<ItemStack> ammo;
         public UniquesPanel<ItemStackBase> sideArm;
         public UniquesPanel<PotionItemUnique> potions;
@@ -171,6 +174,8 @@ namespace Armere.Inventory
             sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
             bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
 
+            armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
+
             potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
 
             ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
@@ -184,6 +189,7 @@ namespace Armere.Inventory
             ammo.items = save.ammo;
             potions.items = save.potions;
             currency.currency = save.currency;
+            armour.items = save.armour;
 
         }
 
@@ -211,6 +217,16 @@ namespace Armere.Inventory
                 singleton.onItemAdded?.Invoke(ItemAt(index, type), type, index, hiddenAddition);
             return b;
         }
+
+        public static bool AddItem(ItemStackBase stack, bool hiddenAddition = false)
+        {
+            ItemType type = singleton.db[stack.name].type;
+            var b = singleton.GetPanelFor(type).AddItem(stack);
+            if (b) //Use itemat command to find the type of item that was added
+                singleton.onItemAdded?.Invoke(stack, type, singleton.GetPanelFor(type).stackCount - 1, hiddenAddition);
+            return b;
+        }
+
         public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.GetPanelFor(type).TakeItem(index, count);
         public static uint ItemCount(ItemName n) => singleton.GetPanelFor(singleton.db[n].type).ItemCount(n);
         public static uint ItemCount(int index, ItemType type) => singleton.GetPanelFor(type).ItemCount(index);

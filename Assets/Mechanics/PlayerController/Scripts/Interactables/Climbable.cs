@@ -28,6 +28,7 @@ public class Climbable : MonoBehaviour, IInteractable
     Vector3[] vertices;
     Vector3[] normals;
     int[] triangles;
+    bool MeshLoaded => vertices != null && vertices.Length >= 3;
 
     public void SyncMesh(MeshFilter mesh)
     {
@@ -127,7 +128,7 @@ public class Climbable : MonoBehaviour, IInteractable
     ///<summary>Operates in local space </summary>
     public ClosestPointData GetClosestPointOnMesh(Vector3 point)
     {
-        if (vertices != null && vertices.Length < 3) throw new System.Exception("Climbable has no mesh loaded");
+        if (!MeshLoaded) throw new System.Exception("Climbable has no mesh loaded");
 
         int closestVert = 0;
         float sqrDist;
@@ -296,7 +297,7 @@ public class Climbable : MonoBehaviour, IInteractable
         }
         else if (surfaceType == ClimbableSurface.Mesh)
         {
-            if (vertices != null && vertices.Length < 3) return;
+            if (!MeshLoaded) return;
 
             var closestPoint = GetClosestPointOnMesh(localTestPos);
 

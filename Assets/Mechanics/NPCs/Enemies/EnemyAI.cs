@@ -132,9 +132,9 @@ public class EnemyAI : AIBase
     }
 
 
-    public async Task SetHeldWeapon(ItemName weapon)
+    public Task SetHeldWeapon(ItemName weapon)
     {
-        await weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[weapon]);
+        return weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[weapon]);
     }
 
     public virtual void InitEnemy()

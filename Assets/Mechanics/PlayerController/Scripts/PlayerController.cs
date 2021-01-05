@@ -187,6 +187,7 @@ namespace Armere.PlayerController
         [Header("Animations")]
         public AnimationTransitionSet transitionSet;
 
+        public readonly int[] armourSelections = new int[3] { -1, -1, -1 };
         bool loadedStates = false;
         // Start is called before the first frame update
         /// <summary>
@@ -241,6 +242,8 @@ namespace Armere.PlayerController
 
             collider.material.dynamicFriction = dynamicFriction;
 
+            InventoryController.singleton.armour.onItemRemoved += OnArmourRemoved;
+
 
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
@@ -259,8 +262,32 @@ namespace Armere.PlayerController
 
         private void OnDestroy()
         {
+            InventoryController.singleton.armour.onItemRemoved -= OnArmourRemoved;
+
             foreach (var s in allStates) s.End();
         }
+
+
+        void OnArmourRemoved(Inventory.InventoryPanel panel, int index)
+        {
+            print("Armour piece removed");
+            //Armour has multiple selections, so references may need to be adjusted
+            for (int i = 0; i < 3; i++)
+            {
+                if (armourSelections[i] == index)
+                {
+                    //this armour piece was removed, kill
+                    weaponGraphicsController.characterMesh.RemoveClothing(i);
+                }
+                else if (armourSelections[i] > index)
+                {
+                    //Same armour still selected, but it is at a different index now
+                    armourSelections[i]--;
+                }
+            }
+        }
+
+
 
         public void OnDeath(GameObject attacker, GameObject victim)
         {

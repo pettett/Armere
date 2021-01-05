@@ -23,33 +23,36 @@ public class PotionBrewer : MonoBehaviour, IInteractable
         // Reuse sell menu to select potion ingredient
         var selection = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].potionIngredient);
 
+        DialogueRunner.singleton.Stop();
         DialogueRunner.singleton.Clear();
         DialogueRunner.singleton.ClearStringTable();
-
+        GameCameras.s.lockingMouse = true;
         DialogueInstances.singleton.dialogueUI.FinishDialogue();
 
-
-        ItemName ingredient = InventoryController.ItemAt(selection.index, selection.type).name;
-
-
-        for (int i = 0; i < InventoryController.singleton.potions.stackCount; i++)
+        if (selection.index != -1)
         {
-            if (InventoryController.singleton.potions.items[i].name == (ItemName)InventoryController.singleton.db[ingredient].potionWorksFrom)
+            ItemName ingredient = InventoryController.ItemAt(selection.index, selection.type).name;
+
+
+            for (int i = 0; i < InventoryController.singleton.potions.stackCount; i++)
             {
-                if (InventoryController.TakeItem(ingredient))
+                if (InventoryController.singleton.potions.items[i].name == (ItemName)InventoryController.singleton.db[ingredient].potionWorksFrom)
                 {
-                    //Take the item and change the contents
-                    InventoryController.singleton.potions.TakeItem(i, 1);
+                    if (InventoryController.TakeItem(ingredient))
+                    {
+                        //Take the item and change the contents
+                        InventoryController.singleton.potions.TakeItem(i, 1);
 
-                    PotionItemUnique pot = new PotionItemUnique((ItemName)InventoryController.singleton.db[ingredient].newPotionType);
+                        PotionItemUnique pot = new PotionItemUnique((ItemName)InventoryController.singleton.db[ingredient].newPotionType);
 
-                    pot.potency = InventoryController.singleton.db[ingredient].increasedPotency;
-                    InventoryController.singleton.potions.AddItem(pot);
+                        pot.potency = InventoryController.singleton.db[ingredient].increasedPotency;
+                        InventoryController.AddItem(pot);
 
+                    }
+
+
+                    break;
                 }
-
-
-                break;
             }
         }
 

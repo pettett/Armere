@@ -21,7 +21,7 @@
         [HideInInspector] _SrcBlend("Src", Float) = 1.0
         [HideInInspector] _DstBlend("Dst", Float) = 0.0
         [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
+        [Enum(Off,0,Front,1,Back,2)]_Cull("__cull", Float) = 2.0
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0

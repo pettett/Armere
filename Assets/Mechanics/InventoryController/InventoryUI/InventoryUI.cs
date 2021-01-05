@@ -263,11 +263,13 @@ namespace Armere.Inventory.UI
         public void DisableMenu()
         {
             inventoryUIPanels = null;
-            RemoveItemGroup(InventoryController.singleton.common);
+
             RemoveItemGroup(InventoryController.singleton.melee);
             RemoveItemGroup(InventoryController.singleton.sideArm);
             RemoveItemGroup(InventoryController.singleton.bow);
             RemoveItemGroup(InventoryController.singleton.ammo);
+            RemoveItemGroup(InventoryController.singleton.armour);
+            RemoveItemGroup(InventoryController.singleton.common);
             RemoveItemGroup(InventoryController.singleton.quest);
             RemoveItemGroup(InventoryController.singleton.potions);
 
@@ -286,11 +288,13 @@ namespace Armere.Inventory.UI
             inventoryUIPanels = new Dictionary<ItemType, SelectableInventoryItemUI[]>();
             //Currency if left for the currency display
 
-            AddItemGroup(InventoryController.singleton.common);
+
             AddItemGroup(InventoryController.singleton.melee);
             AddItemGroup(InventoryController.singleton.sideArm);
             AddItemGroup(InventoryController.singleton.bow);
             AddItemGroup(InventoryController.singleton.ammo);
+            AddItemGroup(InventoryController.singleton.armour);
+            AddItemGroup(InventoryController.singleton.common);
             AddItemGroup(InventoryController.singleton.quest);
             AddItemGroup(InventoryController.singleton.potions);
         }

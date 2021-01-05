@@ -20,6 +20,8 @@ public class InteractableItem : ItemSpawnable, IInteractable
 
         AddItemsToInventory();
 
+        OnEndHighlight();
+
     }
 
     public void OnStartHighlight()

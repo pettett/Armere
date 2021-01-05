@@ -184,13 +184,13 @@ public class SaveManager : MonoBehaviour
     }
 
 
-    public async void AttemptAutoSave()
+    public void AttemptAutoSave()
     {
 
         if (lastSave + minAutosaveGap < Time.realtimeSinceStartup)
         {
             //Save the game and show an indicator so show the game is saving
-            await SaveGameStateAsync();
+            SaveGameStateAsync();
             print("Autosaved");
             lastSave = Time.realtimeSinceStartup;
         }
@@ -232,7 +232,7 @@ public class SaveManager : MonoBehaviour
     }
 
 
-    public async Task SaveGameStateAsync()
+    public void SaveGameStateAsync()
     {
 
         //dont allow saving more then once every 5 seconds

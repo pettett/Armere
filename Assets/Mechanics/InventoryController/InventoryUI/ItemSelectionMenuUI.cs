@@ -30,7 +30,7 @@ namespace Armere.Inventory.UI
             DialogueRunner.singleton.AddCommandHandler("CancelSelection", CancelSelection);
             DialogueRunner.singleton.AddCommandHandler("StopSelection", StopSelection);
             DialogueRunner.singleton.Stop();
-
+            DialogueInstances.singleton.dialogueUI.CleanUpButtons();
 
             GameCameras.s.lockingMouse = false;
 
@@ -51,28 +51,33 @@ namespace Armere.Inventory.UI
                 result = await onItemSelection.Task;
                 onItemSelection = null;
 
-                DialogueRunner.singleton.Stop();
-                DialogueInstances.singleton.dialogueUI.CleanUpButtons();
+                if (result.index != -1)
+                {
+                    DialogueRunner.singleton.Stop();
+                    DialogueInstances.singleton.dialogueUI.CleanUpButtons();
+                    print("Starting selection");
+                    DialogueRunner.singleton.StartDialogue("Select");
 
-                DialogueRunner.singleton.StartDialogue("Select");
+                    //Ask if this is what they want
+                    confirmSelection = new TaskCompletionSource<bool>();
 
-                //Ask if this is what they want
-                confirmSelection = new TaskCompletionSource<bool>();
-
-                confirmed = await confirmSelection.Task;
+                    confirmed = await confirmSelection.Task;
+                }
+                else
+                {
+                    confirmed = true;
+                }
             }
+            print("Confirmed, removing commands");
 
-            DialogueRunner.singleton.Stop();
             DialogueRunner.singleton.RemoveCommandHandler("ConfirmSelection");
             DialogueRunner.singleton.RemoveCommandHandler("CancelSelection");
             DialogueRunner.singleton.RemoveCommandHandler("StopSelection");
 
 
-
-
             holder.gameObject.SetActive(false);
             inventoryUI.DisableMenu();
-            GameCameras.s.lockingMouse = true;
+
 
 
 
@@ -92,8 +97,9 @@ namespace Armere.Inventory.UI
 
         public void StopSelection(string[] args)
         {
-            onItemSelection.SetResult(default);
-            confirmSelection.SetResult(true);
+            print("Stopping");
+            //If negative one is selected, no confirmation is required
+            onItemSelection?.TrySetResult((default, -1));
         }
 
         void OnItemSelected(ItemType type, int itemIndex)

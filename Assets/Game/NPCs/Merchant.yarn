@@ -20,11 +20,12 @@ Merchant: I'll take those items off your hands!
 -> <Exit>I need to go
     Merchant: See you around
     <<StopSelection>>
+    <<stop>>
 ===
 
 title: Select
 ---
-Merchant: So you want to Selection that?
+Merchant: So you want to sell that?
 -> You can take it
     Merchant: Thanks! I'll take whatever
     <<ConfirmSelection>>
@@ -33,9 +34,6 @@ Merchant: So you want to Selection that?
     Merchant: Suit yourself
     <<CancelSelection>>
     [[WaitForSelection]]
--> <Exit>I need to go
-    Merchant: See you around
-    <<StopSelection>>
 ===
 
 title: WaitForBuy

@@ -83,7 +83,7 @@ namespace Armere.Inventory.UI
 
             //Will return true if the currency is successfully removed
             //Only need to take the item being sold as it will interpret that as the value
-            else if (InventoryController.singleton.currency.TakeItem(inventory[selected].item, amount))
+            else if (InventoryController.singleton.currency.TakeValue(inventory[selected].cost * amount))
             {
                 inventory[selected].stock -= amount;
 

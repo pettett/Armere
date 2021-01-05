@@ -45,9 +45,13 @@ namespace Armere.Inventory
         }
         public override bool TakeItem(ItemName name, uint count)
         {
-            if (currency >= InventoryController.singleton.db[name].sellValue * count)
+            return TakeValue(InventoryController.singleton.db[name].sellValue * count);
+        }
+        public bool TakeValue(uint value)
+        {
+            if (currency >= value)
             {
-                currency -= InventoryController.singleton.db[name].sellValue * count;
+                currency -= value;
                 OnPanelUpdated();
                 return true;
             }
@@ -56,7 +60,13 @@ namespace Armere.Inventory
                 return false;
             }
         }
+
         public override bool TakeItem(int index, uint count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AddItem(ItemStackBase stack)
         {
             throw new NotImplementedException();
         }

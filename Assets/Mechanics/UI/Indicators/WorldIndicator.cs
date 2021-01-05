@@ -5,10 +5,7 @@ using UnityEngine.Events;
 
 public class WorldIndicator : IndicatorUI
 {
-
-    [System.Serializable]
-    public class StringEvent : UnityEvent<string> { }
-    public StringEvent onIndicate;
+    public UnityEvent<string> onIndicate;
     public UnityEvent onEndIndicate;
     public void StartIndication(Transform target, string title, Vector3 worldOffset = default)
     {
@@ -19,9 +16,12 @@ public class WorldIndicator : IndicatorUI
     }
     public void EndIndication()
     {
-        target = null;
-        onEndIndicate?.Invoke();
-        gameObject?.SetActive(false);
+        if (this != null) //Test for destruction
+        {
+            target = null;
+            onEndIndicate?.Invoke();
+            gameObject?.SetActive(false);
+        }
     }
 
 

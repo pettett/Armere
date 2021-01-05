@@ -126,6 +126,10 @@ namespace Armere.Inventory
 
         public override ItemStackBase ItemAt(int index) => items[index];
 
-
+        public override bool AddItem(ItemStackBase stack)
+        {
+            items.Add((StackT)stack);
+            return true;
+        }
     }
 }

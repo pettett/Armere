@@ -64,7 +64,7 @@ public class Dialogue : MovementState
         c.rb.velocity = Vector3.zero;
         GameCameras.s.DisableControl();
         c.rb.isKinematic = true;
-        GameCameras.s.cutsceneCamera.Priority = 50;
+        GameCameras.s.EnableCutsceneCamera();
 
 
         GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(transform.position, dialogue.transform.position, 0.5f);
@@ -125,6 +125,6 @@ public class Dialogue : MovementState
         GameCameras.s.lockingMouse = true;
         c.rb.isKinematic = false;
         GameCameras.s.EnableControl();
-        GameCameras.s.cutsceneCamera.Priority = 0;
+        GameCameras.s.DisableCutsceneCamera();
     }
 }

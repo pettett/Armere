@@ -29,6 +29,13 @@ public class TimeDayController : MonoBehaviour
     public float hoursPerSecond = 1;
     public float azimuth = 20;
 
+    [Header("Wind")]
+
+    public Vector2 windStrengthRange = new Vector2(0.2f, 3f);
+    public float windChangingSpeed = 2;
+    public Vector3 Wind { get; private set; }
+
+
     [Header("Weather")]
 
     public AnimationCurve weatherOverTime;
@@ -98,8 +105,19 @@ public class TimeDayController : MonoBehaviour
 
         skyboxMaterial.SetColor("_GroundColor", fog);
 
+        //Update wind
+        var w = new Vector2(
+            Mathf.Cos(Mathf.PerlinNoise(Time.time * windChangingSpeed, 1.5f) * 2 * Mathf.PI),
+            Mathf.Sin(Mathf.PerlinNoise(Time.time * windChangingSpeed, 1.5f) * 2 * Mathf.PI)) *
+            Mathf.Lerp(windStrengthRange.x, windStrengthRange.y, Mathf.PerlinNoise(Time.time * windChangingSpeed, 0.5f));
+
+        Wind = new Vector3(w.x, 0, w.y);
+
         entry.value0 = Mathf.Floor(hour);
         entry.value1 = 60f * (hour - Mathf.Floor(hour));
+
+
+
 
     }
 }

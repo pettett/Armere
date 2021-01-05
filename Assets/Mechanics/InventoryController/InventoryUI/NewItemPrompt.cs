@@ -5,6 +5,8 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.AddressableAssets;
+using System.Threading.Tasks;
+
 namespace Armere.Inventory.UI
 {
     public class NewItemPrompt : MonoBehaviour
@@ -39,28 +41,29 @@ namespace Armere.Inventory.UI
 
             thumbnail.sprite = await db[item].displaySprite.LoadAssetAsync().Task;
 
-            StartCoroutine(WaitForClosePrompt(onPromptRemoved));
-        }
-        IEnumerator WaitForClosePrompt(System.Action onPromptRemoved)
-        {
-            //force show the prompt for a short time
-            yield return new WaitForSecondsRealtime(1);
-            //then wait for user to remove it
-
+            await Task.Delay(500);
 
             var continueAction = new InputAction(binding: "/*/<button>");
 
-            continueAction.performed += (context) =>
-            {
-                //Remove the prompt
-                Addressables.Release(thumbnail.sprite);
-                continueAction.Dispose();
-                holder.SetActive(false);
-                onPromptRemoved?.Invoke();
-            };
+            TaskCompletionSource<InputAction.CallbackContext> onButtonPressed = new TaskCompletionSource<InputAction.CallbackContext>();
+
+            continueAction.performed += onButtonPressed.SetResult;
             continueAction.Enable();
 
+            await onButtonPressed.Task;
+
+            continueAction.Disable();
+            //Remove the prompt
+            Addressables.Release(thumbnail.sprite);
+
+            holder.SetActive(false);
+            onPromptRemoved?.Invoke();
         }
+
+
+
+
+
         private void Start()
         {
             holder.SetActive(false);

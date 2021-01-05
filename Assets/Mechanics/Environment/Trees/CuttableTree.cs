@@ -704,70 +704,7 @@ public class CuttableTree : MonoBehaviour, IAttackable
         //Before locking in the vert counts for the cutting, remove all vertices not encompassed by the cut mode
         if (cutMode != TriangleCutMode.Full)
         {
-            Profiler.BeginSample("Copy to new lists");
-            List<Vector3> cutVerts = newVertices.ToList();
-            List<Vector3> cutNormals = newNormals.ToList();
-            List<Vector2> cutUVs = newUVs.ToList();
-            Profiler.EndSample();
-            //Add the vert for the cap / base part
-
-            cutVerts.Add(m.centerPoint);
-            cutNormals.Add(cutMode == TriangleCutMode.Base ? Vector3.up : Vector3.down); //Point normal in correct direction
-            //This should be in the center
-            cutUVs.Add(Vector2.one * 0.5f);
-
-
-            Profiler.BeginSample("Remove tall vertices");
-            void Remove(int index)
-            {
-                cutVerts.RemoveAt(index);
-                cutNormals.RemoveAt(index);
-                cutUVs.RemoveAt(index);
-                for (int t = 0; t < cutTriangles.Count; t += 3)
-                {
-                    if (cutTriangles[t] > index) cutTriangles[t]--;
-                    if (cutTriangles[t + 1] > index) cutTriangles[t + 1]--;
-                    if (cutTriangles[t + 2] > index) cutTriangles[t + 2]--;
-                }
-                for (int t = 0; t < newMeshTriangles.Length; t += 3)
-                {
-                    if (newMeshTriangles[t] > index) newMeshTriangles[t]--;
-                    if (newMeshTriangles[t + 1] > index) newMeshTriangles[t + 1]--;
-                    if (newMeshTriangles[t + 2] > index) newMeshTriangles[t + 2]--;
-                }
-            }
-            //Use a hashset to hold every *unique* vertex being removed
-            SortedSet<int> toBeRemoved = new SortedSet<int>();
-
-            //If at top, remove cylinder ring at base
-            for (int i = 0; i < m.cutCylinder.Length; i++)
-            {
-
-                if (m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Base || !m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Top)
-                {
-                    toBeRemoved.Add(m.cutCylinder[i].a);
-                }
-                if (!m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Base || m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Top)
-                {
-                    toBeRemoved.Add(m.cutCylinder[i].b);
-                    toBeRemoved.Add(m.cutCylinder[i].c);
-                }
-            }
-            //Then removed all of them backwards so no offset errors from list size chaning
-            foreach (int index in toBeRemoved.Reverse())
-            {
-                Remove(index);
-            }
-
-            //If at base, remove cylinder ring at top
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("Create Mesh");
-            cutMesh.SetVertices(cutVerts);
-            cutMesh.SetNormals(cutNormals);
-            cutMesh.SetUVs(0, cutUVs);
-            cutMesh.SetUVs(1, cutUVs);
+            CutTopTriangles(cutMode, newVertices, newNormals, newUVs, cutTriangles, m, newMeshTriangles, cutMesh);
         }
         else
         {
@@ -789,14 +726,82 @@ public class CuttableTree : MonoBehaviour, IAttackable
         Profiler.EndSample();
 
 
-
-
-
         Profiler.EndSample();
 
         return cutMesh;
     }
 
+    //Moved removing top or bottom part of method to separate method to 
+    //reduce JIT time (likely to cut full then top + bottom so this separates the two things)
+    public void CutTopTriangles(
+        TriangleCutMode cutMode, Vector3[] newVertices, Vector3[] newNormals,
+        Vector2[] newUVs, List<int> cutTriangles, CuttableTreeProfile.CuttableCylinderMesh m, int[] newMeshTriangles, Mesh cutMesh)
+    {
+        Profiler.BeginSample("Copy to new lists");
+        List<Vector3> cutVerts = newVertices.ToList();
+        List<Vector3> cutNormals = newNormals.ToList();
+        List<Vector2> cutUVs = newUVs.ToList();
+        Profiler.EndSample();
+        //Add the vert for the cap / base part
+
+        cutVerts.Add(m.centerPoint);
+        cutNormals.Add(cutMode == TriangleCutMode.Base ? Vector3.up : Vector3.down); //Point normal in correct direction
+                                                                                     //This should be in the center
+        cutUVs.Add(Vector2.one * 0.5f);
+
+
+        Profiler.BeginSample("Remove tall vertices");
+        void Remove(int index)
+        {
+            cutVerts.RemoveAt(index);
+            cutNormals.RemoveAt(index);
+            cutUVs.RemoveAt(index);
+            for (int t = 0; t < cutTriangles.Count; t += 3)
+            {
+                if (cutTriangles[t] > index) cutTriangles[t]--;
+                if (cutTriangles[t + 1] > index) cutTriangles[t + 1]--;
+                if (cutTriangles[t + 2] > index) cutTriangles[t + 2]--;
+            }
+            for (int t = 0; t < newMeshTriangles.Length; t += 3)
+            {
+                if (newMeshTriangles[t] > index) newMeshTriangles[t]--;
+                if (newMeshTriangles[t + 1] > index) newMeshTriangles[t + 1]--;
+                if (newMeshTriangles[t + 2] > index) newMeshTriangles[t + 2]--;
+            }
+        }
+        //Use a hashset to hold every *unique* vertex being removed
+        SortedSet<int> toBeRemoved = new SortedSet<int>();
+
+        //If at top, remove cylinder ring at base
+        for (int i = 0; i < m.cutCylinder.Length; i++)
+        {
+
+            if (m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Base || !m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Top)
+            {
+                toBeRemoved.Add(m.cutCylinder[i].a);
+            }
+            if (!m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Base || m.cutCylinder[i].pointingUpwards && cutMode == TriangleCutMode.Top)
+            {
+                toBeRemoved.Add(m.cutCylinder[i].b);
+                toBeRemoved.Add(m.cutCylinder[i].c);
+            }
+        }
+        //Then removed all of them backwards so no offset errors from list size chaning
+        foreach (int index in toBeRemoved.Reverse())
+        {
+            Remove(index);
+        }
+
+        //If at base, remove cylinder ring at top
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Create Mesh");
+        cutMesh.SetVertices(cutVerts);
+        cutMesh.SetNormals(cutNormals);
+        cutMesh.SetUVs(0, cutUVs);
+        cutMesh.SetUVs(1, cutUVs);
+    }
 
 
 

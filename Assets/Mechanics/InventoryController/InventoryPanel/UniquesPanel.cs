@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Armere.Inventory
 {
@@ -31,11 +32,11 @@ namespace Armere.Inventory
                 return false;
             }
         }
-        public bool AddItem(UniqueT item)
+        public override bool AddItem(ItemStackBase item)
         {
             if (items.Count < limit)
             {
-                items.Add(item);
+                items.Add((UniqueT)item);
                 OnPanelUpdated();
                 return true;
             }
@@ -91,6 +92,7 @@ namespace Armere.Inventory
                 {
                     items.RemoveAt(i);
                     OnPanelUpdated();
+                    OnItemRemoved(i);
                     return true;
                 }
             }
@@ -102,6 +104,7 @@ namespace Armere.Inventory
             if (index < items.Count && index >= 0)
             {
                 items.RemoveAt(index);
+                OnItemRemoved(index);
                 OnPanelUpdated();
                 return true;
             }

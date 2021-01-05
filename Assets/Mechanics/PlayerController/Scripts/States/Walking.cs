@@ -55,12 +55,16 @@ namespace Armere.PlayerController
         public int currentAmmo => selections[ItemType.Ammo];
         public int currentSidearm => selections[ItemType.SideArm];
 
-        public Dictionary<ItemType, int> selections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
+        //These two collections should always stay the same length so can be readonly
+        public readonly Dictionary<ItemType, int> selections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
             {ItemType.Melee,-1},
             {ItemType.Bow,-1},
             {ItemType.Ammo,-1},
             {ItemType.SideArm,-1},
         };
+
+
+
 
         public bool movingHoldable;
         public bool holdingBody;
@@ -126,6 +130,14 @@ namespace Armere.PlayerController
             c.animationController.enableFeetIK = true;
             c.rb.isKinematic = false;
             InventoryController.singleton.OnSelectItemEvent += OnSelectItem;
+
+            InventoryController.singleton.melee.onItemRemoved += OnEquipableItemRemoved;
+            InventoryController.singleton.sideArm.onItemRemoved += OnEquipableItemRemoved;
+            InventoryController.singleton.bow.onItemRemoved += OnEquipableItemRemoved;
+
+
+
+
             animator.applyRootMotion = false;
 
 
@@ -349,6 +361,13 @@ namespace Armere.PlayerController
 
 
             InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
+
+            InventoryController.singleton.melee.onItemRemoved -= OnEquipableItemRemoved;
+            InventoryController.singleton.bow.onItemRemoved -= OnEquipableItemRemoved;
+            InventoryController.singleton.sideArm.onItemRemoved -= OnEquipableItemRemoved;
+
+
+
             InventoryController.singleton.onItemAdded -= OnItemAdded;
         }
 
@@ -416,7 +435,19 @@ namespace Armere.PlayerController
             }
             else if (playerDirection.sqrMagnitude > 0.1f)
             {
-                Quaternion walkingAngle = Quaternion.LookRotation(playerDirection);
+                Quaternion walkingAngle;
+
+                if (GameCameras.s.m_UpdatingCameraDirection)
+                {
+                    Vector3 dir = GameCameras.s.FocusTarget - transform.position;
+                    dir.y = 0;
+                    walkingAngle = Quaternion.LookRotation(dir);
+                }
+                else
+                {
+                    walkingAngle = Quaternion.LookRotation(playerDirection);
+                }
+
 
 
 
@@ -503,9 +534,15 @@ namespace Armere.PlayerController
 
             if (c.holdingSprintKey)
             {
+                if (GameCameras.s.m_UpdatingCameraDirection)
+                {
+                    //Do not sprint while focusing
+                    walkingType = WalkingType.Walking;
+                }
+
                 //Do not allow sprinting while a weapon is equipped, so wait until
                 //The weapon for the set is sheathed before allowing sprint
-                if (weaponSet == WeaponSet.MeleeSidearm)
+                else if (weaponSet == WeaponSet.MeleeSidearm)
                 {
                     if (!sheathing[ItemType.Melee])
                     {
@@ -670,12 +707,27 @@ namespace Armere.PlayerController
         public void OnSelectItem(ItemType type, int index)
         {
             Debug.Log($"Selected Item Type {type} - {index}");
-
-            if (InventoryController.singleton.GetPanelFor(type).stackCount > index && index != selections[type])
+            //Draw or Sheath the selected type
+            if (type == ItemType.Armour)
             {
-                //Draw or Sheath the selected type
+                var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(index).name]);
+                // if (armourSelections[(int)selected.armourPosition] != -1)
+                // {
+                // }
+                c.armourSelections[(int)selected.armourPosition] = index;
+
+                if (index != -1)
+                {
+                    //Will automatically remove the old armour piece
+                    c.weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.armaturePrefab);
+                }
+            }
+            else if (InventoryController.singleton.GetPanelFor(type).stackCount > index && index != selections[type])
+            {
 
                 //If the user wishes to deselect this type:
+                SelectedItemDisplayForType(type).ChangeItemIndex(selections[type]);
+
 
                 if (type == ItemType.Ammo)
                 {
@@ -703,12 +755,12 @@ namespace Armere.PlayerController
                         {
                             selections[type] = index;
 
-                            c.weaponGraphicsController.holdables[type].SetHeld(holdableItemData);
-
+                            c.weaponGraphicsController.holdables[type].SetHeld(holdableItemData).Wait();
                         }
                     }
+
                 }
-                SelectedItemDisplayForType(type).ChangeItemIndex(selections[type]);
+
             }
 
 
@@ -729,6 +781,19 @@ namespace Armere.PlayerController
             //         break;
             // }
         }
+
+
+        void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
+        {
+            if (selections[panel.type] == index)
+            {
+                //Only one selection for each category, can safely remove it
+                OnSelectItem(panel.type, -1);
+            }
+        }
+
+
+
 
         //In this case, common means no value
         ItemType selectingSlot = ItemType.Common;
@@ -1363,18 +1428,10 @@ namespace Armere.PlayerController
             animator.SetBool("Idle", speed == 0);
 
             const float dampTime = 0.1f;
+            Vector3 localVel = transform.InverseTransformDirection(c.rb.velocity).normalized * speed;
 
-            if (forceForwardHeading)
-            {
-                animator.SetFloat(vars.vertical.id, c.input.horizontal.y, dampTime, Time.deltaTime);
-                animator.SetFloat(vars.horizontal.id, c.input.horizontal.x, dampTime, Time.deltaTime);
-            }
-            else
-            {
-                animator.SetFloat(vars.vertical.id, speed, dampTime, Time.deltaTime);
-                animator.SetFloat(vars.horizontal.id, 0, dampTime, Time.deltaTime);
-            }
-
+            animator.SetFloat(vars.vertical.id, localVel.z, dampTime, Time.deltaTime);
+            animator.SetFloat(vars.horizontal.id, localVel.x, dampTime, Time.deltaTime);
 
 
             //c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);

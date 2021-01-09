@@ -49,6 +49,6 @@ public class GameController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(deathScreenTime);
 
-        SaveManager.singleton.LoadMostRecentSave();
+        SaveManager.singleton.LoadMostRecentSave(true);
     }
 }

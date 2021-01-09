@@ -49,20 +49,7 @@ namespace Armere.PlayerController
 
 
 
-        MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.melee.items[currentMelee].name] as MeleeWeaponItemData;
-        public int currentMelee => selections[ItemType.Melee];
-        public int currentBow => selections[ItemType.Bow];
-        public int currentAmmo => selections[ItemType.Ammo];
-        public int currentSidearm => selections[ItemType.SideArm];
-
-        //These two collections should always stay the same length so can be readonly
-        public readonly Dictionary<ItemType, int> selections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
-            {ItemType.Melee,-1},
-            {ItemType.Bow,-1},
-            {ItemType.Ammo,-1},
-            {ItemType.SideArm,-1},
-        };
-
+        MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.melee.items[c.currentMelee].name] as MeleeWeaponItemData;
 
 
 
@@ -78,11 +65,12 @@ namespace Armere.PlayerController
         float bowCharge = 0;
         float bowSpeed => Mathf.Lerp(10, 20, bowCharge);
 
-        [NonSerialized] EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
+
         [NonSerialized] EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
         [NonSerialized] EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
+
         bool backSwingSword = false;
-        ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[currentSidearm].name] as ShieldItemData;
+        ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[c.currentSidearm].name] as ShieldItemData;
         bool SidearmIsShield => SidearmAsShield is ShieldItemData;
 
         bool holdingAltAttack = false;
@@ -93,10 +81,10 @@ namespace Armere.PlayerController
         {
             switch (t)
             {
-                case ItemType.SideArm: return !sheathing.sidearm && !equipping.sidearm && !activated.sidearm && selections[ItemType.SideArm] != -1;
-                case ItemType.Melee: return !sheathing.melee && !equipping.melee && !activated.melee && selections[ItemType.Melee] != -1;
+                case ItemType.SideArm: return !c.sheathing.sidearm && !equipping.sidearm && !activated.sidearm && c.currentSidearm != -1;
+                case ItemType.Melee: return !c.sheathing.melee && !equipping.melee && !activated.melee && c.currentMelee != -1;
                 //Bow requires ammo and bow selection
-                case ItemType.Bow: return !sheathing.bow && !equipping.bow && !activated.bow && selections[ItemType.Bow] != -1 && selections[ItemType.Ammo] != -1;
+                case ItemType.Bow: return !c.sheathing.bow && !equipping.bow && !activated.bow && c.currentBow != -1 && c.currentAmmo != -1;
                 default: return false;
             }
         }
@@ -105,10 +93,10 @@ namespace Armere.PlayerController
         {
             switch (t)
             {
-                case ItemType.SideArm: return !sheathing.sidearm && !equipping.sidearm && activated.sidearm && selections[ItemType.SideArm] != -1;
-                case ItemType.Melee: return !sheathing.melee && !equipping.melee && activated.melee && selections[ItemType.Melee] != -1;
+                case ItemType.SideArm: return !c.sheathing.sidearm && !equipping.sidearm && activated.sidearm && c.currentSidearm != -1;
+                case ItemType.Melee: return !c.sheathing.melee && !equipping.melee && activated.melee && c.currentMelee != -1;
                 //Bow requires ammo and bow selection
-                case ItemType.Bow: return !sheathing.bow && !equipping.bow && activated.bow && selections[ItemType.Bow] != -1 && selections[ItemType.Ammo] != -1;
+                case ItemType.Bow: return !c.sheathing.bow && !equipping.bow && activated.bow && c.currentBow != -1 && c.currentAmmo != -1;
                 default: return false;
             }
         }
@@ -129,32 +117,15 @@ namespace Armere.PlayerController
             //c.transform.up = Vector3.up;
             c.animationController.enableFeetIK = true;
             c.rb.isKinematic = false;
-            InventoryController.singleton.OnSelectItemEvent += OnSelectItem;
-
-            InventoryController.singleton.melee.onItemRemoved += OnEquipableItemRemoved;
-            InventoryController.singleton.sideArm.onItemRemoved += OnEquipableItemRemoved;
-            InventoryController.singleton.bow.onItemRemoved += OnEquipableItemRemoved;
-
-
-
 
             animator.applyRootMotion = false;
-
 
             c.onPlayerInput += OnInput;
             InventoryController.singleton.onItemAdded += OnItemAdded;
 
-
-            if (c.persistentStateData.TryGetValue("currentWeapon", out object o1)) selections[ItemType.Melee] = (int)o1;
-            if (c.persistentStateData.TryGetValue("currentBow", out object o2)) selections[ItemType.Bow] = (int)o2;
-            if (c.persistentStateData.TryGetValue("currentAmmo", out object o3)) selections[ItemType.Ammo] = (int)o3;
-            if (c.persistentStateData.TryGetValue("currentSidearm", out object o4)) selections[ItemType.SideArm] = (int)o4;
-
-
             c.health.onTakeDamage += OnTakeDamage;
             c.health.onBlockDamage += OnBlockDamage;
-            //Try to force any ammo type to be selected
-            SelectAmmo(0);
+
 
             nearAttackables = (ScanForNear<IAttackable>)c.GetParallelState(typeof(ScanForNear<IAttackable>));
             nearAttackables.updateEveryFrame = false;
@@ -354,17 +325,7 @@ namespace Armere.PlayerController
 
 
             //Save state data
-            c.persistentStateData["currentWeapon"] = currentMelee;
-            c.persistentStateData["currentBow"] = currentBow;
-            c.persistentStateData["currentAmmo"] = currentAmmo;
-            c.persistentStateData["currentSidearm"] = currentSidearm;
 
-
-            InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
-
-            InventoryController.singleton.melee.onItemRemoved -= OnEquipableItemRemoved;
-            InventoryController.singleton.bow.onItemRemoved -= OnEquipableItemRemoved;
-            InventoryController.singleton.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
 
 
@@ -544,12 +505,12 @@ namespace Armere.PlayerController
                 //The weapon for the set is sheathed before allowing sprint
                 else if (weaponSet == WeaponSet.MeleeSidearm)
                 {
-                    if (!sheathing[ItemType.Melee])
+                    if (!c.sheathing[ItemType.Melee])
                     {
                         if (!c.weaponGraphicsController.holdables.melee.sheathed)
                         {
                             //Will only operate is sword exists
-                            c.StartCoroutine(SheathItem(ItemType.Melee));
+                            c.StartCoroutine(c.SheathItem(ItemType.Melee));
                         }
                         else
                         {
@@ -558,22 +519,22 @@ namespace Armere.PlayerController
                     }
 
                     //Will only operate if sidearm exists
-                    if (!sheathing[ItemType.SideArm] && !c.weaponGraphicsController.holdables[ItemType.SideArm].sheathed)
+                    if (!c.sheathing[ItemType.SideArm] && !c.weaponGraphicsController.holdables[ItemType.SideArm].sheathed)
                     {
                         //Will only operate is sword exists
-                        c.StartCoroutine(SheathItem(ItemType.SideArm));
+                        c.StartCoroutine(c.SheathItem(ItemType.SideArm));
                     }
 
                 }
                 else
                 {
 
-                    if (!sheathing[ItemType.Bow])
+                    if (!c.sheathing[ItemType.Bow])
                     {
                         if (!c.weaponGraphicsController.holdables.bow.sheathed)
                         {
                             //Will only operate if bow exists
-                            c.StartCoroutine(SheathItem(ItemType.Bow));
+                            c.StartCoroutine(c.SheathItem(ItemType.Bow));
                         }
                         else
                         {
@@ -678,10 +639,10 @@ namespace Armere.PlayerController
         public void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hiddenAddition)
         {
             //If this is ammo and none is equipped, equip it
-            if (currentAmmo == -1 && type == ItemType.Ammo)
+            if (c.currentAmmo == -1 && type == ItemType.Ammo)
             {
                 //Ammo is only allowed to be -1 if none is left
-                SelectAmmo(index);
+                c.SelectAmmo(index);
             }
         }
 
@@ -704,206 +665,18 @@ namespace Armere.PlayerController
         }
 
 
-        public void OnSelectItem(ItemType type, int index)
-        {
-            Debug.Log($"Selected Item Type {type} - {index}");
-            //Draw or Sheath the selected type
-            if (type == ItemType.Armour)
-            {
-                var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(index).name]);
-                // if (armourSelections[(int)selected.armourPosition] != -1)
-                // {
-                // }
-                c.armourSelections[(int)selected.armourPosition] = index;
-
-                if (index != -1)
-                {
-                    //Will automatically remove the old armour piece
-                    c.weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.armaturePrefab);
-                }
-            }
-            else if (InventoryController.singleton.GetPanelFor(type).stackCount > index && index != selections[type])
-            {
-
-                //If the user wishes to deselect this type:
-                SelectedItemDisplayForType(type).ChangeItemIndex(selections[type]);
-
-
-                if (type == ItemType.Ammo)
-                {
-                    SelectAmmo(index);
-                }
-                else
-                {
-                    if (index == -1)
-                    {
-                        selections[type] = -1;
-
-                        c.weaponGraphicsController.holdables[type].RemoveHeld();
-
-                        if (!c.weaponGraphicsController.holdables[type].sheathed)
-                        {
-                            //No need to double sheath
-                            //Do not trigger over time - remove immediately
-                            c.StartCoroutine(SheathItem(type));
-                        }
-                    }
-                    else
-                    {
-                        ItemName name = InventoryController.ItemAt(index, type).name;
-                        if (c.db[name] is HoldableItemData holdableItemData)
-                        {
-                            selections[type] = index;
-
-                            c.weaponGraphicsController.holdables[type].SetHeld(holdableItemData).Wait();
-                        }
-                    }
-
-                }
-
-            }
-
-
-
-            // switch (type)
-            // {
-            //     case ItemType.Weapon:
-            //         SelectMelee(index);
-            //         break;
-            //     case ItemType.SideArm:
-            //         SelectSidearm(index);
-            //         break;
-            //     case ItemType.Bow:
-            //         SelectBow(index);
-            //         break;
-            //     case ItemType.Ammo:
-            //         SelectAmmo(index);
-            //         break;
-            // }
-        }
-
-
-        void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
-        {
-            if (selections[panel.type] == index)
-            {
-                //Only one selection for each category, can safely remove it
-                OnSelectItem(panel.type, -1);
-            }
-        }
 
 
 
 
-        //In this case, common means no value
-        ItemType selectingSlot = ItemType.Common;
-        ItemType ItemTypeFromID(int id)
-        {
-            switch (id)
-            {
-                case 0: return ItemType.Melee;
-                case 1: return ItemType.SideArm;
-                case 2: return ItemType.Bow;
-                case 3: return ItemType.Ammo;
-                default: return ItemType.Common;
-            }
-        }
-        InventoryItemUI SelectedItemDisplayForType(ItemType t)
-        {
-            switch (t)
-            {
-                case ItemType.Melee: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
-                case ItemType.SideArm: return UIController.singleton.selectedSidearmDisplay.GetComponent<InventoryItemUI>();
-                case ItemType.Bow: return UIController.singleton.selectedBowDisplay.GetComponent<InventoryItemUI>();
-                case ItemType.Ammo: return UIController.singleton.selectedAmmoDisplay.GetComponent<InventoryItemUI>();
-                default: return null;
-            }
-        }
 
-
-        public override void OnSelectWeapon(int index, InputActionPhase phase)
-        {
-            if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common && !c.paused)
-            {
-                selectingSlot = ItemTypeFromID(index);
-
-                var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
-                s.selectingType = selectingSlot;
-                s.selection = selections[selectingSlot];
-                s.gameObject.SetActive(true);
-
-                //Pause the game until the user has selected
-                inControl = false;
-                c.Pause();
-            }
-            else if (phase == InputActionPhase.Canceled && selectingSlot != ItemType.Common)
-            {
-                var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
-                //Select this item for the weapon controls
-                OnSelectItem(selectingSlot, s.selection);
-
-                UIController.singleton.scrollingSelector.gameObject.SetActive(false);
-
-                selectingSlot = ItemType.Common;
-
-                //Un pause the game
-                inControl = true;
-                c.Play();
-            }
-        }
-
-        public static bool EnforceType<T>(object o) => o != null && o is T;
-
-
-        public void SelectAmmo(int index)
-        {
-            if (InventoryController.singleton.ammo.items.Count > index && index >= 0)
-            {
-                selections[ItemType.Ammo] = index;
-
-                NotchArrow();
-            }
-            else
-            {
-                selections[ItemType.Ammo] = -1;
-                RemoveNotchedArrow();
-
-            }
-            UIController.singleton.selectedAmmoDisplay.GetComponent<InventoryItemUI>().ChangeItemIndex(currentAmmo);
-        }
-
-
-        public IEnumerator UnEquipAll(System.Action onComplete = null)
-        {
-            if (weaponSet == WeaponSet.MeleeSidearm)
-            {
-                if (!c.weaponGraphicsController.holdables[ItemType.Melee].sheathed)
-                {
-                    yield return SheathItem(ItemType.Melee);
-                }
-                if (!c.weaponGraphicsController.holdables[ItemType.SideArm].sheathed)
-                {
-                    yield return SheathItem(ItemType.SideArm);
-                }
-            }
-            else //De quip all the bow and arrow stuff
-            {
-                if (!c.weaponGraphicsController.holdables[ItemType.Bow].sheathed)
-                {
-                    yield return SheathItem(ItemType.Bow);
-                }
-            }
-
-            onComplete?.Invoke();
-        }
 
         public override void OnAttack(InputActionPhase phase)
         {
 
-
             if (holdingBody) PlaceHoldable();
 
-            if (weaponSet == WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && currentMelee != -1)
+            if (weaponSet == WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
             {
                 if (inControl)
                 {
@@ -922,7 +695,7 @@ namespace Armere.PlayerController
                     backSwingSword = true;
                 }
             }
-            else if (inControl && weaponSet == WeaponSet.BowArrow && currentBow != -1 && currentAmmo != -1)
+            else if (inControl && weaponSet == WeaponSet.BowArrow && c.currentBow != -1 && c.currentAmmo != -1)
             {
                 if (phase == InputActionPhase.Started)
                 {
@@ -945,7 +718,7 @@ namespace Armere.PlayerController
 
             if (c.weaponGraphicsController.holdables.bow.sheathed)
             {
-                NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
+                c.NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
                 yield return c.weaponGraphicsController.DrawItem(ItemType.Bow, c.transitionSet);
             }
 
@@ -1013,35 +786,42 @@ namespace Armere.PlayerController
 
 
             //Remove one of ammo used
-            InventoryController.TakeItem(currentAmmo, ItemType.Ammo);
+            InventoryController.TakeItem(c.currentAmmo, ItemType.Ammo);
 
             //Test if ammo left for shooting
-            if (InventoryController.ItemCount(currentAmmo, ItemType.Ammo) == 0)
+            if (InventoryController.ItemCount(c.currentAmmo, ItemType.Ammo) == 0)
             {
                 print("Run out of arrow type");
                 //Keep current ammo within range of avalibles
-                SelectAmmo(currentAmmo);
+                c.SelectAmmo(c.currentAmmo);
             }
             else
             {
-                NotchArrow();
+                c.NotchArrow();
             }
         }
+        public IEnumerator UnEquipAll(System.Action onComplete = null)
+        {
+            if (weaponSet == WeaponSet.MeleeSidearm)
+            {
+                if (!c.weaponGraphicsController.holdables[ItemType.Melee].sheathed)
+                {
+                    yield return c.SheathItem(ItemType.Melee);
+                }
+                if (!c.weaponGraphicsController.holdables[ItemType.SideArm].sheathed)
+                {
+                    yield return c.SheathItem(ItemType.SideArm);
+                }
+            }
+            else //De quip all the bow and arrow stuff
+            {
+                if (!c.weaponGraphicsController.holdables[ItemType.Bow].sheathed)
+                {
+                    yield return c.SheathItem(ItemType.Bow);
+                }
+            }
 
-        public void NotchArrow()
-        {
-            if (selections[ItemType.Bow] != -1)
-            {
-                ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo).name;
-                c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammoName);
-            }
-        }
-        public void RemoveNotchedArrow()
-        {
-            if (selections[ItemType.Bow] != -1)
-            {
-                c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().RemoveNotchedArrow();
-            }
+            onComplete?.Invoke();
         }
 
         IEnumerator DrawItem(ItemType type, System.Action onComplete = null)
@@ -1059,20 +839,6 @@ namespace Armere.PlayerController
 
             equipping[type] = false;
             onComplete?.Invoke();
-        }
-
-
-        IEnumerator SheathItem(ItemType type)
-        {
-
-
-            sheathing[type] = true;
-            if (type == ItemType.Bow)
-            {
-                RemoveNotchedArrow();
-            }
-            yield return c.weaponGraphicsController.SheathItem(type, c.transitionSet);
-            sheathing[type] = false;
         }
 
 
@@ -1209,10 +975,10 @@ namespace Armere.PlayerController
             {
                 holdingAltAttack = true;
 
-                if (currentSidearm != -1)
+                if (c.currentSidearm != -1)
                 {
                     //Equip the sidearm if it wasn't
-                    if (!sheathing.sidearm && c.weaponGraphicsController.holdables.sidearm.sheathed)
+                    if (!c.sheathing.sidearm && c.weaponGraphicsController.holdables.sidearm.sheathed)
                     {
                         print("Drawing sidearm");
                         if (SidearmIsShield)
@@ -1249,7 +1015,7 @@ namespace Armere.PlayerController
         }
         public void LowerShield()
         {
-            if (currentSidearm != -1 && activated.sidearm && SidearmIsShield)
+            if (c.currentSidearm != -1 && activated.sidearm && SidearmIsShield)
             {
                 activated.sidearm = false;
                 c.animationController.TriggerTransition(c.transitionSet.shieldLower);

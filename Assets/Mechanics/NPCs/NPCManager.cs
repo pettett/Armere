@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
 using Yarn.Unity;
-public class NPCManager : MonoBehaviour
+public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
 {
     public static NPCManager singleton;
     public DialogueRunner dialogueRunner;
@@ -25,8 +25,20 @@ public class NPCManager : MonoBehaviour
         }
     }
 
+    public override NPCSaveData SaveData()
+    {
+        return data;
+    }
 
+    public override void LoadData(NPCSaveData save)
+    {
+        data = save;
+    }
 
+    public override void LoadBlank()
+    {
+
+    }
 
     [System.Serializable]
     public class NPCSaveData : Dictionary<NPCName, NPCData>

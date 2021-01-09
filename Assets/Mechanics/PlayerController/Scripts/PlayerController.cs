@@ -1,17 +1,19 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Armere.Inventory;
+using Armere.Inventory.UI;
+
 namespace Armere.PlayerController
 {
 
 
 
     [RequireComponent(typeof(Rigidbody))]
-    public class PlayerController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
+    public class PlayerController : MonoSaveable<PlayerController.PlayerSaveData>, IAITarget, IWaterObject, IInteractor
     {
 
 
@@ -23,21 +25,30 @@ namespace Armere.PlayerController
             public readonly MovementState[] parallels;
             public readonly Vector3 position;
             public readonly Quaternion rotation;
+            public readonly int[] armourSelections;
+            public readonly Dictionary<ItemType, int> itemSelections;
+            public readonly EquipmentSet<bool> sheathedItems;
 
             public PlayerSaveData(PlayerController c)
             {
-
                 currentState = c.currentState;
                 parallels = c.parallelStates;
                 position = c.transform.position;
                 rotation = c.transform.rotation;
+                armourSelections = c.armourSelections;
+                itemSelections = c.itemSelections;
+                sheathedItems = new EquipmentSet<bool>(
+                    c.weaponGraphicsController.holdables.melee.sheathed,
+                    c.weaponGraphicsController.holdables.sidearm.sheathed,
+                    c.weaponGraphicsController.holdables.bow.sheathed);
             }
         }
-        public PlayerSaveData CreateSaveData()
+
+        public override PlayerSaveData SaveData()
         {
             return new PlayerSaveData(this);
         }
-        public void OnSaveStateLoaded(PlayerSaveData data)
+        public override void LoadData(PlayerSaveData data)
         {
             print("Restored state");
 
@@ -46,6 +57,54 @@ namespace Armere.PlayerController
             parallelStates = data.parallels;
             transform.SetPositionAndRotation(data.position, data.rotation);
             loadedStates = true;
+
+            if (data.armourSelections != null)
+            {
+                print("Updating armour data");
+
+                for (int i = 0; i < 3; i++)
+                {
+                    armourSelections[i] = data.armourSelections[i];
+
+                    //Apply the chosen armour to the player on load
+                    if (armourSelections[i] != -1)
+                    {
+                        var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(armourSelections[i]).name]);
+                        //Will automatically remove the old armour piece
+                        weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+                    }
+                }
+            }
+            if (data.itemSelections != null)
+            {
+
+                //Melee=1, Bow=2, Ammo=3, Sidearm = 4
+
+                for (int i = 1; i < 5; i++)
+                {
+                    ItemType t = (ItemType)i;
+                    int selection = data.itemSelections[t];
+
+
+                    itemSelections[t] = selection;
+                    if (selection != -1)
+                    {
+                        ItemName name = InventoryController.ItemAt(selection, t).name;
+                        if (db[name] is HoldableItemData holdableItemData)
+                        {
+                            var x = weaponGraphicsController.holdables[t].SetHeld(holdableItemData);
+                            weaponGraphicsController.holdables[t].sheathed = data.sheathedItems[t];
+
+                            //OnSelectItem(t, selection);
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void LoadBlank()
+        {
+            loadedStates = false;
         }
 
         // public event Action<Player_CharacterController> onDeath;
@@ -188,6 +247,21 @@ namespace Armere.PlayerController
         public AnimationTransitionSet transitionSet;
 
         public readonly int[] armourSelections = new int[3] { -1, -1, -1 };
+
+        public readonly Dictionary<ItemType, int> itemSelections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
+            {ItemType.Melee,-1},
+            {ItemType.Bow,-1},
+            {ItemType.Ammo,-1},
+            {ItemType.SideArm,-1},
+        };
+        public int currentMelee { get => itemSelections[ItemType.Melee]; set => itemSelections[ItemType.Melee] = value; }
+        public int currentBow { get => itemSelections[ItemType.Bow]; set => itemSelections[ItemType.Bow] = value; }
+        public int currentAmmo { get => itemSelections[ItemType.Ammo]; set => itemSelections[ItemType.Ammo] = value; }
+        public int currentSidearm { get => itemSelections[ItemType.SideArm]; set => itemSelections[ItemType.SideArm] = value; }
+
+
+
+
         bool loadedStates = false;
         // Start is called before the first frame update
         /// <summary>
@@ -242,14 +316,22 @@ namespace Armere.PlayerController
 
             collider.material.dynamicFriction = dynamicFriction;
 
-            InventoryController.singleton.armour.onItemRemoved += OnArmourRemoved;
+
 
 
             GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
 
             GetComponent<Ragdoller>().RagdollEnabled = false;
+
+
+            InventoryController.singleton.armour.onItemRemoved += OnArmourRemoved;
             InventoryController.singleton.OnDropItemEvent += OnDropItem;
             InventoryController.singleton.OnConsumeItemEvent += OnConsumeItem;
+            InventoryController.singleton.OnSelectItemEvent += OnSelectItem;
+            InventoryController.singleton.melee.onItemRemoved += OnEquipableItemRemoved;
+            InventoryController.singleton.bow.onItemRemoved += OnEquipableItemRemoved;
+            InventoryController.singleton.sideArm.onItemRemoved += OnEquipableItemRemoved;
+
 
         }
 
@@ -263,6 +345,12 @@ namespace Armere.PlayerController
         private void OnDestroy()
         {
             InventoryController.singleton.armour.onItemRemoved -= OnArmourRemoved;
+            InventoryController.singleton.OnDropItemEvent -= OnDropItem;
+            InventoryController.singleton.OnConsumeItemEvent -= OnConsumeItem;
+            InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
+            InventoryController.singleton.melee.onItemRemoved -= OnEquipableItemRemoved;
+            InventoryController.singleton.bow.onItemRemoved -= OnEquipableItemRemoved;
+            InventoryController.singleton.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
             foreach (var s in allStates) s.End();
         }
@@ -270,7 +358,7 @@ namespace Armere.PlayerController
 
         void OnArmourRemoved(Inventory.InventoryPanel panel, int index)
         {
-            print("Armour piece removed");
+
             //Armour has multiple selections, so references may need to be adjusted
             for (int i = 0; i < 3; i++)
             {
@@ -500,12 +588,203 @@ namespace Armere.PlayerController
                 if (StateActive(i))
                     allStates[i].OnAnimatorIK(layerIndex);
         }
+
+
+        ItemType selectingSlot = ItemType.Common;
+
+        ItemType ItemTypeFromID(int id)
+        {
+            switch (id)
+            {
+                case 0: return ItemType.Melee;
+                case 1: return ItemType.SideArm;
+                case 2: return ItemType.Bow;
+                case 3: return ItemType.Ammo;
+                default: return ItemType.Common;
+            }
+        }
+        InventoryItemUI SelectedItemDisplayForType(ItemType t)
+        {
+            switch (t)
+            {
+                case ItemType.Melee: return UIController.singleton.selectedMeleeDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.SideArm: return UIController.singleton.selectedSidearmDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.Bow: return UIController.singleton.selectedBowDisplay.GetComponent<InventoryItemUI>();
+                case ItemType.Ammo: return UIController.singleton.selectedAmmoDisplay.GetComponent<InventoryItemUI>();
+                default: return null;
+            }
+        }
+
+
         private void OnSelectWeapon(int index, InputActionPhase phase)
         {
             //print(String.Format("Switched to weapon {0}", index));
-            for (int i = 0; i < allStates.Length; i++)
-                allStates[i].OnSelectWeapon(index, phase);
+
+            if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common && !paused)
+            {
+                selectingSlot = ItemTypeFromID(index);
+
+                var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
+                s.selectingType = selectingSlot;
+                s.selection = itemSelections[selectingSlot];
+                s.gameObject.SetActive(true);
+
+                //Pause the game until the user has selected
+                //inControl = false;
+                Pause();
+            }
+            else if (phase == InputActionPhase.Canceled && selectingSlot != ItemType.Common)
+            {
+                var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
+                //Select this item for the weapon controls
+                OnSelectItem(selectingSlot, s.selection);
+
+                UIController.singleton.scrollingSelector.gameObject.SetActive(false);
+
+                selectingSlot = ItemType.Common;
+
+                //Un pause the game
+                //inControl = true;
+                Play();
+            }
         }
+
+
+        void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
+        {
+            if (itemSelections[panel.type] == index)
+            {
+                //Only one selection for each category, can safely remove it
+                OnSelectItem(panel.type, -1);
+            }
+        }
+
+
+        public void OnSelectItem(ItemType type, int index)
+        {
+            //Draw or Sheath the selected type
+            if (type == ItemType.Armour)
+            {
+                var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(index).name]);
+                // if (armourSelections[(int)selected.armourPosition] != -1)
+                // {
+                // }
+                armourSelections[(int)selected.armourPosition] = index;
+
+                if (index != -1)
+                {
+                    //Will automatically remove the old armour piece
+                    weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+                }
+            }
+            else if (InventoryController.singleton.GetPanelFor(type).stackCount > index && index != itemSelections[type])
+            {
+
+                //If the user wishes to deselect this type:
+                SelectedItemDisplayForType(type).ChangeItemIndex(itemSelections[type]);
+
+
+                if (type == ItemType.Ammo)
+                {
+                    SelectAmmo(index);
+                }
+                else
+                {
+                    if (index == -1)
+                    {
+                        itemSelections[type] = -1;
+
+                        weaponGraphicsController.holdables[type].RemoveHeld();
+
+                        if (!weaponGraphicsController.holdables[type].sheathed)
+                        {
+                            //No need to double sheath
+                            //Do not trigger over time - remove immediately
+                            StartCoroutine(SheathItem(type));
+                        }
+                    }
+                    else
+                    {
+                        ItemName name = InventoryController.ItemAt(index, type).name;
+                        if (db[name] is HoldableItemData holdableItemData)
+                        {
+                            itemSelections[type] = index;
+
+                            weaponGraphicsController.holdables[type].SetHeld(holdableItemData);
+                        }
+                    }
+
+                }
+
+            }
+
+
+
+            // switch (type)
+            // {
+            //     case ItemType.Weapon:
+            //         SelectMelee(index);
+            //         break;
+            //     case ItemType.SideArm:
+            //         SelectSidearm(index);
+            //         break;
+            //     case ItemType.Bow:
+            //         SelectBow(index);
+            //         break;
+            //     case ItemType.Ammo:
+            //         SelectAmmo(index);
+            //         break;
+            // }
+        }
+
+
+        public void SelectAmmo(int index)
+        {
+            if (InventoryController.singleton.ammo.items.Count > index && index >= 0)
+            {
+                currentAmmo = index;
+
+                NotchArrow();
+            }
+            else
+            {
+                currentAmmo = -1;
+                RemoveNotchedArrow();
+
+            }
+            UIController.singleton.selectedAmmoDisplay.GetComponent<InventoryItemUI>().ChangeItemIndex(currentAmmo);
+        }
+        public void NotchArrow()
+        {
+            if (currentBow != -1)
+            {
+                ItemName ammoName = InventoryController.ItemAt(currentAmmo, ItemType.Ammo).name;
+                weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammoName);
+            }
+        }
+        public void RemoveNotchedArrow()
+        {
+            if (currentBow != -1)
+            {
+                weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().RemoveNotchedArrow();
+            }
+        }
+
+
+        public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
+
+        public IEnumerator SheathItem(ItemType type)
+        {
+            sheathing[type] = true;
+            if (type == ItemType.Bow)
+            {
+                RemoveNotchedArrow();
+            }
+            yield return weaponGraphicsController.SheathItem(type, transitionSet);
+            sheathing[type] = false;
+        }
+
+
 
 
         private void StartControllerRumble(float duration)

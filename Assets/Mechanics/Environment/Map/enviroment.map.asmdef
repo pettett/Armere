@@ -4,8 +4,8 @@
         "DebugMenuAssembly",
         "Enviroment.Music",
         "UtilityAssembly",
-        "GameSavingAssembly",
-        "Game.Structure"
+        "Game.Structure",
+        "Armere.SaveLoadSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

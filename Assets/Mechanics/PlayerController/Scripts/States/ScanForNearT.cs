@@ -12,13 +12,14 @@ namespace Armere.PlayerController
     public class ScanForNear<T> : MovementState where T : IScanable
     {
         public override string StateName => "Scan";
-        [NonSerialized] public List<T> nearObjects = new List<T>();
+        [NonSerialized] public List<T> nearObjects;
         public float scanDistance = 3;
         public Vector3 scanCenterOffset;
         public bool updateEveryFrame = true;
         float _sqrScanDistance;
         public override void Start()
         {
+            nearObjects = new List<T>();
             scanCenterOffset = Vector3.up * c.walkingHeight;
             _sqrScanDistance = scanDistance * scanDistance;
         }

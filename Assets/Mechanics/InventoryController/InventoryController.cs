@@ -25,7 +25,7 @@ namespace Armere.Inventory
     [System.Serializable]
     public class ItemStackBase
     {
-        public ItemName name;
+        public readonly ItemName name;
 
         public ItemStackBase(ItemName name)
         {
@@ -34,7 +34,7 @@ namespace Armere.Inventory
     }
 
 
-    public class InventoryController : MonoBehaviour, IVariableAddon
+    public class InventoryController : MonoSaveable<InventoryController.InventorySave>, IVariableAddon
     {
         public InventoryNewItemDelegate onItemAdded;
 
@@ -112,10 +112,7 @@ namespace Armere.Inventory
             }
         }
 
-        public InventorySave CreateSave()
-        {
-            return new InventorySave(this);
-        }
+
 
 
         public StackPanel<ItemStack> common;
@@ -164,9 +161,18 @@ namespace Armere.Inventory
             DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
         }
 
-        public void OnSaveStateLoaded(InventorySave save)
+        public override void LoadBlank()
         {
+            LoadData(new InventorySave());
+        }
 
+        public override InventorySave SaveData()
+        {
+            return new InventorySave(this);
+        }
+
+        public override void LoadData(InventorySave save)
+        {
             common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common, ItemInteractionCommands.None);
             quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
 
@@ -190,7 +196,6 @@ namespace Armere.Inventory
             potions.items = save.potions;
             currency.currency = save.currency;
             armour.items = save.armour;
-
         }
 
 
@@ -231,6 +236,7 @@ namespace Armere.Inventory
         public static uint ItemCount(ItemName n) => singleton.GetPanelFor(singleton.db[n].type).ItemCount(n);
         public static uint ItemCount(int index, ItemType type) => singleton.GetPanelFor(type).ItemCount(index);
         public static ItemStackBase ItemAt(int index, ItemType type) => singleton.GetPanelFor(type)[index];
+
 
     }
 }

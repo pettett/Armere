@@ -17,18 +17,16 @@ namespace Armere.PlayerController
     {
         public override string StateName => "Interact";
         int currentLookAt;
-        List<IInteractable> interactablesInRange = new List<IInteractable>();
-        IInteractable prevTarget;
+        [NonSerialized] List<IInteractable> interactablesInRange = new List<IInteractable>();
+        [NonSerialized] IInteractable prevTarget;
         public bool enabled = true;
 
-        [NonSerialized] DebugMenu.DebugEntry<string> entry;
 
         public override void Start()
         {
             interactablesInRange = new List<IInteractable>();
             enabled = true;
 
-            entry = DebugMenu.CreateEntry("Player", "interactables: {0}", "");
 
             ScanForInteractables();
         }
@@ -59,16 +57,6 @@ namespace Armere.PlayerController
 
         }
 
-        void UpdateEntry()
-        {
-            System.Text.StringBuilder s = new System.Text.StringBuilder();
-            for (int i = 0; i < interactablesInRange.Count; i++)
-            {
-                s.Append(interactablesInRange[i].gameObject.name);
-                s.Append(' ');
-            }
-            entry.value0 = s.ToString();
-        }
 
         bool TestForInteractable(Collider interactable)
         {
@@ -95,7 +83,6 @@ namespace Armere.PlayerController
         public void AddInteractable(IInteractable i)
         {
             interactablesInRange.Add(i);
-            UpdateEntry();
         }
 
         public override void OnTriggerExit(Collider interactable)
@@ -179,7 +166,8 @@ namespace Armere.PlayerController
         {
             exit.OnEndHighlight();
             interactablesInRange.Remove(exit);
-            UpdateEntry();
+
+
         }
 
         public override void OnInteract(InputActionPhase phase)
@@ -237,8 +225,6 @@ namespace Armere.PlayerController
                 //Remove the "Interact" prompt
                 UIPrompt.ResetPrompt();
 
-                DebugMenu.RemoveEntry(entry);
-                entry = null;
             }
         }
     }

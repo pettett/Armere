@@ -11,8 +11,10 @@ namespace Armere.Inventory
     [AllowItemTypes(ItemType.Armour)]
     public class ArmourItemData : ItemData
     {
+        [Header("Armour")]
         public float armourValue;
         public ArmourPosition armourPosition;
+        public bool hideBody = true;
         public AssetReferenceGameObject armaturePrefab;
     }
 }

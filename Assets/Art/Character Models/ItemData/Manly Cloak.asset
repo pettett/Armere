@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5223715fc275fe42ae28a440301dace, type: 3}
   m_Name: Manly Cloak
   m_EditorClassIdentifier: 
-  itemName: 0
+  itemName: 30
   type: 8
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
@@ -31,6 +31,7 @@ MonoBehaviour:
   disabledCommands: 0
   armourValue: 3
   armourPosition: 1
+  hideBody: 0
   armaturePrefab:
     m_AssetGUID: 3dacb91bd923c7c48aef25c7bf4d47d3
     m_SubObjectName: 

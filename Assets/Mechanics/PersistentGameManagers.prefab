@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 7523643276535000266}
   - component: {fileID: 2088012362}
   - component: {fileID: 327353094347504488}
+  - component: {fileID: 6251534053401373440}
   m_Layer: 0
   m_Name: PersistentGameManagers
   m_TagString: Untagged
@@ -60,6 +61,9 @@ MonoBehaviour:
     limit: 0
     items: []
   bow:
+    limit: 0
+    items: []
+  armour:
     limit: 0
     items: []
   sideArm:
@@ -140,6 +144,15 @@ MonoBehaviour:
       m_Flags: 0
   lastSaveDir: 
   minAutosaveGap: 240
+  autoLoadOnStart: 1
+  autoSaveOnDestroy: 1
+  sceneSaveData: {fileID: 0}
+  saveables:
+  - {fileID: 4832598259131234590}
+  - {fileID: 4832598259131234589}
+  - {fileID: 4832598259131234586}
+  - {fileID: 6251534053401373440}
+  - {fileID: 0}
 --- !u!114 &6225402510337564490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,6 +219,8 @@ MonoBehaviour:
   hour: 13.41
   hoursPerSecond: 0
   azimuth: 30
+  windStrengthRange: {x: 0.2, y: 3}
+  windChangingSpeed: 2
   weatherOverTime:
     serializedVersion: 2
     m_Curve: []
@@ -270,3 +285,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timeBeforeDeathScreen: 2
   deathScreenTime: 5
+--- !u!114 &6251534053401373440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4832598259131234588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6080dcae5ffd54f4780b46ce8726e3cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

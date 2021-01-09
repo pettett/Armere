@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5223715fc275fe42ae28a440301dace, type: 3}
   m_Name: Common Trousers
   m_EditorClassIdentifier: 
-  itemName: 0
+  itemName: 31
   type: 8
   displaySprite:
     m_AssetGUID: 73b0e1048d6aa7e459695833860f103b
@@ -31,6 +31,7 @@ MonoBehaviour:
   disabledCommands: 0
   armourValue: 3
   armourPosition: 2
+  hideBody: 1
   armaturePrefab:
     m_AssetGUID: 172c81dc86ee1274f9fefaa2a1916265
     m_SubObjectName: 

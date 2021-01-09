@@ -3,31 +3,33 @@ using UnityEngine;
 using Armere.Inventory;
 using Yarn.Unity;
 
-public class QuestManager : MonoBehaviour
+[System.Serializable]
+public class QuestStatus
+{
+    public Quest quest => QuestManager.singleton.qdb.quests[questIndex];
+    public readonly int questIndex;
+    public int stage = -1;
+    public uint currentTriggerCount;
+
+    public QuestStatus(int questIndex)
+    {
+        this.questIndex = questIndex;
+    }
+}
+
+
+[System.Serializable]
+public class QuestBook
+{
+    public List<QuestStatus> quests = new List<QuestStatus>();
+    public List<QuestStatus> completedQuests = new List<QuestStatus>();
+}
+
+public class QuestManager : MonoSaveable<QuestBook>
 {
     public static QuestManager singleton;
     public QuestDatabase qdb;
 
-    [System.Serializable]
-    public class QuestStatus
-    {
-        public Quest quest => QuestManager.singleton.qdb.quests[questIndex];
-        public readonly int questIndex;
-        public int stage = -1;
-        public uint currentTriggerCount;
-
-        public QuestStatus(int questIndex)
-        {
-            this.questIndex = questIndex;
-        }
-    }
-
-    [System.Serializable]
-    public class QuestBook
-    {
-        public List<QuestStatus> quests = new List<QuestStatus>();
-        public List<QuestStatus> completedQuests = new List<QuestStatus>();
-    }
 
     public QuestBook questBook;
 
@@ -265,5 +267,20 @@ public class QuestManager : MonoBehaviour
         }
 
         quests.RemoveAt(index);
+    }
+
+    public override QuestBook SaveData()
+    {
+        return questBook;
+    }
+
+    public override void LoadData(QuestBook data)
+    {
+        questBook = data;
+    }
+
+    public override void LoadBlank()
+    {
+        questBook = new QuestBook();
     }
 }

@@ -25,7 +25,7 @@ public class QuestBook
     public List<QuestStatus> completedQuests = new List<QuestStatus>();
 }
 
-public class QuestManager : MonoSaveable<QuestBook>
+public class QuestManager : MonoSaveable
 {
     public static QuestManager singleton;
     public QuestDatabase qdb;
@@ -48,10 +48,57 @@ public class QuestManager : MonoSaveable<QuestBook>
         if (singleton == null)
             singleton = this;
     }
-    public void OnSaveStateLoaded(QuestBook questBook)
+
+    public override void LoadBlank()
     {
-        this.questBook = questBook;
+        questBook = new QuestBook();
     }
+    public void WriteQuestStatus(GameDataWriter writer, QuestStatus status)
+    {
+        writer.Write(status.questIndex);
+        writer.Write(status.stage);
+        writer.Write(status.currentTriggerCount);
+    }
+    public QuestStatus ReadQuestStatus(GameDataReader reader)
+    {
+        return new QuestStatus(reader.ReadInt())
+        {
+            stage = reader.ReadInt(),
+            currentTriggerCount = reader.ReadUInt()
+        };
+    }
+    public override void SaveBin(GameDataWriter writer)
+    {
+        writer.Write(questBook.quests.Count);
+        writer.Write(questBook.completedQuests.Count);
+        for (int i = 0; i < questBook.quests.Count; i++)
+        {
+            WriteQuestStatus(writer, questBook.quests[i]);
+        }
+        for (int i = 0; i < questBook.completedQuests.Count; i++)
+        {
+            WriteQuestStatus(writer, questBook.completedQuests[i]);
+        }
+    }
+    public override void LoadBin(Version saveVersion, GameDataReader reader)
+    {
+        questBook = new QuestBook();
+        //Read the number of quests in each list
+        int quests = reader.ReadInt();
+        questBook.quests = new List<QuestStatus>(quests);
+        int completed = reader.ReadInt();
+        questBook.completedQuests = new List<QuestStatus>(completed);
+        //Read all the data for the quests
+        for (int i = 0; i < quests; i++)
+        {
+            questBook.quests.Add(ReadQuestStatus(reader));
+        }
+        for (int i = 0; i < completed; i++)
+        {
+            questBook.completedQuests.Add(ReadQuestStatus(reader));
+        }
+    }
+
 
     private void Start()
     {
@@ -269,18 +316,8 @@ public class QuestManager : MonoSaveable<QuestBook>
         quests.RemoveAt(index);
     }
 
-    public override QuestBook SaveData()
-    {
-        return questBook;
-    }
 
-    public override void LoadData(QuestBook data)
-    {
-        questBook = data;
-    }
 
-    public override void LoadBlank()
-    {
-        questBook = new QuestBook();
-    }
+
+
 }

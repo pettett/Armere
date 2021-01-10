@@ -11,7 +11,7 @@ namespace Armere.PlayerController
     public class Dead : MovementState
     {
         public override string StateName => "Dead";
-
+        public override char StateSymbol => 'E';
         public override void Start()
         {
             canBeTargeted = false;

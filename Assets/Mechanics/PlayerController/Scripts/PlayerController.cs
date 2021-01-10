@@ -13,100 +13,8 @@ namespace Armere.PlayerController
 
 
     [RequireComponent(typeof(Rigidbody))]
-    public class PlayerController : MonoSaveable<PlayerController.PlayerSaveData>, IAITarget, IWaterObject, IInteractor
+    public class PlayerController : MonoSaveable, IAITarget, IWaterObject, IInteractor
     {
-
-
-
-        [Serializable]
-        public readonly struct PlayerSaveData
-        {
-            public readonly MovementState currentState;
-            public readonly MovementState[] parallels;
-            public readonly Vector3 position;
-            public readonly Quaternion rotation;
-            public readonly int[] armourSelections;
-            public readonly Dictionary<ItemType, int> itemSelections;
-            public readonly EquipmentSet<bool> sheathedItems;
-
-            public PlayerSaveData(PlayerController c)
-            {
-                currentState = c.currentState;
-                parallels = c.parallelStates;
-                position = c.transform.position;
-                rotation = c.transform.rotation;
-                armourSelections = c.armourSelections;
-                itemSelections = c.itemSelections;
-                sheathedItems = new EquipmentSet<bool>(
-                    c.weaponGraphicsController.holdables.melee.sheathed,
-                    c.weaponGraphicsController.holdables.sidearm.sheathed,
-                    c.weaponGraphicsController.holdables.bow.sheathed);
-            }
-        }
-
-        public override PlayerSaveData SaveData()
-        {
-            return new PlayerSaveData(this);
-        }
-        public override void LoadData(PlayerSaveData data)
-        {
-            print("Restored state");
-
-            currentState = data.currentState;
-            print(currentState);
-            parallelStates = data.parallels;
-            transform.SetPositionAndRotation(data.position, data.rotation);
-            loadedStates = true;
-
-            if (data.armourSelections != null)
-            {
-                print("Updating armour data");
-
-                for (int i = 0; i < 3; i++)
-                {
-                    armourSelections[i] = data.armourSelections[i];
-
-                    //Apply the chosen armour to the player on load
-                    if (armourSelections[i] != -1)
-                    {
-                        var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(armourSelections[i]).name]);
-                        //Will automatically remove the old armour piece
-                        weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
-                    }
-                }
-            }
-            if (data.itemSelections != null)
-            {
-
-                //Melee=1, Bow=2, Ammo=3, Sidearm = 4
-
-                for (int i = 1; i < 5; i++)
-                {
-                    ItemType t = (ItemType)i;
-                    int selection = data.itemSelections[t];
-
-
-                    itemSelections[t] = selection;
-                    if (selection != -1)
-                    {
-                        ItemName name = InventoryController.ItemAt(selection, t).name;
-                        if (db[name] is HoldableItemData holdableItemData)
-                        {
-                            var x = weaponGraphicsController.holdables[t].SetHeld(holdableItemData);
-                            weaponGraphicsController.holdables[t].sheathed = data.sheathedItems[t];
-
-                            //OnSelectItem(t, selection);
-                        }
-                    }
-                }
-            }
-        }
-
-        public override void LoadBlank()
-        {
-            loadedStates = false;
-        }
-
         // public event Action<Player_CharacterController> onDeath;
         // public event Action<Player_CharacterController> onRepawn;
         public delegate bool ProcessPlayerInputDelegate(InputAction.CallbackContext input);
@@ -259,7 +167,7 @@ namespace Armere.PlayerController
         public int currentAmmo { get => itemSelections[ItemType.Ammo]; set => itemSelections[ItemType.Ammo] = value; }
         public int currentSidearm { get => itemSelections[ItemType.SideArm]; set => itemSelections[ItemType.SideArm] = value; }
 
-
+        Type startingState = typeof(Walking);
 
 
         bool loadedStates = false;
@@ -303,16 +211,9 @@ namespace Armere.PlayerController
             entry = DebugMenu.CreateEntry("Player", "State(s): {0}", "");
 
 
-            if (loadedStates)
-            {
-                StartAllStates();
-                FillAllStates();
-            }
-            else
-            {
-                //start a fresh state
-                ChangeToState<Walking>();
-            }
+            //start a fresh state
+            ChangeToState(startingState);
+
 
             collider.material.dynamicFriction = dynamicFriction;
 
@@ -333,6 +234,125 @@ namespace Armere.PlayerController
             InventoryController.singleton.sideArm.onItemRemoved += OnEquipableItemRemoved;
 
 
+        }
+        public static Type SymbolToType(char symbol)
+        {
+            switch (symbol)
+            {
+                case 'W':
+                    return typeof(Walking);
+                case 'T':
+                    return typeof(TransitionState<Walking>);
+                case 's':
+                    return typeof(Shieldsurfing);
+                case 'S':
+                    return typeof(Swimming);
+                case 'L':
+                    return typeof(LadderClimb);
+                case 'K':
+                    return typeof(KnockedOut);
+                case 'I':
+                    return typeof(Interact);
+                case 'E':
+                    return typeof(Dead);
+                case 'A':
+                    return typeof(AutoWalking);
+                case 'D':
+                    return typeof(Dialogue);
+                case 'c':
+                    return typeof(Conversation);
+                default:
+                    //Search assembly for the symbol by creating an instance of every class and comparing - slow
+                    foreach (var t in typeof(MovementState).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MovementState))))
+                    {
+                        //Create an instance of the type and check it's symbol
+                        if (((MovementState)Activator.CreateInstance(t)).StateSymbol == symbol)
+                        {
+                            return t;
+                        }
+                    }
+                    break;
+            }
+            throw new ArgumentException("Symbol not mapped to state");
+        }
+
+        public override void LoadBin(Version saveVersion, GameDataReader reader)
+        {
+            transform.position = reader.ReadVector3();
+            transform.rotation = reader.ReadQuaternion();
+
+            armourSelections[0] = reader.ReadInt();
+            armourSelections[1] = reader.ReadInt();
+            armourSelections[2] = reader.ReadInt();
+
+            itemSelections[ItemType.Melee] = reader.ReadInt();
+            itemSelections[ItemType.SideArm] = reader.ReadInt();
+            itemSelections[ItemType.Bow] = reader.ReadInt();
+            itemSelections[ItemType.Ammo] = reader.ReadInt();
+
+            EquipmentSet<bool> sheathedItems = new EquipmentSet<bool>(reader.ReadBool(), reader.ReadBool(), reader.ReadBool());
+
+            startingState = SymbolToType(reader.ReadChar());
+
+            //currentState.LoadBin(saveVersion, reader);
+
+            for (int i = 0; i < 3; i++)
+            {
+                //Apply the chosen armour to the player on load
+                if (armourSelections[i] != -1)
+                {
+                    var selected = ((ArmourItemData)InventoryController.singleton.db[InventoryController.singleton.armour.ItemAt(armourSelections[i]).name]);
+                    //Will automatically remove the old armour piece
+                    weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+                }
+            }
+
+            for (int i = 1; i < 5; i++)
+            {
+                ItemType t = (ItemType)i;
+                int selection = itemSelections[t];
+
+
+                itemSelections[t] = selection;
+                if (selection != -1)
+                {
+                    ItemName name = InventoryController.ItemAt(selection, t).name;
+                    if (db[name] is HoldableItemData holdableItemData)
+                    {
+                        var x = weaponGraphicsController.holdables[t].SetHeld(holdableItemData);
+                        weaponGraphicsController.holdables[t].sheathed = sheathedItems[t];
+
+                        //OnSelectItem(t, selection);
+                    }
+                }
+            }
+        }
+        public override void SaveBin(GameDataWriter writer)
+        {
+            writer.Write(transform.position);
+            writer.Write(transform.rotation);
+
+            writer.Write(armourSelections[0]);
+            writer.Write(armourSelections[1]);
+            writer.Write(armourSelections[2]);
+
+            writer.Write(itemSelections[ItemType.Melee]);
+            writer.Write(itemSelections[ItemType.SideArm]);
+            writer.Write(itemSelections[ItemType.Bow]);
+            writer.Write(itemSelections[ItemType.Ammo]);
+
+            writer.Write(weaponGraphicsController.holdables.melee.sheathed);
+            writer.Write(weaponGraphicsController.holdables.sidearm.sheathed);
+            writer.Write(weaponGraphicsController.holdables.bow.sheathed);
+
+            //Save the current state
+            writer.Write(currentState.StateSymbol);
+            //currentState.SaveBin(writer);
+        }
+
+        public override void LoadBlank()
+        {
+            loadedStates = false;
         }
 
         public void EnterRoom(Room room)

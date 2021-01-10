@@ -26,24 +26,11 @@ public class SaveDisplayUI : MonoBehaviour
 
     public void Init(int saveIndex)
     {
-        string dir = SaveManager.GetDirectoryForSaveInstance(saveIndex);
+        SaveManager.SaveInfo saveInfo = SaveManager.LoadSaveInfo(saveIndex);
 
-        IFormatter formatter = new BinaryFormatter();
-
-        using (Stream saveInfoStream = new FileStream(Path.Combine(dir, SaveManager.metaSaveRecordFileName), FileMode.Open, FileAccess.Read, FileShare.Read))
-        {
-            SaveManager.SaveInfo saveInfo = (SaveManager.SaveInfo)formatter.Deserialize(saveInfoStream);
-
-            scene.text = saveInfo.regionName;
-            saveTime.text = AdaptiveTime(saveInfo.saveTime);
-
-            Texture2D tex = new Texture2D(128, 128);
-            tex.LoadImage(saveInfo.thumbnail);
-            thumbnail.texture = tex;
-
-        }
-
-
+        scene.text = saveInfo.regionName;
+        saveTime.text = AdaptiveTime(saveInfo.saveTime);
+        thumbnail.texture = saveInfo.thumbnail;
 
         this.saveIndex = saveIndex;
         GetComponent<Button>().onClick.AddListener(OnClicked);

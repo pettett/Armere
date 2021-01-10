@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
 using Yarn.Unity;
-public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
+public class NPCManager : MonoSaveable
 {
     public static NPCManager singleton;
     public DialogueRunner dialogueRunner;
@@ -25,27 +25,52 @@ public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
         }
     }
 
-    public override NPCSaveData SaveData()
+
+    public override void LoadBin(Version saveVersion, GameDataReader reader)
     {
-        return data;
+        int dataCount = reader.ReadInt();
+        data = new Dictionary<NPCName, NPCData>(dataCount);
+        for (int i = 0; i < dataCount; i++)
+        {
+            data[(NPCName)reader.ReadInt()] = new NPCData(saveVersion, reader);
+        }
+    }
+    public override void SaveBin(GameDataWriter writer)
+    {
+        writer.Write(data.Count);
+        foreach (KeyValuePair<NPCName, NPCData> kvp in data)
+        {
+            writer.Write((int)kvp.Key);
+            writer.Write(kvp.Value.routineIndex);
+            writer.Write(kvp.Value.spokenTo);
+            writer.Write(kvp.Value.variables.Count);
+            foreach (KeyValuePair<string, NPCVariable> kvp2 in kvp.Value.variables)
+            {
+                writer.Write(kvp2.Key);
+                writer.Write((int)kvp2.Value.type);
+                switch (kvp2.Value.type)
+                {
+                    case Yarn.Value.Type.Bool:
+                        writer.Write((bool)kvp2.Value.value);
+                        break;
+                    case Yarn.Value.Type.String:
+                        writer.Write((string)kvp2.Value.value);
+                        break;
+                    case Yarn.Value.Type.Number:
+                        writer.Write((float)kvp2.Value.value);
+                        break;
+                }
+            }
+        }
     }
 
-    public override void LoadData(NPCSaveData save)
-    {
-        data = save;
-    }
 
     public override void LoadBlank()
     {
 
     }
 
-    [System.Serializable]
-    public class NPCSaveData : Dictionary<NPCName, NPCData>
-    {
-        public NPCSaveData() : base() { }
-        protected NPCSaveData(SerializationInfo info, StreamingContext context) : base(info, context) { }
-    }
+
 
 
     [System.Serializable]
@@ -54,12 +79,12 @@ public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
         public object value;
         public Yarn.Value.Type type;
 
-        public static Yarn.Value ToYarnEquiv(NPCVariable v)
+        public static implicit operator Yarn.Value(NPCVariable v)
         {
             if (v != null) return new Yarn.Value(v.value);
             else return null;
         }
-        public static NPCVariable FromYarnEquiv(Yarn.Value v)
+        public static implicit operator NPCVariable(Yarn.Value v)
         {
             switch (v.type)
             {
@@ -69,6 +94,21 @@ public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
                     return new NPCVariable() { value = v.AsNumber, type = Yarn.Value.Type.Number };
                 case Yarn.Value.Type.String: //STRING
                     return new NPCVariable() { value = v.AsString, type = Yarn.Value.Type.String };
+            }
+            return null;
+        }
+
+        public static NPCVariable FromLoad(Version saveVersion, GameDataReader reader)
+        {
+            var type = (Yarn.Value.Type)reader.ReadInt();
+            switch (type)
+            {
+                case Yarn.Value.Type.Bool: //BOOL
+                    return new NPCVariable() { value = reader.ReadBool(), type = Yarn.Value.Type.Bool };
+                case Yarn.Value.Type.Number: //FLOAT
+                    return new NPCVariable() { value = reader.ReadFloat(), type = Yarn.Value.Type.Number };
+                case Yarn.Value.Type.String: //STRING
+                    return new NPCVariable() { value = reader.ReadString(), type = Yarn.Value.Type.String };
             }
             return null;
         }
@@ -82,6 +122,17 @@ public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
         public Dictionary<string, NPCVariable> variables;
         public int routineIndex = 0;
 
+        public NPCData(Version saveVersion, GameDataReader reader)
+        {
+            routineIndex = reader.ReadInt();
+            spokenTo = reader.ReadBool();
+            int varCount = reader.ReadInt();
+            variables = new Dictionary<string, NPCVariable>(varCount);
+            for (int i = 0; i < varCount; i++)
+            {
+                variables[reader.ReadString()] = NPCVariable.FromLoad(saveVersion, reader);
+            }
+        }
 
         public NPCData(NPCTemplate t)
         {
@@ -89,16 +140,17 @@ public class NPCManager : MonoSaveable<NPCManager.NPCSaveData>
             foreach (var variable in t.defaultValues)
             {
                 //Turn default variable into yarn value then into NPCVariable
-                variables[variable.name] = NPCVariable.FromYarnEquiv(Yarn.Unity.InMemoryVariableStorage.AddDefault(variable));
+                variables[variable.name] = Yarn.Unity.InMemoryVariableStorage.AddDefault(variable);
             }
 
             //Set the default index from active quests
             routineIndex = t.GetRoutineIndex();
         }
 
+
     }
 
-    [HideInInspector] public NPCSaveData data = new NPCSaveData();
+    [HideInInspector] public Dictionary<NPCName, NPCData> data = new Dictionary<NPCName, NPCData>();
 
 
 }

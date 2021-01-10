@@ -44,7 +44,7 @@ namespace Armere.PlayerController
     }
 
     [Serializable]
-    public abstract class MovementState : State
+    public abstract class MovementState : State, ISaveable
     {
         public bool updateWhilePaused = false;
         public bool canBeTargeted = true;
@@ -63,7 +63,7 @@ namespace Armere.PlayerController
         }
 
         public abstract string StateName { get; }
-
+        public abstract char StateSymbol { get; }
 
         public virtual void Animate(AnimatorVariables vars) { }
         public virtual void OnAnimatorIK(int layerIndex) { }
@@ -77,6 +77,10 @@ namespace Armere.PlayerController
         public virtual void OnSelectWeapon(int index, InputActionPhase phase) { }
         public virtual void OnCustomAction(InputAction.CallbackContext action) { }
         protected void print(string format, params object[] args) => Debug.LogFormat(format, args);
+
+        public virtual void SaveBin(GameDataWriter writer) { }
+        public virtual void LoadBin(Version saveVersion, GameDataReader reader) { }
+
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]

@@ -29,6 +29,8 @@ namespace Armere.PlayerController
         public override string StateName => "In Conversation";
         public NPC talkingTarget;
 
+        public override char StateSymbol => 'c';
+
         BuyInventoryUI buyMenu;
         bool hasSpeaker;
         NPCName speakingNPC;

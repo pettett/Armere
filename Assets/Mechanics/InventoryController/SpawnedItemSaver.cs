@@ -3,51 +3,95 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-[System.Serializable]
-public readonly struct SpawnedItemRecord
-{
-    public readonly Vector3 position;
-    public readonly Quaternion rotation;
-    public readonly ItemName itemName;
-    public readonly uint bundleSize;
 
-    public SpawnedItemRecord(ItemSpawnable item)
-    {
-        this.position = item.transform.position;
-        this.rotation = item.transform.rotation;
-        this.itemName = item.item;
-        this.bundleSize = item.count;
-    }
-}
 
-public class SpawnedItemSaver : MonoSaveable<SpawnedItemRecord[]>
+public class SpawnedItemSaver : MonoSaveable
 {
     public override void LoadBlank()
     {
         //Do nothing
     }
 
-    public override void LoadData(SpawnedItemRecord[] spawnedItemData)
+    //Save format:
+    /*
+    int COUNT:
+    foreach in COUNT
+        -Vec3 position
+        -quat rotation
+        -int itemName
+        -uint bundleSize
+    */
+
+    public override void SaveBin(GameDataWriter writer)
     {
-        Profiler.BeginSample("Restoring Item Spawnable Objects");
-        //Replace all the spawnable item objects that were in the scene before hand
+        Profiler.BeginSample("Saving Item Spawnable Objects");
 
-        for (int i = 0; i < spawnedItemData.Length; i++)
-        {
-            var x = ItemSpawner.SpawnItemAsync(spawnedItemData[i].itemName, spawnedItemData[i].position, spawnedItemData[i].rotation);
-        }
-        Profiler.EndSample();
-
-    }
-
-    public override SpawnedItemRecord[] SaveData()
-    {
         var spawnedItems = MonoBehaviour.FindObjectsOfType<ItemSpawnable>();
-        SpawnedItemRecord[] records = new SpawnedItemRecord[spawnedItems.Length];
+        writer.Write(spawnedItems.Length);
         for (int i = 0; i < spawnedItems.Length; i++)
         {
-            records[i] = new SpawnedItemRecord(spawnedItems[i]);
+            writer.Write(spawnedItems[i].transform.position);
+            writer.Write(spawnedItems[i].transform.rotation);
+            writer.Write((int)spawnedItems[i].item);
+            writer.Write(spawnedItems[i].count);
         }
-        return records;
+
+
+        Profiler.EndSample();
+        Profiler.BeginSample("Saving Item Spawners");
+
+        var spawners = MonoBehaviour.FindObjectsOfType<ItemSpawner>();
+        writer.Write(spawners.Length);
+        for (int i = 0; i < spawners.Length; i++)
+        {
+            writer.Write(spawners[i].GetComponent<GuidComponent>().GetGuid());
+            writer.Write(spawners[i].spawnedItem);
+        }
+
+        Profiler.EndSample();
+    }
+    public override void LoadBin(Version saveVersion, GameDataReader reader)
+    {
+        if (saveVersion != SaveManager.version)
+        {
+            Debug.Log("Incorrect version");
+        }
+        Profiler.BeginSample("Restoring Item Spawnable Objects");
+
+        int numItems = reader.ReadInt();
+        for (int i = 0; i < numItems; i++)
+        {
+            Vector3 pos = reader.ReadVector3();
+            Quaternion rot = reader.ReadQuaternion();
+            ItemName item = (ItemName)reader.ReadInt();
+            uint bundleSize = reader.ReadUInt();
+
+            var x = ItemSpawner.SpawnItemAsync(item, pos, rot);
+
+        }
+
+        Profiler.EndSample();
+        Profiler.BeginSample("Loading Item Spawners");
+
+        int numSpawners = reader.ReadInt();
+
+
+        var itemSpawnerData = new Dictionary<System.Guid, bool>();
+
+        for (int i = 0; i < numSpawners; i++)
+        {
+            itemSpawnerData[reader.ReadGuid()] = reader.ReadBool();
+        }
+
+        foreach (var spawner in MonoBehaviour.FindObjectsOfType<ItemSpawner>())
+        {
+            if (itemSpawnerData.TryGetValue(spawner.GetComponent<GuidComponent>().GetGuid(), out var data))
+            {
+                //This should be set before the spawner's start value
+                spawner.spawnedItem = data;
+            }
+        }
+
+        Profiler.EndSample();
     }
 }

@@ -12,6 +12,7 @@ namespace Armere.PlayerController
     public class ScanForNear<T> : MovementState where T : IScanable
     {
         public override string StateName => "Scan";
+        public override char StateSymbol => 'c';
         [NonSerialized] public List<T> nearObjects;
         public float scanDistance = 3;
         public Vector3 scanCenterOffset;

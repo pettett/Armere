@@ -17,6 +17,8 @@ namespace Armere.PlayerController
     {
         public override string StateName => "Walking";
 
+        public override char StateSymbol => 'W';
+
         public enum WeaponSet { MeleeSidearm, BowArrow }
         enum WalkingType { Walking, Sprinting, Crouching }
 
@@ -72,6 +74,7 @@ namespace Armere.PlayerController
         bool backSwingSword = false;
         ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[c.currentSidearm].name] as ShieldItemData;
         bool SidearmIsShield => SidearmAsShield is ShieldItemData;
+
 
         bool holdingAltAttack = false;
 

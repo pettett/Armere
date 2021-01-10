@@ -10,7 +10,7 @@ namespace Armere.PlayerController
     public class Freefalling : MovementState
     {
 
-
+        public override char StateSymbol => 'F';
 
         Vector3 desiredVelocity;
 

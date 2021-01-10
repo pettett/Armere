@@ -12,6 +12,7 @@ using Cinemachine;
 public class Dialogue : MovementState
 {
     public override string StateName => "In Dialogue";
+    public override char StateSymbol => 'D';
     protected DialogueRunner runner => c.runner;
     protected IDialogue dialogue;
 

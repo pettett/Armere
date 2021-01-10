@@ -11,6 +11,7 @@ namespace Armere.PlayerController
     public class AutoWalking : MovementState
     {
         public override string StateName => "Auto-Walking";
+        public override char StateSymbol => 'A';
         NavMeshAgent agent;
         float oldFriction;
         public override void Start()

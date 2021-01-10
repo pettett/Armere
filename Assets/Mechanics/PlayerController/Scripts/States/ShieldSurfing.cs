@@ -19,6 +19,7 @@ namespace Armere.PlayerController
 
         }
         public override string StateName => "Shield Surfing";
+        public override char StateSymbol => 's';
         float turning;
 
         PhysicMaterial originalMaterial;

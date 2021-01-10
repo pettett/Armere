@@ -6,7 +6,7 @@ public static class ScreenshotCapture
 {
     static Camera camera;
 
-    public static byte[] CaptureScreenshot(int resWidth, int resHeight)
+    public static Texture2D CaptureScreenshot(int resWidth, int resHeight)
     {
         camera = Camera.main;
         if (camera == null) throw new System.Exception("Attempting to capture screenshot with no camera");
@@ -20,7 +20,6 @@ public static class ScreenshotCapture
         camera.targetTexture = null;
         RenderTexture.active = null; // JC: added to avoid errors
         MonoBehaviour.Destroy(rt);
-        byte[] bytes = screenShot.EncodeToPNG();
-        return bytes;
+        return screenShot;
     }
 }

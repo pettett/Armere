@@ -12,7 +12,7 @@ namespace Armere.Inventory
 
         public UniquesPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands) : base(name, limit, type, commands)
         {
-            //items = new List<ItemStackBase>(limit > 20 ? 20 : (int)limit);
+            items = new List<UniqueT>(limit > 20 ? 20 : (int)limit);
         }
 
         public override ItemStackBase this[int i] { get => items[i]; set => items[i] = (UniqueT)value; }

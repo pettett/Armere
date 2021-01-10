@@ -6,6 +6,7 @@ namespace Armere.PlayerController
     public class Diving : MovementState
     {
         public override string StateName => "Diving";
+        public override char StateSymbol => 'd';
         public override void Start()
         {
             c.rb.useGravity = false;

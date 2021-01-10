@@ -6,6 +6,12 @@ using UnityEngine;
 using Yarn.Unity;
 using Yarn;
 
+public interface IWriteableToBinary
+{
+    void Write(GameDataWriter writer);
+}
+
+
 namespace Armere.Inventory
 {
 
@@ -23,7 +29,7 @@ namespace Armere.Inventory
 
 
     [System.Serializable]
-    public class ItemStackBase
+    public class ItemStackBase : IWriteableToBinary
     {
         public readonly ItemName name;
 
@@ -31,10 +37,15 @@ namespace Armere.Inventory
         {
             this.name = name;
         }
+
+        public virtual void Write(GameDataWriter writer)
+        {
+            writer.Write((int)name);
+        }
     }
 
 
-    public class InventoryController : MonoSaveable<InventoryController.InventorySave>, IVariableAddon
+    public class InventoryController : MonoSaveable, IVariableAddon
     {
         public InventoryNewItemDelegate onItemAdded;
 
@@ -71,47 +82,96 @@ namespace Armere.Inventory
             }
         }
 
+        public delegate T ReaderGenerator<T>(GameDataReader reader);
 
 
-        [System.Serializable]
-        public class InventorySave
+        public List<T> ReadList<T>(GameDataReader reader, ReaderGenerator<T> generator)
         {
-            public List<ItemStack> common;
-            public List<ItemStackBase> quest;
-            public List<ItemStackBase> weapon;
-            public List<ItemStackBase> sideArm;
-            public List<ItemStackBase> bow;
-            public List<ItemStackBase> armour;
-            public List<ItemStack> ammo;
-            public List<PotionItemUnique> potions;
-            public uint currency;
-            public InventorySave()
+            int count = reader.ReadInt();
+            var list = new List<T>(count);
+            for (int i = 0; i < count; i++)
             {
-                common = new List<ItemStack>();
-                quest = new List<ItemStackBase>();
-                weapon = new List<ItemStackBase>();
-                sideArm = new List<ItemStackBase>();
-                bow = new List<ItemStackBase>();
-                armour = new List<ItemStackBase>();
-                ammo = new List<ItemStack>();
-                potions = new List<PotionItemUnique>();
-                currency = 0;
+                list.Add(generator(reader));
             }
+            return list;
+        }
 
-            public InventorySave(InventoryController c)
+        public void WriteList<T>(GameDataWriter writer, List<T> items) where T : IWriteableToBinary
+        {
+            writer.Write(items.Count);
+
+            for (int i = 0; i < items.Count; i++)
             {
-                common = c.common.items;
-                quest = c.quest.items;
-                weapon = c.melee.items;
-                sideArm = c.sideArm.items;
-                bow = c.bow.items;
-                armour = c.armour.items;
-                ammo = c.ammo.items;
-                potions = c.potions.items;
-                currency = c.currency.currency;
+                items[i].Write(writer);
             }
         }
 
+        public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack((ItemName)reader.ReadInt(), reader.ReadUInt());
+        public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase((ItemName)reader.ReadInt());
+        public PotionItemUnique PotionItemUniqueReader(GameDataReader reader) =>
+            new PotionItemUnique((ItemName)reader.ReadInt(), reader.ReadFloat(), reader.ReadFloat());
+
+        //Save Order:
+        /*
+        common - List
+        quest - List
+        melee - List
+        sideArm - List
+        bow - List
+        armour - List
+        potions - List
+        ammo - List
+
+        currency - Uint
+        */
+
+        public void CreatePanels()
+        {
+            common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common, ItemInteractionCommands.None);
+            quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
+            melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+            sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+            bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+            armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
+            potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
+            ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
+            currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
+        }
+        public override void LoadBlank()
+        {
+            CreatePanels();
+        }
+        public override void LoadBin(Version saveVersion, GameDataReader reader)
+        {
+            Debug.Log("Loading inventory...");
+            CreatePanels();
+
+            common.items = ReadList<ItemStack>(reader, ItemStackReader);
+            quest.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+            melee.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+            sideArm.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+            bow.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+            armour.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+
+            potions.items = ReadList<PotionItemUnique>(reader, PotionItemUniqueReader);
+            ammo.items = ReadList<ItemStack>(reader, ItemStackReader);
+
+            currency.currency = reader.ReadUInt();
+
+            Debug.Log($"Loaded inventory: {currency.currency}");
+        }
+        public override void SaveBin(GameDataWriter writer)
+        {
+            WriteList(writer, common.items);
+            WriteList(writer, quest.items);
+            WriteList(writer, melee.items);
+            WriteList(writer, sideArm.items);
+            WriteList(writer, bow.items);
+            WriteList(writer, armour.items);
+            WriteList(writer, potions.items);
+            WriteList(writer, ammo.items);
+            writer.Write(currency.currency);
+        }
 
 
 
@@ -161,42 +221,9 @@ namespace Armere.Inventory
             DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
         }
 
-        public override void LoadBlank()
-        {
-            LoadData(new InventorySave());
-        }
 
-        public override InventorySave SaveData()
-        {
-            return new InventorySave(this);
-        }
 
-        public override void LoadData(InventorySave save)
-        {
-            common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common, ItemInteractionCommands.None);
-            quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
 
-            melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-            sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-            bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-
-            armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
-
-            potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
-
-            ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
-            currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
-
-            common.items = save.common;
-            quest.items = save.quest;
-            melee.items = save.weapon;
-            sideArm.items = save.sideArm;
-            bow.items = save.bow;
-            ammo.items = save.ammo;
-            potions.items = save.potions;
-            currency.currency = save.currency;
-            armour.items = save.armour;
-        }
 
 
         public static bool AddItem(ItemName n, uint count, bool hiddenAddition)

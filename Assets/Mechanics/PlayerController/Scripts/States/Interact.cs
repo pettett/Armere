@@ -16,6 +16,7 @@ namespace Armere.PlayerController
     public class Interact : MovementState
     {
         public override string StateName => "Interact";
+        public override char StateSymbol => 'I';
         int currentLookAt;
         [NonSerialized] List<IInteractable> interactablesInRange = new List<IInteractable>();
         [NonSerialized] IInteractable prevTarget;

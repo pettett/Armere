@@ -14,8 +14,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
     Value IVariableAddon.this[string name]
     {
         //Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved
-        get => NPCManager.NPCVariable.ToYarnEquiv(NPCManager.singleton.data[npcName].variables[name]);
-        set => NPCManager.singleton.data[npcName].variables[name] = NPCManager.NPCVariable.FromYarnEquiv(value);
+        get => NPCManager.singleton.data[npcName].variables[name];
+        set => NPCManager.singleton.data[npcName].variables[name] = value;
     }
     [Range(0, 360)]
     public float requiredLookAngle = 180;

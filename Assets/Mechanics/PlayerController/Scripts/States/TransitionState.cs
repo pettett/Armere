@@ -10,6 +10,8 @@ namespace Armere.PlayerController
     public class TransitionState<NextState> : MovementState where NextState : MovementState, new()
     {
         public override string StateName => "Transitioning";
+        public override char StateSymbol => 'T';
+
         public override void Start(params object[] args)
         {
             c.StartCoroutine(MoveToNext((float)args[0]));

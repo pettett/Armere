@@ -16,6 +16,12 @@ namespace Armere.Inventory
         {
             this.count = count;
         }
+
+        public override void Write(GameDataWriter writer)
+        {
+            writer.Write((int)name);
+            writer.Write(count);
+        }
     }
 
     public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack, new()
@@ -29,7 +35,7 @@ namespace Armere.Inventory
 
         public StackPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands) : base(name, limit, type, commands)
         {
-            //items = new List<ItemStack>(limit > 20 ? 20 : (int)limit);
+            items = new List<StackT>(limit > 20 ? 20 : (int)limit);
         }
 
         public override uint ItemCount(ItemName item)

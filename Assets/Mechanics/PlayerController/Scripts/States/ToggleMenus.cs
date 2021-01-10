@@ -7,10 +7,8 @@ namespace Armere.PlayerController
     [System.Serializable]
     public class ToggleMenus : MovementState
     {
-
-
-
         public override string StateName => "Enter Menus";
+        public override char StateSymbol => 't';
 
         [NonSerialized] bool inMenus;
         [NonSerialized] bool inConsole;

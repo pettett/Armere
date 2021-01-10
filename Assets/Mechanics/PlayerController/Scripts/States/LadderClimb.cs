@@ -10,6 +10,7 @@ namespace Armere.PlayerController
     public class LadderClimb : MovementState
     {
         public override string StateName => "Climbing Ladder";
+        public override char StateSymbol => 'L';
         Climbable ladder;
         float height;
 

@@ -12,6 +12,7 @@ namespace Armere.PlayerController
     {
         public float knockoutTime = 4f;
         public override string StateName => "Knocked Out";
+        public override char StateSymbol => 'K';
 
         public override void Start()
         {

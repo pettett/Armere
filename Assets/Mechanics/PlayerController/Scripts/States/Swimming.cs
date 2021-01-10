@@ -6,7 +6,7 @@ namespace Armere.PlayerController
     public class Swimming : MovementState
     {
         public override string StateName => "Swimming";
-
+        public override char StateSymbol => 'S';
         GameObject waterTrail;
         WaterTrailController waterTrailController;
 

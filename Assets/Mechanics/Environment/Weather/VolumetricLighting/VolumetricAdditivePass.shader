@@ -8,38 +8,41 @@ Shader "Hidden/Custom/VolumetricAdditivePass"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
+		#include "Core.hlsl"
+
+
         TEXTURE2D_X(_MainTex); 
         TEXTURE2D_X(_SampleMap);
 
-        float4 _MainTex_TexelSize;
         float3 _RayColor;
 
-        float SampleTexture(float2 uv, float2 offset){
-            uv += _MainTex_TexelSize * offset;
 
-            return SAMPLE_TEXTURE2D_X(_SampleMap, sampler_LinearClamp, uv).r;
+
+        float SampleTexture(float2 uv, float2 offset){
+            return SAMPLE_TEXTURE2D_X(_SampleMap, sampler_LinearClamp, uv+_ScreenSize.zw * offset).r;
         }
 
-        float4 Frag(Varyings i) : SV_Target
+        float4 Frag(PostProcessVaryings i) : SV_Target
         {
-            float3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, i.uv);
+			
 
-            float raySample = SampleTexture(i.uv,float2(0,0)) ;
+            float3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, i.texcoord);
 
-            raySample += SampleTexture( i.uv, float2(1,0) ) ;
-            raySample += SampleTexture( i.uv ,float2(-1,0));
-            raySample += SampleTexture( i.uv, float2(0,1));
-            raySample += SampleTexture( i.uv, float2(0,-1));
+            float raySample = SampleTexture(i.texcoord ,float2(0,0)) ;
 
-            raySample += SampleTexture( i.uv ,float2(1,1));
-            raySample += SampleTexture( i.uv, float2(1,-1));
-            raySample += SampleTexture( i.uv ,float2(-1,1));
-            raySample += SampleTexture( i.uv ,float2(-1,-1));
+            raySample += SampleTexture( i.texcoord, float2(1,0) ) ;
+            raySample += SampleTexture( i.texcoord ,float2(-1,0));
+            raySample += SampleTexture( i.texcoord, float2(0,1));
+            raySample += SampleTexture( i.texcoord, float2(0,-1));
 
-            const float recip = rcp(9);
+            raySample += SampleTexture( i.texcoord ,float2(1,1));
+            raySample += SampleTexture( i.texcoord, float2(1,-1));
+            raySample += SampleTexture(i.texcoord ,float2(-1,1));
+            raySample += SampleTexture( i.texcoord ,float2(-1,-1));
 
-            raySample *= recip;
+            raySample *= rcp(9);
             //return float4(raySample,raySample,raySample,1);
+
             return float4(raySample * _RayColor + color,1);
         }
 
@@ -55,7 +58,7 @@ Shader "Hidden/Custom/VolumetricAdditivePass"
         {
             HLSLPROGRAM
 
-                #pragma vertex Vert
+                #pragma vertex FullScreenTrianglePostProcessVertexProgram
                 #pragma fragment Frag
 
             ENDHLSL

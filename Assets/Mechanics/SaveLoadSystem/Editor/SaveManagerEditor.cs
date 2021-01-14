@@ -15,6 +15,10 @@ public class SaveManagerEditor : Editor
 
     public void OnEnable()
     {
+        DiscoverSaves();
+    }
+    public void DiscoverSaves()
+    {
         saves = new List<(string dir, SaveManager.SaveInfo info)>();
         foreach (string dir in SaveManager.SaveFileSaveDirectories())
         {
@@ -26,42 +30,65 @@ public class SaveManagerEditor : Editor
     {
         base.OnInspectorGUI();
         if (saves == null) return;
-        if (GUILayout.Button("Reset Save")){
+        if (GUILayout.Button("Reset all Saves"))
+        {
             t.ResetSave();
+            DiscoverSaves();
         }
-            //Render all of the saves
-            foreach ((string dir, SaveManager.SaveInfo info) in saves)
+        if (Application.isPlaying && GUILayout.Button("Save"))
+        {
+            t.SaveGameState();
+            DiscoverSaves();
+        }
+        if (Application.isPlaying && GUILayout.Button("Load Blank Save"))
+        {
+            //Hard reload game
+            t.LoadBlankSave(true);
+        }
+
+        //Render all of the saves
+        foreach ((string dir, SaveManager.SaveInfo info) in saves)
+        {
+
+            Rect r = EditorGUILayout.BeginHorizontal("Button");
+
+            // var rect = GUILayoutUtility.GetAspectRect(1.6f);
+            // GUI.DrawTexture(rect, info.thumbnail, ScaleMode.ScaleAndCrop);
+
+            GUILayout.Label(info.thumbnail);
+
+            EditorGUILayout.BeginVertical();
+
+
+            GUILayout.Label(info.regionName);
+            GUILayout.Label(info.AdaptiveTime());
+            if (GUILayout.Button("Open Folder"))
             {
-
-                Rect r = EditorGUILayout.BeginHorizontal("Button");
-                if (GUI.Button(r, GUIContent.none))
-                {
-                    //Clicked on save
-                }
-
-
-                // var rect = GUILayoutUtility.GetAspectRect(1.6f);
-                // GUI.DrawTexture(rect, info.thumbnail, ScaleMode.ScaleAndCrop);
-
-                GUILayout.Label(info.thumbnail);
-
-                EditorGUILayout.BeginVertical();
-    
-    
-                GUILayout.Label(info.regionName);
-                if (GUILayout.Button(dir.Split(Path.DirectorySeparatorChar).Last()))
-                {
-                    var rootDir = dir.Replace(@"/", @"\");
-                    System.Diagnostics.Process.Start("explorer.exe", "/select," + rootDir);
-                }
-
-
-                EditorGUILayout.EndVertical();
-                EditorGUILayout.EndHorizontal();
-
-
-
+                var rootDir = dir.Replace(@"/", @"\");
+                System.Diagnostics.Process.Start("explorer.exe", "/select," + rootDir);
             }
+
+            if (Application.isPlaying && GUILayout.Button("Load Save"))
+            {
+                Debug.Log("Loading selected save slot…");
+                t.LoadSave(dir, true);
+            }
+
+            if (GUILayout.Button("Delete Save"))
+            {
+                Debug.Log("Deleting selected save slot…");
+                Directory.Delete(dir, true);
+                DiscoverSaves();
+            }
+
+
+
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+
+
+
+        }
 
     }
 

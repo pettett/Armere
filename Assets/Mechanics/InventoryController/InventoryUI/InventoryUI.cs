@@ -183,6 +183,8 @@ namespace Armere.Inventory.UI
 
         public Transform CreateGridPanelTemplate(InventoryPanel panel)
         {
+            UnityEngine.Assertions.Assert.IsNotNull(panel, "Panel cannot be null");
+
             var go = Instantiate(gridPanelTemplate, gridPanelHolder);
             go.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = panel.name;
             return go.transform;

@@ -20,14 +20,5 @@ public class LevelInfo : SceneSaveData
         LevelController.currentLevel = levelName;
     }
 
-    public override object SaveLevelData()
-    {
-        return levelName;
-    }
-
-    public override string LoadLevelData(object data)
-    {
-        return ((LevelName)data).ToString();
-    }
 
 }

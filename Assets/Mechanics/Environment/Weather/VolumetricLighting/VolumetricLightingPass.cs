@@ -43,9 +43,11 @@ public class VolumetricLightingPass : ScriptableRenderPass
         // cameraTextureDescriptor.width /= textureDownscale;
         // cameraTextureDescriptor.width /= textureDownscale;
 
-
+        ConfigureTarget(cameraColorTargetIdent);
         // create a temporary render texture that matches the camera
         cmd.GetTemporaryRT(sampleMap.id, cameraTextureDescriptor.width, cameraTextureDescriptor.height, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+
+        
     }
     public void Setup(in RenderTargetIdentifier cameraColorTargetIdent)
     {
@@ -119,22 +121,23 @@ public class VolumetricLightingPass : ScriptableRenderPass
 
 
 
-        cmd.SetRenderTarget(sampleMap.Identifier());
+        //cmd.SetRenderTarget(sampleMap.Identifier());
+
         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, volumetricSheet, 0, 0);
 
 
 
-        RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-
         //Debug.Log(cameraTarget);
+    //cmd.SetRenderTarget();
+        //cmd.SetRenderTarget(cameraColorTargetIdent);
 
-        cmd.SetRenderTarget(cameraColorTargetIdent);
+    
 
 
         cmd.SetGlobalTexture("_SampleMap", sampleMap.Identifier());
         cmd.SetGlobalTexture("_MainTex", cameraColorTargetIdent);
 
-        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, additiveSheet, 0, 0);
+        //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, additiveSheet, 0, 0);
 
 
 

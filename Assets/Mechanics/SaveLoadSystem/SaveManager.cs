@@ -9,8 +9,9 @@ using System.Runtime.Serialization;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Profiling;
-
-
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.AddressableAssets;
 
 public readonly struct Version
 {
@@ -159,8 +160,10 @@ public class SaveManager : MonoBehaviour
     public SceneSaveData sceneSaveData;
     public MonoSaveable[] saveables;
 
-
-
+    public UnityEngine.Events.UnityEvent OnBlankSaveLoaded;
+    public AsyncOperationHandle<SceneInstance> sceneLoader;
+    public static event System.Action OnGameLoadingCompleted;
+    public static bool gameLoadingCompleted;
 
     /*
     Save Structure:
@@ -246,6 +249,16 @@ public class SaveManager : MonoBehaviour
 
             writer.Write(regionName);
         }
+
+        public string AdaptiveTime()
+        {
+            System.DateTime now = System.DateTime.Now;
+            if (now.Year != saveTime.Year) return saveTime.ToString("H:mm, dd/MM/yyyy");
+            if (now.Month != saveTime.Month || now.Day != saveTime.Day) return saveTime.ToString("H:mm, dd/MM");
+
+            if (now.Minute != saveTime.Minute || now.Hour != saveTime.Hour) return saveTime.ToString("H:mm,") + " Today";
+            return "Just Now";
+        }
     }
 
 
@@ -257,14 +270,14 @@ public class SaveManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
+        Debug.Log("New save singleton");
         singleton = this;
         DontDestroyOnLoad(this);
 
         if (autoLoadOnStart)
             LoadMostRecentSave(false);
         else
-            LoadBlankSave();
+            SoftLoadBlankSave();
 
 
         lastSave = Time.realtimeSinceStartup - 5;
@@ -303,14 +316,7 @@ public class SaveManager : MonoBehaviour
         }
     }
 
-    public void LoadBlankSave()
-    {
-        Debug.Log("Loading blank save...");
-        for (int i = 0; i < saveables.Length; i++)
-        {
-            saveables[i].LoadBlank();
-        }
-    }
+
 
     //Save 0 is the most recent save
     public static string GetDirectoryForSaveInstance(int save)
@@ -362,7 +368,7 @@ public class SaveManager : MonoBehaviour
         if (dir != null)
             LoadSave(dir, hardLoad);
         else
-            LoadBlankSave();
+            LoadBlankSave(hardLoad);
     }
 
     public void LoadSave(int saveIndex, bool hardLoad)
@@ -374,11 +380,137 @@ public class SaveManager : MonoBehaviour
         }
         LoadSave(dir, hardLoad);
     }
-
     public void LoadSave(string dir, bool hardLoad)
     {
+        if (hardLoad)
+        {
+            HardLoadSave(dir);
+        }
+        else
+        {
+            SoftLoadSave(dir);
+        }
+    }
+
+    public void LoadBlankSave(bool hardLoad)
+    {
+        Debug.Log("Loading blank save...");
+        if (hardLoad)
+            HardLoadBlankSave();
+        else
+            SoftLoadBlankSave();
+    }
+
+    public void HardLoadBlankSave()
+    {
+        //Reload current Scene
+        HardSceneLoad(SceneManager.GetActiveScene().name, _ =>
+        {
+            SoftLoadBlankSave();
+        });
+
+    }
+    public void SoftLoadBlankSave()
+    {
+        for (int i = 0; i < saveables.Length; i++)
+        {
+            saveables[i].LoadBlank();
+        }
+        OnBlankSaveLoaded?.Invoke();
+
+        OnGameLoadingCompleted?.Invoke();
+        gameLoadingCompleted = true;
+    }
+
+    public void HardLoadSave(string dir)
+    {
+
+        string savePath = Path.Combine(dir, saveRecordFileName);
+
+        string levelName;
+        using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
+        {
+            GameDataReader gameDataReader = new GameDataReader(reader);
+            //Save the version of the game saved
+            var version = gameDataReader.ReadVersion();
+            levelName = gameDataReader.ReadString();
+        }
+
+        HardSceneLoad(levelName, _ =>
+        {
+            SoftLoadSave(dir);
+        });
+    }
+
+    public void HardSceneLoad(string sceneName, System.Action<AsyncOperation> OnCompleted)
+    {
+        gameLoadingCompleted = false;
+        var op = SceneManager.LoadSceneAsync(sceneName);
+        void Done(Scene _, LoadSceneMode __)
+        {
+            OnCompleted?.Invoke(null);
+            SceneManager.sceneLoaded -= Done;
+        }
+        SceneManager.sceneLoaded += Done;
+
+
+
+
+        // Debug.Log("Loading Scene…");
+        // bool loaded = false;
+        // void OnLoaded(Scene scene, LoadSceneMode mode)
+        // {
+        //     loaded = true;
+        // }
+        // SceneManager.sceneLoaded += OnLoaded;
+
+        // SceneManager.LoadSceneAsync(sceneName);
+
+        // Time.timeScale = 0;
+
+        // yield return new WaitUntil(() => loaded == true);
+
+        // SceneManager.sceneLoaded -= OnLoaded;
+
+        // OnCompleted?.Invoke(null);
+
+        // Time.timeScale = 1;
+
+        // var loadingScene = Addressables.LoadSceneAsync(sceneName, loadMode: LoadSceneMode.Additive, activateOnLoad: false);
+        // Debug.Log($"Loading Scene {loadingScene.IsDone}");
+        // while (!loadingScene.IsDone)
+        // {
+        //     Debug.Log("Waiting for loading Scene...");
+        //     yield return null;
+        // }
+
+        // Debug.Log("Activating Save");
+        // var op = loadingScene.Result.ActivateAsync();
+
+        // while (!op.isDone)
+        // {
+        //     yield return null;
+        // }
+
+        // OnCompleted?.Invoke(null);
+
+        // yield return loadedScene;
+
+        // if (loadedScene.Status == AsyncOperationStatus.Succeeded)
+        // {
+        //     yield return loadedScene.Result.ActivateAsync();
+
+        // }
+        //Debug.Log("Loaded Scene");
+    }
+
+
+
+    public void SoftLoadSave(string dir)
+    {
         Profiler.BeginSample("Loading Game");
-        Debug.Log("Loading Game...");
+        Debug.Log("Loading Game…");
+
 
         string savePath = Path.Combine(dir, saveRecordFileName);
 
@@ -387,14 +519,17 @@ public class SaveManager : MonoBehaviour
             GameDataReader gameDataReader = new GameDataReader(reader);
             //Save the version of the game saved
             var version = gameDataReader.ReadVersion();
+            //Level name not actually used - scene already loaded here
+            string levelName = gameDataReader.ReadString();
+
             for (int i = 0; i < saveables.Length; i++)
             {
-                Debug.Log($"Loading {i}");
                 saveables[i].LoadBin(version, gameDataReader);
             }
         }
 
-
+        OnGameLoadingCompleted?.Invoke();
+        gameLoadingCompleted = true;
 
         Profiler.EndSample();
     }
@@ -417,26 +552,35 @@ public class SaveManager : MonoBehaviour
 
         string savePath = Path.Combine(dir, saveRecordFileName);
 
-        WriteFile(savePath, saveables);
+        WriteFile(savePath, gameWriter =>
+        {
+            gameWriter.Write(SceneManager.GetActiveScene().name);
+            for (int i = 0; i < saveables.Length; i++)
+            {
+                saveables[i].SaveBin(gameWriter);
+            }
+        });
 
         SaveInfo info = new SaveInfo(sceneSaveData.SaveTooltip);
 
-        WriteFile(Path.Combine(dir, metaSaveRecordFileName), info);
+        WriteFile(Path.Combine(dir, metaSaveRecordFileName), gameWriter =>
+        {
+            info.SaveBin(gameWriter);
+        });
+
 
         Profiler.EndSample();
     }
 
-    public static void WriteFile(string dir, params ISaveable[] saveables)
+    public static void WriteFile(string dir, System.Action<GameDataWriter> saveFunction)
     {
         using (var writer = new BinaryWriter(File.Open(dir, FileMode.Create)))
         {
             GameDataWriter gameWriter = new GameDataWriter(writer);
             //Save the version of the game saved
             gameWriter.Write(version);
-            for (int i = 0; i < saveables.Length; i++)
-            {
-                saveables[i].SaveBin(gameWriter);
-            }
+            saveFunction(gameWriter);
+
         }
     }
 

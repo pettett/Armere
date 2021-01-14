@@ -3,32 +3,36 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Armere.Inventory;
-public class ItemSpawnable : SpawnableBody
+namespace Armere.Inventory
 {
-    [System.NonSerialized] public ItemName item;
-    [System.NonSerialized] public uint count;
 
-    public void Init(ItemName item, uint count)
-    {
-        this.item = item;
-        this.count = count;
-    }
+	public class ItemSpawnable : SpawnableBody
+	{
+		[System.NonSerialized] public ItemName item;
+		[System.NonSerialized] public uint count;
 
-    public void AddItemsToInventory()
-    {
-        InventoryController.AddItem(item, count, false);
-    }
+		public void Init(ItemName item, uint count)
+		{
+			this.item = item;
+			this.count = count;
+		}
 
-    public async void SpawnItemsToWorld()
-    {
-        Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
+		public void AddItemsToInventory()
+		{
+			InventoryController.AddItem(item, count, false);
+		}
 
-        for (int i = 0; i < count; i++)
-        {
-            t[i] = ItemSpawner.SpawnItemAsync(item, transform.position, transform.rotation);
-        }
+		public async void SpawnItemsToWorld()
+		{
+			Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
 
-        await Task.WhenAll(t);
-    }
+			for (int i = 0; i < count; i++)
+			{
+				t[i] = ItemSpawner.SpawnItemAsync(item, transform.position, transform.rotation);
+			}
 
+			await Task.WhenAll(t);
+		}
+
+	}
 }

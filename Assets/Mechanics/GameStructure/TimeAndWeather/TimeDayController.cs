@@ -23,7 +23,7 @@ public class TimeDayController : MonoBehaviour
     public float maxWindyScaler = 0.8f;
 
     [Header("Sun")]
-    public Transform sun;
+    Transform sun;
     DebugMenu.DebugEntry<float, float> entry;
     public float hour = 12;
     public float hoursPerSecond = 1;
@@ -70,7 +70,7 @@ public class TimeDayController : MonoBehaviour
     void Start()
     {
         entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
-
+        sun = RenderSettings.sun.transform;
     }
 
     // Update is called once per frame

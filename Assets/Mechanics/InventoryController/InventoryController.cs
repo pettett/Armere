@@ -143,7 +143,7 @@ namespace Armere.Inventory
         }
         public override void LoadBin(Version saveVersion, GameDataReader reader)
         {
-            Debug.Log("Loading inventory...");
+            //Debug.Log("Loading inventory...");
             CreatePanels();
 
             common.items = ReadList<ItemStack>(reader, ItemStackReader);
@@ -158,7 +158,7 @@ namespace Armere.Inventory
 
             currency.currency = reader.ReadUInt();
 
-            Debug.Log($"Loaded inventory: {currency.currency}");
+            //Debug.Log($"Loaded inventory: {currency.currency}");
         }
         public override void SaveBin(GameDataWriter writer)
         {
@@ -212,8 +212,8 @@ namespace Armere.Inventory
 
         private void Awake()
         {
-
-            singleton = this;
+            if (singleton == null)
+                singleton = this;
 
         }
         private void Start()

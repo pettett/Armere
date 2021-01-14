@@ -2,40 +2,43 @@
 using System.Threading.Tasks;
 using UnityEngine.Assertions;
 using Armere.Inventory;
-
-//Needs a GUID so it's state can be saved
-[RequireComponent(typeof(GuidComponent))]
-public class ItemSpawner : Spawner
+namespace Armere.Inventory
 {
 
+	//Needs a GUID so it's state can be saved
+	[RequireComponent(typeof(GuidComponent))]
+	public class ItemSpawner : Spawner
+	{
 
-    public bool spawnedItem;
-    public ItemName item;
 
-    public static async Task<ItemSpawnable> SpawnItemAsync(ItemName item, Vector3 position, Quaternion rotation)
-    {
-        var go = ((PhysicsItemData)InventoryController.singleton.db[item]).gameObject;
+		public bool spawnedItem;
+		public ItemName item;
 
-        Assert.IsTrue(go.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
+		public static async Task<ItemSpawnable> SpawnItemAsync(ItemName item, Vector3 position, Quaternion rotation)
+		{
+			var go = ((PhysicsItemData)InventoryController.singleton.db[item]).gameObject;
 
-        ItemSpawnable spawnable = (ItemSpawnable)await GameObjectSpawner.SpawnAsync(go, position, rotation);
-        spawnable.Init(item, 1);
-        return spawnable;
-    }
+			Assert.IsTrue(go.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
 
-    public override async Task<SpawnableBody> Spawn()
-    {
-        spawnedItem = true;
-        return await SpawnItemAsync(item, transform.position, transform.rotation);
-    }
+			ItemSpawnable spawnable = (ItemSpawnable)await GameObjectSpawner.SpawnAsync(go, position, rotation);
+			spawnable.Init(item, 1);
+			return spawnable;
+		}
 
-    private async void Start()
-    {
+		public override async Task<SpawnableBody> Spawn()
+		{
+			spawnedItem = true;
+			return await SpawnItemAsync(item, transform.position, transform.rotation);
+		}
 
-        //TODO: Make this better - spawned item will be set by save manager before start
-        if (!spawnedItem)
-        {
-            await Spawn();
-        }
-    }
+		private void Start()
+		{
+			Debug.Log($"Started, {SaveManager.gameLoadingCompleted}");
+			//TODO: Make this better - spawned item will be set by save manager before start
+			if (!spawnedItem)
+			{
+				var x = Spawn();
+			}
+		}
+	}
 }

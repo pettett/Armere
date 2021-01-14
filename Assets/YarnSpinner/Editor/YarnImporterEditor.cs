@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+
 using System.Globalization;
 using System.Linq;
 using System.IO;
 
 [CustomEditor(typeof(YarnImporter))]
-public class YarnImporterEditor : ScriptedImporterEditor {
+public class YarnImporterEditor : UnityEditor.AssetImporters.ScriptedImporterEditor {
 
     int selectedLanguageIndex;
 

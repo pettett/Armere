@@ -2,48 +2,51 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory.UI;
-public class InteractableChest : ItemSpawnable, IInteractable
+namespace Armere.Inventory
 {
 
-    public bool canInteract { get; set; } = true;
+	public class InteractableChest : ItemSpawnable, IInteractable
+	{
 
-    public float requiredLookDot => -1;
+		public bool canInteract { get; set; } = true;
 
-    public string interactionDescription => "Open Chest";
+		public float requiredLookDot => -1;
 
-    public Vector3 offset => throw new System.NotImplementedException();
-    public event System.Action onChestOpened;
+		public string interactionDescription => "Open Chest";
+
+		public Vector3 offset => throw new System.NotImplementedException();
+		public event System.Action onChestOpened;
 
 
 
 
-    public void Interact(IInteractor c)
-    {
+		public void Interact(IInteractor c)
+		{
 
-        Time.timeScale = 0;
+			Time.timeScale = 0;
 
-        NewItemPrompt.singleton.ShowPrompt(item, count, () => { Time.timeScale = 1; });
+			NewItemPrompt.singleton.ShowPrompt(item, count, () => { Time.timeScale = 1; });
 
-        onChestOpened?.Invoke();
+			onChestOpened?.Invoke();
 
-        //Do not allow multiple chest opens
-        canInteract = false;
-        gameObject.gameObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 40, 0);
+			//Do not allow multiple chest opens
+			canInteract = false;
+			gameObject.gameObject.transform.GetChild(0).localEulerAngles = new Vector3(0, 40, 0);
 
-        //Do not drop items on destroy
-        count = 0;
-    }
+			//Do not drop items on destroy
+			count = 0;
+		}
 
-    public void OnStartHighlight()
-    {
-        //Show an arrow for this item with name on ui
-        UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
-    }
+		public void OnStartHighlight()
+		{
+			//Show an arrow for this item with name on ui
+			UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
+		}
 
-    public void OnEndHighlight()
-    {
-        //remove arrow
-        UIController.singleton.itemIndicator.EndIndication();
-    }
-
+		public void OnEndHighlight()
+		{
+			//remove arrow
+			UIController.singleton.itemIndicator.EndIndication();
+		}
+	}
 }

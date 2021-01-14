@@ -1,12 +1,15 @@
 using UnityEngine;
-
-public class PassiveInteractableItem : ItemSpawnable, IPassiveInteractable
+namespace Armere.Inventory
 {
-    public bool canInteract { get; set; } = true;
 
-    public void Interact(IInteractor interactor)
-    {
-        AddItemsToInventory();
-        Destroy();
-    }
+	public class PassiveInteractableItem : ItemSpawnable, IPassiveInteractable
+	{
+		public bool canInteract { get; set; } = true;
+
+		public void Interact(IInteractor interactor)
+		{
+			AddItemsToInventory();
+			Destroy();
+		}
+	}
 }

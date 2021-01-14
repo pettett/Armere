@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Armere.Inventory;
+
 public class CommandManager : ConsoleReceiver
 {
     public string[] startingCommands;
@@ -42,7 +43,7 @@ public class CommandManager : ConsoleReceiver
     }
 
 
-    private void Start()
+    public void ExecuteStartingCommands()
     {
         if (Application.isPlaying)
             foreach (string c in startingCommands)
@@ -50,6 +51,7 @@ public class CommandManager : ConsoleReceiver
                 OnCommand(new Command(c));
             }
     }
+
     void DesiredInputs(Command command, int num)
     {
         if (command.values.Length < num)

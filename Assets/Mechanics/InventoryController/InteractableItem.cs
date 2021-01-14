@@ -2,40 +2,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
-public class InteractableItem : ItemSpawnable, IInteractable
+namespace Armere.Inventory
 {
 
-    public bool canInteract { get; set; } = true;
+	public class InteractableItem : ItemSpawnable, IInteractable
+	{
 
-    public float requiredLookDot => -1;
+		public bool canInteract { get; set; } = true;
 
-    public string interactionDescription => $"Pickup {InventoryController.singleton.db[item].displayName}";
+		public float requiredLookDot => -1;
 
-
-
-    public void Interact(IInteractor c)
-    {
-
-        Destroy();
-
-        AddItemsToInventory();
-
-        OnEndHighlight();
-
-    }
-
-    public void OnStartHighlight()
-    {
-        //Show an arrow for this item with name on ui
-        UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
-    }
-
-    public void OnEndHighlight()
-    {
-        //remove arrow
-        UIController.singleton.itemIndicator.EndIndication();
-    }
+		public string interactionDescription => $"Pickup {InventoryController.singleton.db[item].displayName}";
 
 
 
+		public void Interact(IInteractor c)
+		{
+
+			Destroy();
+
+			AddItemsToInventory();
+
+			OnEndHighlight();
+
+		}
+
+		public void OnStartHighlight()
+		{
+			//Show an arrow for this item with name on ui
+			UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
+		}
+
+		public void OnEndHighlight()
+		{
+			//remove arrow
+			UIController.singleton.itemIndicator.EndIndication();
+		}
+
+
+	}
 }

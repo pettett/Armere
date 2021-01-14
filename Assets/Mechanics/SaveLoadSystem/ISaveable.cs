@@ -9,14 +9,8 @@ public interface ISaveable
 }
 public abstract class MonoSaveable : MonoBehaviour, ISaveable
 {
-    public virtual void SaveBin(GameDataWriter writer)
-    {
-
-    }
-    public virtual void LoadBin(Version saveVersion, GameDataReader reader)
-    {
-
-    }
+    public abstract void SaveBin(GameDataWriter writer);
+    public abstract void LoadBin(Version saveVersion, GameDataReader reader);
     public virtual void LoadBlank()
     {
 

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameController : MonoBehaviour
+public class GameController : SceneSaveData
 {
     public float timeBeforeDeathScreen = 4;
     public float deathScreenTime = 5;
+
+    public override string SaveTooltip => LevelInfo.currentLevelInfo.SaveTooltip;
 
     //Track when the player dies. When they do, show the UI and load the last save
     private void Start()

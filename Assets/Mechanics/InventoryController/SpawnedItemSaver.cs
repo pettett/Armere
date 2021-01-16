@@ -24,7 +24,7 @@ namespace Armere.Inventory
 			-uint bundleSize
 		*/
 
-		public override void SaveBin(GameDataWriter writer)
+		public override void SaveBin(in GameDataWriter writer)
 		{
 			Profiler.BeginSample("Saving Item Spawnable Objects");
 
@@ -52,9 +52,9 @@ namespace Armere.Inventory
 
 			Profiler.EndSample();
 		}
-		public override void LoadBin(Version saveVersion, GameDataReader reader)
+		public override void LoadBin(in GameDataReader reader)
 		{
-			if (saveVersion != SaveManager.version)
+			if (reader.saveVersion != SaveManager.version)
 			{
 				Debug.Log("Incorrect version");
 			}

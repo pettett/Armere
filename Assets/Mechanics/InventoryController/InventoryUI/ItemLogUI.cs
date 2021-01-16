@@ -6,64 +6,66 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace Armere.Inventory.UI
 {
 
-    public class ItemLogUI : MonoBehaviour
-    {
-        struct Entry
-        {
-            public GameObject gameObject;
-            public float creationTime;
-            public AsyncOperationHandle<GameObject> asyncOperation;
+	public class ItemLogUI : MonoBehaviour
+	{
+		struct Entry
+		{
+			public GameObject gameObject;
+			public readonly float creationTime;
+			public AsyncOperationHandle<GameObject> asyncOperation;
 
-            public Entry(GameObject gameObject, float creationTime, AsyncOperationHandle<GameObject> asyncOperation)
-            {
-                this.gameObject = gameObject;
-                this.creationTime = creationTime;
-                this.asyncOperation = asyncOperation;
-            }
-        }
+			public Entry(GameObject gameObject, float creationTime, AsyncOperationHandle<GameObject> asyncOperation)
+			{
+				this.gameObject = gameObject;
+				this.creationTime = creationTime;
+				this.asyncOperation = asyncOperation;
+			}
+		}
 
 
-        public AssetReferenceGameObject entryPrefab;
-        public float lastingTime = 1;
-        [Range(0, 10)]
-        public int maxEntries = 3;
-        Queue<Entry> entries;
+		public AssetReferenceGameObject entryPrefab;
+		public float lastingTime = 1;
+		[Range(0, 10)]
+		public int maxEntries = 3;
+		Queue<Entry> entries;
 
-        private void Start()
-        {
+		public ItemAddedEventChannelSO onPlayerInventoryItemAdded;
 
-            entries = new Queue<Entry>(maxEntries);
+		private void Start()
+		{
 
-            InventoryController.singleton.onItemAdded += OnItemAdded;
-        }
+			entries = new Queue<Entry>(maxEntries);
 
-        private void OnDestroy()
-        {
-            InventoryController.singleton.onItemAdded -= OnItemAdded;
-        }
+			onPlayerInventoryItemAdded.onItemAddedEvent += OnItemAdded;
+		}
 
-        async void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hidden)
-        {
-            if (!hidden)
-            {
-                var operation = Addressables.InstantiateAsync(entryPrefab, transform, trackHandle: false);
+		private void OnDestroy()
+		{
+			onPlayerInventoryItemAdded.onItemAddedEvent -= OnItemAdded;
+		}
 
-                GameObject go = await operation.Task;
+		async void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hidden)
+		{
+			if (!hidden)
+			{
+				var operation = Addressables.InstantiateAsync(entryPrefab, transform, trackHandle: false);
 
-                go.GetComponent<InventoryItemUI>().SetupItemAsync(stack);
+				GameObject go = await operation.Task;
 
-                entries.Enqueue(new Entry(go, Time.time, operation));
-            }
-        }
+				go.GetComponent<InventoryItemUI>().SetupItemAsync(stack);
 
-        private void Update()
-        {
-            //Test to remove the top entry
-            if (entries.Count > 0 && (entries.Count > maxEntries || Time.time - entries.Peek().creationTime > lastingTime))
-            {
-                Addressables.ReleaseInstance(entries.Dequeue().asyncOperation);
-            }
-        }
+				entries.Enqueue(new Entry(go, Time.time, operation));
+			}
+		}
 
-    }
+		private void Update()
+		{
+			//Test to remove the top entry
+			if (entries.Count > 0 && (entries.Count > maxEntries || Time.time - entries.Peek().creationTime > lastingTime))
+			{
+				Addressables.ReleaseInstance(entries.Dequeue().asyncOperation);
+			}
+		}
+
+	}
 }

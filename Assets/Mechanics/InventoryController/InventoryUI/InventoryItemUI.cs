@@ -70,7 +70,7 @@ namespace Armere.Inventory.UI
 		}
 
 
-		private void OnDestroy()
+		new private void OnDestroy()
 		{
 			ReleaseCurrentSprite();
 		}

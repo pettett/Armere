@@ -19,7 +19,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
             ""id"": ""66bfb76e-bb2c-4bed-ba71-81c67d697519"",
             ""actions"": [
                 {
-                    ""name"": ""Look"",
+                    ""name"": ""CameraMove"",
                     ""type"": ""Value"",
                     ""id"": ""8882bad0-c251-459d-925e-e07d73fcfa63"",
                     ""expectedControlType"": ""Vector2"",
@@ -89,14 +89,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press(behavior=2)""
-                },
-                {
-                    ""name"": ""Camera"",
-                    ""type"": ""Value"",
-                    ""id"": ""fd53b4bd-6227-4e88-bf2f-43342c100ed5"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Shield"",
@@ -342,28 +334,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""cd1c2e59-da2c-460a-b084-3ba712a0d0c8"",
-                    ""path"": ""<Gamepad>/rightStick"",
-                    ""interactions"": """",
-                    ""processors"": ""ScaleVector2(y=-1)"",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Camera"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""3a5f8ce9-ee89-4a61-879b-76aef6d7372f"",
-                    ""path"": ""<Mouse>/delta"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Camera"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""992d4385-8d00-4e0f-9568-42299ba3f8df"",
                     ""path"": ""<Gamepad>/leftTrigger"",
                     ""interactions"": """",
@@ -413,7 +383,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
@@ -424,7 +394,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -435,7 +405,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -446,7 +416,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -457,7 +427,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -468,7 +438,18 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""InvertVector2"",
                     ""groups"": ""Gamepad"",
-                    ""action"": ""Look"",
+                    ""action"": ""CameraMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2422bcc9-190f-435a-bf15-57d8621caa61"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""CameraMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -671,6 +652,39 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Dialogue"",
+            ""id"": ""3c6807f6-78c3-4920-80c6-2e410e6764b8"",
+            ""actions"": [],
+            ""bindings"": []
+        },
+        {
+            ""name"": ""Debug"",
+            ""id"": ""edf04f3e-56b9-4730-9c1d-c2292fb88b00"",
+            ""actions"": [
+                {
+                    ""name"": ""ShowReadoutScreen"",
+                    ""type"": ""Button"",
+                    ""id"": ""0f94751c-4294-4af1-b46f-0d4ef7d0cffe"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""4c087a17-c5c8-4cc1-8eec-72328320f613"",
+                    ""path"": ""<Keyboard>/f3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""ShowReadoutScreen"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -710,7 +724,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
 }");
         // Ground Action Map
         m_GroundActionMap = asset.FindActionMap("Ground Action Map", throwIfNotFound: true);
-        m_GroundActionMap_Look = m_GroundActionMap.FindAction("Look", throwIfNotFound: true);
+        m_GroundActionMap_CameraMove = m_GroundActionMap.FindAction("CameraMove", throwIfNotFound: true);
         m_GroundActionMap_Walk = m_GroundActionMap.FindAction("Walk", throwIfNotFound: true);
         m_GroundActionMap_VerticalMovement = m_GroundActionMap.FindAction("VerticalMovement", throwIfNotFound: true);
         m_GroundActionMap_Sprint = m_GroundActionMap.FindAction("Sprint", throwIfNotFound: true);
@@ -719,7 +733,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_AltAttack = m_GroundActionMap.FindAction("AltAttack", throwIfNotFound: true);
         m_GroundActionMap_Jump = m_GroundActionMap.FindAction("Jump", throwIfNotFound: true);
         m_GroundActionMap_Action = m_GroundActionMap.FindAction("Action", throwIfNotFound: true);
-        m_GroundActionMap_Camera = m_GroundActionMap.FindAction("Camera", throwIfNotFound: true);
         m_GroundActionMap_Shield = m_GroundActionMap.FindAction("Shield", throwIfNotFound: true);
         m_GroundActionMap_Aim = m_GroundActionMap.FindAction("Aim", throwIfNotFound: true);
         m_GroundActionMap_TabMenu = m_GroundActionMap.FindAction("TabMenu", throwIfNotFound: true);
@@ -728,6 +741,11 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_SelectWeapon = m_GroundActionMap.FindAction("SelectWeapon", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
+        // Dialogue
+        m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
+        // Debug
+        m_Debug = asset.FindActionMap("Debug", throwIfNotFound: true);
+        m_Debug_ShowReadoutScreen = m_Debug.FindAction("ShowReadoutScreen", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -777,7 +795,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     // Ground Action Map
     private readonly InputActionMap m_GroundActionMap;
     private IGroundActionMapActions m_GroundActionMapActionsCallbackInterface;
-    private readonly InputAction m_GroundActionMap_Look;
+    private readonly InputAction m_GroundActionMap_CameraMove;
     private readonly InputAction m_GroundActionMap_Walk;
     private readonly InputAction m_GroundActionMap_VerticalMovement;
     private readonly InputAction m_GroundActionMap_Sprint;
@@ -786,7 +804,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_AltAttack;
     private readonly InputAction m_GroundActionMap_Jump;
     private readonly InputAction m_GroundActionMap_Action;
-    private readonly InputAction m_GroundActionMap_Camera;
     private readonly InputAction m_GroundActionMap_Shield;
     private readonly InputAction m_GroundActionMap_Aim;
     private readonly InputAction m_GroundActionMap_TabMenu;
@@ -799,7 +816,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     {
         private @PlayerControls m_Wrapper;
         public GroundActionMapActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Look => m_Wrapper.m_GroundActionMap_Look;
+        public InputAction @CameraMove => m_Wrapper.m_GroundActionMap_CameraMove;
         public InputAction @Walk => m_Wrapper.m_GroundActionMap_Walk;
         public InputAction @VerticalMovement => m_Wrapper.m_GroundActionMap_VerticalMovement;
         public InputAction @Sprint => m_Wrapper.m_GroundActionMap_Sprint;
@@ -808,7 +825,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @AltAttack => m_Wrapper.m_GroundActionMap_AltAttack;
         public InputAction @Jump => m_Wrapper.m_GroundActionMap_Jump;
         public InputAction @Action => m_Wrapper.m_GroundActionMap_Action;
-        public InputAction @Camera => m_Wrapper.m_GroundActionMap_Camera;
         public InputAction @Shield => m_Wrapper.m_GroundActionMap_Shield;
         public InputAction @Aim => m_Wrapper.m_GroundActionMap_Aim;
         public InputAction @TabMenu => m_Wrapper.m_GroundActionMap_TabMenu;
@@ -826,9 +842,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         {
             if (m_Wrapper.m_GroundActionMapActionsCallbackInterface != null)
             {
-                @Look.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnLook;
-                @Look.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnLook;
-                @Look.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnLook;
+                @CameraMove.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCameraMove;
+                @CameraMove.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCameraMove;
+                @CameraMove.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCameraMove;
                 @Walk.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnWalk;
                 @Walk.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnWalk;
                 @Walk.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnWalk;
@@ -853,9 +869,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Action.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAction;
                 @Action.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAction;
                 @Action.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAction;
-                @Camera.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCamera;
-                @Camera.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCamera;
-                @Camera.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnCamera;
                 @Shield.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnShield;
                 @Shield.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnShield;
                 @Shield.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnShield;
@@ -884,9 +897,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
             m_Wrapper.m_GroundActionMapActionsCallbackInterface = instance;
             if (instance != null)
             {
-                @Look.started += instance.OnLook;
-                @Look.performed += instance.OnLook;
-                @Look.canceled += instance.OnLook;
+                @CameraMove.started += instance.OnCameraMove;
+                @CameraMove.performed += instance.OnCameraMove;
+                @CameraMove.canceled += instance.OnCameraMove;
                 @Walk.started += instance.OnWalk;
                 @Walk.performed += instance.OnWalk;
                 @Walk.canceled += instance.OnWalk;
@@ -911,9 +924,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Action.started += instance.OnAction;
                 @Action.performed += instance.OnAction;
                 @Action.canceled += instance.OnAction;
-                @Camera.started += instance.OnCamera;
-                @Camera.performed += instance.OnCamera;
-                @Camera.canceled += instance.OnCamera;
                 @Shield.started += instance.OnShield;
                 @Shield.performed += instance.OnShield;
                 @Shield.canceled += instance.OnShield;
@@ -942,6 +952,64 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         }
     }
     public GroundActionMapActions @GroundActionMap => new GroundActionMapActions(this);
+
+    // Dialogue
+    private readonly InputActionMap m_Dialogue;
+    private IDialogueActions m_DialogueActionsCallbackInterface;
+    public struct DialogueActions
+    {
+        private @PlayerControls m_Wrapper;
+        public DialogueActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        public InputActionMap Get() { return m_Wrapper.m_Dialogue; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(DialogueActions set) { return set.Get(); }
+        public void SetCallbacks(IDialogueActions instance)
+        {
+            if (m_Wrapper.m_DialogueActionsCallbackInterface != null)
+            {
+            }
+            m_Wrapper.m_DialogueActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+            }
+        }
+    }
+    public DialogueActions @Dialogue => new DialogueActions(this);
+
+    // Debug
+    private readonly InputActionMap m_Debug;
+    private IDebugActions m_DebugActionsCallbackInterface;
+    private readonly InputAction m_Debug_ShowReadoutScreen;
+    public struct DebugActions
+    {
+        private @PlayerControls m_Wrapper;
+        public DebugActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ShowReadoutScreen => m_Wrapper.m_Debug_ShowReadoutScreen;
+        public InputActionMap Get() { return m_Wrapper.m_Debug; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(DebugActions set) { return set.Get(); }
+        public void SetCallbacks(IDebugActions instance)
+        {
+            if (m_Wrapper.m_DebugActionsCallbackInterface != null)
+            {
+                @ShowReadoutScreen.started -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
+                @ShowReadoutScreen.performed -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
+                @ShowReadoutScreen.canceled -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
+            }
+            m_Wrapper.m_DebugActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @ShowReadoutScreen.started += instance.OnShowReadoutScreen;
+                @ShowReadoutScreen.performed += instance.OnShowReadoutScreen;
+                @ShowReadoutScreen.canceled += instance.OnShowReadoutScreen;
+            }
+        }
+    }
+    public DebugActions @Debug => new DebugActions(this);
     private int m_GamepadSchemeIndex = -1;
     public InputControlScheme GamepadScheme
     {
@@ -962,7 +1030,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     }
     public interface IGroundActionMapActions
     {
-        void OnLook(InputAction.CallbackContext context);
+        void OnCameraMove(InputAction.CallbackContext context);
         void OnWalk(InputAction.CallbackContext context);
         void OnVerticalMovement(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
@@ -971,7 +1039,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnAltAttack(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnAction(InputAction.CallbackContext context);
-        void OnCamera(InputAction.CallbackContext context);
         void OnShield(InputAction.CallbackContext context);
         void OnAim(InputAction.CallbackContext context);
         void OnTabMenu(InputAction.CallbackContext context);
@@ -980,5 +1047,12 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnSelectWeapon(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
+    }
+    public interface IDialogueActions
+    {
+    }
+    public interface IDebugActions
+    {
+        void OnShowReadoutScreen(InputAction.CallbackContext context);
     }
 }

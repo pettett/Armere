@@ -1,8 +1,10 @@
 {
     "name": "DebugMenuAssembly",
+    "rootNamespace": "",
     "references": [
         "Unity.TextMeshPro",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Game.Input"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

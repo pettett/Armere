@@ -1,12 +1,14 @@
 {
     "name": "Game.CameraControl",
+    "rootNamespace": "",
     "references": [
         "GUID:4307f53044263cf4b835bd812fc161a4",
         "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
         "GUID:673bd6fd09384874ea1f04611ca9dde5",
         "GUID:75469ad4d38634e559750d17036d5f7c",
         "GUID:1df36f98049b3014db0dce124b6c1444",
-        "GUID:b293fbfec570da448869ea77b282b59c"
+        "GUID:b293fbfec570da448869ea77b282b59c",
+        "GUID:6583da777ddb692409ab0ff3ed793504"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

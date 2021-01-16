@@ -8,112 +8,117 @@ public class Health : SimpleHealth, IAttackable
 {
 
 
-    public float headshotHeight = 1.5f;
-    public bool useUI;
-    public string uiName = "health";
-    public bool dead { get; private set; }
+	public float headshotHeight = 1.5f;
 
-    public Vector3 offset => centerOffset;
+	public bool dead { get; private set; }
 
-    public Vector3 centerOffset;
+	public Vector3 offset => centerOffset;
 
-    public delegate void HealthEvent(GameObject attacker, GameObject victim);
+	public Vector3 centerOffset;
 
-    public event HealthEvent onDeath;
-    public bool blockingDamage = false;
-    [Range(-1, 1)]
-    public float minBlockingDot = 0.5f;
+	public delegate void HealthEvent(GameObject attacker, GameObject victim);
 
-    public event HealthEvent onTakeDamage;
-    public event HealthEvent onBlockDamage;
+	public bool blockingDamage = false;
+	[Range(-1, 1)]
+	public float minBlockingDot = 0.5f;
 
-    /// <summary>
-    /// Start is called on the frame when a script is enabled just before
-    /// any of the Update methods is called the first time.
-    /// </summary>
-    protected override void Start()
-    {
-        base.Start();
-        UpdateUI();
-    }
-    public void Respawn()
-    {
-        SetHealth(maxHealth);
-        dead = false;
-    }
+	public event HealthEvent onTakeDamage;
+	public event HealthEvent onBlockDamage;
 
-    public override AttackResult Damage(float amount, GameObject origin)
-    {
+	public VoidEventChannelSO deathEventChanel;
+	public FloatFloatEventChannelSO healthChangedChannel;
+	/// <summary>
+	/// Start is called on the frame when a script is enabled just before
+	/// any of the Update methods is called the first time.
+	/// </summary>
+	protected override void Start()
+	{
+		base.Start();
+		UpdateUI();
+	}
+	public void Respawn()
+	{
+		SetHealth(maxHealth);
+		dead = false;
+	}
 
-        if (dead)
-            return AttackResult.None;
+	public override AttackResult Damage(float amount, GameObject origin)
+	{
 
-
-        if (audioSet != null) audioSet.MakeNoise(transform.position, 20);
-
-        //Test if the damage can be blocked based on the angle
-        //TODO: Better blocking physics
-        else if (blockingDamage && Vector3.Dot(transform.forward, (origin.transform.position - transform.position).normalized) > minBlockingDot)
-        {
-            onBlockDamage?.Invoke(origin, gameObject);
-            return AttackResult.Blocked;
-        }
-
-        AttackResult r = AttackResult.Damaged;
+		if (dead)
+			return AttackResult.None;
 
 
-        SetHealth(health - amount);
+		if (audioSet != null) audioSet.MakeNoise(transform.position, 20);
 
-        if (health == 0)
-        {
-            dead = true;
-            onDeath?.Invoke(origin, gameObject);
-            onDeathEvent.Invoke();
+		//Test if the damage can be blocked based on the angle
+		//TODO: Better blocking physics
+		else if (blockingDamage && Vector3.Dot(transform.forward, (origin.transform.position - transform.position).normalized) > minBlockingDot)
+		{
+			onBlockDamage?.Invoke(origin, gameObject);
+			return AttackResult.Blocked;
+		}
 
-            r |= AttackResult.Killed;
-        }
-        else
-        {
-            onTakeDamage?.Invoke(origin, gameObject);
-        }
-        UpdateUI();
+		AttackResult r = AttackResult.Damaged;
 
-        return r;
-    }
+		SetHealth(health - amount);
 
-    public void SetHealth(float newHealth)
-    {
-        health = Mathf.Clamp(newHealth, 0, maxHealth);
+		if (health == 0)
+		{
+			Die(origin);
 
-        UpdateUI();
-    }
+			r |= AttackResult.Killed;
+		}
+		else
+		{
+			onTakeDamage?.Invoke(origin, gameObject);
+		}
+		UpdateUI();
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.DrawCube(transform.position + Vector3.up * headshotHeight, new Vector3(1, 0, 1));
+		return r;
+	}
 
-        Gizmos.DrawWireSphere(transform.position + offset, 0.1f);
-    }
+	public void Die(GameObject origin)
+	{
+		dead = true;
+		onDeathEvent.Invoke();
+		if (deathEventChanel != null)
+			deathEventChanel.onEventRaised();
+	}
 
-    void UpdateUI()
-    {
-        if (useUI)
-            ProgressionBar.SetInstanceProgress(uiName, health, maxHealth);
-    }
+	public void SetHealth(float newHealth)
+	{
+		health = Mathf.Clamp(newHealth, 0, maxHealth);
 
-    public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)
-    {
-        WeaponItemData weaponData = (WeaponItemData)InventoryController.singleton.db[weapon];
-        return Damage(weaponData.damage, controller);
-    }
+		UpdateUI();
+	}
 
-    private void OnEnable()
-    {
-        TypeGroup<IAttackable>.allObjects.Add(this);
-    }
-    private void OnDisable()
-    {
-        TypeGroup<IAttackable>.allObjects.Remove(this);
-    }
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.DrawCube(transform.position + Vector3.up * headshotHeight, new Vector3(1, 0, 1));
+
+		Gizmos.DrawWireSphere(transform.position + offset, 0.1f);
+	}
+
+	void UpdateUI()
+	{
+		if (healthChangedChannel != null)
+			healthChangedChannel?.OnEventRaised(health, maxHealth);
+	}
+
+	public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)
+	{
+		WeaponItemData weaponData = (WeaponItemData)InventoryController.singleton.db[weapon];
+		return Damage(weaponData.damage, controller);
+	}
+
+	private void OnEnable()
+	{
+		TypeGroup<IAttackable>.allObjects.Add(this);
+	}
+	private void OnDisable()
+	{
+		TypeGroup<IAttackable>.allObjects.Remove(this);
+	}
 
 }

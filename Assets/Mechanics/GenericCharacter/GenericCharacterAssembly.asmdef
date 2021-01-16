@@ -1,5 +1,6 @@
 {
     "name": "GenericCharacterAssembly",
+    "rootNamespace": "",
     "references": [
         "UtilityAssembly",
         "Unity.TextMeshPro",
@@ -10,7 +11,8 @@
         "Game.UI",
         "Game.Environment.Fire",
         "Game.Environment.Grass",
-        "MyBox"
+        "MyBox",
+        "EventChannels"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

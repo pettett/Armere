@@ -15,25 +15,7 @@ namespace Armere.PlayerController
 	[RequireComponent(typeof(Rigidbody))]
 	public class PlayerController : MonoSaveable, IAITarget, IWaterObject, IInteractor
 	{
-		// public event Action<Player_CharacterController> onDeath;
-		// public event Action<Player_CharacterController> onRepawn;
-		public delegate bool ProcessPlayerInputDelegate(InputAction.CallbackContext input);
-		///<summary> Returns wether the input should still be processed</summary>
-		public event ProcessPlayerInputDelegate onPlayerInput;
-
-		public struct InputStatus
-		{
-			public Vector2 horizontal;
-			public Vector2 camera;
-			public float vertical;
-		}
-
-		public bool holdingSprintKey;
-		public bool holdingCrouchKey;
-
 		public ItemDatabase db;
-
-		[HideInInspector] public PlayerInput playerInput;
 
 		[NonSerialized] public MovementState currentState;
 
@@ -117,7 +99,6 @@ namespace Armere.PlayerController
 		[HideInInspector]
 		public Animator animator;
 
-		[System.NonSerialized] public InputStatus input = new InputStatus(); //current player input
 
 		public Health health;
 
@@ -177,6 +158,9 @@ namespace Armere.PlayerController
 		public IntEventChannelSO onChangeSelectedSidearm;
 		public IntEventChannelSO onChangeSelectedBow;
 		public IntEventChannelSO onChangeSelectedAmmo;
+		public ItemAddedEventChannelSO onPlayerInventoryItemAdded;
+		public InputReader inputReader;
+
 
 		// Start is called before the first frame update
 		/// <summary>
@@ -203,13 +187,11 @@ namespace Armere.PlayerController
 
 			animatorVariables.UpdateIDs();
 
-			playerInput = GetComponent<PlayerInput>();
-
 			rb = GetComponent<Rigidbody>();
 			animator = GetComponent<Animator>();
 			collider = GetComponent<CapsuleCollider>();
 			if (TryGetComponent<Health>(out health))
-				health.onDeath += OnDeath;
+				health.onDeathEvent.AddListener(OnDeath);
 
 			weaponGraphicsController = GetComponent<WeaponGraphicsController>();
 
@@ -226,9 +208,6 @@ namespace Armere.PlayerController
 
 
 
-
-			GetComponent<PlayerInput>().onActionTriggered += OnActionTriggered;
-
 			GetComponent<Ragdoller>().RagdollEnabled = false;
 
 
@@ -239,9 +218,32 @@ namespace Armere.PlayerController
 			InventoryController.singleton.melee.onItemRemoved += OnEquipableItemRemoved;
 			InventoryController.singleton.bow.onItemRemoved += OnEquipableItemRemoved;
 			InventoryController.singleton.sideArm.onItemRemoved += OnEquipableItemRemoved;
-
-
 		}
+
+		private void OnEnable()
+		{
+			inputReader.selectWeaponEvent += OnSelectWeapon;
+		}
+		private void OnDisable()
+		{
+			inputReader.selectWeaponEvent -= OnSelectWeapon;
+		}
+
+		private void OnDestroy()
+		{
+			InventoryController.singleton.armour.onItemRemoved -= OnArmourRemoved;
+			InventoryController.singleton.OnDropItemEvent -= OnDropItem;
+			InventoryController.singleton.OnConsumeItemEvent -= OnConsumeItem;
+			InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
+			InventoryController.singleton.melee.onItemRemoved -= OnEquipableItemRemoved;
+			InventoryController.singleton.bow.onItemRemoved -= OnEquipableItemRemoved;
+			InventoryController.singleton.sideArm.onItemRemoved -= OnEquipableItemRemoved;
+
+			foreach (var s in allStates) s.End();
+		}
+
+
+
 		public static Type SymbolToType(char symbol)
 		{
 			switch (symbol)
@@ -283,7 +285,7 @@ namespace Armere.PlayerController
 			throw new ArgumentException("Symbol not mapped to state");
 		}
 
-		public override void LoadBin(Version saveVersion, GameDataReader reader)
+		public override void LoadBin(in GameDataReader reader)
 		{
 			transform.position = reader.ReadVector3();
 			transform.rotation = reader.ReadQuaternion();
@@ -334,7 +336,7 @@ namespace Armere.PlayerController
 				}
 			}
 		}
-		public override void SaveBin(GameDataWriter writer)
+		public override void SaveBin(in GameDataWriter writer)
 		{
 			writer.Write(transform.position);
 			writer.Write(transform.rotation);
@@ -369,18 +371,6 @@ namespace Armere.PlayerController
 			StartCoroutine(CameraVolumeController.s.ApplyOverrideProfile(room == null ? null : room.overrideProfile, 3f));
 		}
 
-		private void OnDestroy()
-		{
-			InventoryController.singleton.armour.onItemRemoved -= OnArmourRemoved;
-			InventoryController.singleton.OnDropItemEvent -= OnDropItem;
-			InventoryController.singleton.OnConsumeItemEvent -= OnConsumeItem;
-			InventoryController.singleton.OnSelectItemEvent -= OnSelectItem;
-			InventoryController.singleton.melee.onItemRemoved -= OnEquipableItemRemoved;
-			InventoryController.singleton.bow.onItemRemoved -= OnEquipableItemRemoved;
-			InventoryController.singleton.sideArm.onItemRemoved -= OnEquipableItemRemoved;
-
-			foreach (var s in allStates) s.End();
-		}
 
 
 		void OnArmourRemoved(Inventory.InventoryPanel panel, int index)
@@ -404,7 +394,7 @@ namespace Armere.PlayerController
 
 
 
-		public void OnDeath(GameObject attacker, GameObject victim)
+		public void OnDeath()
 		{
 			// The player has died.
 			ChangeToState<Dead>();
@@ -459,71 +449,6 @@ namespace Armere.PlayerController
 
 
 		public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
-
-		public void OnActionTriggered(InputAction.CallbackContext action)
-		{
-
-			//Convert nullable bool into bool - defaults to true
-			if (onPlayerInput?.Invoke(action) ?? true)
-			{
-
-				string actionName = action.action.name;
-
-				switch (actionName)
-				{
-					case "SelectWeapon":
-						OnSelectWeapon((int)action.ReadValue<float>(), action.phase);
-						break;
-					case "Walk":
-						input.horizontal = action.ReadValue<Vector2>();
-						break;
-					case "Look":
-						input.camera = action.ReadValue<Vector2>();
-						break;
-					case "VerticalMovement":
-						input.vertical = action.ReadValue<float>();
-						break;
-
-					case "Action":
-						for (int i = 0; i < allStates.Length; i++)
-							if (StateActive(i))
-								allStates[i].OnInteract(action.phase);
-						break;
-					case "Crouch":
-						holdingCrouchKey = action.ReadValue<float>() == 1;
-						break;
-					case "Sprint":
-						holdingSprintKey = action.ReadValue<float>() == 1;
-						for (int i = 0; i < allStates.Length; i++)
-							if (StateActive(i))
-								allStates[i].OnSprint(action.phase);
-						break;
-					case "Jump":
-						for (int i = 0; i < allStates.Length; i++)
-							if (StateActive(i))
-								allStates[i].OnJump(action.phase);
-						break;
-					case "Attack":
-						for (int i = 0; i < allStates.Length; i++)
-							if (StateActive(i))
-								allStates[i].OnAttack(action.phase);
-						break;
-					case "AltAttack":
-						for (int i = 0; i < allStates.Length; i++)
-							if (StateActive(i))
-								allStates[i].OnAltAttack(action.phase);
-						break;
-
-					case "KO":
-						ChangeToState<KnockedOut>();
-						break;
-
-					default:
-						currentState.OnCustomAction(action);
-						break;
-				}
-			}
-		}
 
 
 		public async void OnDropItem(ItemType type, int itemIndex)
@@ -619,21 +544,19 @@ namespace Armere.PlayerController
 
 		ItemType selectingSlot = ItemType.Common;
 
-		ItemType ItemTypeFromID(int id)
+		ItemType ItemTypeFromID(int id) => id switch
 		{
-			switch (id)
-			{
-				case 0: return ItemType.Melee;
-				case 1: return ItemType.SideArm;
-				case 2: return ItemType.Bow;
-				case 3: return ItemType.Ammo;
-				default: return ItemType.Common;
-			}
-		}
+			0 => ItemType.Melee,
+			1 => ItemType.SideArm,
+			2 => ItemType.Bow,
+			3 => ItemType.Ammo,
+			_ => ItemType.Common,
+		};
 
-		private void OnSelectWeapon(int index, InputActionPhase phase)
+
+		private void OnSelectWeapon(InputActionPhase phase, int index)
 		{
-			//print(String.Format("Switched to weapon {0}", index));
+			//print(String.Format("Switching on slot {0}", index));
 
 			if (phase == InputActionPhase.Started && selectingSlot == ItemType.Common && !paused)
 			{

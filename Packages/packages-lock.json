@@ -202,6 +202,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "scriptablecrosshairs": {
+      "version": "https://github.com/StolenCheese/ScriptableCrosshairs.git?path=/Packages/scriptablecrosshairs#Packaged",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "2be95265b969183dba7e7271107b4c4564cb1963"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

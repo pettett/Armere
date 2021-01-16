@@ -6,7 +6,7 @@
             "id": "66bfb76e-bb2c-4bed-ba71-81c67d697519",
             "actions": [
                 {
-                    "name": "Look",
+                    "name": "CameraMove",
                     "type": "Value",
                     "id": "8882bad0-c251-459d-925e-e07d73fcfa63",
                     "expectedControlType": "Vector2",
@@ -76,14 +76,6 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "Camera",
-                    "type": "Value",
-                    "id": "fd53b4bd-6227-4e88-bf2f-43342c100ed5",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": ""
                 },
                 {
                     "name": "Shield",
@@ -329,28 +321,6 @@
                 },
                 {
                     "name": "",
-                    "id": "cd1c2e59-da2c-460a-b084-3ba712a0d0c8",
-                    "path": "<Gamepad>/rightStick",
-                    "interactions": "",
-                    "processors": "ScaleVector2(y=-1)",
-                    "groups": "Gamepad",
-                    "action": "Camera",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "3a5f8ce9-ee89-4a61-879b-76aef6d7372f",
-                    "path": "<Mouse>/delta",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "Camera",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "992d4385-8d00-4e0f-9568-42299ba3f8df",
                     "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
@@ -400,7 +370,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Look",
+                    "action": "CameraMove",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -411,7 +381,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Look",
+                    "action": "CameraMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -422,7 +392,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Look",
+                    "action": "CameraMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -433,7 +403,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Look",
+                    "action": "CameraMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -444,7 +414,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "Look",
+                    "action": "CameraMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -455,7 +425,18 @@
                     "interactions": "",
                     "processors": "InvertVector2",
                     "groups": "Gamepad",
-                    "action": "Look",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2422bcc9-190f-435a-bf15-57d8621caa61",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "CameraMove",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -654,6 +635,39 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ChangeFocus",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Dialogue",
+            "id": "3c6807f6-78c3-4920-80c6-2e410e6764b8",
+            "actions": [],
+            "bindings": []
+        },
+        {
+            "name": "Debug",
+            "id": "edf04f3e-56b9-4730-9c1d-c2292fb88b00",
+            "actions": [
+                {
+                    "name": "ShowReadoutScreen",
+                    "type": "Button",
+                    "id": "0f94751c-4294-4af1-b46f-0d4ef7d0cffe",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "4c087a17-c5c8-4cc1-8eec-72328320f613",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "ShowReadoutScreen",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1,10 +1,12 @@
 {
     "name": "Game.SaveUI",
+    "rootNamespace": "",
     "references": [
         "GUID:b293fbfec570da448869ea77b282b59c",
         "GUID:d775d0892567ffe4596e26be73f32155",
         "GUID:48c9f6afdac61634db0e0f241c7d4d51",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:98522ad6e33d1f847b30f036e1a50009"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

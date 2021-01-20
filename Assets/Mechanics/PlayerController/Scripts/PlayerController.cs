@@ -62,6 +62,7 @@ namespace Armere.PlayerController
 
 		[Header("Weapons")]
 		public float swordUseDelay = 0.4f;
+		public Vector2 arrowSpeedRange = new Vector2(70, 100);
 
 		[Header("Water")]
 		public float maxWaterStrideDepth = 1;
@@ -657,16 +658,16 @@ namespace Armere.PlayerController
 				switch (type)
 				{
 					case ItemType.Melee:
-						onChangeSelectedMelee.OnEventRaised(index);
+						onChangeSelectedMelee.RaiseEvent(index);
 						break;
 					case ItemType.SideArm:
-						onChangeSelectedSidearm.OnEventRaised(index);
+						onChangeSelectedSidearm.RaiseEvent(index);
 						break;
 					case ItemType.Bow:
-						onChangeSelectedBow.OnEventRaised(index);
+						onChangeSelectedBow.RaiseEvent(index);
 						break;
 					case ItemType.Ammo:
-						onChangeSelectedAmmo.OnEventRaised(index);
+						onChangeSelectedAmmo.RaiseEvent(index);
 						break;
 				}
 

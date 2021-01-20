@@ -1,0 +1,34 @@
+#pragma kernel CSDestroyGrassInRange
+
+
+
+
+cbuffer CB{
+    float4 rangeTransform;
+    int2 dispatchSize;
+}; 
+
+#include "MeshProperties.hlsl"
+
+
+StructuredBuffer<uint> _IndirectArgs;
+
+StructuredBuffer<MeshProperties> _Grass;
+AppendStructuredBuffer<MeshProperties> _CulledGrass;
+
+
+// For the sake of simplicity, only using 1, 1, 1 threads.
+//lol no
+[numthreads(THREADGROUPX,THREADGROUPY,1)]
+void CSDestroyGrassInRange (uint3 id : SV_DispatchThreadID) {
+
+    uint index = DispatchThreadToIndex(id);
+
+    //Transform the point into bounds local space
+    float3 p = _Grass[index].position - rangeTransform.xyz;
+
+	//Remove greater than range
+    if (length(p) > rangeTransform.w && index < _IndirectArgs[1] ){
+        _CulledGrass.Append(_Grass[index]);
+    }
+}

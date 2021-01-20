@@ -1,11 +1,13 @@
 {
     "name": "Game.Quests",
+    "rootNamespace": "",
     "references": [
         "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
         "GUID:18e2c4afd12b64540bb7404d66a34371",
         "GUID:48c9f6afdac61634db0e0f241c7d4d51",
         "GUID:34aa492b82754644eac2f903cd496268",
-        "GUID:d775d0892567ffe4596e26be73f32155"
+        "GUID:d775d0892567ffe4596e26be73f32155",
+        "GUID:98522ad6e33d1f847b30f036e1a50009"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

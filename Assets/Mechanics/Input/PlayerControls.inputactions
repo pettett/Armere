@@ -657,6 +657,22 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "QuickSave",
+                    "type": "Button",
+                    "id": "fbf37076-2f49-4a7b-9e4b-1e76e9fff7ad",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "QuickLoad",
+                    "type": "Button",
+                    "id": "fb48d02d-bb08-4a91-a3fd-e4bda5aa96ef",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -668,6 +684,28 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ShowReadoutScreen",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ebff80e7-3b8d-4da7-8189-d4e9f58729d2",
+                    "path": "<Keyboard>/f6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "QuickSave",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c0a4eb6e-d538-44e4-b002-5e460c473e6a",
+                    "path": "<Keyboard>/f7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "QuickLoad",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

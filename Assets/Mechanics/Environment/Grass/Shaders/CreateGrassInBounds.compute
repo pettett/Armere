@@ -8,7 +8,7 @@ cbuffer CB{
     float4 grassPositionBoundsMinMax;
     float4 grassDensityUVMinMax;
     float4 grassSizeMinMax;
-    float grassHeightScale;
+    float2 grassHeightRange;
     int chunkID;
     int seed;
     int densityLayer;
@@ -23,7 +23,7 @@ SamplerState sampler_Gradient;
 
 Texture2D<float4> _Density;
 SamplerState sampler_Density;
-Texture2D<unorm float> _Height;
+Texture2D<unorm half2> _Height;
 SamplerState sampler_Height;
 
 
@@ -70,7 +70,11 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     if (testValue < density){
 
         m.position.xz = pos;
-        m.position.y = _Height.SampleLevel(sampler_Height, densityUV, 0) * grassHeightScale ;
+
+		//For some reason, heightmap x is added to heightmap y with different scalars
+		float2 heightMapData = _Height.SampleLevel(sampler_Height, densityUV, 0) * 2;
+
+        m.position.y = grassHeightRange.x + grassHeightRange.y * heightMapData.y + heightMapData.x * (grassHeightRange.y / 256);
 
         m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
         m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));

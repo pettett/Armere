@@ -33,7 +33,7 @@ namespace Armere.Inventory
 
 		private void Start()
 		{
-			Debug.Log($"Started, {SaveManager.gameLoadingCompleted}");
+			//Debug.Log($"Started, {SaveManager.gameLoadingCompleted}");
 			//TODO: Make this better - spawned item will be set by save manager before start
 			if (!spawnedItem)
 			{

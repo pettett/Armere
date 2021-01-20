@@ -7,13 +7,61 @@ using Yarn.Unity;
 public class QuestStatus
 {
 	public Quest quest => QuestManager.singleton.qdb.quests[questIndex];
-	public readonly int questIndex;
-	public int stage = -1;
-	public uint currentTriggerCount;
+	public int questIndex;
+	[SerializeField] int _stage = -1;
+	public int stage { get => _stage; }
+
 
 	public QuestStatus(int questIndex)
 	{
 		this.questIndex = questIndex;
+		QuestManager.ProgressQuest(this);
+	}
+	public QuestStatus(in GameDataReader reader)
+	{
+		questIndex = reader.ReadInt();
+		_stage = reader.ReadInt();
+	}
+
+	public void UpdateTriggerCount(int newAmount)
+	{
+		//If trigger requirements forfilled
+		if (quest.stages[_stage].questTrigger.comparision switch
+		{
+			Quest.CountComparision.Equals => (newAmount == quest.stages[_stage].questTrigger.requiredTriggerCount),
+			Quest.CountComparision.Greater => (newAmount > quest.stages[_stage].questTrigger.requiredTriggerCount),
+			Quest.CountComparision.Less => (newAmount < quest.stages[_stage].questTrigger.requiredTriggerCount),
+			_ => false,
+		})
+		{
+			QuestManager.ProgressQuest(this);
+		}
+	}
+
+	public void MoveToNextStage()
+	{
+
+		if (_stage >= 0 && _stage < quest.stages.Length)
+		{
+			//Remove reference from old stage
+			if (quest.stages[_stage].type == Quest.QuestType.AwaitTriggerCount)
+			{
+				quest.stages[_stage].questTrigger.eventChannel.OnEventRaised -= UpdateTriggerCount;
+			}
+		}
+
+		_stage++;
+
+		Debug.Log($"Moving to stage {_stage} of {quest.title}");
+
+		if (_stage >= 0 && _stage < quest.stages.Length)
+		{
+			if (quest.stages[_stage].type == Quest.QuestType.AwaitTriggerCount)
+			{
+				Debug.Log($"Subscribing quest to {quest.stages[_stage].questTrigger.eventChannel.name}");
+				quest.stages[_stage].questTrigger.eventChannel.OnEventRaised += UpdateTriggerCount;
+			}
+		}
 	}
 }
 
@@ -59,15 +107,6 @@ public class QuestManager : MonoSaveable
 	{
 		writer.Write(status.questIndex);
 		writer.Write(status.stage);
-		writer.Write(status.currentTriggerCount);
-	}
-	public QuestStatus ReadQuestStatus(in GameDataReader reader)
-	{
-		return new QuestStatus(reader.ReadInt())
-		{
-			stage = reader.ReadInt(),
-			currentTriggerCount = reader.ReadUInt()
-		};
 	}
 	public override void SaveBin(in GameDataWriter writer)
 	{
@@ -93,11 +132,11 @@ public class QuestManager : MonoSaveable
 		//Read all the data for the quests
 		for (int i = 0; i < quests; i++)
 		{
-			questBook.quests.Add(ReadQuestStatus(reader));
+			questBook.quests.Add(new QuestStatus(reader));
 		}
 		for (int i = 0; i < completed; i++)
 		{
-			questBook.completedQuests.Add(ReadQuestStatus(reader));
+			questBook.completedQuests.Add(new QuestStatus(reader));
 		}
 	}
 
@@ -114,40 +153,7 @@ public class QuestManager : MonoSaveable
 		onPlayerInventoryItemAdded.onItemAddedEvent -= OnInventoryItemAdded;
 	}
 
-	public static void UpdateTrigger(QuestTrigger trigger)
-	{
-		singleton.questTriggers[trigger.name] = trigger.triggerCount;
 
-		for (int i = 0; i < quests.Count; i++)
-		{
-			if (quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.AwaitTriggerCount)
-			{
-				Quest.QuestTriggerInfo triggerRequirements = quests[i].quest.stages[quests[i].stage].questTrigger;
-				if (triggerRequirements.name == trigger.name)
-				{
-					quests[i].currentTriggerCount = trigger.triggerCount;
-					//Try to complete this stage
-					if (QuestTriggerForfilled(triggerRequirements, trigger.triggerCount))
-					{
-						ProgressQuest(i);
-					}
-				}
-			}
-		}
-	}
-	public static bool QuestTriggerForfilled(Quest.QuestTriggerInfo triggerRequirements, uint current)
-	{
-		switch (triggerRequirements.comparision)
-		{
-			case Quest.CountComparision.Equals:
-				return (current == triggerRequirements.requiredTriggerCount);
-			case Quest.CountComparision.Greater:
-				return (current > triggerRequirements.requiredTriggerCount);
-			case Quest.CountComparision.Less:
-				return (current < triggerRequirements.requiredTriggerCount);
-			default: return false;
-		}
-	}
 
 	public static bool TryGetQuest(string questName, out QuestStatus q)
 	{
@@ -194,7 +200,6 @@ public class QuestManager : MonoSaveable
 	{
 		quests.Add(new QuestStatus(questIndex));
 
-		ProgressQuest(quests.Count - 1);
 	}
 
 	public void OnInventoryItemAdded(ItemStackBase stack, ItemType type, int index, bool hiddenAddition)
@@ -207,7 +212,7 @@ public class QuestManager : MonoSaveable
 				InventoryController.ItemCount(stack.name) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
 			)
 			{
-				ProgressQuest(i);
+				ProgressQuest(quests[i]);
 			}
 		}
 	}
@@ -218,11 +223,11 @@ public class QuestManager : MonoSaveable
 			if (quests[i].quest.name == questName)
 			{
 				if (quests[i].quest.stages[quests[i].stage].type != Quest.QuestType.Deliver)
-					throw new System.ArgumentException("Quest is not in deliver orstage");
+					throw new System.ArgumentException("Quest is not in delivory stage");
 				InventoryController.TakeItem(
 					quests[i].quest.stages[quests[i].stage].item,
 					quests[i].quest.stages[quests[i].stage].count);
-				ProgressQuest(i);
+				ProgressQuest(quests[i]);
 				return;
 			}
 	}
@@ -236,7 +241,7 @@ public class QuestManager : MonoSaveable
 					throw new System.ArgumentException("Quest is not in talk to stage");
 				else if (stage.receiver != talkingNPC)
 					throw new System.ArgumentException("Trying to progress quest with incorrect NPC");
-				ProgressQuest(i);
+				ProgressQuest(quests[i]);
 				return;
 			}
 		Debug.LogError("Trying to progress quest that is not in quest book");
@@ -246,23 +251,21 @@ public class QuestManager : MonoSaveable
 
 
 
-	public static void ProgressQuest(int index)
+	public static void ProgressQuest(QuestStatus questStatus)
 	{
-		print($"Progressing Quest {quests[index].quest.name}");
+		questStatus.MoveToNextStage();
 
-		quests[index].stage++;
-		quests[index].currentTriggerCount = 0;
-		if (quests[index].stage == quests[index].quest.stages.Length)
+		if (questStatus.stage == questStatus.quest.stages.Length)
 		{
 			//quest is complete
-			CompleteQuest(index);
+			CompleteQuest(questStatus);
 		}
 		else
 		{
-			singleton.onQuestProgress?.Invoke(quests[index].quest);
+			singleton.onQuestProgress?.Invoke(questStatus.quest);
 
 			//Test to see if the conditions for this new stage have already been met
-			Quest.QuestStage stage = quests[index].quest.stages[quests[index].stage];
+			Quest.QuestStage stage = questStatus.quest.stages[questStatus.stage];
 			if (stage.type == Quest.QuestType.Complete)
 			{
 				for (int i = 0; i < completedQuests.Count; i++)
@@ -270,51 +273,38 @@ public class QuestManager : MonoSaveable
 					if (completedQuests[i].quest.name == stage.quest)
 					{
 						//This quest is already completed, progress
-						ProgressQuest(index);
+						ProgressQuest(questStatus);
 						return;
 					}
 				}
 			}
-			else if (stage.type == Quest.QuestType.AwaitTriggerCount)
-			{
-				//Test if the trigger has already been forfilled
-				Quest.QuestTriggerInfo triggerInfo = stage.questTrigger;
-				if (singleton.questTriggers.TryGetValue(triggerInfo.name, out uint current))
-				{
-					quests[index].currentTriggerCount = current;
-					if (QuestTriggerForfilled(triggerInfo, current))
-					{
-						print("Quest trigger already satisfied");
-						ProgressQuest(index);
-					}
-				}
-			}
+
 		}
 	}
 
 
-	public static void CompleteQuest(int index)
+	public static void CompleteQuest(QuestStatus questStatus)
 	{
-		print($"Completing Quest {index}");
+		print($"Completing Quest {questStatus.quest.name}");
 
-		completedQuests.Add(quests[index]);
+		completedQuests.Add(questStatus);
 
-		singleton.onQuestComplete?.Invoke(quests[index].quest);
+		singleton.onQuestComplete?.Invoke(questStatus.quest);
 
 		for (int i = 0; i < quests.Count; i++)
 		{
 			//Test if another quest was waiting for this quest to be completed
-			if (i != index && quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Complete &&
-				quests[i].quest.stages[quests[i].stage].quest == quests[index].quest.name
+			if (quests[i] != questStatus && quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Complete &&
+				quests[i].quest.stages[quests[i].stage].quest == questStatus.quest.name
 			)
 			{
 				//Completed this quest and progressing this next quest
-				ProgressQuest(i);
+				ProgressQuest(questStatus);
 				//Do not break as multiple quests may be waiting for this one
 			}
 		}
 
-		quests.RemoveAt(index);
+		quests.Remove(questStatus);
 	}
 
 

@@ -140,12 +140,11 @@ public class SaveManager : MonoBehaviour
 
 	public static readonly Version version = new Version(0, 0, 1);
 
-	public InputAction quicksaveAction = new InputAction("<keyboard>/f5");
 	public const string savesDirectoryName = "saves";
 	public static string currentSaveFileDirectoryName = "save1";
 	public const string saveRecordFileName = "save.binsave";
 	public const string metaSaveRecordFileName = "save.metasave";
-	public const uint maxSaves = 10;
+	public const int maxSaves = 10;
 	public static string NewSaveDirectory() => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName, System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"));
 
 	public static SaveManager singleton;
@@ -161,7 +160,6 @@ public class SaveManager : MonoBehaviour
 	public MonoSaveable[] saveables;
 
 	public UnityEngine.Events.UnityEvent OnBlankSaveLoaded;
-	public AsyncOperationHandle<SceneInstance> sceneLoader;
 	public static event System.Action OnGameLoadingCompleted;
 	public static bool gameLoadingCompleted;
 
@@ -177,8 +175,10 @@ public class SaveManager : MonoBehaviour
             same structure
         etc.
     */
-
-
+	[Header("Event Channels")]
+	public InputReader input;
+	public VoidEventChannelSO onSavingBegin;
+	public VoidEventChannelSO onSavingFinish;
 
 	///<summary>
 	///Delete all saves.
@@ -281,8 +281,10 @@ public class SaveManager : MonoBehaviour
 
 
 		lastSave = Time.realtimeSinceStartup - 5;
-		quicksaveAction.performed += OnQuicksave;
-		quicksaveAction.Enable();
+
+		input.quicksaveEvent += OnQuicksave;
+		input.quickloadEvent += OnQuickload;
+
 	}
 
 	//"do not destroy on load"
@@ -295,11 +297,16 @@ public class SaveManager : MonoBehaviour
 		}
 	}
 
-	public void OnQuicksave(InputAction.CallbackContext c)
+	public void OnQuicksave(InputActionPhase phase)
 	{
-		SaveGameState();
+		if (phase == InputActionPhase.Performed)
+			SaveGameState();
 	}
-
+	public void OnQuickload(InputActionPhase phase)
+	{
+		if (phase == InputActionPhase.Performed)
+			LoadMostRecentSave(true);
+	}
 
 	public void AttemptAutoSave()
 	{
@@ -380,6 +387,16 @@ public class SaveManager : MonoBehaviour
 		}
 		LoadSave(dir, hardLoad);
 	}
+
+
+	public void DeleteSave(int saveIndex) => DeleteSave(GetDirectoryForSaveInstance(saveIndex));
+	public void DeleteSave(string dir)
+	{
+		if (dir != null)
+			Directory.Delete(dir, true);
+	}
+
+
 	public void LoadSave(string dir, bool hardLoad)
 	{
 		if (hardLoad)
@@ -537,6 +554,8 @@ public class SaveManager : MonoBehaviour
 	public void SaveGameState()
 	{
 		Profiler.BeginSample("Saving Game");
+		onSavingBegin.RaiseEvent();
+		Debug.Log("Saving Game");
 
 		//dont allow saving more then once every 5 seconds
 
@@ -567,7 +586,13 @@ public class SaveManager : MonoBehaviour
 			info.SaveBin(gameWriter);
 		});
 
+		//If there are now more than max saves, remove the last save 
+		while (GetSaveCount() > maxSaves)
+		{
+			DeleteSave(maxSaves);
+		}
 
+		onSavingFinish.RaiseEvent();
 		Profiler.EndSample();
 	}
 

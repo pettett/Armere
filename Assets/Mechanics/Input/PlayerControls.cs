@@ -670,6 +670,22 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""QuickSave"",
+                    ""type"": ""Button"",
+                    ""id"": ""fbf37076-2f49-4a7b-9e4b-1e76e9fff7ad"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""QuickLoad"",
+                    ""type"": ""Button"",
+                    ""id"": ""fb48d02d-bb08-4a91-a3fd-e4bda5aa96ef"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -681,6 +697,28 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""ShowReadoutScreen"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ebff80e7-3b8d-4da7-8189-d4e9f58729d2"",
+                    ""path"": ""<Keyboard>/f6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""QuickSave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c0a4eb6e-d538-44e4-b002-5e460c473e6a"",
+                    ""path"": ""<Keyboard>/f7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""QuickLoad"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -746,6 +784,8 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         // Debug
         m_Debug = asset.FindActionMap("Debug", throwIfNotFound: true);
         m_Debug_ShowReadoutScreen = m_Debug.FindAction("ShowReadoutScreen", throwIfNotFound: true);
+        m_Debug_QuickSave = m_Debug.FindAction("QuickSave", throwIfNotFound: true);
+        m_Debug_QuickLoad = m_Debug.FindAction("QuickLoad", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -982,11 +1022,15 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputActionMap m_Debug;
     private IDebugActions m_DebugActionsCallbackInterface;
     private readonly InputAction m_Debug_ShowReadoutScreen;
+    private readonly InputAction m_Debug_QuickSave;
+    private readonly InputAction m_Debug_QuickLoad;
     public struct DebugActions
     {
         private @PlayerControls m_Wrapper;
         public DebugActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @ShowReadoutScreen => m_Wrapper.m_Debug_ShowReadoutScreen;
+        public InputAction @QuickSave => m_Wrapper.m_Debug_QuickSave;
+        public InputAction @QuickLoad => m_Wrapper.m_Debug_QuickLoad;
         public InputActionMap Get() { return m_Wrapper.m_Debug; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -999,6 +1043,12 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ShowReadoutScreen.started -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
                 @ShowReadoutScreen.performed -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
                 @ShowReadoutScreen.canceled -= m_Wrapper.m_DebugActionsCallbackInterface.OnShowReadoutScreen;
+                @QuickSave.started -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickSave;
+                @QuickSave.performed -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickSave;
+                @QuickSave.canceled -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickSave;
+                @QuickLoad.started -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickLoad;
+                @QuickLoad.performed -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickLoad;
+                @QuickLoad.canceled -= m_Wrapper.m_DebugActionsCallbackInterface.OnQuickLoad;
             }
             m_Wrapper.m_DebugActionsCallbackInterface = instance;
             if (instance != null)
@@ -1006,6 +1056,12 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ShowReadoutScreen.started += instance.OnShowReadoutScreen;
                 @ShowReadoutScreen.performed += instance.OnShowReadoutScreen;
                 @ShowReadoutScreen.canceled += instance.OnShowReadoutScreen;
+                @QuickSave.started += instance.OnQuickSave;
+                @QuickSave.performed += instance.OnQuickSave;
+                @QuickSave.canceled += instance.OnQuickSave;
+                @QuickLoad.started += instance.OnQuickLoad;
+                @QuickLoad.performed += instance.OnQuickLoad;
+                @QuickLoad.canceled += instance.OnQuickLoad;
             }
         }
     }
@@ -1054,5 +1110,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     public interface IDebugActions
     {
         void OnShowReadoutScreen(InputAction.CallbackContext context);
+        void OnQuickSave(InputAction.CallbackContext context);
+        void OnQuickLoad(InputAction.CallbackContext context);
     }
 }

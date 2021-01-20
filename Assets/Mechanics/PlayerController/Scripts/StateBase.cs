@@ -67,10 +67,6 @@ namespace Armere.PlayerController
 		public virtual void OnAnimatorIK(int layerIndex) { }
 		public virtual void OnTriggerEnter(Collider other) { }
 		public virtual void OnTriggerExit(Collider other) { }
-
-		protected void print(string format, params object[] args) => Debug.LogFormat(format, args);
-
-
 	}
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]

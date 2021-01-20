@@ -10,6 +10,14 @@ public class GameCameras : MonoBehaviour
 {
 	public static GameCameras s;
 
+	[System.NonSerialized] public CinemachineVirtualCameraBase currentCamera;
+
+	[Header("Cameras")]
+	public CinemachineFreeLook freeLook;
+	public CinemachineVirtualCamera conversationCamera;
+
+	[Header("Settings")]
+
 	public float defaultTrackingOffset = 1.6f;
 	float _playerTrackingOffset = 1.6f;
 
@@ -19,8 +27,6 @@ public class GameCameras : MonoBehaviour
 	public float cameraTargetXOffset = 0;
 
 	public InputReader inputReader;
-
-
 
 	//default to everything but player
 	public LayerMask cameraCollisionMask;
@@ -39,15 +45,15 @@ public class GameCameras : MonoBehaviour
 	public Transform cameraTrackingTarget { get; private set; }
 
 	public Transform cameraTransform;
-	public CinemachineFreeLook freeLook;
-	bool cameraColision = true;
+
+	public bool cameraColision = true;
 	public CinemachineTargetGroup conversationGroup;
 	public DuelFocusGroup focusGroup;
-	public CinemachineVirtualCamera cutsceneCamera;
 
+	[Header("Vision")]
 	public VirtualVision cameraVision;
 
-	float currentCameraLerp = 1f;
+	public float currentCameraLerp = 1f;
 	float cameraLerpSpeed;
 	float lastPhysicsLerp = 1f;
 
@@ -91,6 +97,7 @@ public class GameCameras : MonoBehaviour
 	private void Awake()
 	{
 		s = this;
+		currentCamera = freeLook;
 		Cinemachine.CinemachineCore.GetInputAxis = GetInputAxis;
 	}
 
@@ -226,18 +233,13 @@ public class GameCameras : MonoBehaviour
 	}
 
 
-	float GetInputAxis(string axisName)
+	float GetInputAxis(string axisName) => axisName switch
 	{
-		switch (axisName)
-		{
-			case "Mouse X":
-				return -mouseDelta.x;
-			case "Mouse Y":
-				return -mouseDelta.y;
-			default:
-				return 0;
-		}
-	}
+		"Mouse X" => -mouseDelta.x,
+		"Mouse Y" => -mouseDelta.y,
+		_ => 0,
+	};
+
 
 	float FlatLookAngle(Vector3 from, Vector3 to)
 	{
@@ -387,7 +389,6 @@ public class GameCameras : MonoBehaviour
 
 
 
-
 	public void SetCameraTargets(params Transform[] targets)
 	{
 		//Setup camera
@@ -415,21 +416,36 @@ public class GameCameras : MonoBehaviour
 	public void SetCameraTargets(Transform target0, Transform target1) => SetCameraTargets(target0, target1, 1, 1);
 
 
-	public void EnableCutsceneCamera()
+	public void SwitchToCamera(CinemachineVirtualCameraBase camera)
 	{
 		//Make clipping work around the target
-		cameraCollisionTarget = conversationGroup.transform;
-		cutsceneCamera.enabled = true;
-		freeLook.enabled = false;
+		cameraCollisionTarget = camera.transform;
+		camera.enabled = true;
+
+		currentCamera.enabled = false;
+
+		currentCamera = camera;
 	}
 
-	public void DisableCutsceneCamera()
+	public void EnableCutsceneCamera() => SwitchToCamera(conversationCamera);
+	public void EnableFreeLookAimMode()
 	{
-		//Make clipping work around the target
-		cameraCollisionTarget = freeLookTarget;
-		cutsceneCamera.enabled = false;
-		freeLook.enabled = true;
+		// SwitchToCamera(freeLookAim);
+		// freeLookAim.ForceCameraPosition(freeLook.transform.position, freeLook.transform.rotation);
+
+		// //Also set axis values
+
+		// freeLookAim.m_XAxis.Value = freeLook.m_XAxis.Value;
+
+		// //freeLookAim.m_YAxis.Value = freeLook.m_YAxis.Value;
+		currentCameraLerp = 0.5f;
 	}
+	public void DisableFreeLookAimMode()
+	{
+		currentCameraLerp = 1f;
+	}
+
+	public void DisableCutsceneCamera() => SwitchToCamera(freeLook);
 
 	public static CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
 	{

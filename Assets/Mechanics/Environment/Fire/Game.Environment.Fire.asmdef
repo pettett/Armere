@@ -1,8 +1,10 @@
 {
     "name": "Game.Environment.Fire",
+    "rootNamespace": "",
     "references": [
         "GUID:48c9f6afdac61634db0e0f241c7d4d51",
-        "GUID:bd129fd6ad1744049bb14775f6fddad2"
+        "GUID:bd129fd6ad1744049bb14775f6fddad2",
+        "GUID:8b1861cf5fac912449a59a9eacbb613f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

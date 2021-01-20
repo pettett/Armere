@@ -5,7 +5,7 @@ using UnityEngine;
 using Armere.Inventory;
 
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
-public class EnemyAI : AIBase
+public class EnemyAI : AIBase, IExplosionEffector
 {
 
 	public enum SightMode { View, Range }
@@ -33,6 +33,7 @@ public class EnemyAI : AIBase
 	public bool approachPlayer = true;
 
 	public float knockoutTime = 4f;
+	public float maxExplosionKnockoutTime = 4f;
 
 	IEnemyRoutine currentRoutineObject;
 	Coroutine currentRoutine;
@@ -65,8 +66,6 @@ public class EnemyAI : AIBase
 			StopCoroutine(currentRoutine);
 		currentRoutine = StartCoroutine(newRoutine.Routine(this));
 		currentRoutineObject = newRoutine;
-
-
 	}
 
 	public void OnDamageTaken(GameObject attacker, GameObject victim)
@@ -76,10 +75,20 @@ public class EnemyAI : AIBase
 			ChangeRoutine(new AlertRoutine(1));
 	}
 
+	public void OnExplosion(Vector3 source, float radius, float force)
+	{
+
+		float sqrDistance01 = 1 - Vector3.SqrMagnitude(transform.position - source) / (radius * radius);
+
+
+		ChangeRoutine(new KnockoutRoutine(sqrDistance01 * maxExplosionKnockoutTime));
+
+	}
+
 	[MyBox.ButtonMethod()]
 	public void Ragdoll()
 	{
-		ChangeRoutine(new KnockoutRoutine());
+		ChangeRoutine(new KnockoutRoutine(knockoutTime));
 	}
 
 	private void OnValidate()
@@ -268,10 +277,18 @@ public class EnemyAI : AIBase
 		public bool searchOnEvent => false;
 
 		public bool investigateOnSight => false;
+
+		readonly float knockoutTime;
+
+		public KnockoutRoutine(float knockoutTime)
+		{
+			this.knockoutTime = knockoutTime;
+		}
+
 		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
 		{
 			enemyAI.ragdoller.RagdollEnabled = true;
-			yield return new WaitForSeconds(enemyAI.knockoutTime);
+			yield return new WaitForSeconds(knockoutTime);
 			enemyAI.ragdoller.RagdollEnabled = false;
 		}
 	}

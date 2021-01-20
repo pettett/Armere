@@ -83,7 +83,7 @@ public class Health : SimpleHealth, IAttackable
 		dead = true;
 		onDeathEvent.Invoke();
 		if (deathEventChanel != null)
-			deathEventChanel.onEventRaised();
+			deathEventChanel.RaiseEvent();
 	}
 
 	public void SetHealth(float newHealth)
@@ -103,7 +103,7 @@ public class Health : SimpleHealth, IAttackable
 	void UpdateUI()
 	{
 		if (healthChangedChannel != null)
-			healthChangedChannel?.OnEventRaised(health, maxHealth);
+			healthChangedChannel?.RaiseEvent(health, maxHealth);
 	}
 
 	public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)

@@ -38,7 +38,8 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> shieldEvent;
 	public UnityAction<InputActionPhase> showReadoutScreenEvent;
 	public UnityAction<InputActionPhase, int> selectWeaponEvent;
-
+	public UnityAction<InputActionPhase> quicksaveEvent;
+	public UnityAction<InputActionPhase> quickloadEvent;
 
 	private PlayerControls gameInput;
 
@@ -93,4 +94,9 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnWalk(CallbackContext context) => movementEvent?.Invoke(context.ReadValue<Vector2>());
 
 	public void OnShowReadoutScreen(CallbackContext context) => showReadoutScreenEvent?.Invoke(context.phase);
+
+
+	public void OnQuickSave(InputAction.CallbackContext context) => quicksaveEvent?.Invoke(context.phase);
+	public void OnQuickLoad(InputAction.CallbackContext context) => quickloadEvent?.Invoke(context.phase);
+
 }

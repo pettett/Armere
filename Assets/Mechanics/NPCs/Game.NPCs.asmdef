@@ -1,5 +1,6 @@
 {
     "name": "Game.NPCs",
+    "rootNamespace": "",
     "references": [
         "GUID:34aa492b82754644eac2f903cd496268",
         "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
@@ -16,7 +17,8 @@
         "GUID:9e24947de15b9834991c9d8411ea37cf",
         "GUID:e37740c32adbf8f4491fd67e69016d22",
         "GUID:808c70ca36d77eb40bc482704b7976e6",
-        "GUID:d775d0892567ffe4596e26be73f32155"
+        "GUID:d775d0892567ffe4596e26be73f32155",
+        "GUID:8b1861cf5fac912449a59a9eacbb613f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

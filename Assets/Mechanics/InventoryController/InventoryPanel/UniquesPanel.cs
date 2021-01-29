@@ -19,11 +19,11 @@ namespace Armere.Inventory
 
 		public override int stackCount => items.Count;
 
-		public bool AddItem(ItemName name)
+		public bool AddItem(ItemData item)
 		{
 			if (items.Count < limit)
 			{
-				items.Add((UniqueT)System.Activator.CreateInstance(typeof(UniqueT), name));
+				items.Add((UniqueT)System.Activator.CreateInstance(typeof(UniqueT), new object[] { item }));
 				OnPanelUpdated();
 				return true;
 			}
@@ -46,12 +46,12 @@ namespace Armere.Inventory
 			}
 		}
 
-		public override int AddItem(ItemName name, uint count)
+		public override int AddItem(ItemData item, uint count)
 		{
 			//Add every item until no more can be
 			for (int i = 0; i < count; i++)
 			{
-				if (!AddItem(name)) return -1;
+				if (!AddItem(item)) return -1;
 			}
 
 			return items.Count - 1;
@@ -71,7 +71,7 @@ namespace Armere.Inventory
 			uint count = 0;
 			for (int i = 0; i < stackCount; i++)
 			{
-				if (items[i].name == item)
+				if (items[i].item.itemName == item)
 					count++;
 			}
 			return count;
@@ -88,7 +88,7 @@ namespace Armere.Inventory
 		{
 			for (int i = 0; i < stackCount; i++)
 			{
-				if (items[i].name == name)
+				if (items[i].item.itemName == name)
 				{
 					items.RemoveAt(i);
 					OnPanelUpdated();

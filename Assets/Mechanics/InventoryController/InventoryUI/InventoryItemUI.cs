@@ -33,12 +33,12 @@ namespace Armere.Inventory.UI
 
 			itemIndex = newIndex;
 			if (itemIndex != -1)
-				SetupItemAsync(InventoryController.ItemAt(itemIndex, type));
+				SetupItemAsync(InventoryController.singleton.ItemAt(itemIndex, type));
 		}
 
 		public async void SetupItemAsync(ItemStackBase item)
 		{
-			ItemData data = InventoryController.singleton.db[item.name];
+			ItemData data = item.item;
 			type = data.type;
 
 			switch (data)

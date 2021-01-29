@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory.UI;
+using System.Threading.Tasks;
+
 namespace Armere.Inventory
 {
 
-	public class InteractableChest : ItemSpawnable, IInteractable
+	public class InteractableChest : SpawnableBody, IInteractable
 	{
 
 		public bool canInteract { get; set; } = true;
@@ -17,9 +19,24 @@ namespace Armere.Inventory
 		public Vector3 offset => throw new System.NotImplementedException();
 		public event System.Action onChestOpened;
 
+		public ItemData item;
+		public uint count;
+		public void Init(ItemData item, uint count)
+		{
+			this.item = item;
+			this.count = count;
+		}
+		public async void SpawnItemsToWorld()
+		{
+			Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
 
+			for (int i = 0; i < count; i++)
+			{
+				t[i] = ItemSpawner.SpawnItemAsync((PhysicsItemData)item, transform.position, transform.rotation);
+			}
 
-
+			await Task.WhenAll(t);
+		}
 		public void Interact(IInteractor c)
 		{
 

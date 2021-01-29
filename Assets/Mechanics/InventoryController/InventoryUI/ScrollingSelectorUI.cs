@@ -12,66 +12,83 @@ namespace Armere.Inventory.UI
 	{
 
 		public InputAction scrollAction = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll");
-		public ItemType selectingType;
-		public int selection;
-		float scrollVel = 0;
-		public float scroll; //Scroll in units of selection
+		[System.Serializable]
+		public struct SelectionLayer
+		{
+			[System.NonSerialized] public ItemType selecting;
+			[System.NonSerialized] public int selection;
+			public RectTransform childGroup;
+			[System.NonSerialized] public InventoryPanel panel;
+			[System.NonSerialized] public float internalScroll;
+			[System.NonSerialized] public float scrollVel;
+			[System.NonSerialized] public float scroll; //Scroll in units of selection
+		}
+		public SelectionLayer[] layers = new SelectionLayer[2];
+
+
 		public Vector2 optionSize;
 		public float optionSpacing = 10;
 		public float scrollSensitivity = 1 / 240f;
-		public RectTransform childGroup;
 		public RectTransform optionDotsGroup;
-		InventoryPanel panel;
 		public GameObject itemDisplayPrefab;
 		public GameObject blankPanelPrefab;
-		float internalScroll = 0;
 		public TextMeshProUGUI selectedTitle;
+		public float layerSeperation = 50;
+		int layer;
+		public InputReader input;
+
 		private void OnEnable()
 		{
 
-			childGroup.GetComponent<HorizontalLayoutGroup>().spacing = optionSpacing;
-
-
-			panel = InventoryController.singleton.GetPanelFor(selectingType);
-
-			//Create the first, blank panel
-			GameObject child = Instantiate(blankPanelPrefab, childGroup);
-			var l = child.AddComponent<LayoutElement>();
-			l.preferredHeight = optionSize.y;
-			l.preferredWidth = optionSize.y;
-
-			//Create all the option panels
-			for (int i = 0; i < panel.stackCount; i++)
+			for (int i = 0; i < layers.Length; i++)
 			{
-				child = Instantiate(itemDisplayPrefab, childGroup);
+				layers[i].childGroup.GetComponent<HorizontalLayoutGroup>().spacing = optionSpacing;
 
-				l = child.AddComponent<LayoutElement>();
+				layers[i].panel = InventoryController.singleton.GetPanelFor(layers[i].selecting);
 
+				//Create the first, blank panel
+				GameObject child = Instantiate(blankPanelPrefab, layers[i].childGroup);
+				var l = child.AddComponent<LayoutElement>();
 				l.preferredHeight = optionSize.y;
 				l.preferredWidth = optionSize.y;
 
-				InventoryItemUI itemDisplay = child.GetComponent<InventoryItemUI>();
-				itemDisplay.type = InventoryController.singleton.db[panel[i].name].type;
-				itemDisplay.ChangeItemIndex(i);
+				//Create all the option panels
+				for (int ii = 0; ii < layers[i].panel.stackCount; ii++)
+				{
+					child = Instantiate(itemDisplayPrefab, layers[i].childGroup);
+
+					l = child.AddComponent<LayoutElement>();
+
+					l.preferredHeight = optionSize.y;
+					l.preferredWidth = optionSize.y;
+
+					InventoryItemUI itemDisplay = child.GetComponent<InventoryItemUI>();
+					itemDisplay.type = layers[i].panel[ii].item.type;
+					itemDisplay.ChangeItemIndex(ii);
+				}
+
+				layers[i].internalScroll = layers[i].selection + 1;
+				layers[i].scroll = layers[i].selection;
+				layers[i].scrollVel = 0;
+				SetTitleText();
+
+				layers[i].childGroup.sizeDelta = Vector2.right * ((layers[i].panel.stackCount + 1) * optionSize.x + optionSpacing * layers[i].panel.stackCount);
+				UpdateChildGroup(i);
+
+
 			}
-			internalScroll = selection + 1;
-			scroll = selection;
-			scrollVel = 0;
-			SetTitleText();
-
-			childGroup.sizeDelta = Vector2.right * ((panel.stackCount + 1) * optionSize.x + optionSpacing * panel.stackCount);
-			UpdateChildGroup();
-
 
 			scrollAction.performed += OnScroll;
 			scrollAction.Enable();
+			input.movementEvent += OnMovement;
 		}
 
 		private void OnDisable()
 		{
-			foreach (Transform t in childGroup) Destroy(t.gameObject);
+			foreach (var l in layers) foreach (Transform t in l.childGroup) Destroy(t.gameObject);
 
 			scrollAction.performed -= OnScroll;
+			input.movementEvent -= OnMovement;
 			scrollAction.Disable();
 		}
 
@@ -82,17 +99,30 @@ namespace Armere.Inventory.UI
 				float d = value.ReadValue<Vector2>().y;
 
 				//Move the selection by the direction of input
-				internalScroll = Mathf.Clamp(internalScroll + Mathf.Sign(d), 0, panel.stackCount);
+				layers[layer].internalScroll = Mathf.Clamp(layers[layer].internalScroll + Mathf.Sign(d), 0, layers[layer].panel.stackCount);
 				//Allow for un equipping items
-				selection = Mathf.RoundToInt(internalScroll) - 1;
+				layers[layer].selection = Mathf.RoundToInt(layers[layer].internalScroll) - 1;
 				SetTitleText();
 			}
 		}
+		public void OnMovement(Vector2 direction)
+		{
+			if (direction.y > 0.5f)
+				SetLayer(Mathf.Min(layer + 1, layers.Length - 1));
+			if (direction.y < -0.5f)
+				SetLayer(Mathf.Max(layer - 1, 0));
+		}
+		public void SetLayer(int newLayer)
+		{
+			layers[layer].childGroup.GetComponent<Image>().enabled = false;
+			layer = newLayer;
+			layers[layer].childGroup.GetComponent<Image>().enabled = true;
+		}
 		void SetTitleText()
 		{
-			if (selection != -1)
+			if (layers[layer].selection != -1)
 			{
-				selectedTitle.text = InventoryController.singleton.db[panel[selection].name].displayName;
+				selectedTitle.text = layers[layer].panel[layers[layer].selection].item.displayName;
 				selectedTitle.enabled = true;
 			}
 			else
@@ -103,13 +133,13 @@ namespace Armere.Inventory.UI
 		private void Update()
 		{
 			//This must script work while game is paused
-			scroll = Mathf.SmoothDamp(scroll, selection, ref scrollVel, 0.1f, 10, Time.unscaledDeltaTime);
+			layers[layer].scroll = Mathf.SmoothDamp(layers[layer].scroll, layers[layer].selection, ref layers[layer].scrollVel, 0.1f, 10, Time.unscaledDeltaTime);
 
-			UpdateChildGroup();
+			UpdateChildGroup(layer);
 		}
-		void UpdateChildGroup()
+		void UpdateChildGroup(int index)
 		{
-			childGroup.anchoredPosition = -Vector2.right * (scroll * (optionSize.x + optionSpacing) - childGroup.sizeDelta.x * 0.5f + optionSize.x * 1.5f + optionSpacing);
+			layers[index].childGroup.anchoredPosition = Vector2.up * index * layerSeperation - Vector2.right * (layers[index].scroll * (optionSize.x + optionSpacing) - layers[index].childGroup.sizeDelta.x * 0.5f + optionSize.x * 1.5f + optionSpacing);
 		}
 
 

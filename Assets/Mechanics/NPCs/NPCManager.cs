@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
 using Yarn.Unity;
-public class NPCManager : MonoSaveable
+public class NPCManager : MonoBehaviour
 {
 	public static NPCManager singleton;
 	public DialogueRunner dialogueRunner;
-
+	public SaveLoadEventChannel npcSaveLoadChannel;
 	private void Awake()
 	{
 		if (singleton != null)
@@ -22,11 +22,26 @@ public class NPCManager : MonoSaveable
 			dialogueRunner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
 			dialogueRunner.dialogueUI = DialogueInstances.singleton.dialogueUI;
 
+			npcSaveLoadChannel.onLoadBinEvent += LoadBin;
+			npcSaveLoadChannel.onLoadBlankEvent += LoadBlank;
+			npcSaveLoadChannel.onSaveBinEvent += SaveBin;
+		}
+	}
+
+	private void OnDestroy()
+	{
+		if (singleton == this)
+		{
+			npcSaveLoadChannel.onLoadBinEvent -= LoadBin;
+			npcSaveLoadChannel.onLoadBlankEvent -= LoadBlank;
+			npcSaveLoadChannel.onSaveBinEvent -= SaveBin;
+
+			singleton = null;
 		}
 	}
 
 
-	public override void LoadBin(in GameDataReader reader)
+	public void LoadBin(in GameDataReader reader)
 	{
 		int dataCount = reader.ReadInt();
 		data = new Dictionary<NPCName, NPCData>(dataCount);
@@ -35,8 +50,10 @@ public class NPCManager : MonoSaveable
 			data[(NPCName)reader.ReadInt()] = new NPCData(reader.saveVersion, reader);
 		}
 	}
-	public override void SaveBin(in GameDataWriter writer)
+	public void SaveBin(in GameDataWriter writer)
 	{
+		//Debug.Log(writer.writer.BaseStream.Position);
+
 		writer.Write(data.Count);
 		foreach (KeyValuePair<NPCName, NPCData> kvp in data)
 		{
@@ -65,7 +82,7 @@ public class NPCManager : MonoSaveable
 	}
 
 
-	public override void LoadBlank()
+	public void LoadBlank()
 	{
 
 	}

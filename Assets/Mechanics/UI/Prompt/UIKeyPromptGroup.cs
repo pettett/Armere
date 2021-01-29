@@ -87,7 +87,7 @@ public class UIKeyPromptGroup : MonoBehaviour
 			var bindImage = new GameObject("Sprite", typeof(RectTransform), typeof(Image));
 			bindImage.transform.SetParent(bindText.transform, false);
 
-			ExpandRectTransform(bindImage.transform as RectTransform, Vector2.zero, Vector2.one);
+			ExpandRectTransform((RectTransform)bindImage.transform, Vector2.zero, Vector2.one);
 
 			bindImage.GetComponent<Image>().material = maskedSpriteMaterial;
 

@@ -16,6 +16,14 @@ namespace Armere.Inventory
 
 		public YarnProgram selectionDialogue;
 
+
+		InventoryController playerInventory;
+		private void Start()
+		{
+			playerInventory = InventoryController.singleton;
+		}
+
+
 		public async void Interact(IInteractor interactor)
 		{
 			interactor.PauseControl();
@@ -23,7 +31,7 @@ namespace Armere.Inventory
 			DialogueRunner.singleton.Add(selectionDialogue);
 
 			// Reuse sell menu to select potion ingredient
-			var selection = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].potionIngredient);
+			var selection = await ItemSelectionMenuUI.singleton.SelectItem(x => x.item.potionIngredient);
 
 			DialogueRunner.singleton.Stop();
 			DialogueRunner.singleton.Clear();
@@ -33,22 +41,22 @@ namespace Armere.Inventory
 
 			if (selection.index != -1)
 			{
-				ItemName ingredient = InventoryController.ItemAt(selection.index, selection.type).name;
+				ItemData ingredient = playerInventory.ItemAt(selection.index, selection.type).item;
 
 
-				for (int i = 0; i < InventoryController.singleton.potions.stackCount; i++)
+				for (int i = 0; i < playerInventory.potions.stackCount; i++)
 				{
-					if (InventoryController.singleton.potions.items[i].name == (ItemName)InventoryController.singleton.db[ingredient].potionWorksFrom)
+					if (playerInventory.potions.items[i].item.itemName == (ItemName)ingredient.potionWorksFrom)
 					{
-						if (InventoryController.TakeItem(ingredient))
+						if (playerInventory.TakeItem(ingredient.itemName))
 						{
 							//Take the item and change the contents
-							InventoryController.singleton.potions.TakeItem(i, 1);
+							playerInventory.potions.TakeItem(i, 1);
 
-							PotionItemUnique pot = new PotionItemUnique((ItemName)InventoryController.singleton.db[ingredient].newPotionType);
+							PotionItemUnique pot = new PotionItemUnique(playerInventory.db[(ItemName)ingredient.newPotionType]);
 
-							pot.potency = InventoryController.singleton.db[ingredient].increasedPotency;
-							InventoryController.AddItem(pot);
+							pot.potency = ingredient.increasedPotency;
+							playerInventory.AddItem(pot);
 
 						}
 

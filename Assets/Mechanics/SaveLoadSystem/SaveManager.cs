@@ -157,7 +157,7 @@ public class SaveManager : MonoBehaviour
 	public bool autoSaveOnDestroy = true;
 
 	public SceneSaveData sceneSaveData;
-	public MonoSaveable[] saveables;
+	public SaveableSO[] saveLoadEventChannels;
 
 	public UnityEngine.Events.UnityEvent OnBlankSaveLoaded;
 	public static event System.Action OnGameLoadingCompleted;
@@ -206,7 +206,7 @@ public class SaveManager : MonoBehaviour
 
 	//smaller class to hold info about save that is used in the UI
 	[System.Serializable]
-	public class SaveInfo : ISaveable
+	public class SaveInfo
 	{
 		//16 by 9 ratio
 		public const int thumbnailWidth = 8 * 16;
@@ -429,9 +429,9 @@ public class SaveManager : MonoBehaviour
 	}
 	public void SoftLoadBlankSave()
 	{
-		for (int i = 0; i < saveables.Length; i++)
+		for (int i = 0; i < saveLoadEventChannels.Length; i++)
 		{
-			saveables[i].LoadBlank();
+			saveLoadEventChannels[i].LoadBlank();
 		}
 		OnBlankSaveLoaded?.Invoke();
 
@@ -457,70 +457,24 @@ public class SaveManager : MonoBehaviour
 			SoftLoadSave(dir);
 		});
 	}
-
 	public void HardSceneLoad(string sceneName, System.Action<AsyncOperation> OnCompleted)
 	{
 		gameLoadingCompleted = false;
 		var op = SceneManager.LoadSceneAsync(sceneName);
+
 		void Done(Scene _, LoadSceneMode __)
 		{
-			OnCompleted?.Invoke(null);
 			SceneManager.sceneLoaded -= Done;
+			StartCoroutine(WaitFrame(OnCompleted));
 		}
+
 		SceneManager.sceneLoaded += Done;
-
-
-
-
-		// Debug.Log("Loading Scene…");
-		// bool loaded = false;
-		// void OnLoaded(Scene scene, LoadSceneMode mode)
-		// {
-		//     loaded = true;
-		// }
-		// SceneManager.sceneLoaded += OnLoaded;
-
-		// SceneManager.LoadSceneAsync(sceneName);
-
-		// Time.timeScale = 0;
-
-		// yield return new WaitUntil(() => loaded == true);
-
-		// SceneManager.sceneLoaded -= OnLoaded;
-
-		// OnCompleted?.Invoke(null);
-
-		// Time.timeScale = 1;
-
-		// var loadingScene = Addressables.LoadSceneAsync(sceneName, loadMode: LoadSceneMode.Additive, activateOnLoad: false);
-		// Debug.Log($"Loading Scene {loadingScene.IsDone}");
-		// while (!loadingScene.IsDone)
-		// {
-		//     Debug.Log("Waiting for loading Scene...");
-		//     yield return null;
-		// }
-
-		// Debug.Log("Activating Save");
-		// var op = loadingScene.Result.ActivateAsync();
-
-		// while (!op.isDone)
-		// {
-		//     yield return null;
-		// }
-
-		// OnCompleted?.Invoke(null);
-
-		// yield return loadedScene;
-
-		// if (loadedScene.Status == AsyncOperationStatus.Succeeded)
-		// {
-		//     yield return loadedScene.Result.ActivateAsync();
-
-		// }
-		//Debug.Log("Loaded Scene");
 	}
-
-
+	IEnumerator WaitFrame(System.Action<AsyncOperation> OnCompleted)
+	{
+		yield return null;
+		OnCompleted(null);
+	}
 
 	public void SoftLoadSave(string dir)
 	{
@@ -538,14 +492,24 @@ public class SaveManager : MonoBehaviour
 			//Level name not actually used - scene already loaded here
 			string levelName = gameDataReader.ReadString();
 
-			for (int i = 0; i < saveables.Length; i++)
+			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
-				saveables[i].LoadBin(gameDataReader);
+				//Debug.Log($"Loading {i} from position {gameDataReader.reader.BaseStream.Position}");
+				saveLoadEventChannels[i].LoadBin(gameDataReader);
 			}
 		}
 
 		OnGameLoadingCompleted?.Invoke();
 		gameLoadingCompleted = true;
+
+		GameObject[] gos = (GameObject[])GameObject.FindObjectsOfType(typeof(GameObject));
+		foreach (GameObject go in gos)
+		{
+			if (go && go.transform.parent == null)
+			{
+				go.gameObject.BroadcastMessage("OnAfterGameLoaded", SendMessageOptions.DontRequireReceiver);
+			}
+		}
 
 		Profiler.EndSample();
 	}
@@ -573,9 +537,10 @@ public class SaveManager : MonoBehaviour
 		WriteFile(savePath, gameWriter =>
 		{
 			gameWriter.Write(SceneManager.GetActiveScene().name);
-			for (int i = 0; i < saveables.Length; i++)
+			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
-				saveables[i].SaveBin(gameWriter);
+				//Debug.Log($"Saving {i} from position {gameWriter.writer.BaseStream.Position}");
+				saveLoadEventChannels[i].SaveBin(gameWriter);
 			}
 		});
 

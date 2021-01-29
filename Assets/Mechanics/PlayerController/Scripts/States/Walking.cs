@@ -19,10 +19,10 @@ namespace Armere.PlayerController
 
 		public override char StateSymbol => 'W';
 
-		public enum WeaponSet { MeleeSidearm, BowArrow }
+
 		enum WalkingType { Walking, Sprinting, Crouching }
 
-		public WeaponSet weaponSet;
+
 
 		Vector3 currentGroundNormal = new Vector3();
 
@@ -52,7 +52,7 @@ namespace Armere.PlayerController
 
 
 
-		MeleeWeaponItemData meleeWeapon => c.db[InventoryController.singleton.melee.items[c.currentMelee].name] as MeleeWeaponItemData;
+		MeleeWeaponItemData meleeWeapon => (MeleeWeaponItemData)c.inventory.melee.items[c.currentMelee].item;
 
 
 
@@ -72,7 +72,7 @@ namespace Armere.PlayerController
 		[NonSerialized] EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
 
 		bool backSwingSword = false;
-		ShieldItemData SidearmAsShield => c.db[InventoryController.singleton.sideArm[c.currentSidearm].name] as ShieldItemData;
+		ShieldItemData SidearmAsShield => (ShieldItemData)c.inventory.sideArm[c.currentSidearm].item;
 		bool SidearmIsShield => SidearmAsShield is ShieldItemData;
 
 
@@ -139,7 +139,7 @@ namespace Armere.PlayerController
 			c.inputReader.actionEvent += OnInteract;
 			c.inputReader.altAttackEvent += OnAltAttack;
 			c.inputReader.jumpEvent += OnJump;
-			c.inputReader.switchWeaponSetEvent += SwitchWeaponSet;
+
 
 		}
 
@@ -167,7 +167,8 @@ namespace Armere.PlayerController
 			c.inputReader.actionEvent -= OnInteract;
 			c.inputReader.altAttackEvent -= OnAltAttack;
 			c.inputReader.jumpEvent -= OnJump;
-			c.inputReader.switchWeaponSetEvent -= SwitchWeaponSet;
+
+			OnCancelBowEvent?.Invoke();
 
 		}
 
@@ -201,7 +202,7 @@ namespace Armere.PlayerController
 
 		public void HoldHoldable(HoldableBody body)
 		{
-			UnEquipAll();
+			c.StartCoroutine(c.UnEquipAll());
 
 			holding = body;
 			//Keep body attached to top of player;
@@ -251,7 +252,7 @@ namespace Armere.PlayerController
 
 
 				//TODO: Make sitting a separate movement state
-				c.StartCoroutine(UnEquipAll(() =>
+				c.StartCoroutine(c.UnEquipAll(() =>
 				{
 					c.animationController.TriggerTransition(c.transitionSet.startSitting);
 
@@ -269,11 +270,41 @@ namespace Armere.PlayerController
 						UIKeyPromptGroup.singleton.RemovePrompts();
 
 						GameCameras.s.playerTrackingOffset = GameCameras.s.defaultTrackingOffset;
+
+						c.inputReader.actionEvent -= EnterSleepDialogue;
+						c.inputReader.movementEvent -= OnMovementCancelSit;
 						s?.Start();
 					}
+
+					IEnumerator TriggerTimeChange(float newTime)
+					{
+
+						float time =  1f;
+						float fadeTime = 0.25f;
+
+						fadeTime = Mathf.Clamp(fadeTime, 0, time / 2);
+
+						// fadeoutImage.color = Color.clear; //Black with full transparency
+						UIController.singleton.fadeoutImage.gameObject.SetActive(true);
+
+						yield return UIController.singleton.Fade(0, 1, fadeTime, false);
+
+
+						float fullyBlackTime = time - fadeTime * 2;
+
+						yield return new WaitForSeconds(fullyBlackTime*0.5f);
+						c.changeTimeEventChannel.RaiseEvent(newTime);
+						yield return new WaitForSeconds(fullyBlackTime*0.5f);
+
+						yield return UIController.singleton.Fade(1, 0, fadeTime, false);
+
+						UIController.singleton.DisableFadeout();
+
+					}
+
 					void EnterSleepDialogue(InputActionPhase phase)
 					{
-						if (phase == InputActionPhase.Performed)
+						if (phase == InputActionPhase.Started)
 						{
 							if (!inDialogue)
 							{
@@ -281,10 +312,22 @@ namespace Armere.PlayerController
 								c.runner.Add(restPoint.dialogue);
 								c.runner.StartDialogue("Start");
 
-								c.runner.AddCommandHandler("Morning", _ => Debug.Log("Morning"));
-								c.runner.AddCommandHandler("Noon", _ => Debug.Log("Noon"));
-								c.runner.AddCommandHandler("Night", _ => Debug.Log("Night"));
-								c.runner.AddCommandHandler("None", _ => Debug.Log("None"));
+								c.runner.AddCommandHandler("Morning", _ =>
+								{
+									c.StartCoroutine(TriggerTimeChange(6));
+								});
+								c.runner.AddCommandHandler("Noon", _ =>
+								{
+									c.StartCoroutine(TriggerTimeChange(12));
+								});
+								c.runner.AddCommandHandler("Night", _ =>
+								{
+									c.StartCoroutine(TriggerTimeChange(24));
+								});
+								c.runner.AddCommandHandler("None", _ =>
+								{
+									Debug.Log("None");
+								});
 
 								Yarn.Unity.DialogueUI.singleton.onDialogueEnd.AddListener(() =>
 							   {
@@ -531,7 +574,7 @@ namespace Armere.PlayerController
 
 				//Do not allow sprinting while a weapon is equipped, so wait until
 				//The weapon for the set is sheathed before allowing sprint
-				else if (weaponSet == WeaponSet.MeleeSidearm)
+				else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
 				{
 					if (!c.sheathing.melee)
 					{
@@ -564,6 +607,8 @@ namespace Armere.PlayerController
 							//Will only operate if bow exists
 							OnCancelBowEvent?.Invoke();
 							c.StartCoroutine(c.SheathItem(ItemType.Bow));
+							//Reset to default weapon set
+							c.weaponSet = (PlayerController.WeaponSet)0;
 						}
 						else
 						{
@@ -677,15 +722,7 @@ namespace Armere.PlayerController
 
 
 
-		void SwitchWeaponSet(InputActionPhase phase)
-		{
-			if (phase == InputActionPhase.Started)
-			{
-				c.StartCoroutine(UnEquipAll());
-				if (weaponSet == WeaponSet.BowArrow) weaponSet = WeaponSet.MeleeSidearm;
-				else weaponSet = WeaponSet.BowArrow;
-			}
-		}
+
 
 
 
@@ -700,7 +737,7 @@ namespace Armere.PlayerController
 
 			if (holdingBody) PlaceHoldable();
 
-			if (weaponSet == WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
+			if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
 			{
 				if (inControl)
 				{
@@ -719,7 +756,7 @@ namespace Armere.PlayerController
 					backSwingSword = true;
 				}
 			}
-			else if (inControl && weaponSet == WeaponSet.BowArrow && c.currentBow != -1 && c.currentAmmo != -1)
+			else if (inControl && c.weaponSet == PlayerController.WeaponSet.BowArrow && c.currentBow != -1 && c.currentAmmo != -1)
 			{
 				if (phase == InputActionPhase.Started)
 				{
@@ -741,12 +778,16 @@ namespace Armere.PlayerController
 			GameCameras.s.cameraTargetXOffset = c.shoulderViewXOffset;
 
 			GameCameras.s.EnableFreeLookAimMode();
+
+			c.onAimModeEnable.RaiseEvent();
 		}
 		public void DisableBowAimView()
 		{
 			GameCameras.s.cameraTargetXOffset = 0;
 
 			GameCameras.s.DisableFreeLookAimMode();
+
+			c.onAimModeDisable.RaiseEvent();
 		}
 		IEnumerator ChargeBow()
 		{
@@ -771,10 +812,10 @@ namespace Armere.PlayerController
 
 				//Initialize arrow
 				//Remove one of ammo used
-				InventoryController.TakeItem(c.currentAmmo, ItemType.Ammo);
+				c.inventory.TakeItem(c.currentAmmo, ItemType.Ammo);
 
 				//Test if ammo left for shooting
-				if (InventoryController.ItemCount(c.currentAmmo, ItemType.Ammo) == 0)
+				if (c.inventory.ItemCount(c.currentAmmo, ItemType.Ammo) == 0)
 				{
 					Debug.Log($"Run out of arrow type {c.currentAmmo}");
 					//Keep current ammo within range of avalibles
@@ -850,29 +891,6 @@ namespace Armere.PlayerController
 		}
 		#endregion
 		#region Equipping
-		public IEnumerator UnEquipAll(System.Action onComplete = null)
-		{
-			if (weaponSet == WeaponSet.MeleeSidearm)
-			{
-				if (!c.weaponGraphicsController.holdables.melee.sheathed)
-				{
-					yield return c.SheathItem(ItemType.Melee);
-				}
-				if (!c.weaponGraphicsController.holdables.sidearm.sheathed)
-				{
-					yield return c.SheathItem(ItemType.SideArm);
-				}
-			}
-			else //De quip all the bow and arrow stuff
-			{
-				if (!c.weaponGraphicsController.holdables.bow.sheathed)
-				{
-					yield return c.SheathItem(ItemType.Bow);
-				}
-			}
-
-			onComplete?.Invoke();
-		}
 
 		IEnumerator DrawItem(ItemType type, System.Action onComplete = null)
 		{
@@ -1022,7 +1040,7 @@ namespace Armere.PlayerController
 				ThrowHoldable();
 			}
 
-			else if (weaponSet == WeaponSet.MeleeSidearm)
+			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
 			{
 				if (phase == InputActionPhase.Started)
 				{
@@ -1268,7 +1286,7 @@ namespace Armere.PlayerController
 
 
 			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
-			animator.SetFloat("GroundDistance", c.currentHeight);
+			//animator.SetFloat(vars.groundDistance.id, c.currentHeight);
 			animator.SetBool("Crouching", crouching);
 			animator.SetBool("IsStrafing", true);
 		}
@@ -1281,9 +1299,9 @@ namespace Armere.PlayerController
 				// Vector3 v = c.rb.velocity;
 				// v.y = c.jumpForce;
 				// c.rb.velocity = v;
-				c.rb.AddForce(Vector3.up * c.jumpForce);
+				c.rb.AddForce(Vector3.up * c.jumpForce, ForceMode.VelocityChange);
 
-				//ChangeToState<Freefalling>();
+				ChangeToState<Freefalling>();
 			}
 		}
 

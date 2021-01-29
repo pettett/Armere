@@ -8,10 +8,10 @@ namespace Armere.Inventory
 
 	public class ItemSpawnable : SpawnableBody
 	{
-		[System.NonSerialized] public ItemName item;
-		[System.NonSerialized] public uint count;
+		public ItemData item;
+		public uint count;
 
-		public void Init(ItemName item, uint count)
+		public void Init(ItemData item, uint count)
 		{
 			this.item = item;
 			this.count = count;
@@ -19,20 +19,24 @@ namespace Armere.Inventory
 
 		public void AddItemsToInventory()
 		{
-			InventoryController.AddItem(item, count, false);
-		}
-
-		public async void SpawnItemsToWorld()
-		{
-			Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
-
-			for (int i = 0; i < count; i++)
+			if (item == null)
 			{
-				t[i] = ItemSpawner.SpawnItemAsync(item, transform.position, transform.rotation);
+				throw new System.ArgumentException("Item Cannot be null");
 			}
-
-			await Task.WhenAll(t);
+			InventoryController.singleton.AddItem(item, count, false);
 		}
+
+		// public async void SpawnItemsToWorld()
+		// {
+		// 	Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
+
+		// 	for (int i = 0; i < count; i++)
+		// 	{
+		// 		t[i] = ItemSpawner.SpawnItemAsync(()item, transform.position, transform.rotation);
+		// 	}
+
+		// 	await Task.WhenAll(t);
+		// }
 
 	}
 }

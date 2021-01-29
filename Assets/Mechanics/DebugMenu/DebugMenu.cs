@@ -114,7 +114,6 @@ public class DebugMenu : MonoBehaviour
 
 	void ToggleScreen(InputActionPhase phase)
 	{
-		Debug.Log(phase);
 		if (phase == InputActionPhase.Performed)
 		{
 			enabled = !enabled;

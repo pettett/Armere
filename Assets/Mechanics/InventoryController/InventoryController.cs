@@ -30,25 +30,28 @@ namespace Armere.Inventory
 
 	public class ItemStackBase : IWriteableToBinary
 	{
-		public readonly ItemName name;
-
-		public ItemStackBase(ItemName name)
+		public readonly ItemData item;
+		public ItemStackBase(ItemData item)
 		{
-			this.name = name;
+			if (item == null)
+				throw new System.ArgumentException("Item cannot be null");
+
+			this.item = item;
 		}
 
 		public virtual void Write(GameDataWriter writer)
 		{
-			writer.Write((int)name);
+			writer.Write((int)item.itemName);
 		}
 	}
 
-
-	public class InventoryController : MonoSaveable, IVariableAddon
+	[CreateAssetMenu(menuName = "Game/Inventory")]
+	public class InventoryController : SaveableSO, IVariableAddon
 	{
 		public ItemAddedEventChannelSO onItemAdded;
 
 		public ItemDatabase db;
+
 		const string itemPrefix = "$Item_";
 
 		public string prefix => itemPrefix;
@@ -58,7 +61,7 @@ namespace Armere.Inventory
 			get
 			{
 				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name);
-				return new Value(InventoryController.ItemCount(item));
+				return new Value(InventoryController.singleton.ItemCount(item));
 			}
 			set => throw new System.NotImplementedException("Cannot set stage of quest");
 		}
@@ -105,10 +108,10 @@ namespace Armere.Inventory
 			}
 		}
 
-		public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack((ItemName)reader.ReadInt(), reader.ReadUInt());
-		public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase((ItemName)reader.ReadInt());
+		public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack(db[(ItemName)reader.ReadInt()], reader.ReadUInt());
+		public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase(db[(ItemName)reader.ReadInt()]);
 		public PotionItemUnique PotionItemUniqueReader(GameDataReader reader) =>
-			new PotionItemUnique((ItemName)reader.ReadInt(), reader.ReadFloat(), reader.ReadFloat());
+			new PotionItemUnique(db[(ItemName)reader.ReadInt()], reader.ReadFloat(), reader.ReadFloat());
 
 		//Save Order:
 		/*
@@ -138,12 +141,12 @@ namespace Armere.Inventory
 		}
 		public override void LoadBlank()
 		{
-			CreatePanels();
+
 		}
 		public override void LoadBin(in GameDataReader reader)
 		{
 			//Debug.Log("Loading inventory...");
-			CreatePanels();
+
 
 			common.items = ReadList<ItemStack>(reader, ItemStackReader);
 			quest.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
@@ -172,6 +175,20 @@ namespace Armere.Inventory
 			writer.Write(currency.currency);
 		}
 
+		private void OnEnable()
+		{
+			singleton = this;
+			CreatePanels();
+		}
+		private void OnDisable()
+		{
+			singleton = null;
+		}
+
+		private void Start()
+		{
+			DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
+		}
 
 
 		public StackPanel<ItemStack> common;
@@ -209,59 +226,50 @@ namespace Armere.Inventory
 			OnDropItemEvent?.Invoke(type, itemIndex);
 		}
 
-		private void Awake()
+
+
+
+
+
+
+
+		public bool AddItem(ItemData item, uint count, bool hiddenAddition)
 		{
-			if (singleton == null)
-				singleton = this;
-
-		}
-		private void Start()
-		{
-			DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
-		}
-
-
-
-
-
-
-		public static bool AddItem(ItemName n, uint count, bool hiddenAddition)
-		{
-			InventoryPanel p = singleton.GetPanelFor(singleton.db[n].type);
-			var addedIndex = p.AddItem(n, count);
+			InventoryPanel p = GetPanelFor(item.type);
+			var addedIndex = p.AddItem(item, count);
 
 			if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
 			{
-				InventoryController.singleton.onItemAdded.OnItemAdded(p[addedIndex], singleton.db[n].type, addedIndex, hiddenAddition);
+				onItemAdded.OnItemAdded(p[addedIndex], item.type, addedIndex, hiddenAddition);
 			}
 
 			return addedIndex != -1;
 		}
 
 
-		public static bool TakeItem(ItemName n, uint count = 1) => singleton.GetPanelFor(singleton.db[n].type).TakeItem(n, count);
+		public bool TakeItem(ItemName n, uint count = 1) => GetPanelFor(db[n].type).TakeItem(n, count);
 
-		public static bool AddItem(int index, ItemType type, uint count, bool hiddenAddition)
+		public bool AddItem(int index, ItemType type, uint count, bool hiddenAddition)
 		{
-			var b = singleton.GetPanelFor(type).AddItem(index, count);
+			var b = GetPanelFor(type).AddItem(index, count);
 			if (b) //Use itemat command to find the type of item that was added
-				singleton.onItemAdded.OnItemAdded(ItemAt(index, type), type, index, hiddenAddition);
+				onItemAdded.OnItemAdded(ItemAt(index, type), type, index, hiddenAddition);
 			return b;
 		}
 
-		public static bool AddItem(ItemStackBase stack, bool hiddenAddition = false)
+		public bool AddItem(ItemStackBase stack, bool hiddenAddition = false)
 		{
-			ItemType type = singleton.db[stack.name].type;
-			var b = singleton.GetPanelFor(type).AddItem(stack);
+			ItemType type = stack.item.type;
+			var b = GetPanelFor(type).AddItem(stack);
 			if (b) //Use itemat command to find the type of item that was added
-				singleton.onItemAdded.OnItemAdded(stack, type, singleton.GetPanelFor(type).stackCount - 1, hiddenAddition);
+				onItemAdded.OnItemAdded(stack, type, GetPanelFor(type).stackCount - 1, hiddenAddition);
 			return b;
 		}
 
-		public static bool TakeItem(int index, ItemType type, uint count = 1) => singleton.GetPanelFor(type).TakeItem(index, count);
-		public static uint ItemCount(ItemName n) => singleton.GetPanelFor(singleton.db[n].type).ItemCount(n);
-		public static uint ItemCount(int index, ItemType type) => singleton.GetPanelFor(type).ItemCount(index);
-		public static ItemStackBase ItemAt(int index, ItemType type) => singleton.GetPanelFor(type)[index];
+		public bool TakeItem(int index, ItemType type, uint count = 1) => GetPanelFor(type).TakeItem(index, count);
+		public uint ItemCount(ItemName n) => GetPanelFor(db[n].type).ItemCount(n);
+		public uint ItemCount(int index, ItemType type) => GetPanelFor(type).ItemCount(index);
+		public ItemStackBase ItemAt(int index, ItemType type) => GetPanelFor(type)[index];
 
 
 	}

@@ -36,7 +36,9 @@ public enum ItemName
 	Topaz,
 	ManlyCape,
 	CommonTrousers,
-	ExplosiveArrow
+	ExplosiveArrow,
+	SingleAxe,
+	DoubleAxe
 }
 //Subset of item name
 public enum PotionItemName

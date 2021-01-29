@@ -7,9 +7,11 @@ using UnityEngine.Profiling;
 namespace Armere.Inventory
 {
 
-	public class SpawnedItemSaver : MonoSaveable
+	public class SpawnedItemSaver : MonoBehaviour
 	{
-		public override void LoadBlank()
+		public SaveLoadEventChannel spawnedItemSaveLoadChannel;
+		public ItemDatabase db;
+		public void LoadBlank()
 		{
 			//Do nothing
 		}
@@ -24,17 +26,17 @@ namespace Armere.Inventory
 			-uint bundleSize
 		*/
 
-		public override void SaveBin(in GameDataWriter writer)
+		public void SaveBin(in GameDataWriter writer)
 		{
 			Profiler.BeginSample("Saving Item Spawnable Objects");
 
-			var spawnedItems = MonoBehaviour.FindObjectsOfType<ItemSpawnable>();
+			var spawnedItems = FindObjectsOfType<ItemSpawnable>();
 			writer.Write(spawnedItems.Length);
 			for (int i = 0; i < spawnedItems.Length; i++)
 			{
 				writer.Write(spawnedItems[i].transform.position);
 				writer.Write(spawnedItems[i].transform.rotation);
-				writer.Write((int)spawnedItems[i].item);
+				writer.Write((int)spawnedItems[i].item.itemName);
 				writer.Write(spawnedItems[i].count);
 			}
 
@@ -42,7 +44,7 @@ namespace Armere.Inventory
 			Profiler.EndSample();
 			Profiler.BeginSample("Saving Item Spawners");
 
-			var spawners = MonoBehaviour.FindObjectsOfType<ItemSpawner>();
+			var spawners = FindObjectsOfType<ItemSpawner>();
 			writer.Write(spawners.Length);
 			for (int i = 0; i < spawners.Length; i++)
 			{
@@ -52,7 +54,7 @@ namespace Armere.Inventory
 
 			Profiler.EndSample();
 		}
-		public override void LoadBin(in GameDataReader reader)
+		public void LoadBin(in GameDataReader reader)
 		{
 			if (reader.saveVersion != SaveManager.version)
 			{
@@ -68,8 +70,10 @@ namespace Armere.Inventory
 				ItemName item = (ItemName)reader.ReadInt();
 				uint bundleSize = reader.ReadUInt();
 
-				var x = ItemSpawner.SpawnItemAsync(item, pos, rot);
-
+				if (db[item] is PhysicsItemData data)
+				{
+					var x = ItemSpawner.SpawnItemAsync(data, pos, rot);
+				}
 			}
 
 			Profiler.EndSample();
@@ -95,6 +99,28 @@ namespace Armere.Inventory
 			}
 
 			Profiler.EndSample();
+		}
+
+		static SpawnedItemSaver singleton = null;
+		private void Awake()
+		{
+			if (singleton == null)
+			{
+				spawnedItemSaveLoadChannel.onLoadBinEvent += LoadBin;
+				spawnedItemSaveLoadChannel.onLoadBlankEvent += LoadBlank;
+				spawnedItemSaveLoadChannel.onSaveBinEvent += SaveBin;
+				singleton = this;
+			}
+		}
+		private void OnDestroy()
+		{
+			if (singleton == this)
+			{
+				spawnedItemSaveLoadChannel.onLoadBinEvent -= LoadBin;
+				spawnedItemSaveLoadChannel.onLoadBlankEvent -= LoadBlank;
+				spawnedItemSaveLoadChannel.onSaveBinEvent -= SaveBin;
+				singleton = null;
+			}
 		}
 	}
 }

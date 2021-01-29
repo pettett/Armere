@@ -153,6 +153,30 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""OpenInventory"",
+                    ""type"": ""Button"",
+                    ""id"": ""a8bd5d9f-02ae-4f01-899c-ada1781d562a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""OpenMap"",
+                    ""type"": ""Button"",
+                    ""id"": ""0808449f-d747-42a5-bea6-d715e4e0d44d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""OpenQuests"",
+                    ""type"": ""Button"",
+                    ""id"": ""d6332e4e-94d7-48cc-9624-d9660d3d6d68"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -650,6 +674,39 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""action"": ""ChangeFocus"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6027ae5c-4f44-40e3-b7b6-20068260c683"",
+                    ""path"": ""<Keyboard>/i"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""OpenInventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""27f70e2d-386f-477b-973e-6ad51f7291ec"",
+                    ""path"": ""<Keyboard>/m"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""OpenMap"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""15b12117-473a-4828-97ac-ab470c69631c"",
+                    ""path"": ""<Keyboard>/o"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""OpenQuests"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -779,6 +836,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_SelectWeapon = m_GroundActionMap.FindAction("SelectWeapon", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
+        m_GroundActionMap_OpenInventory = m_GroundActionMap.FindAction("OpenInventory", throwIfNotFound: true);
+        m_GroundActionMap_OpenMap = m_GroundActionMap.FindAction("OpenMap", throwIfNotFound: true);
+        m_GroundActionMap_OpenQuests = m_GroundActionMap.FindAction("OpenQuests", throwIfNotFound: true);
         // Dialogue
         m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         // Debug
@@ -852,6 +912,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_SelectWeapon;
     private readonly InputAction m_GroundActionMap_KO;
     private readonly InputAction m_GroundActionMap_ChangeFocus;
+    private readonly InputAction m_GroundActionMap_OpenInventory;
+    private readonly InputAction m_GroundActionMap_OpenMap;
+    private readonly InputAction m_GroundActionMap_OpenQuests;
     public struct GroundActionMapActions
     {
         private @PlayerControls m_Wrapper;
@@ -873,6 +936,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @SelectWeapon => m_Wrapper.m_GroundActionMap_SelectWeapon;
         public InputAction @KO => m_Wrapper.m_GroundActionMap_KO;
         public InputAction @ChangeFocus => m_Wrapper.m_GroundActionMap_ChangeFocus;
+        public InputAction @OpenInventory => m_Wrapper.m_GroundActionMap_OpenInventory;
+        public InputAction @OpenMap => m_Wrapper.m_GroundActionMap_OpenMap;
+        public InputAction @OpenQuests => m_Wrapper.m_GroundActionMap_OpenQuests;
         public InputActionMap Get() { return m_Wrapper.m_GroundActionMap; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -933,6 +999,15 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ChangeFocus.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnChangeFocus;
                 @ChangeFocus.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnChangeFocus;
                 @ChangeFocus.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnChangeFocus;
+                @OpenInventory.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenInventory;
+                @OpenMap.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenMap;
+                @OpenMap.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenMap;
+                @OpenMap.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenMap;
+                @OpenQuests.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
+                @OpenQuests.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
+                @OpenQuests.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
             }
             m_Wrapper.m_GroundActionMapActionsCallbackInterface = instance;
             if (instance != null)
@@ -988,6 +1063,15 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ChangeFocus.started += instance.OnChangeFocus;
                 @ChangeFocus.performed += instance.OnChangeFocus;
                 @ChangeFocus.canceled += instance.OnChangeFocus;
+                @OpenInventory.started += instance.OnOpenInventory;
+                @OpenInventory.performed += instance.OnOpenInventory;
+                @OpenInventory.canceled += instance.OnOpenInventory;
+                @OpenMap.started += instance.OnOpenMap;
+                @OpenMap.performed += instance.OnOpenMap;
+                @OpenMap.canceled += instance.OnOpenMap;
+                @OpenQuests.started += instance.OnOpenQuests;
+                @OpenQuests.performed += instance.OnOpenQuests;
+                @OpenQuests.canceled += instance.OnOpenQuests;
             }
         }
     }
@@ -1103,6 +1187,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnSelectWeapon(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
+        void OnOpenInventory(InputAction.CallbackContext context);
+        void OnOpenMap(InputAction.CallbackContext context);
+        void OnOpenQuests(InputAction.CallbackContext context);
     }
     public interface IDialogueActions
     {

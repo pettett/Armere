@@ -33,6 +33,9 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> crouchEvent;
 	public UnityAction<InputActionPhase> koEvent;
 	public UnityAction<InputActionPhase> tabMenuEvent;
+	public UnityAction<InputActionPhase> openInventoryEvent;
+	public UnityAction<InputActionPhase> openMapEvent;
+	public UnityAction<InputActionPhase> openQuestsEvent;
 	public UnityAction<InputActionPhase> switchWeaponSetEvent;
 	public UnityAction<InputActionPhase> sprintEvent;
 	public UnityAction<InputActionPhase> shieldEvent;

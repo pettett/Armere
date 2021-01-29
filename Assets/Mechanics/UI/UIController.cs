@@ -89,18 +89,18 @@ public class UIController : MonoBehaviour
 	}
 	public void StartFade(float startAlpha, float endAlpha, float fadeTime, bool useText)
 	{
-		fadeoutImage.CrossFadeAlpha(startAlpha, 0, true);
+		fadeoutImage.canvasRenderer.SetAlpha(startAlpha);
 		fadeoutImage.CrossFadeAlpha(endAlpha, fadeTime, true);
 		//do the same for text
 		if (useText)
 		{
-			fadeoutText.CrossFadeAlpha(startAlpha, 0, true);
+			fadeoutText.canvasRenderer.SetAlpha(startAlpha);
 			fadeoutText.CrossFadeAlpha(endAlpha, fadeTime, true);
 		}
 	}
 
 
-	void DisableFadeout()
+	public void DisableFadeout()
 	{
 		fadeoutImage.gameObject.SetActive(false);
 		fadeoutText.gameObject.SetActive(false);

@@ -23,6 +23,12 @@ public class QuestStatus
 		_stage = reader.ReadInt();
 	}
 
+	public void WriteQuestStatus(in GameDataWriter writer)
+	{
+		writer.Write(questIndex);
+		writer.Write(stage);
+	}
+
 	public void UpdateTriggerCount(int newAmount)
 	{
 		//If trigger requirements forfilled
@@ -72,8 +78,8 @@ public class QuestBook
 	public List<QuestStatus> quests = new List<QuestStatus>();
 	public List<QuestStatus> completedQuests = new List<QuestStatus>();
 }
-
-public class QuestManager : MonoSaveable
+[CreateAssetMenu(menuName = "Game/Quest Book")]
+public class QuestManager : SaveableSO
 {
 	public static QuestManager singleton;
 	public QuestDatabase qdb;
@@ -93,34 +99,46 @@ public class QuestManager : MonoSaveable
 
 	public ItemAddedEventChannelSO onPlayerInventoryItemAdded;
 
-	private void Awake()
+
+	private void OnEnable()
 	{
 		if (singleton == null)
+		{
 			singleton = this;
+		}
+
 	}
+	private void OnDisable()
+	{
+		if (singleton == this)
+		{
+			singleton = null;
+		}
+
+		onPlayerInventoryItemAdded.onItemAddedEvent -= OnInventoryItemAdded;
+	}
+
 
 	public override void LoadBlank()
 	{
 		questBook = new QuestBook();
 	}
-	public void WriteQuestStatus(in GameDataWriter writer, QuestStatus status)
-	{
-		writer.Write(status.questIndex);
-		writer.Write(status.stage);
-	}
+
 	public override void SaveBin(in GameDataWriter writer)
 	{
 		writer.Write(questBook.quests.Count);
 		writer.Write(questBook.completedQuests.Count);
+		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
 		for (int i = 0; i < questBook.quests.Count; i++)
 		{
-			WriteQuestStatus(writer, questBook.quests[i]);
+			questBook.quests[i].WriteQuestStatus(writer);
 		}
 		for (int i = 0; i < questBook.completedQuests.Count; i++)
 		{
-			WriteQuestStatus(writer, questBook.completedQuests[i]);
+			questBook.completedQuests[i].WriteQuestStatus(writer);
 		}
 	}
+
 	public override void LoadBin(in GameDataReader reader)
 	{
 		questBook = new QuestBook();
@@ -129,6 +147,9 @@ public class QuestManager : MonoSaveable
 		questBook.quests = new List<QuestStatus>(quests);
 		int completed = reader.ReadInt();
 		questBook.completedQuests = new List<QuestStatus>(completed);
+
+
+		//Debug.Log($"Loading {quests} quests, {completed} compelted");
 		//Read all the data for the quests
 		for (int i = 0; i < quests; i++)
 		{
@@ -148,10 +169,7 @@ public class QuestManager : MonoSaveable
 		DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStageYarnAddon());
 		DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStatusYarnAddon());
 	}
-	private void OnDestroy()
-	{
-		onPlayerInventoryItemAdded.onItemAddedEvent -= OnInventoryItemAdded;
-	}
+
 
 
 
@@ -208,8 +226,8 @@ public class QuestManager : MonoSaveable
 		for (int i = 0; i < quests.Count; i++)
 		{
 			if (quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Acquire && //if is listening for any item
-				quests[i].quest.stages[quests[i].stage].item == stack.name &&  //and is listening for this item
-				InventoryController.ItemCount(stack.name) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
+				quests[i].quest.stages[quests[i].stage].item == stack.item.itemName &&  //and is listening for this item
+				InventoryController.singleton.ItemCount(stack.item.itemName) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
 			)
 			{
 				ProgressQuest(quests[i]);
@@ -224,7 +242,7 @@ public class QuestManager : MonoSaveable
 			{
 				if (quests[i].quest.stages[quests[i].stage].type != Quest.QuestType.Deliver)
 					throw new System.ArgumentException("Quest is not in delivory stage");
-				InventoryController.TakeItem(
+				InventoryController.singleton.TakeItem(
 					quests[i].quest.stages[quests[i].stage].item,
 					quests[i].quest.stages[quests[i].stage].count);
 				ProgressQuest(quests[i]);
@@ -285,7 +303,7 @@ public class QuestManager : MonoSaveable
 
 	public static void CompleteQuest(QuestStatus questStatus)
 	{
-		print($"Completing Quest {questStatus.quest.name}");
+		Debug.Log($"Completing Quest {questStatus.quest.name}");
 
 		completedQuests.Add(questStatus);
 

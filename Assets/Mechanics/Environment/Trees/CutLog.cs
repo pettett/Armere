@@ -12,7 +12,7 @@ public class CutLog : MonoBehaviour, IAttackable
 	//Needed to spawn items and place offset
 	public Vector2 lengthRegion;
 
-	ItemName spawnedItem = ItemName.Stick;
+	PhysicsItemData spawnedItem;
 	Vector2Int itemCount = new Vector2Int(1, 3);
 
 	public Vector3 offset;

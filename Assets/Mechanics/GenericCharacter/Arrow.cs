@@ -11,24 +11,19 @@ public class Arrow : SpawnableBody
 	public Vector3EventChannelSO onArrowHitEventChannel;
 
 	bool initialized = false;
-	ItemName ammoName;
+	AmmoItemData ammo;
 	Rigidbody rb;
 	Collider col;
 	bool hit = false;
 	bool destroyOnHit = false;
 	public CollisionDetectionMode initializedDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-	public void Initialize(ItemName ammoName, Vector3 velocity, ItemDatabase db)
+	public void Initialize(AmmoItemData ammo, Vector3 velocity)
 	{
 		enabled = true;
 		transform.localScale = Vector3.one;
 		//Calibrate components
-		this.ammoName = ammoName;
-		if (db[this.ammoName].type != ItemType.Ammo)
-		{
-			//Make sure the item fired is actually ammo
-			Debug.LogError("Non - Ammo type fired as arrow");
-			return;
-		}
+		this.ammo = ammo;
+
 
 		rb = GetComponent<Rigidbody>();
 		rb.velocity = velocity;
@@ -36,7 +31,7 @@ public class Arrow : SpawnableBody
 		rb.isKinematic = false;
 		rb.collisionDetectionMode = initializedDetectionMode;
 
-		destroyOnHit =  ((AmmoItemData)db[ammoName]).flags.HasFlag(AmmoFlags.DropItemOnMiss);
+		destroyOnHit = ammo.flags.HasFlag(AmmoFlags.DropItemOnMiss);
 
 		//Set initialzed
 		initialized = true;
@@ -92,9 +87,10 @@ public class Arrow : SpawnableBody
 			Destroy();
 
 
-			if (!destroyOnHit){
+			if (!destroyOnHit)
+			{
 				//Turn arrow into an item if it is permitted
-				var x = ItemSpawner.SpawnItemAsync(ammoName, collisionPoint, transform.rotation);
+				var x = ItemSpawner.SpawnItemAsync(ammo, collisionPoint, transform.rotation);
 			}
 
 		}

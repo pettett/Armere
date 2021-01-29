@@ -330,7 +330,7 @@ namespace Armere.PlayerController
 		{
 
 			DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
-			(ItemType type, int index) = await ItemSelectionMenuUI.singleton.SelectItem(x => InventoryController.singleton.db[x.name].sellable);
+			(ItemType type, int index) = await ItemSelectionMenuUI.singleton.SelectItem(x => x.item.sellable);
 
 			if (index != -1)
 			{
@@ -351,10 +351,10 @@ namespace Armere.PlayerController
 		void OnSellMenuItemSelected(ItemType type, int itemIndex)
 		{
 			//Pay the player for the item
-			InventoryController.singleton.currency.AddItem(InventoryController.ItemAt(itemIndex, type).name, 1);
+			c.inventory.currency.AddItem(c.inventory.ItemAt(itemIndex, type).item, 1);
 
 			//Remove the item from the inventory
-			InventoryController.TakeItem(itemIndex, type);
+			c.inventory.TakeItem(itemIndex, type);
 
 			RunSellMenu();
 		}
@@ -414,7 +414,7 @@ namespace Armere.PlayerController
 				count = uint.Parse(arg[1]);
 
 			//give [count] items of type [item]
-			NewItemPrompt.singleton.ShowPrompt(item, count, onComplete);
+			NewItemPrompt.singleton.ShowPrompt(InventoryController.singleton.db[item], count, onComplete);
 		}
 
 

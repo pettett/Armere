@@ -12,7 +12,7 @@ namespace Armere.Inventory
 
 		public float requiredLookDot => -1;
 
-		public string interactionDescription => $"Pickup {InventoryController.singleton.db[item].displayName}";
+		public string interactionDescription => $"Pickup {item.displayName}";
 
 
 

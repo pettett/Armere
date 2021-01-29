@@ -9,12 +9,13 @@ namespace Armere.PlayerController
 	[Serializable]
 	public class Freefalling : MovementState
 	{
-
 		public override char StateSymbol => 'F';
+		public override string StateName => "Falling";
 
 		Vector3 desiredVelocity;
 
 		int airJumps;
+		float currentHeight;
 
 
 		public override void FixedUpdate()
@@ -22,6 +23,17 @@ namespace Armere.PlayerController
 			//desiredVelocity = GameCameras.s.TransformInput(c.input.horizontal);
 
 			//c.rb.AddForce(desiredVelocity);
+
+			if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, float.PositiveInfinity, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
+			{
+				currentHeight = hit.distance;
+			}
+
+
+			if (c.allCPs.Count > 0 && Math.Sign(c.rb.velocity.y) != 1)
+			{
+				ChangeToState<Walking>();
+			}
 
 			//only change back when the body is actually touching the ground
 
@@ -33,7 +45,7 @@ namespace Armere.PlayerController
 			//animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
 			animator.SetBool(vars.isGrounded.id, c.onGround);
 			animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);
-			animator.SetFloat(vars.groundDistance.id, c.currentHeight);
+			animator.SetFloat(vars.groundDistance.id, currentHeight);
 		}
 
 		public void OnInteract(InputActionPhase phase)
@@ -59,13 +71,14 @@ namespace Armere.PlayerController
 		//         ChangeToState<Climbing>();
 		//     }
 		// }
-		public override string StateName => "Falling";
+
 
 		public override void Start()
 		{
+			c.StartCoroutine(c.UnEquipAll());
 			airJumps = 0;
 			c.animationController.enableFeetIK = false;
-
+			c.allCPs.Clear();
 			c.inputReader.jumpEvent += OnJump;
 			c.inputReader.actionEvent += OnInteract;
 		}

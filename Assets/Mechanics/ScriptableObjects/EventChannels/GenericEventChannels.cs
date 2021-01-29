@@ -3,6 +3,7 @@ using UnityEngine.Events;
 public abstract class EventChannelSO<T0> : ScriptableObject
 {
 	public event UnityAction<T0> OnEventRaised;
+
 	public void RaiseEvent(T0 arg)
 	{
 		OnEventRaised?.Invoke(arg);

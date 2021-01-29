@@ -140,6 +140,30 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "OpenInventory",
+                    "type": "Button",
+                    "id": "a8bd5d9f-02ae-4f01-899c-ada1781d562a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "OpenMap",
+                    "type": "Button",
+                    "id": "0808449f-d747-42a5-bea6-d715e4e0d44d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "OpenQuests",
+                    "type": "Button",
+                    "id": "d6332e4e-94d7-48cc-9624-d9660d3d6d68",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -635,6 +659,39 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ChangeFocus",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6027ae5c-4f44-40e3-b7b6-20068260c683",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "OpenInventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "27f70e2d-386f-477b-973e-6ad51f7291ec",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "OpenMap",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "15b12117-473a-4828-97ac-ab470c69631c",
+                    "path": "<Keyboard>/o",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "OpenQuests",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

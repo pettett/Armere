@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class BossAI : EnemyAI
 {
-    public StagedMusicController musicController;
+	public StagedMusicController musicController;
 
-    public virtual void Init()
-    {
+	new public virtual void Init()
+	{
 
-    }
+	}
 }

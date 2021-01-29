@@ -8,23 +8,24 @@ namespace Armere.Inventory
 	{
 		public uint count;
 
-		public ItemStack() : base(ItemName.Stick)
+		public ItemStack(ItemData n) : base(n)
 		{
+			this.count = 1;
 		}
 
-		public ItemStack(ItemName n, uint count) : base(n)
+		public ItemStack(ItemData n, uint count) : base(n)
 		{
 			this.count = count;
 		}
 
 		public override void Write(GameDataWriter writer)
 		{
-			writer.Write((int)name);
+			writer.Write((int)item.itemName);
 			writer.Write(count);
 		}
 	}
 
-	public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack, new()
+	public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack
 	{
 
 		public List<StackT> items;
@@ -42,7 +43,7 @@ namespace Armere.Inventory
 		{
 			for (int i = 0; i < items.Count; i++)
 			{
-				if (items[i].name == item)
+				if (items[i].item.itemName == item)
 					return items[i].count;
 
 			}
@@ -59,10 +60,10 @@ namespace Armere.Inventory
 
 
 
-		public override int AddItem(ItemName item, uint count)
+		public override int AddItem(ItemData item, uint count)
 		{
 
-			int stackIndex = items.FindIndex(s => s.name == item);
+			int stackIndex = items.FindIndex(s => s.item == item);
 
 
 			if (stackIndex != -1)
@@ -101,7 +102,7 @@ namespace Armere.Inventory
 
 			for (int i = 0; i < items.Count; i++)
 			{
-				if (items[i].name == item && items[i].count >= count)
+				if (items[i].item.itemName == item && items[i].count >= count)
 				{
 					items[i].count -= count;
 					if (items[i].count == 0)

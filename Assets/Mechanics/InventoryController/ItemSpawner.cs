@@ -12,15 +12,13 @@ namespace Armere.Inventory
 
 
 		public bool spawnedItem;
-		public ItemName item;
+		public PhysicsItemData item;
 
-		public static async Task<ItemSpawnable> SpawnItemAsync(ItemName item, Vector3 position, Quaternion rotation)
+		public static async Task<ItemSpawnable> SpawnItemAsync(PhysicsItemData item, Vector3 position, Quaternion rotation)
 		{
-			var go = ((PhysicsItemData)InventoryController.singleton.db[item]).gameObject;
+			Assert.IsTrue(item.gameObject.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
 
-			Assert.IsTrue(go.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
-
-			ItemSpawnable spawnable = (ItemSpawnable)await GameObjectSpawner.SpawnAsync(go, position, rotation);
+			ItemSpawnable spawnable = (ItemSpawnable)await GameObjectSpawner.SpawnAsync(item.gameObject, position, rotation);
 			spawnable.Init(item, 1);
 			return spawnable;
 		}
@@ -31,7 +29,8 @@ namespace Armere.Inventory
 			return await SpawnItemAsync(item, transform.position, transform.rotation);
 		}
 
-		private void Start()
+		//Broadcast by spawned item saver
+		private void OnAfterGameLoaded()
 		{
 			//Debug.Log($"Started, {SaveManager.gameLoadingCompleted}");
 			//TODO: Make this better - spawned item will be set by save manager before start

@@ -10,16 +10,11 @@ namespace Armere.Inventory
 		public float duration;
 
 
-		//This should never be called
-		public PotionItemUnique() : base(ItemName.EmptyPotion)
+		public PotionItemUnique(ItemData item) : base(item)
 		{
 		}
 
-		public PotionItemUnique(ItemName name) : base(name)
-		{
-		}
-
-		public PotionItemUnique(ItemName name, float potency, float duration) : base(name)
+		public PotionItemUnique(ItemData item, float potency, float duration) : base(item)
 		{
 			this.potency = potency;
 			this.duration = duration;
@@ -28,7 +23,7 @@ namespace Armere.Inventory
 
 		public override void Write(GameDataWriter writer)
 		{
-			writer.Write((int)name);
+			writer.Write((int)item.itemName);
 			writer.Write(potency);
 			writer.Write(duration);
 		}

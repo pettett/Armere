@@ -8,15 +8,14 @@ public class Bow : SpawnableBody
 	public Transform backHandAnchor;
 	public Transform arrowSpawnPosition;
 	Arrow notchedArrow;
-	ItemName arrowName;
-	public async void NotchNextArrow(ItemName arrow)
+	AmmoItemData currentAmmo;
+	public async void NotchNextArrow(AmmoItemData ammo)
 	{
-		this.arrowName = arrow;
+		this.currentAmmo = ammo;
 		//If an arrow is already notched, remove it and replaced
 		if (notchedArrow != null) RemoveNotchedArrow();
 
 		//create the arrow that should be fired next
-		var ammo = (AmmoItemData)InventoryController.singleton.db[arrow];
 
 		notchedArrow = (Arrow)await GameObjectSpawner.SpawnAsync(ammo.ammoGameObject, arrowAnchor);
 		notchedArrow.transform.localScale = Vector3.one * 0.01f;
@@ -44,7 +43,7 @@ public class Bow : SpawnableBody
 		notchedArrow.transform.localScale = Vector3.one;
 
 		notchedArrow.transform.position = arrowSpawnPosition.position + arrowSpawnPosition.forward * 1;
-		notchedArrow.Initialize(arrowName, velocity, InventoryController.singleton.db);
+		notchedArrow.Initialize(currentAmmo, velocity);
 
 		notchedArrow = null;
 	}

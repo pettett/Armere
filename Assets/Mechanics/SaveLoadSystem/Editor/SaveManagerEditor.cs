@@ -74,13 +74,23 @@ public class SaveManagerEditor : Editor
 				var rootDir = dir.Replace(@"/", @"\");
 				System.Diagnostics.Process.Start("explorer.exe", "/select," + rootDir);
 			}
-
-			if (Application.isPlaying && GUILayout.Button("Load Save"))
+			if (Application.isPlaying)
 			{
-				Debug.Log("Loading selected save slot…");
-				t.LoadSave(dir, true);
-			}
+				EditorGUILayout.BeginHorizontal();
 
+				if (GUILayout.Button("Hard Load"))
+				{
+					Debug.Log("Loading selected save slot…");
+					t.LoadSave(dir, true);
+				}
+				if (GUILayout.Button("Soft Load"))
+				{
+					Debug.Log("Loading selected save slot…");
+					t.LoadSave(dir, false);
+				}
+
+				EditorGUILayout.EndHorizontal();
+			}
 			if (GUILayout.Button("Delete Save"))
 			{
 				Debug.Log("Deleting selected save slot…");

@@ -93,6 +93,9 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnSprint(CallbackContext context) => sprintEvent?.Invoke(context.phase);
 	public void OnSwitchWeaponSet(CallbackContext context) => switchWeaponSetEvent?.Invoke(context.phase);
 	public void OnTabMenu(CallbackContext context) => tabMenuEvent?.Invoke(context.phase);
+	public void OnOpenInventory(CallbackContext context) => openInventoryEvent?.Invoke(context.phase);
+	public void OnOpenQuests(CallbackContext context) => openQuestsEvent?.Invoke(context.phase);
+	public void OnOpenMap(CallbackContext context) => openMapEvent?.Invoke(context.phase);
 	public void OnVerticalMovement(CallbackContext context) => verticalMovementEvent?.Invoke(context.ReadValue<float>());
 	public void OnWalk(CallbackContext context) => movementEvent?.Invoke(context.ReadValue<Vector2>());
 

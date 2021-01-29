@@ -18,6 +18,9 @@ namespace Armere.PlayerController
 		{
 			c.inputReader.tabMenuEvent += OnTabMenu;
 			c.inputReader.consoleEvent += OnConsole;
+			c.inputReader.openInventoryEvent += OnOpenInventory;
+			c.inputReader.openQuestsEvent += OnOpenQuests;
+			c.inputReader.openMapEvent += OnOpenMap;
 		}
 		public override void End()
 		{
@@ -30,14 +33,49 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				//Only enter if the game is not paused
-				if (inMenus) inMenus = false;
-				else if (!c.paused) inMenus = true;
-				else return;
-
-				UpdateMenus();
+				ToggleTabMenu();
 			}
 		}
+
+		public void OnOpenInventory(InputActionPhase phase)
+		{
+			if (phase == InputActionPhase.Started)
+			{
+				c.setTabMenuPanelEventChannel.RaiseEvent(2);
+				if (!inMenus)
+					ToggleTabMenu();
+			}
+		}
+		public void OnOpenQuests(InputActionPhase phase)
+		{
+			if (phase == InputActionPhase.Started)
+			{
+				c.setTabMenuPanelEventChannel.RaiseEvent(1);
+				if (!inMenus)
+					ToggleTabMenu();
+			}
+		}
+		public void OnOpenMap(InputActionPhase phase)
+		{
+			if (phase == InputActionPhase.Started)
+			{
+				c.setTabMenuPanelEventChannel.RaiseEvent(3);
+				if (!inMenus)
+					ToggleTabMenu();
+			}
+		}
+
+
+		public void ToggleTabMenu()
+		{
+			//Only enter if the game is not paused
+			if (inMenus) inMenus = false;
+			else if (!c.paused) inMenus = true;
+			else return;
+
+			UpdateMenus();
+		}
+
 		public void OnConsole(InputActionPhase phase)
 		{
 			if (phase == InputActionPhase.Started)
@@ -47,20 +85,6 @@ namespace Armere.PlayerController
 			}
 		}
 
-		public bool OnInput(InputAction.CallbackContext context)
-		{
-			if (!inConsole && context.action.name == "TabMenu" && context.phase == InputActionPhase.Started)
-			{
-
-				return false;
-			}
-			else if (!inMenus && context.action.name == "Console" && context.phase == InputActionPhase.Started)
-			{
-
-				return false;
-			}
-			return true;
-		}
 		void UpdateConsole()
 		{
 			if (inConsole)
@@ -83,7 +107,7 @@ namespace Armere.PlayerController
 
 		void UpdateMenus()
 		{
-			UIController.SetTabMenu(inMenus);
+			c.setTabMenuEventChannel.RaiseEvent(inMenus);
 			SetPaused(inMenus);
 		}
 

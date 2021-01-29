@@ -161,6 +161,8 @@ namespace Armere.PlayerController
 		public VoidEventChannelSO onAimModeEnable;
 		public VoidEventChannelSO onAimModeDisable;
 		public FloatEventChannelSO changeTimeEventChannel;
+		public BoolEventChannelSO setTabMenuEventChannel;
+		public IntEventChannelSO setTabMenuPanelEventChannel;
 		public InputReader inputReader;
 
 		public SaveLoadEventChannel playerSaveLoadChannel;

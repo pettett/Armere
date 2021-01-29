@@ -20,6 +20,8 @@ public class UIController : MonoBehaviour
 
 	public UIBossBar bossBar;
 
+	public BoolEventChannelSO onToggleTabMenuEvent;
+
 
 	private void Awake()
 	{
@@ -27,8 +29,14 @@ public class UIController : MonoBehaviour
 	}
 	private void Start()
 	{
+		onToggleTabMenuEvent.OnEventRaised += SetTabMenu;
 		FadeIn(0.1f, false);
 	}
+	private void OnDestroy()
+	{
+		onToggleTabMenuEvent.OnEventRaised -= SetTabMenu;
+	}
+
 
 	public IEnumerator FullFade(float fadeTime, float time, string text = null)
 	{
@@ -108,12 +116,12 @@ public class UIController : MonoBehaviour
 
 
 
-	public static void SetTabMenu(bool active)
+	public void SetTabMenu(bool active)
 	{
 		if (active)
-			singleton.tabMenu.OpenMenu();
+			tabMenu.OpenMenu();
 		else
-			singleton.tabMenu.CloseMenu();
+			tabMenu.CloseMenu();
 	}
 
 

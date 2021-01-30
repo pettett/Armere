@@ -10,12 +10,13 @@ public class QuestStatus
 	public int questIndex;
 	[SerializeField] int _stage = -1;
 	public int stage { get => _stage; }
+	QuestManager manager;
 
-
-	public QuestStatus(int questIndex)
+	public QuestStatus(QuestManager manager, int questIndex)
 	{
 		this.questIndex = questIndex;
-		QuestManager.ProgressQuest(this);
+		this.manager = manager;
+		manager.ProgressQuest(this);
 	}
 	public QuestStatus(in GameDataReader reader)
 	{
@@ -40,7 +41,7 @@ public class QuestStatus
 			_ => false,
 		})
 		{
-			QuestManager.ProgressQuest(this);
+			manager.ProgressQuest(this);
 		}
 	}
 
@@ -72,23 +73,20 @@ public class QuestStatus
 }
 
 
-[System.Serializable]
-public class QuestBook
-{
-	public List<QuestStatus> quests = new List<QuestStatus>();
-	public List<QuestStatus> completedQuests = new List<QuestStatus>();
-}
+
 [CreateAssetMenu(menuName = "Game/Quest Book")]
 public class QuestManager : SaveableSO
 {
 	public static QuestManager singleton;
 	public QuestDatabase qdb;
+	public InventoryController inventory;
+	[System.NonSerialized] public int selectedQuest;
 
+	[System.NonSerialized] public List<QuestStatus> quests = new List<QuestStatus>();
+	[System.NonSerialized] public List<QuestStatus> completedQuests = new List<QuestStatus>();
 
-	public QuestBook questBook;
-
-	public static List<QuestStatus> quests => singleton.questBook.quests;
-	public static List<QuestStatus> completedQuests => singleton.questBook.completedQuests;
+	public static List<QuestStatus> questsSingleton => singleton.quests;
+	public static List<QuestStatus> completedQuestsSingleton => singleton.completedQuests;
 
 	public delegate void QuestEvent(Quest quest);
 
@@ -121,43 +119,49 @@ public class QuestManager : SaveableSO
 
 	public override void LoadBlank()
 	{
-		questBook = new QuestBook();
+		quests = new List<QuestStatus>();
+		completedQuests = new List<QuestStatus>();
 	}
 
 	public override void SaveBin(in GameDataWriter writer)
 	{
-		writer.Write(questBook.quests.Count);
-		writer.Write(questBook.completedQuests.Count);
+		writer.Write(selectedQuest);
+		writer.Write(quests.Count);
+		writer.Write(completedQuests.Count);
 		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
-		for (int i = 0; i < questBook.quests.Count; i++)
+		for (int i = 0; i < quests.Count; i++)
 		{
-			questBook.quests[i].WriteQuestStatus(writer);
+			quests[i].WriteQuestStatus(writer);
 		}
-		for (int i = 0; i < questBook.completedQuests.Count; i++)
+		for (int i = 0; i < completedQuests.Count; i++)
 		{
-			questBook.completedQuests[i].WriteQuestStatus(writer);
+			completedQuests[i].WriteQuestStatus(writer);
 		}
 	}
 
 	public override void LoadBin(in GameDataReader reader)
 	{
-		questBook = new QuestBook();
+		if (reader.saveVersion > new Version(0, 0, 1))
+		{
+			selectedQuest = reader.ReadInt();
+		}
+
 		//Read the number of quests in each list
-		int quests = reader.ReadInt();
-		questBook.quests = new List<QuestStatus>(quests);
+		int questsCount = reader.ReadInt();
+		quests = new List<QuestStatus>(questsCount);
 		int completed = reader.ReadInt();
-		questBook.completedQuests = new List<QuestStatus>(completed);
+		completedQuests = new List<QuestStatus>(completed);
 
 
 		//Debug.Log($"Loading {quests} quests, {completed} compelted");
 		//Read all the data for the quests
-		for (int i = 0; i < quests; i++)
+		for (int i = 0; i < questsCount; i++)
 		{
-			questBook.quests.Add(new QuestStatus(reader));
+			quests.Add(new QuestStatus(reader));
 		}
 		for (int i = 0; i < completed; i++)
 		{
-			questBook.completedQuests.Add(new QuestStatus(reader));
+			completedQuests.Add(new QuestStatus(reader));
 		}
 	}
 
@@ -172,34 +176,33 @@ public class QuestManager : SaveableSO
 
 
 
-
-	public static bool TryGetQuest(string questName, out QuestStatus q)
+	public bool TryGetQuest(string questName, out QuestStatus q)
 	{
-		for (int i = 0; i < quests.Count; i++)
+		for (int i = 0; i < questsSingleton.Count; i++)
 		{
-			if (quests[i].quest.name == questName)
+			if (questsSingleton[i].quest.name == questName)
 			{
-				q = quests[i];
+				q = questsSingleton[i];
 				return true;
 			}
 		}
 		q = default;
 		return false;
 	}
-	public static bool TryGetCompletedQuest(string questName, out QuestStatus q)
+	public bool TryGetCompletedQuest(string questName, out QuestStatus q)
 	{
-		for (int i = 0; i < completedQuests.Count; i++)
+		for (int i = 0; i < completedQuestsSingleton.Count; i++)
 		{
-			if (completedQuests[i].quest.name == questName)
+			if (completedQuestsSingleton[i].quest.name == questName)
 			{
-				q = completedQuests[i];
+				q = completedQuestsSingleton[i];
 				return true;
 			}
 		}
 		q = default;
 		return false;
 	}
-	public static void AddQuest(string name)
+	public void AddQuest(string name)
 	{
 		//Try to find the quest
 		for (int i = 0; i < singleton.qdb.quests.Length; i++)
@@ -214,9 +217,9 @@ public class QuestManager : SaveableSO
 		throw new System.ArgumentException("No quest with that name in database", name);
 	}
 
-	public static void AddQuest(int questIndex)
+	public void AddQuest(int questIndex)
 	{
-		quests.Add(new QuestStatus(questIndex));
+		quests.Add(new QuestStatus(this, questIndex));
 
 	}
 
@@ -227,7 +230,7 @@ public class QuestManager : SaveableSO
 		{
 			if (quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Acquire && //if is listening for any item
 				quests[i].quest.stages[quests[i].stage].item == stack.item.itemName &&  //and is listening for this item
-				InventoryController.singleton.ItemCount(stack.item.itemName) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
+				inventory.ItemCount(stack.item.itemName) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
 			)
 			{
 				ProgressQuest(quests[i]);
@@ -235,21 +238,21 @@ public class QuestManager : SaveableSO
 		}
 	}
 
-	public static void ForfillDeliverQuest(string questName)
+	public void ForfillDeliverQuest(string questName)
 	{
 		for (int i = 0; i < quests.Count; i++)
 			if (quests[i].quest.name == questName)
 			{
 				if (quests[i].quest.stages[quests[i].stage].type != Quest.QuestType.Deliver)
 					throw new System.ArgumentException("Quest is not in delivory stage");
-				InventoryController.singleton.TakeItem(
+				inventory.TakeItem(
 					quests[i].quest.stages[quests[i].stage].item,
 					quests[i].quest.stages[quests[i].stage].count);
 				ProgressQuest(quests[i]);
 				return;
 			}
 	}
-	public static void ForfillTalkToQuest(string questName, NPCName talkingNPC)
+	public void ForfillTalkToQuest(string questName, NPCName talkingNPC)
 	{
 		for (int i = 0; i < quests.Count; i++)
 			if (quests[i].quest.name == questName)
@@ -269,7 +272,7 @@ public class QuestManager : SaveableSO
 
 
 
-	public static void ProgressQuest(QuestStatus questStatus)
+	public void ProgressQuest(QuestStatus questStatus)
 	{
 		questStatus.MoveToNextStage();
 
@@ -280,7 +283,7 @@ public class QuestManager : SaveableSO
 		}
 		else
 		{
-			singleton.onQuestProgress?.Invoke(questStatus.quest);
+			onQuestProgress?.Invoke(questStatus.quest);
 
 			//Test to see if the conditions for this new stage have already been met
 			Quest.QuestStage stage = questStatus.quest.stages[questStatus.stage];
@@ -301,19 +304,19 @@ public class QuestManager : SaveableSO
 	}
 
 
-	public static void CompleteQuest(QuestStatus questStatus)
+	public void CompleteQuest(QuestStatus questStatus)
 	{
 		Debug.Log($"Completing Quest {questStatus.quest.name}");
 
-		completedQuests.Add(questStatus);
+		completedQuestsSingleton.Add(questStatus);
 
 		singleton.onQuestComplete?.Invoke(questStatus.quest);
 
-		for (int i = 0; i < quests.Count; i++)
+		for (int i = 0; i < questsSingleton.Count; i++)
 		{
 			//Test if another quest was waiting for this quest to be completed
-			if (quests[i] != questStatus && quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Complete &&
-				quests[i].quest.stages[quests[i].stage].quest == questStatus.quest.name
+			if (questsSingleton[i] != questStatus && questsSingleton[i].quest.stages[questsSingleton[i].stage].type == Quest.QuestType.Complete &&
+				questsSingleton[i].quest.stages[questsSingleton[i].stage].quest == questStatus.quest.name
 			)
 			{
 				//Completed this quest and progressing this next quest
@@ -322,7 +325,7 @@ public class QuestManager : SaveableSO
 			}
 		}
 
-		quests.Remove(questStatus);
+		questsSingleton.Remove(questStatus);
 	}
 
 

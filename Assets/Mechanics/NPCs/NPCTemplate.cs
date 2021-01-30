@@ -35,9 +35,9 @@ public class NPCTemplate : ScriptableObject
 
 		for (int r = 0; r < routines.Length - 1; r++)
 		{
-			for (int i = 0; i < QuestManager.completedQuests.Count; i++)
+			for (int i = 0; i < QuestManager.completedQuestsSingleton.Count; i++)
 			{
-				if (QuestManager.completedQuests[i].quest.name == routines[r].activateOnQuestComplete)
+				if (QuestManager.completedQuestsSingleton[i].quest.name == routines[r].activateOnQuestComplete)
 				{
 					//Return the first routine that fits the current situation
 					return r;

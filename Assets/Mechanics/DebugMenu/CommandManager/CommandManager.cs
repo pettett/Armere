@@ -95,7 +95,7 @@ public class CommandManager : ConsoleReceiver
 				break;
 			case giveQuest:
 				DesiredInputs(command, 1);
-				QuestManager.AddQuest(command.values[0]);
+				QuestManager.singleton.AddQuest(command.values[0]);
 				break;
 			default:
 				//Invalid command error

@@ -41,6 +41,9 @@ public readonly struct Version
 	public static bool operator !=(Version lhs, Version rhs) => !(lhs == rhs);
 
 
+	public static bool operator >(Version lhs, Version rhs) => lhs.patch > rhs.patch && lhs.minor >= rhs.minor && lhs.major >= rhs.major;
+	public static bool operator <(Version lhs, Version rhs) => lhs.patch < rhs.patch && lhs.minor <= rhs.minor && lhs.major <= rhs.major;
+
 	public readonly override int GetHashCode()
 	{
 		return major << 24 + minor << 16 + patch;
@@ -138,7 +141,7 @@ public readonly struct GameDataWriter
 public class SaveManager : MonoBehaviour
 {
 
-	public static readonly Version version = new Version(0, 0, 1);
+	public static readonly Version version = new Version(0, 0, 2);
 
 	public const string savesDirectoryName = "saves";
 	public static string currentSaveFileDirectoryName = "save1";

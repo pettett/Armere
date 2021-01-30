@@ -212,12 +212,12 @@ namespace Armere.PlayerController
 		void GiveQuest(string[] arg)
 		{
 			string questName = arg[0];
-			QuestManager.AddQuest(questName);
+			QuestManager.singleton.AddQuest(questName);
 		}
 
-		void DeliverQuest(string[] arg) => QuestManager.ForfillDeliverQuest(arg[0]);
+		void DeliverQuest(string[] arg) => QuestManager.singleton.ForfillDeliverQuest(arg[0]);
 
-		void TalkToQuest(string[] arg) => QuestManager.ForfillTalkToQuest(arg[0], talkingTarget.npcName);
+		void TalkToQuest(string[] arg) => QuestManager.singleton.ForfillTalkToQuest(arg[0], talkingTarget.npcName);
 
 
 		private void CameraPan(string[] arg, System.Action onComplete)

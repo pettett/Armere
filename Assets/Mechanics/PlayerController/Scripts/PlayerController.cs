@@ -9,9 +9,6 @@ using Armere.Inventory.UI;
 
 namespace Armere.PlayerController
 {
-
-
-
 	[RequireComponent(typeof(Rigidbody))]
 	public class PlayerController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
 	{
@@ -32,7 +29,7 @@ namespace Armere.PlayerController
 
 		public Yarn.Unity.DialogueRunner runner;
 
-		[NonSerialized] MovementState[] allStates;
+		[NonSerialized] private MovementState[] allStates;
 
 
 		[Header("Cameras")]
@@ -112,8 +109,9 @@ namespace Armere.PlayerController
 		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
 		[NonSerialized] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
 
-		DebugMenu.DebugEntry<string> _entry;
-		DebugMenu.DebugEntry<string> entry
+		private DebugMenu.DebugEntry<string> _entry;
+
+		private DebugMenu.DebugEntry<string> entry
 		{
 			get
 			{
@@ -171,7 +169,7 @@ namespace Armere.PlayerController
 		/// <summary>
 		/// Awake is called when the script instance is being loaded.
 		/// </summary>
-		void Awake()
+		private void Awake()
 		{
 			activePlayerController = this;
 			animationController = GetComponent<AnimationController>();
@@ -199,9 +197,8 @@ namespace Armere.PlayerController
 		}
 
 
-
-		void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
-		void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
+		private void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
+		private void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
 
 
 		public System.Action<bool> onSwingStateChanged;
@@ -261,7 +258,7 @@ namespace Armere.PlayerController
 		}
 
 
-		static Type SearchForType(char symbol)
+		private static Type SearchForType(char symbol)
 		{
 			//Search assembly for the symbol by creating an instance of every class and comparing - slow
 			foreach (var t in typeof(MovementState).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MovementState))))
@@ -382,8 +379,7 @@ namespace Armere.PlayerController
 		}
 
 
-
-		void OnArmourRemoved(Inventory.InventoryPanel panel, int index)
+		private void OnArmourRemoved(Inventory.InventoryPanel panel, int index)
 		{
 
 			//Armour has multiple selections, so references may need to be adjusted
@@ -410,7 +406,8 @@ namespace Armere.PlayerController
 			ChangeToState<Dead>();
 
 		}
-		bool _paused = false;
+
+		private bool _paused = false;
 		public bool paused
 		{
 			get => _paused;
@@ -484,7 +481,7 @@ namespace Armere.PlayerController
 		}
 
 
-		float sqrMagTemp;
+		private float sqrMagTemp;
 		// Update is called once per frame
 		private void Update()
 		{
@@ -523,14 +520,15 @@ namespace Armere.PlayerController
 					allStates[i].LateUpdate();
 		}
 
-		void OnTriggerEnter(Collider other)
+		private void OnTriggerEnter(Collider other)
 		{
 			if (enabled)
 				for (int i = 0; i < allStates.Length; i++)
 					if (StateActive(i))
 						allStates[i].OnTriggerEnter(other);
 		}
-		void OnTriggerExit(Collider other)
+
+		private void OnTriggerExit(Collider other)
 		{
 			if (enabled)
 				for (int i = 0; i < allStates.Length; i++)
@@ -554,7 +552,7 @@ namespace Armere.PlayerController
 		}
 
 
-		ItemType[] selectingSlot = null;
+		private ItemType[] selectingSlot = null;
 
 		private void OnSelectWeapon(InputActionPhase phase, int index)
 		{
@@ -572,7 +570,7 @@ namespace Armere.PlayerController
 
 		}
 
-		void SwitchWeaponSet(InputActionPhase phase)
+		private void SwitchWeaponSet(InputActionPhase phase)
 		{
 			//print(String.Format("Switching on slot {0}", index));
 
@@ -615,7 +613,7 @@ namespace Armere.PlayerController
 		}
 
 
-		void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
+		private void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
 		{
 			if (itemSelections[panel.type] == index)
 			{
@@ -788,7 +786,8 @@ namespace Armere.PlayerController
 
 		public T ChangeToState<T>(params object[] parameters) where T : MovementState, new() => (T)ChangeToState(typeof(T), parameters);
 		public T ChangeToState<T>() where T : MovementState, new() => (T)ChangeToState(typeof(T));
-		void InsatiateState(Type type)
+
+		private void InsatiateState(Type type)
 		{
 			currentState?.End(); // state specific end method
 			currentState = (MovementState)Activator.CreateInstance(type);
@@ -923,8 +922,7 @@ namespace Armere.PlayerController
 		}
 
 
-
-		void OnDrawGizmos()
+		private void OnDrawGizmos()
 		{
 			if (allStates != null)
 				for (int i = 0; i < allStates.Length; i++)

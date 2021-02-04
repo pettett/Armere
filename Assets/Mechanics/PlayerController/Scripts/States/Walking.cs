@@ -79,7 +79,6 @@ namespace Armere.PlayerController
 		bool holdingAltAttack = false;
 
 		ScanForNear<IAttackable> nearAttackables;
-		Vector2 movementInput;
 
 		public bool Usable(ItemType t) => t switch
 		{
@@ -132,7 +131,7 @@ namespace Armere.PlayerController
 			nearAttackables.updateEveryFrame = false;
 
 			//Add input reader events
-			c.inputReader.movementEvent += OnMovement;
+
 			c.inputReader.sprintEvent += OnSprint;
 			c.inputReader.crouchEvent += OnCrouch;
 			c.inputReader.attackEvent += OnAttack;
@@ -160,7 +159,7 @@ namespace Armere.PlayerController
 			c.onPlayerInventoryItemAdded.onItemAddedEvent -= OnItemAdded;
 
 			//Remove input reader events
-			c.inputReader.movementEvent -= OnMovement;
+
 			c.inputReader.sprintEvent -= OnSprint;
 			c.inputReader.crouchEvent -= OnCrouch;
 			c.inputReader.attackEvent -= OnAttack;
@@ -172,10 +171,6 @@ namespace Armere.PlayerController
 
 		}
 
-		public void OnMovement(Vector2 movement)
-		{
-			movementInput = movement;
-		}
 
 		public void OnCrouch(InputActionPhase phase)
 		{
@@ -279,7 +274,7 @@ namespace Armere.PlayerController
 					IEnumerator TriggerTimeChange(float newTime)
 					{
 
-						float time =  1f;
+						float time = 1f;
 						float fadeTime = 0.25f;
 
 						fadeTime = Mathf.Clamp(fadeTime, 0, time / 2);
@@ -292,9 +287,9 @@ namespace Armere.PlayerController
 
 						float fullyBlackTime = time - fadeTime * 2;
 
-						yield return new WaitForSeconds(fullyBlackTime*0.5f);
+						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
 						c.changeTimeEventChannel.RaiseEvent(newTime);
-						yield return new WaitForSeconds(fullyBlackTime*0.5f);
+						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
 
 						yield return UIController.singleton.Fade(1, 0, fadeTime, false);
 
@@ -558,7 +553,7 @@ namespace Armere.PlayerController
 			if (!inControl) return; //currently being controlled by some other movement coroutine
 
 			Vector3 velocity = c.rb.velocity;
-			Vector3 playerDirection = GameCameras.s.TransformInput(movementInput);
+			Vector3 playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
 
 			grounded = FindGround(out groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
@@ -968,12 +963,17 @@ namespace Armere.PlayerController
 			//This is easier. Animation graphs suck
 			if (backSwing)
 			{
-				c.animationController.TriggerTransition(c.transitionSet.backSwingSword);
+				if (meleeWeapon.isDoubleHanded)
+					c.animationController.TriggerTransition(c.transitionSet.backSwingDoubleSword);
+				else
+					c.animationController.TriggerTransition(c.transitionSet.backSwingSword);
 			}
 			else
 			{
-
-				c.animationController.TriggerTransition(c.transitionSet.swingSword);
+				if (meleeWeapon.isDoubleHanded)
+					c.animationController.TriggerTransition(c.transitionSet.swingDoubleSword);
+				else
+					c.animationController.TriggerTransition(c.transitionSet.swingSword);
 			}
 
 
@@ -1267,7 +1267,7 @@ namespace Armere.PlayerController
 		{
 			animator.SetBool(vars.surfing.id, false);
 
-			float speed = movementInput.magnitude * (sprinting ? 1.5f : 1);
+			float speed = c.inputReader.horizontalMovement.magnitude * (sprinting ? 1.5f : 1);
 			if (!inControl) speed = 0;
 
 			animator.SetBool("Idle", speed == 0);

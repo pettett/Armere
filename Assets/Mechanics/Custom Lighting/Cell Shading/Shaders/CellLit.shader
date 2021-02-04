@@ -283,12 +283,19 @@
 
         Pass
         {
-            Name "DepthOnly"
-            Tags{"LightMode" = "DepthOnly"}
+			Name "DepthOnly"
+			Tags
+			{
+				"LightMode" = "DepthOnly"
+			}
 
-            ZWrite On
-            ColorMask 0
-            Cull[_Cull]
+			// Render State
+			Cull Back
+			Blend One Zero
+			ZTest LEqual
+			ZWrite On
+			ColorMask 0
+
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

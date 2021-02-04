@@ -93,12 +93,12 @@ namespace Armere.PlayerController
 
 		public LayerMask m_groundLayerMask;
 		public LayerMask m_waterLayerMask;
-		public Rigidbody rb;
+		[NonSerialized]public Rigidbody rb;
 		[NonSerialized] new public CapsuleCollider collider;
 		[NonSerialized] public Animator animator;
 		[NonSerialized] public Health health;
 
-		public WeaponGraphicsController weaponGraphicsController;
+		[NonSerialized]public WeaponGraphicsController weaponGraphicsController;
 
 
 

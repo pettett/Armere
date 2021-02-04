@@ -2,11 +2,13 @@
 using UnityEngine;
 using Armere.Inventory;
 using Yarn.Unity;
+using UnityEngine.Events;
 
 [System.Serializable]
 public class QuestStatus
 {
-	public Quest quest => QuestManager.singleton.qdb.quests[questIndex];
+	public Quest quest => manager.qdb.quests[questIndex];
+	public Quest.QuestStage questStage => quest.stages[_stage];
 	public int questIndex;
 	[SerializeField] int _stage = -1;
 	public int stage { get => _stage; }
@@ -18,10 +20,11 @@ public class QuestStatus
 		this.manager = manager;
 		manager.ProgressQuest(this);
 	}
-	public QuestStatus(in GameDataReader reader)
+	public QuestStatus(QuestManager manager, in GameDataReader reader)
 	{
 		questIndex = reader.ReadInt();
 		_stage = reader.ReadInt();
+		this.manager = manager;
 	}
 
 	public void WriteQuestStatus(in GameDataWriter writer)
@@ -80,7 +83,16 @@ public class QuestManager : SaveableSO
 	public static QuestManager singleton;
 	public QuestDatabase qdb;
 	public InventoryController inventory;
-	[System.NonSerialized] public int selectedQuest;
+	QuestStatus _selectedQuest = null;
+	public QuestStatus selectedQuest
+	{
+		get => _selectedQuest;
+		set
+		{
+			_selectedQuest = value;
+			onSelectedQuestStatusUpdated?.Invoke(value);
+		}
+	}
 
 	[System.NonSerialized] public List<QuestStatus> quests = new List<QuestStatus>();
 	[System.NonSerialized] public List<QuestStatus> completedQuests = new List<QuestStatus>();
@@ -88,10 +100,10 @@ public class QuestManager : SaveableSO
 	public static List<QuestStatus> questsSingleton => singleton.quests;
 	public static List<QuestStatus> completedQuestsSingleton => singleton.completedQuests;
 
-	public delegate void QuestEvent(Quest quest);
 
-	public event QuestEvent onQuestProgress;
-	public event QuestEvent onQuestComplete;
+	public event UnityAction<Quest> onQuestProgress;
+	public event UnityAction<Quest> onQuestComplete;
+	public event UnityAction<QuestStatus> onSelectedQuestStatusUpdated;
 
 	Dictionary<string, uint> questTriggers = new Dictionary<string, uint>();
 
@@ -125,7 +137,7 @@ public class QuestManager : SaveableSO
 
 	public override void SaveBin(in GameDataWriter writer)
 	{
-		writer.Write(selectedQuest);
+		writer.Write(selectedQuest.questIndex);
 		writer.Write(quests.Count);
 		writer.Write(completedQuests.Count);
 		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
@@ -141,9 +153,10 @@ public class QuestManager : SaveableSO
 
 	public override void LoadBin(in GameDataReader reader)
 	{
+		int selectedQuestIndex = -1;
 		if (reader.saveVersion > new Version(0, 0, 1))
 		{
-			selectedQuest = reader.ReadInt();
+			selectedQuestIndex = reader.ReadInt();
 		}
 
 		//Read the number of quests in each list
@@ -157,12 +170,16 @@ public class QuestManager : SaveableSO
 		//Read all the data for the quests
 		for (int i = 0; i < questsCount; i++)
 		{
-			quests.Add(new QuestStatus(reader));
+			quests.Add(new QuestStatus(this, reader));
 		}
 		for (int i = 0; i < completed; i++)
 		{
-			completedQuests.Add(new QuestStatus(reader));
+			completedQuests.Add(new QuestStatus(this, reader));
 		}
+
+
+		//Call this after so that the selected quest actually indexes of a real value in the quests storage
+		selectedQuest = quests.Find(x => x.questIndex == selectedQuestIndex);
 	}
 
 	private void Start()
@@ -276,6 +293,7 @@ public class QuestManager : SaveableSO
 	{
 		questStatus.MoveToNextStage();
 
+
 		if (questStatus.stage == questStatus.quest.stages.Length)
 		{
 			//quest is complete
@@ -300,6 +318,11 @@ public class QuestManager : SaveableSO
 				}
 			}
 
+		}
+
+		if (questStatus.questIndex == selectedQuest.questIndex)
+		{
+			onSelectedQuestStatusUpdated?.Invoke(selectedQuest);
 		}
 	}
 

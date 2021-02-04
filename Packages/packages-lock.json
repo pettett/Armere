@@ -156,6 +156,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.terrain-tools": {
+      "version": "3.0.2-preview.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.test-framework": {
       "version": "1.1.19",
       "depth": 0,
@@ -215,6 +222,13 @@
         "com.unity.shadergraph": "10.2.2"
       },
       "url": "https://packages.unity.com"
+    },
+    "me.ameye.prefab-painter": {
+      "version": "https://github.com/alexanderameye/prefab-painter.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "f78b6b205ab54296ca4fd27c509a665367f84347"
     },
     "scriptablecrosshairs": {
       "version": "https://github.com/StolenCheese/ScriptableCrosshairs.git?path=/Packages/scriptablecrosshairs#Packaged",

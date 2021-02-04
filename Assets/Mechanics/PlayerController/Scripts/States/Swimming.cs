@@ -56,8 +56,7 @@ namespace Armere.PlayerController
 			entry = DebugMenu.CreateEntry("Player", "Hits: {0} Current Depth: {1}", 0, 0f);
 
 			c.inputReader.crouchEvent += OnCrouch;
-			c.inputReader.movementEvent += OnInputHorizontal;
-			c.inputReader.verticalMovementEvent += OnInputVertical;
+
 		}
 
 		public override void End()
@@ -71,8 +70,7 @@ namespace Armere.PlayerController
 			waterTrailController.DestroyOnFinish();
 
 			c.inputReader.crouchEvent -= OnCrouch;
-			c.inputReader.movementEvent -= OnInputHorizontal;
-			c.inputReader.verticalMovementEvent -= OnInputVertical;
+
 		}
 
 
@@ -159,16 +157,16 @@ namespace Armere.PlayerController
 
 			if (onSurface)
 			{
-				playerDirection = GameCameras.s.TransformInput(inputHorizontal);
+				playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
 				playerDirection.y = 0;
 				playerDirection *= c.waterMovementForce * Time.fixedDeltaTime;
 			}
 			else
 			{
 				playerDirection = GameCameras.s.cameraTransform.TransformDirection(
-					new Vector3(inputHorizontal.x, 0, inputHorizontal.y));
+					new Vector3(c.inputReader.horizontalMovement.x, 0, c.inputReader.horizontalMovement.y));
 				//Move up seperatley to camera
-				playerDirection.y += inputVertical;
+				playerDirection.y += c.inputReader.verticalMovement;
 				playerDirection.Normalize();
 
 				playerDirection *= c.waterMovementForce * Time.fixedDeltaTime;
@@ -207,16 +205,6 @@ namespace Armere.PlayerController
 				ChangeDive(true);
 				transform.position -= Vector3.up * c.maxWaterStrideDepth;
 			}
-		}
-		Vector2 inputHorizontal;
-		float inputVertical;
-		public void OnInputHorizontal(Vector2 input)
-		{
-			inputHorizontal = input;
-		}
-		public void OnInputVertical(float input)
-		{
-			inputVertical = input;
 		}
 
 		public void OnCrouch(InputActionPhase phase)

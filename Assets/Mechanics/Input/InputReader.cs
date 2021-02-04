@@ -48,6 +48,10 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 
 	public InputActionAsset asset => gameInput.asset;
 
+	public Vector2 horizontalMovement { get; private set; }
+	public float verticalMovement { get; private set; }
+
+
 	private void OnEnable()
 	{
 		if (gameInput == null)
@@ -96,8 +100,16 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnOpenInventory(CallbackContext context) => openInventoryEvent?.Invoke(context.phase);
 	public void OnOpenQuests(CallbackContext context) => openQuestsEvent?.Invoke(context.phase);
 	public void OnOpenMap(CallbackContext context) => openMapEvent?.Invoke(context.phase);
-	public void OnVerticalMovement(CallbackContext context) => verticalMovementEvent?.Invoke(context.ReadValue<float>());
-	public void OnWalk(CallbackContext context) => movementEvent?.Invoke(context.ReadValue<Vector2>());
+	public void OnVerticalMovement(CallbackContext context)
+	{
+		verticalMovement = context.ReadValue<float>();
+		verticalMovementEvent?.Invoke(verticalMovement);
+	}
+	public void OnWalk(CallbackContext context)
+	{
+		horizontalMovement = context.ReadValue<Vector2>();
+		movementEvent?.Invoke(horizontalMovement);
+	}
 
 	public void OnShowReadoutScreen(CallbackContext context) => showReadoutScreenEvent?.Invoke(context.phase);
 

@@ -1,11 +1,14 @@
 {
     "name": "enviroment.map",
+    "rootNamespace": "",
     "references": [
         "DebugMenuAssembly",
         "Enviroment.Music",
         "UtilityAssembly",
         "Game.Structure",
-        "Armere.SaveLoadSystem"
+        "Armere.SaveLoadSystem",
+        "Game.Quests",
+        "Game.NPCs"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

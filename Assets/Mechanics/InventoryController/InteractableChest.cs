@@ -15,6 +15,7 @@ namespace Armere.Inventory
 		public float requiredLookDot => -1;
 
 		public string interactionDescription => "Open Chest";
+		public string highlightDescription = "Chest";
 
 		public Vector3 offset => throw new System.NotImplementedException();
 		public event System.Action onChestOpened;
@@ -57,7 +58,7 @@ namespace Armere.Inventory
 		public void OnStartHighlight()
 		{
 			//Show an arrow for this item with name on ui
-			UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
+			UIController.singleton.itemIndicator.StartIndication(transform, highlightDescription);
 		}
 
 		public void OnEndHighlight()

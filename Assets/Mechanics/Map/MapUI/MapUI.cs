@@ -2,21 +2,30 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Collections;
+
 public class MapUI : MonoBehaviour
 {
 	MapMarker[] markers;
 	public float mapScale;
 	public RectTransform map;
+	public RectTransform mapFrame;
+	public GameObject trackingMarkerPrefab;
 	public Map mapObject;
 
 	public RectTransform playerPositionIndicator;
 	public RectTransform playerViewIndicator;
 	public Material mapBackground;
 	public bool focusOnPlayer = false;
+	public bool forceTargetsIntoFrame = false;
 	public float[] zoomStages = new float[]{
 		1,3,5
 	};
 	int zoomStage = 2;
+
+	Transform[] trackingMarkerTargets;
+	RectTransform[] trackingMarkers;
+
 	public void ZoomMapIn()
 	{
 		zoomStage = Mathf.Min(zoomStages.Length - 1, zoomStage + 1);
@@ -59,7 +68,41 @@ public class MapUI : MonoBehaviour
 		markers = FindObjectsOfType<MapMarker>();
 		mapBackground.SetTexture("_HeightTex", mapObject.contours.terrain.heightmapTexture);
 		UpdateZoom();
+
+		mapObject.onTrackingTargetsChanged += UpdateTrackingMarkers;
 	}
+	private void OnDestroy()
+	{
+		mapObject.onTrackingTargetsChanged -= UpdateTrackingMarkers;
+	}
+
+	public void UpdateTrackingMarkers()
+	{
+
+
+		if (trackingMarkers != null)
+			for (int i = 0; i < trackingMarkers.Length; i++)
+			{
+				Destroy(trackingMarkers[i].gameObject);
+			}
+
+		trackingMarkerTargets = mapObject.TrackingMarkers;
+
+		if (trackingMarkerTargets != null)
+		{
+			trackingMarkers = new RectTransform[trackingMarkerTargets.Length];
+
+			for (int i = 0; i < trackingMarkers.Length; i++)
+			{
+				trackingMarkers[i] = (RectTransform)Instantiate(trackingMarkerPrefab, map).transform;
+			}
+		}
+		else
+		{
+			trackingMarkers = null;
+		}
+	}
+
 	/// <summary>
 	/// Turns world position into map UI
 	/// </summary>
@@ -81,7 +124,25 @@ public class MapUI : MonoBehaviour
 
 	public Vector2 WorldSpaceToUIPosition(Vector3 worldSpace)
 	{
-		return new Vector2(worldSpace.x, worldSpace.z) * -mapScale + map.anchoredPosition;
+		Vector2 pos = new Vector2(worldSpace.x, worldSpace.z) * -mapScale;
+
+		if (forceTargetsIntoFrame)
+		{
+			Rect clip = GetViewRect();
+			pos.Set(Mathf.Clamp(pos.x, clip.xMin, clip.xMax), Mathf.Clamp(pos.y, clip.yMin, clip.yMax));
+		}
+		return pos;
+	}
+
+	public Rect GetViewRect()
+	{
+		Rect rect = new Rect();
+
+		rect.size = mapFrame.rect.size;
+		rect.center = -map.anchoredPosition;
+
+
+		return rect;
 	}
 
 	protected void Update()
@@ -93,19 +154,28 @@ public class MapUI : MonoBehaviour
 		}
 		map.sizeDelta = new Vector2(mapObject.contours.terrain.size.x, mapObject.contours.terrain.size.z) * mapScale;
 
+
+
+		//Move the player to focus on the map
+		Vector3 trackPos = LevelInfo.currentLevelInfo.playerTransform.position;
+		Vector2 mapPos = WorldSpaceToUIPosition(trackPos);
+		playerViewIndicator.anchoredPosition = mapPos;
+		playerPositionIndicator.anchoredPosition = mapPos;
+
 		if (focusOnPlayer)
 		{
 			//Move the map object to focus on player's position
-			Vector3 trackPos = LevelInfo.currentLevelInfo.playerTransform.position;
 			map.anchoredPosition = new Vector2(trackPos.x, trackPos.z) * mapScale;
 		}
-		else
+
+
+		//Update tracking markers by moving to real world positions
+		if (trackingMarkers != null)
 		{
-			//Move the player to focus on the map
-			Vector3 trackPos = LevelInfo.currentLevelInfo.playerTransform.position;
-			Vector2 mapPos = WorldSpaceToUIPosition(trackPos);
-			playerViewIndicator.anchoredPosition = mapPos;
-			playerPositionIndicator.anchoredPosition = mapPos;
+			for (int i = 0; i < trackingMarkers.Length; i++)
+			{
+				trackingMarkers[i].anchoredPosition = WorldSpaceToUIPosition(trackingMarkerTargets[i].position);
+			}
 		}
 
 		float playerLookDir = 180 - LevelInfo.currentLevelInfo.playerTransform.eulerAngles.y;

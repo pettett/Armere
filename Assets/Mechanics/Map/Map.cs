@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [CreateAssetMenu(menuName = "Game/Map")]
 public class Map : ScriptableObject
@@ -34,7 +35,48 @@ public class Map : ScriptableObject
 			bounds = new Rect(min, max - min);
 		}
 	}
+
+	private void OnEnable()
+	{
+
+		trackingQuests.onSelectedQuestStatusUpdated += OnSelectedQuestChanged;
+	}
+	private void OnDisable()
+	{
+		trackingQuests.onSelectedQuestStatusUpdated -= OnSelectedQuestChanged;
+	}
+
+	void OnSelectedQuestChanged(QuestStatus newSelection)
+	{
+		onTrackingTargetsChanged?.Invoke();
+	}
+	public event UnityAction onTrackingTargetsChanged;
+
 	public Region[] regions;
 
 	public ContourGenerator contours;
+	public QuestManager trackingQuests;
+
+	public Transform[] NPCTarget(NPCName npc)
+	{
+		if (NPCManager.singleton.data.ContainsKey(npc))
+
+			return new Transform[1] { NPCManager.singleton.data[npc].npcInstance };
+		return null;
+	}
+	public Transform[] TrackingMarkers
+	{
+		get
+		{
+			if (trackingQuests.selectedQuest != null)
+			{
+				return trackingQuests.selectedQuest.questStage.type switch
+				{
+					var x when (x == Quest.QuestType.TalkTo || x == Quest.QuestType.Deliver) => NPCTarget(trackingQuests.selectedQuest.questStage.receiver),
+					_ => null,
+				};
+			}
+			else return null;
+		}
+	}
 }

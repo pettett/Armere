@@ -37,7 +37,7 @@ public class QuestManagerUI : MonoBehaviour
 		questTitle.text = questManager.quests[i].quest.title;
 		Quest.QuestStage stage = questManager.quests[i].quest.stages[questManager.quests[i].stage];
 		questDescription.text = stage.description;
-		questManager.selectedQuest = i;
+		questManager.selectedQuest = questManager.quests[i];
 
 		questGoal.text = string.Format("Deliver <color=#{0}>{1}</color> <color=#{2}>{3}</color> to <color=#{4}>{5}</color>",
 			styling.numberColorHex, stage.count,

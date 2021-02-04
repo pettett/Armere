@@ -157,6 +157,12 @@ public class CommandManager : ConsoleReceiver
 				}
 			}
 		}
+		if (segments.Length > 1)
+			for (int i = 0; i < viableEntries.Count; i++)
+			{
+				viableEntries[i] = string.Join(" ", segments.AsSpan(0, slice).ToArray()) + " " + viableEntries[i];
+			}
+
 		return viableEntries;
 	}
 

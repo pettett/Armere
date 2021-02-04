@@ -132,12 +132,12 @@ public class NPCManager : MonoBehaviour
 	}
 
 
-	[System.Serializable]
 	public class NPCData
 	{
 		public bool spokenTo = false;
 		public Dictionary<string, NPCVariable> variables;
 		public int routineIndex = 0;
+		public Transform npcInstance;
 
 		public NPCData(Version saveVersion, GameDataReader reader)
 		{
@@ -163,11 +163,9 @@ public class NPCManager : MonoBehaviour
 			//Set the default index from active quests
 			routineIndex = t.GetRoutineIndex();
 		}
-
-
 	}
 
-	[HideInInspector] public Dictionary<NPCName, NPCData> data = new Dictionary<NPCName, NPCData>();
+	[System.NonSerialized] public Dictionary<NPCName, NPCData> data = new Dictionary<NPCName, NPCData>();
 
 
 }

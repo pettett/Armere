@@ -75,6 +75,8 @@ public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
 			NPCManager.singleton.data[npcName] = new NPCManager.NPCData(t);
 		}
 
+		NPCManager.singleton.data[npcName].npcInstance = transform;
+
 		//Setup starting point for routine - instant so they start in the proper place
 		ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
 	}

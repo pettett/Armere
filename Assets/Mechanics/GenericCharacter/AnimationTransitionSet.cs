@@ -8,7 +8,9 @@ public class AnimationTransitionSet : ScriptableObject
 {
 	[Header("Swords")]
 	public AnimationTransition swingSword = new AnimationTransition("Sword Slash", 0.05f, 0.15f, Layers.BaseLayer);
+	public AnimationTransition swingDoubleSword = new AnimationTransition("Double Sword Slash", 0.05f, 0.15f, Layers.BaseLayer);
 	public AnimationTransition backSwingSword = new AnimationTransition("Sword Back Slash", 0.05f, 0.15f, Layers.BaseLayer);
+	public AnimationTransition backSwingDoubleSword = new AnimationTransition("Double Sword Back Slash", 0.05f, 0.15f, Layers.BaseLayer);
 	public AnimationTransition sheathSword = new AnimationTransition("Sheath Sword", 0.05f, 0.15f, Layers.UpperBody);
 	public AnimationTransition drawSword = new AnimationTransition("Draw Sword", 0.05f, 0.05f, Layers.UpperBody);
 

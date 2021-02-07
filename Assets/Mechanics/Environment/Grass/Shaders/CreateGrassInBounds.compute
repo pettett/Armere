@@ -11,7 +11,7 @@ cbuffer CB{
     float2 grassHeightRange;
     int chunkID;
     int seed;
-    int densityLayer;
+    float4 densityLayerWeights;
     int2 dispatchSize;
 }; 
 
@@ -64,7 +64,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     
 
     //Perform rejection sampling on grass based on desired density at position
-    float density = _Density.SampleLevel(sampler_Density, densityUV, 0)[densityLayer];
+    float4 densities = _Density.SampleLevel(sampler_Density, densityUV, 0) * densityLayerWeights;
+	float density = densities.x + densities.y + densities.z + densities.w;
+
     float testValue = hash12(densityUV.xy + id.xy);
 
     if (testValue < density){

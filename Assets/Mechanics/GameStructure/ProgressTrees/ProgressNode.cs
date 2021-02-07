@@ -5,6 +5,7 @@ using UnityEngine;
 public abstract class ProgressNode<NodeT> : ScriptableObject where NodeT : ProgressNode<NodeT>
 {
 	public NodeT[] dependencies;
+	public bool unlocked;
 
 	public int Tier()
 	{

@@ -15,6 +15,10 @@ public class TimeDayController : MonoBehaviour
 	public static readonly int shader_SunTangent = Shader.PropertyToID("_SunTangent");
 	public static readonly int shader_SunCoTangent = Shader.PropertyToID("_SunCoTangent");
 
+	public static readonly int shader_DaySkyColor = Shader.PropertyToID("_DaySkyColor");
+	public static readonly int shader_NightSkyColor = Shader.PropertyToID("_NightSkyColor");
+	public static readonly int shader_SkyColorTransitionPeriod = Shader.PropertyToID("_SkyColorTransitionPeriod");
+
 	const float degreesPerHour = 360 / 24;
 	const float oneOver24 = 1f / 24f;
 
@@ -51,6 +55,11 @@ public class TimeDayController : MonoBehaviour
 	public Vector2 fogDensityRange;
 	[ReadOnly] public float weatherScaler;
 
+	[Header("Skybox Colours")]
+	public Color daySkyColour = new Color(0.6038275f, 1, 1);
+	public Color nightSkyColour = new Color(0, 0, 0);
+	public Vector2 skyColorTransitionPeriod = new Vector2(0.3f, -0.3f);
+
 	public CloudDrawer clouds;
 
 	public static readonly Dictionary<string, float> specialTimes = new Dictionary<string, float>
@@ -84,6 +93,10 @@ public class TimeDayController : MonoBehaviour
 			changeTime.OnEventRaised += ChangeTime;
 			entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
 		}
+
+		RenderSettings.skybox.SetColor(shader_DaySkyColor, daySkyColour);
+		RenderSettings.skybox.SetColor(shader_NightSkyColor, nightSkyColour);
+		RenderSettings.skybox.SetVector(shader_SkyColorTransitionPeriod, skyColorTransitionPeriod);
 
 	}
 	private void OnDestroy()
@@ -120,8 +133,12 @@ public class TimeDayController : MonoBehaviour
 
 		if (Application.isPlaying)
 		{
-			entry.value0 = Mathf.Floor(hour);
-			entry.value1 = 60f * (hour - Mathf.Floor(hour));
+			if (DebugMenu.menuEnabled)
+			{
+				entry.value0 = Mathf.Floor(hour);
+				entry.value1 = 60f * (hour - Mathf.Floor(hour));
+			}
+
 			hour += Time.deltaTime * hoursPerSecond;
 
 			hour = Mathf.Repeat(hour, 24);
@@ -131,6 +148,10 @@ public class TimeDayController : MonoBehaviour
 			//take 90 so the 0th hour is pointing straight down (-90)
 			if (sun != null)
 				sun.rotation = Quaternion.Euler(0, 90, azimuth) * Quaternion.Euler(hour * degreesPerHour - 90, 0, 0);
+
+
+			float colorTransition = Mathf.SmoothStep(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+			RenderSettings.ambientSkyColor = Color.Lerp(daySkyColour, nightSkyColour, colorTransition);
 		}
 
 

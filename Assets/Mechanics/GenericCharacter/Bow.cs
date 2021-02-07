@@ -9,6 +9,12 @@ public class Bow : SpawnableBody
 	public Transform arrowSpawnPosition;
 	Arrow notchedArrow;
 	AmmoItemData currentAmmo;
+	public BowItemData bowItem;
+
+	public void InitBow(BowItemData bowItem)
+	{
+		this.bowItem = bowItem;
+	}
 	public async void NotchNextArrow(AmmoItemData ammo)
 	{
 		this.currentAmmo = ammo;
@@ -18,6 +24,7 @@ public class Bow : SpawnableBody
 		//create the arrow that should be fired next
 
 		notchedArrow = (Arrow)await GameObjectSpawner.SpawnAsync(ammo.ammoGameObject, arrowAnchor);
+		notchedArrow.InitProjectile(bowItem.damage);
 		notchedArrow.transform.localScale = Vector3.one * 0.01f;
 		notchedArrow.transform.localRotation = Quaternion.Euler(90, 0, 0);
 	}
@@ -43,7 +50,7 @@ public class Bow : SpawnableBody
 		notchedArrow.transform.localScale = Vector3.one;
 
 		notchedArrow.transform.position = arrowSpawnPosition.position + arrowSpawnPosition.forward * 1;
-		notchedArrow.Initialize(currentAmmo, velocity);
+		notchedArrow.LaunchArrow(currentAmmo, velocity);
 
 		notchedArrow = null;
 	}

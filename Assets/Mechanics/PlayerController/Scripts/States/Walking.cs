@@ -32,7 +32,7 @@ namespace Armere.PlayerController
 
 
 		//shooting variables for gizmos
-		[NonSerialized] DebugMenu.DebugEntry entry;
+		DebugMenu.DebugEntry entry;
 
 		bool forceForwardHeading = false;
 		bool grounded;
@@ -47,8 +47,8 @@ namespace Armere.PlayerController
 		WalkingType walkingType = WalkingType.Walking;
 		Dictionary<WalkingType, float> walkingSpeeds;
 		bool inControl = true;
-		[NonSerialized] Collider[] crouchTestColliders = new Collider[2];
-		[NonSerialized] ContactPoint groundCP;
+		Collider[] crouchTestColliders = new Collider[2];
+		ContactPoint groundCP;
 
 
 
@@ -61,15 +61,15 @@ namespace Armere.PlayerController
 
 		//Save system does not work with game references, yet.
 		//This should be done but is not super important
-		[NonSerialized] public HoldableBody holding;
+		public HoldableBody holding;
 
 		//WEAPONS
-		[NonSerialized] Coroutine bowChargingRoutine;
+		Coroutine bowChargingRoutine;
 
 
 
-		[NonSerialized] EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
-		[NonSerialized] EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
+		EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
+		EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
 
 		bool backSwingSword = false;
 		ShieldItemData SidearmAsShield => (ShieldItemData)c.inventory.sideArm[c.currentSidearm].item;
@@ -79,6 +79,8 @@ namespace Armere.PlayerController
 		bool holdingAltAttack = false;
 
 		ScanForNear<IAttackable> nearAttackables;
+
+		public Spell currentCastingSpell;
 
 		public bool Usable(ItemType t) => t switch
 		{
@@ -138,7 +140,7 @@ namespace Armere.PlayerController
 			c.inputReader.actionEvent += OnInteract;
 			c.inputReader.altAttackEvent += OnAltAttack;
 			c.inputReader.jumpEvent += OnJump;
-
+			c.inputReader.selectSpellEvent += OnSelectSpell;
 
 		}
 
@@ -166,7 +168,7 @@ namespace Armere.PlayerController
 			c.inputReader.actionEvent -= OnInteract;
 			c.inputReader.altAttackEvent -= OnAltAttack;
 			c.inputReader.jumpEvent -= OnJump;
-
+			c.inputReader.selectSpellEvent -= OnSelectSpell;
 			OnCancelBowEvent?.Invoke();
 
 		}
@@ -538,7 +540,10 @@ namespace Armere.PlayerController
 			inControl = true;
 
 		}
-
+		public override void Update()
+		{
+			currentCastingSpell?.Update();
+		}
 		public override void FixedUpdate()
 		{
 			// if (c.onGround == false)
@@ -719,7 +724,26 @@ namespace Armere.PlayerController
 
 
 
+		public void OnSelectSpell(InputActionPhase phase, int spell)
+		{
+			if (phase != InputActionPhase.Performed) return;
+			//Create a spell casting instance
+			if (spell < c.spellTree.selectedNodes.Length && spell >= 0)
+				if (c.spellTree.selectedNodes[spell] != null)
+					currentCastingSpell = c.spellTree.selectedNodes[spell].spell.BeginCast(gameObject);
 
+		}
+
+		public void CastSpell()
+		{
+			currentCastingSpell.Cast();
+			currentCastingSpell = null;
+		}
+		public void CancelSpellCast(bool manual)
+		{
+			currentCastingSpell.CancelCast(manual);
+			currentCastingSpell = null;
+		}
 
 
 
@@ -731,8 +755,8 @@ namespace Armere.PlayerController
 		{
 
 			if (holdingBody) PlaceHoldable();
-
-			if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
+			else if (currentCastingSpell != null) CastSpell();
+			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
 			{
 				if (inControl)
 				{
@@ -842,6 +866,7 @@ namespace Armere.PlayerController
 
 			if (c.weaponGraphicsController.holdables.bow.sheathed)
 			{
+				c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().InitBow(c.inventory.bow.items[c.currentBow].itemData);
 				c.NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
 				yield return DrawItem(ItemType.Bow);
 			}
@@ -1035,10 +1060,12 @@ namespace Armere.PlayerController
 		public void OnAltAttack(InputActionPhase phase)
 		{
 			if (!inControl) return;
+
 			if (holdingBody)
 			{
 				ThrowHoldable();
 			}
+			else if (currentCastingSpell != null) CancelSpellCast(true);
 
 			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
 			{

@@ -40,6 +40,12 @@ public class GameObjectSpawner : Spawner
 
 	public AssetReferenceGameObject spawnedObject;
 
+	public void StartSpawn()
+	{
+		var x = Spawn();
+	}
+
+
 	public override async Task<SpawnableBody> Spawn()
 	{
 		Assert.IsTrue(spawnedObject.RuntimeKeyIsValid(), "Reference is null");

@@ -27,7 +27,7 @@ public class GrassController : MonoBehaviour
 	public static readonly int ID_Properties = Shader.PropertyToID("_Properties");
 	public static readonly int ID_IndirectArgs = Shader.PropertyToID("_IndirectArgs");
 	public static readonly int ID_grassSizeMinMax = Shader.PropertyToID("grassSizeMinMax");
-	public static readonly int ID_densityLayer = Shader.PropertyToID("densityLayer");
+	public static readonly int ID_densityLayerWeights = Shader.PropertyToID("densityLayerWeights");
 	public static readonly int ID_dispatchSize = Shader.PropertyToID("dispatchSize");
 	public static readonly int ID_Gradient = Shader.PropertyToID("_Gradient");
 	public static readonly int ID_Density = Shader.PropertyToID("_Density");
@@ -63,7 +63,18 @@ public class GrassController : MonoBehaviour
 			}
 		}
 		[SerializeField] int maxBladesInView;
-		public int splatMapLayer = 0;
+		[System.Serializable]
+		public struct SplatMapWeights
+		{
+			[Range(0, 1)]
+			public float layer0, layer1, layer2, layer3;
+			public static implicit operator Vector4(in SplatMapWeights weights)
+			{
+				return new Vector4(weights.layer0, weights.layer1, weights.layer2, weights.layer3);
+			}
+		}
+		public SplatMapWeights splatMapWeights = new SplatMapWeights();
+
 		public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
 		public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
 
@@ -94,6 +105,7 @@ public class GrassController : MonoBehaviour
 		Vector2 oldPlayerUV = Vector2.one * -1000;
 		float oldPlayerUVRadius = 0;
 
+
 		public void UpdateChunkTree(GrassController c)
 		{
 			Texture2D grassDensity = c.terrain.terrainData.alphamapTextures[0];
@@ -106,7 +118,12 @@ public class GrassController : MonoBehaviour
 			{
 				for (int y = 0; y < texSize; y++)
 				{
-					cells[x, y] = pix[x + y * texSize][splatMapLayer] > 0;
+					var col = pix[x + y * texSize];
+
+					float weight = Vector4.Scale((Vector4)(Color)col, splatMapWeights).sqrMagnitude;
+
+					cells[x, y] = weight > 0;
+
 				}
 			}
 
@@ -372,7 +389,7 @@ public class GrassController : MonoBehaviour
 
 			cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_chunkID, chunkID);
 			cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_seed, layer.seed);
-			cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_densityLayer, layer.splatMapLayer);
+			cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_densityLayerWeights, layer.splatMapWeights);
 
 			cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassHeightRange,
 				new Vector2(c.grassHeightOffset, c.terrain.terrainData.heightmapScale.y));

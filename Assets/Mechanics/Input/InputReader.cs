@@ -40,9 +40,10 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> sprintEvent;
 	public UnityAction<InputActionPhase> shieldEvent;
 	public UnityAction<InputActionPhase> showReadoutScreenEvent;
-	public UnityAction<InputActionPhase, int> selectWeaponEvent;
+	public UnityAction<InputActionPhase, int> selectSpellEvent;
 	public UnityAction<InputActionPhase> quicksaveEvent;
 	public UnityAction<InputActionPhase> quickloadEvent;
+	public UnityAction<InputActionPhase> equipBowEvent;
 
 	private PlayerControls gameInput;
 
@@ -92,7 +93,8 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnCrouch(CallbackContext context) => crouchEvent?.Invoke(context.phase);
 	public void OnJump(CallbackContext context) => jumpEvent?.Invoke(context.phase);
 	public void OnKO(CallbackContext context) => koEvent?.Invoke(context.phase);
-	public void OnSelectWeapon(CallbackContext context) => selectWeaponEvent?.Invoke(context.phase, (int)context.ReadValue<float>());
+	public void OnSelectSpell(CallbackContext context) => selectSpellEvent?.Invoke(context.phase, (int)context.ReadValue<float>());
+	public void OnEquipBow(CallbackContext context) => equipBowEvent?.Invoke(context.phase);
 	public void OnShield(CallbackContext context) => shieldEvent?.Invoke(context.phase);
 	public void OnSprint(CallbackContext context) => sprintEvent?.Invoke(context.phase);
 	public void OnSwitchWeaponSet(CallbackContext context) => switchWeaponSetEvent?.Invoke(context.phase);

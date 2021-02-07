@@ -131,7 +131,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": ""Press(behavior=2)""
                 },
                 {
-                    ""name"": ""SelectWeapon"",
+                    ""name"": ""SelectSpell"",
                     ""type"": ""Value"",
                     ""id"": ""08949489-2e63-45e8-b72a-7891e6e7f714"",
                     ""expectedControlType"": ""Button"",
@@ -174,6 +174,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""name"": ""OpenQuests"",
                     ""type"": ""Button"",
                     ""id"": ""d6332e4e-94d7-48cc-9624-d9660d3d6d68"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""EquipBow"",
+                    ""type"": ""Button"",
+                    ""id"": ""62a2e969-ccf2-4680-b0eb-03d86cea8b62"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
@@ -517,7 +525,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=0)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -528,7 +536,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -539,7 +547,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=2)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -550,7 +558,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=3)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -561,7 +569,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=4)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -572,7 +580,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=5)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -583,7 +591,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=6)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -594,7 +602,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=7)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -605,7 +613,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=8)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -616,7 +624,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """",
                     ""processors"": ""Scale(factor=9)"",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectWeapon"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -705,6 +713,17 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""OpenQuests"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""256ef89d-6c32-4f6c-8487-5ce8fbe49ff9"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""EquipBow"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -833,12 +852,13 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_TabMenu = m_GroundActionMap.FindAction("TabMenu", throwIfNotFound: true);
         m_GroundActionMap_Console = m_GroundActionMap.FindAction("Console", throwIfNotFound: true);
         m_GroundActionMap_SwitchWeaponSet = m_GroundActionMap.FindAction("SwitchWeaponSet", throwIfNotFound: true);
-        m_GroundActionMap_SelectWeapon = m_GroundActionMap.FindAction("SelectWeapon", throwIfNotFound: true);
+        m_GroundActionMap_SelectSpell = m_GroundActionMap.FindAction("SelectSpell", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
         m_GroundActionMap_OpenInventory = m_GroundActionMap.FindAction("OpenInventory", throwIfNotFound: true);
         m_GroundActionMap_OpenMap = m_GroundActionMap.FindAction("OpenMap", throwIfNotFound: true);
         m_GroundActionMap_OpenQuests = m_GroundActionMap.FindAction("OpenQuests", throwIfNotFound: true);
+        m_GroundActionMap_EquipBow = m_GroundActionMap.FindAction("EquipBow", throwIfNotFound: true);
         // Dialogue
         m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         // Debug
@@ -909,12 +929,13 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_TabMenu;
     private readonly InputAction m_GroundActionMap_Console;
     private readonly InputAction m_GroundActionMap_SwitchWeaponSet;
-    private readonly InputAction m_GroundActionMap_SelectWeapon;
+    private readonly InputAction m_GroundActionMap_SelectSpell;
     private readonly InputAction m_GroundActionMap_KO;
     private readonly InputAction m_GroundActionMap_ChangeFocus;
     private readonly InputAction m_GroundActionMap_OpenInventory;
     private readonly InputAction m_GroundActionMap_OpenMap;
     private readonly InputAction m_GroundActionMap_OpenQuests;
+    private readonly InputAction m_GroundActionMap_EquipBow;
     public struct GroundActionMapActions
     {
         private @PlayerControls m_Wrapper;
@@ -933,12 +954,13 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @TabMenu => m_Wrapper.m_GroundActionMap_TabMenu;
         public InputAction @Console => m_Wrapper.m_GroundActionMap_Console;
         public InputAction @SwitchWeaponSet => m_Wrapper.m_GroundActionMap_SwitchWeaponSet;
-        public InputAction @SelectWeapon => m_Wrapper.m_GroundActionMap_SelectWeapon;
+        public InputAction @SelectSpell => m_Wrapper.m_GroundActionMap_SelectSpell;
         public InputAction @KO => m_Wrapper.m_GroundActionMap_KO;
         public InputAction @ChangeFocus => m_Wrapper.m_GroundActionMap_ChangeFocus;
         public InputAction @OpenInventory => m_Wrapper.m_GroundActionMap_OpenInventory;
         public InputAction @OpenMap => m_Wrapper.m_GroundActionMap_OpenMap;
         public InputAction @OpenQuests => m_Wrapper.m_GroundActionMap_OpenQuests;
+        public InputAction @EquipBow => m_Wrapper.m_GroundActionMap_EquipBow;
         public InputActionMap Get() { return m_Wrapper.m_GroundActionMap; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -990,9 +1012,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @SwitchWeaponSet.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
                 @SwitchWeaponSet.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
                 @SwitchWeaponSet.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
-                @SelectWeapon.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectWeapon;
-                @SelectWeapon.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectWeapon;
-                @SelectWeapon.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectWeapon;
+                @SelectSpell.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
                 @KO.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
                 @KO.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
                 @KO.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
@@ -1008,6 +1030,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @OpenQuests.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
                 @OpenQuests.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
                 @OpenQuests.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnOpenQuests;
+                @EquipBow.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnEquipBow;
+                @EquipBow.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnEquipBow;
+                @EquipBow.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnEquipBow;
             }
             m_Wrapper.m_GroundActionMapActionsCallbackInterface = instance;
             if (instance != null)
@@ -1054,9 +1079,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @SwitchWeaponSet.started += instance.OnSwitchWeaponSet;
                 @SwitchWeaponSet.performed += instance.OnSwitchWeaponSet;
                 @SwitchWeaponSet.canceled += instance.OnSwitchWeaponSet;
-                @SelectWeapon.started += instance.OnSelectWeapon;
-                @SelectWeapon.performed += instance.OnSelectWeapon;
-                @SelectWeapon.canceled += instance.OnSelectWeapon;
+                @SelectSpell.started += instance.OnSelectSpell;
+                @SelectSpell.performed += instance.OnSelectSpell;
+                @SelectSpell.canceled += instance.OnSelectSpell;
                 @KO.started += instance.OnKO;
                 @KO.performed += instance.OnKO;
                 @KO.canceled += instance.OnKO;
@@ -1072,6 +1097,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @OpenQuests.started += instance.OnOpenQuests;
                 @OpenQuests.performed += instance.OnOpenQuests;
                 @OpenQuests.canceled += instance.OnOpenQuests;
+                @EquipBow.started += instance.OnEquipBow;
+                @EquipBow.performed += instance.OnEquipBow;
+                @EquipBow.canceled += instance.OnEquipBow;
             }
         }
     }
@@ -1184,12 +1212,13 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnTabMenu(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
         void OnSwitchWeaponSet(InputAction.CallbackContext context);
-        void OnSelectWeapon(InputAction.CallbackContext context);
+        void OnSelectSpell(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
         void OnOpenInventory(InputAction.CallbackContext context);
         void OnOpenMap(InputAction.CallbackContext context);
         void OnOpenQuests(InputAction.CallbackContext context);
+        void OnEquipBow(InputAction.CallbackContext context);
     }
     public interface IDialogueActions
     {

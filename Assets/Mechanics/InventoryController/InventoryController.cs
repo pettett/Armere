@@ -44,7 +44,14 @@ namespace Armere.Inventory
 			writer.Write((int)item.itemName);
 		}
 	}
-
+	public class ItemStackT<ItemDataT> : ItemStackBase where ItemDataT : ItemData
+	{
+		public ItemStackT(ItemDataT item) : base(item) { }
+		public ItemDataT itemData
+		{
+			get => (ItemDataT)item;
+		}
+	}
 	[CreateAssetMenu(menuName = "Game/Inventory")]
 	public class InventoryController : SaveableSO, IVariableAddon
 	{
@@ -110,6 +117,8 @@ namespace Armere.Inventory
 
 		public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack(db[(ItemName)reader.ReadInt()], reader.ReadUInt());
 		public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase(db[(ItemName)reader.ReadInt()]);
+		public ItemStackT<ItemT> ItemStackTReader<ItemT>(GameDataReader reader) where ItemT : ItemData => new ItemStackT<ItemT>((ItemT)db[(ItemName)reader.ReadInt()]);
+
 		public PotionItemUnique PotionItemUniqueReader(GameDataReader reader) =>
 			new PotionItemUnique(db[(ItemName)reader.ReadInt()], reader.ReadFloat(), reader.ReadFloat());
 
@@ -133,7 +142,7 @@ namespace Armere.Inventory
 			quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
 			melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
 			sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-			bow = new UniquesPanel<ItemStackBase>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+			bow = new UniquesPanel<ItemStackT<BowItemData>>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
 			armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
 			potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
 			ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
@@ -152,7 +161,7 @@ namespace Armere.Inventory
 			quest.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
 			melee.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
 			sideArm.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
-			bow.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
+			bow.items = ReadList<ItemStackT<BowItemData>>(reader, ItemStackTReader<BowItemData>);
 			armour.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
 
 			potions.items = ReadList<PotionItemUnique>(reader, PotionItemUniqueReader);
@@ -194,7 +203,7 @@ namespace Armere.Inventory
 		public StackPanel<ItemStack> common;
 		public UniquesPanel<ItemStackBase> quest;
 		public UniquesPanel<ItemStackBase> melee;
-		public UniquesPanel<ItemStackBase> bow;
+		public UniquesPanel<ItemStackT<BowItemData>> bow;
 		public UniquesPanel<ItemStackBase> armour;
 		public StackPanel<ItemStack> ammo;
 		public UniquesPanel<ItemStackBase> sideArm;

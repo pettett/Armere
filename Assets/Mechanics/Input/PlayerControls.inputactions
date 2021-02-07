@@ -118,7 +118,7 @@
                     "interactions": "Press(behavior=2)"
                 },
                 {
-                    "name": "SelectWeapon",
+                    "name": "SelectSpell",
                     "type": "Value",
                     "id": "08949489-2e63-45e8-b72a-7891e6e7f714",
                     "expectedControlType": "Button",
@@ -161,6 +161,14 @@
                     "name": "OpenQuests",
                     "type": "Button",
                     "id": "d6332e4e-94d7-48cc-9624-d9660d3d6d68",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "EquipBow",
+                    "type": "Button",
+                    "id": "62a2e969-ccf2-4680-b0eb-03d86cea8b62",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -504,7 +512,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=0)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -515,7 +523,7 @@
                     "interactions": "",
                     "processors": "Scale",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -526,7 +534,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=2)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -537,7 +545,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=3)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -548,7 +556,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=4)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -559,7 +567,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=5)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -570,7 +578,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=6)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -581,7 +589,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=7)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -592,7 +600,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=8)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -603,7 +611,7 @@
                     "interactions": "",
                     "processors": "Scale(factor=9)",
                     "groups": "KeyboardMouse",
-                    "action": "SelectWeapon",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -692,6 +700,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "OpenQuests",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "256ef89d-6c32-4f6c-8487-5ce8fbe49ff9",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "EquipBow",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

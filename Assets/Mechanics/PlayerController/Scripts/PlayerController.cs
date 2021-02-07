@@ -15,6 +15,7 @@ namespace Armere.PlayerController
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
 		public InventoryController inventory;
+		public SpellUnlockTree spellTree;
 
 		[NonSerialized] public MovementState currentState;
 
@@ -93,12 +94,12 @@ namespace Armere.PlayerController
 
 		public LayerMask m_groundLayerMask;
 		public LayerMask m_waterLayerMask;
-		[NonSerialized]public Rigidbody rb;
+		[NonSerialized] public Rigidbody rb;
 		[NonSerialized] new public CapsuleCollider collider;
 		[NonSerialized] public Animator animator;
 		[NonSerialized] public Health health;
 
-		[NonSerialized]public WeaponGraphicsController weaponGraphicsController;
+		[NonSerialized] public WeaponGraphicsController weaponGraphicsController;
 
 
 
@@ -248,13 +249,13 @@ namespace Armere.PlayerController
 
 		private void OnEnable()
 		{
-			inputReader.selectWeaponEvent += OnSelectWeapon;
-			inputReader.switchWeaponSetEvent += SwitchWeaponSet;
+			inputReader.equipBowEvent += OnEquipBow;
+			inputReader.switchWeaponSetEvent += OnSelectWeapon;
 		}
 		private void OnDisable()
 		{
-			inputReader.selectWeaponEvent -= OnSelectWeapon;
-			inputReader.switchWeaponSetEvent -= SwitchWeaponSet;
+			inputReader.equipBowEvent -= OnEquipBow;
+			inputReader.switchWeaponSetEvent -= OnSelectWeapon;
 		}
 
 
@@ -554,23 +555,21 @@ namespace Armere.PlayerController
 
 		private ItemType[] selectingSlot = null;
 
-		private void OnSelectWeapon(InputActionPhase phase, int index)
+		private void OnEquipBow(InputActionPhase phase)
 		{
 			if (phase == InputActionPhase.Performed)
 			{
-				if (index == 0 || index == 1)
+				if (weaponSet != WeaponSet.BowArrow)
 				{
-					if (weaponSet != (WeaponSet)index)
-					{
-						StartCoroutine(UnEquipAll());
-						weaponSet = (WeaponSet)index;
-					}
+					StartCoroutine(UnEquipAll());
+					weaponSet = WeaponSet.BowArrow;
 				}
+
 			}
 
 		}
 
-		private void SwitchWeaponSet(InputActionPhase phase)
+		private void OnSelectWeapon(InputActionPhase phase)
 		{
 			//print(String.Format("Switching on slot {0}", index));
 

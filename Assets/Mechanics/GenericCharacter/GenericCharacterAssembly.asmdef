@@ -12,7 +12,8 @@
         "Game.Environment.Fire",
         "Game.Environment.Grass",
         "MyBox",
-        "EventChannels"
+        "EventChannels",
+        "Armere.SaveLoadSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -6,9 +6,9 @@ using UnityEngine.AddressableAssets;
 namespace Armere.Inventory
 {
 
-    [CreateAssetMenu(menuName = "Game/Items/Bow Item Data", fileName = "New Bow Item Data")]
-    [AllowItemTypes(ItemType.Bow)]
-    public class BowItemData : WeaponItemData
-    {
-    }
+	[CreateAssetMenu(menuName = "Game/Items/Bow Item Data", fileName = "New Bow Item Data")]
+	[AllowItemTypes(ItemType.Bow)]
+	public class BowItemData : WeaponItemData
+	{
+	}
 }

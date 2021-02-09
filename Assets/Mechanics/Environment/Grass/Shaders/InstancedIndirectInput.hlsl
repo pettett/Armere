@@ -12,6 +12,11 @@ float4 _BaseMap_ST;
 StructuredBuffer<MatrixStruct> _Properties;
 CBUFFER_END
 
+//For ambient lighting:
+			// 	float4 unity_AmbientSky;
+			// 	float4 unity_AmbientEquator;
+			// 	float4 unity_AmbientGround;
+
 
 
 #endif

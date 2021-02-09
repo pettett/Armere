@@ -10,15 +10,15 @@ public class SavingIndicatorUI : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		onSavingBegin.onEventRaised += Enable;
-		onSavingFinish.onEventRaised += Disable;
+		onSavingBegin.OnEventRaised += Enable;
+		onSavingFinish.OnEventRaised += Disable;
 		Disable();
 	}
 
 	private void OnDestroy()
 	{
-		onSavingBegin.onEventRaised -= Enable;
-		onSavingFinish.onEventRaised -= Disable;
+		onSavingBegin.OnEventRaised -= Enable;
+		onSavingFinish.OnEventRaised -= Disable;
 	}
 
 	public void Enable()

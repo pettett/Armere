@@ -8,11 +8,11 @@ public class VoidEventReceiver : MonoBehaviour
 	public UnityEvent onEventRaised;
 	private void OnEnable()
 	{
-		eventChannel.onEventRaised += onEventRaised.Invoke;
+		eventChannel.OnEventRaised += onEventRaised.Invoke;
 	}
 	private void OnDisable()
 	{
-		eventChannel.onEventRaised -= onEventRaised.Invoke;
+		eventChannel.OnEventRaised -= onEventRaised.Invoke;
 	}
 
 }

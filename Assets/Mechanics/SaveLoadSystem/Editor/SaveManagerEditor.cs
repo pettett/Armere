@@ -16,12 +16,12 @@ public class SaveManagerEditor : Editor
 	public void OnEnable()
 	{
 		DiscoverSaves();
-		t.onSavingFinish.onEventRaised += DiscoverSaves;
+		t.onSavingFinish.OnEventRaised += DiscoverSaves;
 	}
 
 	private void OnDisable()
 	{
-		t.onSavingFinish.onEventRaised -= DiscoverSaves;
+		t.onSavingFinish.OnEventRaised -= DiscoverSaves;
 	}
 
 	public void DiscoverSaves()

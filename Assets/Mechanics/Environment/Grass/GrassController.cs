@@ -135,7 +135,9 @@ public class GrassController : MonoBehaviour
 
 		public void InitLayer(GrassController c, int index)
 		{
-			seed = Mathf.CeilToInt(c.range * 2 * index);
+			UnityEngine.Random.InitState(index + texture.GetHashCode());
+			seed = UnityEngine.Random.Range(0, short.MaxValue);
+
 			currentGrassCellCapacityInView = 0;
 
 			drawIndirectArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);

@@ -44,6 +44,7 @@ Shader "Custom/InstancedIndirectColor" {
 			#pragma fragment frag
 
 
+
 			#include "InstancedIndirectInput.hlsl"
 			
 			struct appdata_t {
@@ -158,7 +159,7 @@ Shader "Custom/InstancedIndirectColor" {
 				float shadow = light.distanceAttenuation * light.shadowAttenuation;
 
 
-				float3 diffuseColor = light.color * shadow ;
+				float3 diffuseLight = light.color * shadow ;
 
 				half3 reflectVector = reflect(-i.viewDirectionWS, normal);
 
@@ -166,12 +167,11 @@ Shader "Custom/InstancedIndirectColor" {
 
 				float3 bakedGI = SAMPLE_GI(i.lightmapUV, i.vertexSH, normal);
 
-				MixRealtimeAndBakedGI(light, normal, bakedGI, half4(0, 0, 0, 0));
+				MixRealtimeAndBakedGI(light, normal, bakedGI);
 
-				float3 ambient = GlossyEnvironmentReflection(reflectVector,1,0.1) + bakedGI;
+				float3 ambientLight = GlossyEnvironmentReflection(reflectVector,1,0.1) + bakedGI + unity_AmbientSky;
 
-				float3 col =saturate(ambient+diffuseColor) * diffuse.rgb;
-
+				float3 col = (ambientLight+diffuseLight) * diffuse.rgb;
 
 				col = MixFog(col, i.fogFactor);
 				return float4(col,1);

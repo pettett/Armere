@@ -3,6 +3,12 @@ using UnityEngine.Events;
 public abstract class EventChannelSO<T0> : ScriptableObject
 {
 	public event UnityAction<T0> OnEventRaised;
+	public T0 defaultValue;
+	[MyBox.ButtonMethod]
+	public void RaiseDefaultEvent()
+	{
+		RaiseEvent(defaultValue);
+	}
 
 	public void RaiseEvent(T0 arg)
 	{

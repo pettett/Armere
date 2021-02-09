@@ -47,6 +47,8 @@ public class TimeDayController : MonoBehaviour
 	public float windChangingSpeed = 2;
 	public Vector3 Wind { get; private set; }
 
+	public Vector3EventChannelSO onWindDirectionChanged;
+
 
 	[Header("Weather")]
 
@@ -57,6 +59,8 @@ public class TimeDayController : MonoBehaviour
 
 	[Header("Skybox Colours")]
 	public Color daySkyColour = new Color(0.6038275f, 1, 1);
+	public Color dayEquatorColour = new Color(0.6038275f, 1, 1);
+	public Color dayGroundColour = new Color(0.6038275f, 1, 1);
 	public Color nightSkyColour = new Color(0, 0, 0);
 	public Vector2 skyColorTransitionPeriod = new Vector2(0.3f, -0.3f);
 
@@ -143,17 +147,18 @@ public class TimeDayController : MonoBehaviour
 
 			hour = Mathf.Repeat(hour, 24);
 
-			sun.gameObject.SetActive(hour > sunDisabledPeriod.x && hour < sunDisabledPeriod.y);
-
-			//take 90 so the 0th hour is pointing straight down (-90)
-			if (sun != null)
-				sun.rotation = Quaternion.Euler(0, 90, azimuth) * Quaternion.Euler(hour * degreesPerHour - 90, 0, 0);
 
 
-			float colorTransition = Mathf.SmoothStep(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+			float colorTransition = Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+
+
+
 			RenderSettings.ambientSkyColor = Color.Lerp(daySkyColour, nightSkyColour, colorTransition);
+			RenderSettings.ambientEquatorColor = Color.Lerp(dayEquatorColour, nightSkyColour, colorTransition);
+			RenderSettings.ambientGroundColor = Color.Lerp(dayGroundColour, nightSkyColour, colorTransition);
 		}
 
+		UpdateSunPosition();
 
 
 		Color fog = fogOverDay.Evaluate(hour * oneOver24);
@@ -174,9 +179,16 @@ public class TimeDayController : MonoBehaviour
 			Mathf.Lerp(windStrengthRange.x, windStrengthRange.y, Mathf.PerlinNoise(Time.time * windChangingSpeed, 0.5f));
 
 		Wind = new Vector3(w.x, 0, w.y);
+		onWindDirectionChanged.RaiseEvent(Wind);
 
+	}
+	[MyBox.ButtonMethod]
+	public void UpdateSunPosition()
+	{
 
+		RenderSettings.sun.gameObject.SetActive(hour > sunDisabledPeriod.x && hour < sunDisabledPeriod.y);
 
-
+		//take 90 so the 0th hour is pointing straight down (-90)
+		RenderSettings.sun.transform.rotation = Quaternion.Euler(0, 90, azimuth) * Quaternion.Euler(hour * degreesPerHour - 90, 0, 0);
 	}
 }

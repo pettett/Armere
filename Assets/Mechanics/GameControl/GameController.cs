@@ -31,7 +31,7 @@ public class GameController : SceneSaveData
 
 	public void SetOnDeathEvent()
 	{
-		onPlayerDeathChannel.onEventRaised += OnPlayerDeath;
+		onPlayerDeathChannel.OnEventRaised += OnPlayerDeath;
 	}
 
 	public void OnPlayerDeath()

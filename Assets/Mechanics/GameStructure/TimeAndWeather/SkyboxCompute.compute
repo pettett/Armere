@@ -1,0 +1,52 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+int face;
+int width;
+
+float3 _DaySkyColor;
+float3 _NightSkyColor;
+float2 _SkyColorTransitionPeriod;
+
+float3 _SunDir;
+float3 _SunTangent;
+float3 _SunCoTangent;
+
+
+
+float3 SampleSkybox(float3 direction){
+	float dayAmount = smoothstep(_SkyColorTransitionPeriod.x,_SkyColorTransitionPeriod.y,_SunDir.y);
+	return lerp(_DaySkyColor,_NightSkyColor,dayAmount);
+}
+
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+
+	float2 uv = float2(id.xy) / float(width);
+
+
+
+	float3 faceDir = float3(
+	    (int(face == 0) - int(face==1))  +
+		int(face == 2) * (uv.x*2-1)+int(face == 3)*(uv.x*2-1) +
+		int(face == 4) * (uv.x*2-1)-int(face == 5)*(uv.x*2-1),
+		
+		(int(face == 2) - int(face == 3))  +
+	    -int(face == 0) * (uv.y*2-1) -int(face == 1)*(uv.y*2-1) +
+	    -int(face == 4) * (uv.y*2-1) -int(face == 5)*(uv.y*2-1),
+		
+		(int(face == 4) - int(face == 5))  +
+	    -int(face == 0)*(uv.x*2-1) + int(face == 1)*(uv.x*2-1) +
+		int(face == 2) *(uv.y*2-1) - int(face == 3)*(uv.y*2-1)
+	);
+
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}

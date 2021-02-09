@@ -36,7 +36,7 @@ public class ExplosionFactory : MonoBehaviour
 	// Update is called once per frame
 	void CreateExplosion(Vector3 position)
 	{
-
+		Debug.Log("Creating explosion");
 		var effected = Physics.OverlapSphere(position, createdExplosionRadius, -1, QueryTriggerInteraction.Ignore);
 		foreach (var rb in effected)
 		{
@@ -44,7 +44,7 @@ public class ExplosionFactory : MonoBehaviour
 			rb.GetComponent<IExplosionEffector>()?.OnExplosion(position, createdExplosionRadius, createdExplosionForce);
 		}
 
-		onExplosionEventChannel.RaiseEvent(position, createdExplosionRadius);
+		onExplosionEventChannel?.RaiseEvent(position, createdExplosionRadius);
 
 		StartCoroutine(Explode(position));
 	}
@@ -62,6 +62,7 @@ public class ExplosionFactory : MonoBehaviour
 		{
 			yield return loadedPrefab;
 		}
+
 
 		var x = Instantiate(loadedPrefab.Result, position, Quaternion.identity);
 		//Takes in diameter... i think?

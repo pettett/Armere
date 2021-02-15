@@ -4,20 +4,32 @@ using UnityEngine;
 
 public class HealthFlammableBody : FlammableBody
 {
-    public float damagePerSecond;
-    Health health;
-    protected override void Start()
-    {
-        health = GetComponent<Health>();
+	public float damagePerSecond;
+	public float damageInterval = 1;
+	Health health;
+	float nextDamageTick;
 
-        base.Start();
-    }
+	protected override void Start()
+	{
+		health = GetComponent<Health>();
 
-    private void Update()
-    {
-        if (health != null && onFire)
-        {
-            health.Damage(damagePerSecond * Time.deltaTime, gameObject);
-        }
-    }
+		base.Start();
+		onFireLit.AddListener(OnFireLit);
+	}
+	void OnFireLit(bool lit)
+	{
+		nextDamageTick = Time.time + nextDamageTick;
+	}
+
+	private void Update()
+	{
+		if (health != null && onFire)
+		{
+			if (Time.time > nextDamageTick)
+			{
+				health.Damage(damagePerSecond * damageInterval, gameObject);
+				nextDamageTick += damageInterval;
+			}
+		}
+	}
 }

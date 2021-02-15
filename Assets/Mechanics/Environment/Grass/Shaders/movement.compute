@@ -95,65 +95,69 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     MeshProperties properties = _Properties[index];
 
-    MeshProperties p = _Properties[index];
 
-    // In a transform matrix, the position (translation) vector is the last column.
+	_Output[index] = (MatrixStruct)0;
+	
+	int exists = int(properties.chunkID > 0);
 
-    float damp = 0;
-    float3 dampDir = float3(0.01,0,0);
+	// In a transform matrix, the position (translation) vector is the last column.
 
-    for (int i = 0; i < pushers; i++){
-        float effect =  distance(p.position, _PusherPositions[i].xyz);
-        float radius = _PusherPositions[i].w;
+	float damp = 0;
+	float3 dampDir = float3(0.01,0,0);
 
-        effect = (radius- clamp(0.0, radius, effect))/radius;
+	// for (int i = 0; i < pushers; i++){
+	// 	float effect =  distance(properties.position, _PusherPositions[i].xyz);
+	// 	float radius = _PusherPositions[i].w;
 
-        damp = max(damp,effect);
-        dampDir += (p.position - _PusherPositions[i].xyz) * effect;
-    }
+	// 	effect = (radius- clamp(0.0, radius, effect))/radius;
 
-    float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
+	// 	damp = max(damp,effect);
+	// 	dampDir += (properties.position - _PusherPositions[i].xyz) * effect;
+	// }
 
-    // Scale and reverse distance so that we get a value which fades as it gets further away.
-    // Max distance is 5.0.
+	float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
 
-    //_Properties[id.x].rotation.y += 1 * deltatime;
+	// Scale and reverse distance so that we get a value which fades as it gets further away.
+	// Max distance is 5.0.
 
-    float2 rot = float2(
-                snoise(p.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
-                snoise(p.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+	//_Properties[id.x].rotation.y += 1 * deltatime;
 
-    // The amount of wind decreases as damp increases
-    //_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
+	float2 rot = float2(
+				snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
+				snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
 
-    
-    float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
+	// The amount of wind decreases as damp increases
+	//_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
 
-    float4x4 mat_local_r = Rotation(rot.x ,p.yRot,rot.y);
-   // float4x4 mat_local_r = Rotation(pi,0,0);
+	
+	float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
+
+	float4x4 mat_local_r = Rotation(rot.x ,properties.yRot,rot.y);
+// float4x4 mat_local_r = Rotation(pi,0,0);
 
 
-    // Create a new translation matrix which represents a move in a direction.
-    float4x4 translation = float4x4(
-        1, 0, 0, p.position.x,
-        0, 1, 0, p.position.y,
-        0, 0, 1, p.position.z,
-        0, 0, 0, 1
-    );
+	// Create a new translation matrix which represents a move in a direction.
+	float4x4 translation = float4x4(
+		1, 0, 0, properties.position.x,
+		0, 1, 0, properties.position.y,
+		0, 0, 1, properties.position.z,
+		0, 0, 0, 1
+	);
 
-    // Apply translation to existing matrix, which will be read in the shader.
+	// Apply translation to existing matrix, which will be read in the shader.
 
-    float2 size = properties.size;
-    float distance = length(properties.position.xyz - cameraPosition);
-    float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
+	float2 size = properties.size;
+	float distance = length(properties.position.xyz - cameraPosition);
+	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
 
-    size.y *= view;
-    //If over the threshold completely disappear it
-    size.x *= 1 - step(viewRadiusMinMax.y,distance);
+	size.y *= view;
+	//If over the threshold completely disappear it
+	size.x *= 1 - step(viewRadiusMinMax.y,distance);
 
-    _Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
-    _Output[index].color = p.color;
-
+	_Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size))) * exists;
+	_Output[index].color = properties.color * exists;
+	_Output[index].chunkID = properties.chunkID;
+	
     //_Output[index].color = view;
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.

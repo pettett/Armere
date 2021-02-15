@@ -12,10 +12,8 @@ cbuffer CB{
 #include "MeshProperties.hlsl"
 
 
-StructuredBuffer<uint> _IndirectArgs;
+RWStructuredBuffer<MeshProperties> _Grass;
 
-StructuredBuffer<MeshProperties> _Grass;
-AppendStructuredBuffer<MeshProperties> _CulledGrass;
 
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
@@ -36,7 +34,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
         p.x * s + p.z * c
     );
 
-    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) && index < _IndirectArgs[1] ){
-        _CulledGrass.Append(_Grass[index]);
+    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) ){
+        _Grass[index].chunkID = 0;
     }
 }

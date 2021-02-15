@@ -12,8 +12,7 @@ cbuffer CB{
 
 StructuredBuffer<uint> _IndirectArgs;
 
-StructuredBuffer<MeshProperties> _Grass;
-AppendStructuredBuffer<MeshProperties> _CulledGrass;
+RWStructuredBuffer<MeshProperties> _Grass;
 
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
@@ -23,7 +22,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = DispatchThreadToIndex(id);
 
-    if (_Grass[index].chunkID != chunkID && index < _IndirectArgs[1] ){
-        _CulledGrass.Append(_Grass[index]);
+    if (_Grass[index].chunkID == chunkID){
+        _Grass[index].chunkID = 0;
     }
 }

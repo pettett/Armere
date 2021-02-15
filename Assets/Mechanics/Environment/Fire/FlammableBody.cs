@@ -13,9 +13,13 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 	public UnityEvent<bool> onFireLit;
 	public UnityEvent<bool> onFireExtinguish;
 
+	public UnityEvent onFireStart;
+	public UnityEvent onFireEnd;
+
 	public bool onFire = false;
 	public bool waterExtinguishes = true;
 	public bool explosionLights = true;
+
 	public void OnExplosion(Vector3 source, float radius, float force)
 	{
 		if (explosionLights)
@@ -24,6 +28,8 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 
 	protected virtual void Start()
 	{
+
+
 		if (startLit)
 		{
 			Light();
@@ -60,6 +66,16 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 		onFire = enabled;
 		onFireLit.Invoke(enabled);
 		onFireExtinguish.Invoke(!enabled);
+
+		if (enabled)
+		{
+			onFireStart.Invoke();
+		}
+		else
+		{
+			onFireEnd.Invoke();
+		}
+
 	}
 
 	public void OnWaterEnter(WaterController waterController)

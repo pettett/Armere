@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-
+[ExecuteAlways]
 public class SkyboxController : MonoBehaviour
 {
 	RenderTexture[] skyboxRenderCubemaps;
@@ -11,12 +11,13 @@ public class SkyboxController : MonoBehaviour
 
 	public int widthPower = 7;
 	public ComputeShader skyboxCompute;
-	public int skippedFrames = 10;
+	public float skyboxUpdateThreshold = 0.1f;
 
 	// Start is called before the first frame update
-	private void OnEnable()
+	private void Start()
 	{
 		skyboxRenderCubemaps = new RenderTexture[6];
+
 		for (int i = 0; i < 6; i++)
 		{
 			skyboxRenderCubemaps[i] = new RenderTexture(new RenderTextureDescriptor(1 << widthPower, 1 << widthPower));
@@ -25,6 +26,10 @@ public class SkyboxController : MonoBehaviour
 			//skyboxRenderCubemaps.volumeDepth = 6;
 
 			skyboxRenderCubemaps[i].enableRandomWrite = true;
+			skyboxRenderCubemaps[i].Create();
+
+			skyboxCompute.SetTexture(i, "Result", skyboxRenderCubemaps[i]);
+			skyboxCompute.SetInt("width", 1 << widthPower);
 		}
 
 
@@ -38,50 +43,50 @@ public class SkyboxController : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	private void OnDisable()
+	private void OnDestroy()
 	{
 
-		Destroy(skyboxCubemap);
+		DestroyImmediate(skyboxCubemap, false);
 		for (int i = 0; i < 6; i++)
 		{
-			Destroy(skyboxRenderCubemaps[i]);
+			DestroyImmediate(skyboxRenderCubemaps[i], false);
 		}
 
 
 		RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;
 	}
-	int frame = 0;
+	Vector4 lastColor;
+
 
 	void OnBeginCameraRendering(ScriptableRenderContext context, Camera[] camera)
 	{
-		frame++;
-		if (frame % skippedFrames == 0)
+		if (TimeDayController.singleton == null) return;
+
+		//Get current skybox color and compare it to before
+		Vector4 currentCol = TimeDayController.singleton.GetSkyColor();
+
+		if ((lastColor - currentCol).sqrMagnitude > skyboxUpdateThreshold)
 		{
+			//Update the skybox
+			lastColor = currentCol;
 
 			CommandBuffer buffer = CommandBufferPool.Get();
 
+
+
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_DaySkyColor, TimeDayController.singleton.daySkyColour);
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_NightSkyColor, TimeDayController.singleton.nightSkyColour);
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SkyColorTransitionPeriod, TimeDayController.singleton.skyColorTransitionPeriod);
+
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunDir, -RenderSettings.sun.transform.forward);
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunCoTangent, -RenderSettings.sun.transform.up);
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunTangent, -RenderSettings.sun.transform.right);
 			int width = 1 << (widthPower - 3);
 
 			for (int i = 0; i < 6; i++)
 			{
-				if (skyboxRenderCubemaps[i].IsCreated())
-				{
-					buffer.SetComputeTextureParam(skyboxCompute, 0, "Result", skyboxRenderCubemaps[i]);
-					buffer.SetComputeIntParam(skyboxCompute, "face", i);
-					buffer.SetComputeIntParam(skyboxCompute, "width", 1 << widthPower);
-
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_DaySkyColor, TimeDayController.singleton.daySkyColour);
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_NightSkyColor, TimeDayController.singleton.nightSkyColour);
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SkyColorTransitionPeriod, TimeDayController.singleton.skyColorTransitionPeriod);
-
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunDir, -RenderSettings.sun.transform.forward);
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunCoTangent, -RenderSettings.sun.transform.up);
-					buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunTangent, -RenderSettings.sun.transform.right);
-
-					//2^width / 8 = 2^width / 2^3 = 2^(width-3)
-
-					buffer.DispatchCompute(skyboxCompute, 0, width, width, 1);
-				}
+				//2^width / 8 = 2^width / 2^3 = 2^(width-3)
+				buffer.DispatchCompute(skyboxCompute, i, width, width, 1);
 			}
 
 

@@ -1,5 +1,10 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel CSPositiveX
+#pragma kernel CSNegativeX
+#pragma kernel CSPositiveY
+#pragma kernel CSNegativeY
+#pragma kernel CSPositiveZ
+#pragma kernel CSNegativeZ
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -18,35 +23,85 @@ float3 _SunCoTangent;
 
 
 
-float3 SampleSkybox(float3 direction){
+float3 SampleSkybox(float3 viewDirection){
 	float dayAmount = smoothstep(_SkyColorTransitionPeriod.x,_SkyColorTransitionPeriod.y,_SunDir.y);
-	return lerp(_DaySkyColor,_NightSkyColor,dayAmount);
+	
+	// float sunDot = dot(viewDirection,_SunDir);
+	// float3 horziontalDir = normalize(float3(viewDirection.x,0,viewDirection.z));
+
+	// float amountHorizontal = saturate(dot(viewDirection,horziontalDir));
+
+	// float sunAngle = ((acos(saturate(sunDot)) / 3.14151) - 0.46) * 0.45;
+	// float sunSetPower = pow(saturate(( amountHorizontal - 0.94 ) * sunAngle),1.87) * 269;
+	
+	
+	return lerp(_DaySkyColor,_NightSkyColor,dayAmount);// + float3(0.9339623,0.4442319,0.03083839) *sunSetPower ;
 }
 
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void CSPositiveX (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
 
 	float2 uv = float2(id.xy) / float(width);
 
+	float3 faceDir = float3(1 ,-(uv.y*2-1),-(uv.x*2-1));
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}
 
 
-	float3 faceDir = float3(
-	    (int(face == 0) - int(face==1))  +
-		int(face == 2) * (uv.x*2-1)+int(face == 3)*(uv.x*2-1) +
-		int(face == 4) * (uv.x*2-1)-int(face == 5)*(uv.x*2-1),
-		
-		(int(face == 2) - int(face == 3))  +
-	    -int(face == 0) * (uv.y*2-1) -int(face == 1)*(uv.y*2-1) +
-	    -int(face == 4) * (uv.y*2-1) -int(face == 5)*(uv.y*2-1),
-		
-		(int(face == 4) - int(face == 5))  +
-	    -int(face == 0)*(uv.x*2-1) + int(face == 1)*(uv.x*2-1) +
-		int(face == 2) *(uv.y*2-1) - int(face == 3)*(uv.y*2-1)
-	);
+[numthreads(8,8,1)]
+void CSNegativeX (uint3 id : SV_DispatchThreadID)
+{
 
+	float2 uv = float2(id.xy) / float(width);
+
+	float3 faceDir = float3(-1, -(uv.y*2-1),(uv.x*2-1) );
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}
+
+
+[numthreads(8,8,1)]
+void CSPositiveY (uint3 id : SV_DispatchThreadID)
+{
+
+	float2 uv = float2(id.xy) / float(width);
+
+	float3 faceDir = float3(uv.x*2-1,1 ,uv.y*2-1);
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}
+
+[numthreads(8,8,1)]
+void CSNegativeY (uint3 id : SV_DispatchThreadID)
+{
+
+	float2 uv = float2(id.xy) / float(width);
+
+	float3 faceDir = float3((uv.x*2-1),-1 ,-(uv.y*2-1));
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}
+
+[numthreads(8,8,1)]
+void CSPositiveZ (uint3 id : SV_DispatchThreadID)
+{
+
+	float2 uv = float2(id.xy) / float(width);
+
+	float3 faceDir = float3((uv.x*2-1),-(uv.y*2-1),1);
+
+    Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
+}
+[numthreads(8,8,1)]
+void CSNegativeZ (uint3 id : SV_DispatchThreadID)
+{
+
+	float2 uv = float2(id.xy) / float(width);
+
+	float3 faceDir = float3(-uv.x*2+1,-uv.y*2+1 ,-1);
 
     Result[id.xy] = float4(SampleSkybox(normalize(faceDir)), 0.0);
 }

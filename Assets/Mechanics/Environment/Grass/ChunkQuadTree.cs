@@ -198,8 +198,8 @@ public class QuadTree : QuadTreeLeaf
 
 	public static QuadTree CreateQuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int minCellGroupSize, int maxCellGroupSize)
 	{
-		int id = 0;
-		int id2 = 0;
+		int id = 1;
+		int id2 = 1;
 		return new QuadTree(chunks, centre, size, 0, 0, chunks.GetLength(0), chunks.GetLength(1), minCellGroupSize, maxCellGroupSize, ref id, ref id2);
 	}
 

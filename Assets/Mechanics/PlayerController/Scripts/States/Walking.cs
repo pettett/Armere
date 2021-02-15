@@ -34,7 +34,7 @@ namespace Armere.PlayerController
 		//shooting variables for gizmos
 		DebugMenu.DebugEntry entry;
 
-		bool forceForwardHeading = false;
+		bool forceForwardHeadingToCamera = false;
 		bool grounded;
 		bool holdingCrouchKey;
 		bool holdingSprintKey;
@@ -451,7 +451,7 @@ namespace Armere.PlayerController
 
 		public void GetDesiredVelocity(Vector3 playerDirection, float movementSpeed, float speedScalar, out Vector3 desiredVelocity)
 		{
-			if (forceForwardHeading)
+			if (forceForwardHeadingToCamera)
 			{
 				Vector3 forward = GameCameras.s.cameraTransform.forward;
 				forward.y = 0;
@@ -730,7 +730,11 @@ namespace Armere.PlayerController
 			//Create a spell casting instance
 			if (spell < c.spellTree.selectedNodes.Length && spell >= 0)
 				if (c.spellTree.selectedNodes[spell] != null)
+				{
 					currentCastingSpell = c.spellTree.selectedNodes[spell].spell.BeginCast(gameObject);
+					forceForwardHeadingToCamera = true;
+
+				}
 
 		}
 
@@ -738,11 +742,13 @@ namespace Armere.PlayerController
 		{
 			currentCastingSpell.Cast();
 			currentCastingSpell = null;
+			forceForwardHeadingToCamera = false;
 		}
 		public void CancelSpellCast(bool manual)
 		{
 			currentCastingSpell.CancelCast(manual);
 			currentCastingSpell = null;
+			forceForwardHeadingToCamera = false;
 		}
 
 
@@ -850,7 +856,7 @@ namespace Armere.PlayerController
 
 				DisableBowAimView();
 
-				forceForwardHeading = false;
+				forceForwardHeadingToCamera = false;
 				c.animationController.lookAtPositionWeight = 0; // don't need to do others - master switch
 				c.animator.SetBool("Holding Bow", false);
 				c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
@@ -874,7 +880,7 @@ namespace Armere.PlayerController
 			OnReleaseBowEvent += ReleaseBow;
 			OnCancelBowEvent += End;
 
-			forceForwardHeading = true;
+			forceForwardHeadingToCamera = true;
 
 
 			EnableBowAimView();

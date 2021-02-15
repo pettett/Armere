@@ -97,6 +97,7 @@ Shader "Custom/InstancedIndirectColor" {
 
 				MatrixStruct p = _Properties[instanceID];
 
+
 				//Apply matrix transformations
 				float4 pos = mul(p.mat, i.vertex);
 
@@ -169,7 +170,7 @@ Shader "Custom/InstancedIndirectColor" {
 
 				MixRealtimeAndBakedGI(light, normal, bakedGI);
 
-				float3 ambientLight = GlossyEnvironmentReflection(reflectVector,1,0.1) + bakedGI + unity_AmbientSky;
+				float3 ambientLight = GlossyEnvironmentReflection(reflectVector,1,0.1) + bakedGI + unity_AmbientSky.rgb;
 
 				float3 col = (ambientLight+diffuseLight) * diffuse.rgb;
 

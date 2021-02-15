@@ -116,6 +116,10 @@ public class TimeDayController : MonoBehaviour
 	{
 		hour = Mathf.Repeat(newTime, 24);
 	}
+	public float GetColorTransition() => Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+
+	public Color GetSkyColor() => Color.Lerp(daySkyColour, nightSkyColour, GetColorTransition());
+
 
 	// Update is called once per frame
 	void Update()
@@ -145,18 +149,15 @@ public class TimeDayController : MonoBehaviour
 
 			hour += Time.deltaTime * hoursPerSecond;
 
-			hour = Mathf.Repeat(hour, 24);
-
-
-
-			float colorTransition = Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
-
-
-
-			RenderSettings.ambientSkyColor = Color.Lerp(daySkyColour, nightSkyColour, colorTransition);
-			RenderSettings.ambientEquatorColor = Color.Lerp(dayEquatorColour, nightSkyColour, colorTransition);
-			RenderSettings.ambientGroundColor = Color.Lerp(dayGroundColour, nightSkyColour, colorTransition);
 		}
+
+		hour = Mathf.Repeat(hour, 24);
+
+		float colorTransition = Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+
+		RenderSettings.ambientSkyColor = Color.Lerp(daySkyColour, nightSkyColour, colorTransition);
+		RenderSettings.ambientEquatorColor = Color.Lerp(dayEquatorColour, nightSkyColour, colorTransition);
+		RenderSettings.ambientGroundColor = Color.Lerp(dayGroundColour, nightSkyColour, colorTransition);
 
 		UpdateSunPosition();
 

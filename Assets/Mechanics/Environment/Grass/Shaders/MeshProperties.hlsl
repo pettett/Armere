@@ -12,6 +12,7 @@ struct MeshProperties {
     float yRot;
     float2 size;
     float3 color;
+	//If chunkID = 0, grass does not exist
     int chunkID;
 };
 

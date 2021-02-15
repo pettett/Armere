@@ -13,11 +13,13 @@ cbuffer CB{
     int seed;
     float4 densityLayerWeights;
     int2 dispatchSize;
+	int grassBladesOffset;
 }; 
 
 
 #include "MeshProperties.hlsl"
-AppendStructuredBuffer<MeshProperties> _Grass;
+RWStructuredBuffer<MeshProperties> _Grass;
+
 Texture2D<float3> _Gradient;
 SamplerState sampler_Gradient;
 
@@ -26,8 +28,6 @@ SamplerState sampler_Density;
 Texture2D<unorm half2> _Height;
 SamplerState sampler_Height;
 
-
-RWStructuredBuffer<uint> _IndirectArgs;
 
 //----------------------------------------------------------------------------------------
 ///  2 out, 2 in...
@@ -55,7 +55,8 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     MeshProperties m = (MeshProperties)0;
 
-    m.chunkID = chunkID;
+
+
     //Create the t value of the lerp for position and density uv
     float2 positionLerp = hash22(grassPositionBoundsMinMax.zw + id.xy+seed);
 
@@ -69,20 +70,22 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     float testValue = hash12(densityUV.xy + id.xy);
 
-    if (testValue < density){
+	//If the test value is lower than density, make chunkID 0 (destroy it)
+	m.chunkID = int(testValue < density) * chunkID;
+			
 
-        m.position.xz = pos;
+	m.position.xz = pos;
 
-		//For some reason, heightmap x is added to heightmap y with different scalars
-		float2 heightMapData = _Height.SampleLevel(sampler_Height, densityUV, 0) * 2;
+	//For some reason, heightmap x is added to heightmap y with different scalars
+	float2 heightMapData = _Height.SampleLevel(sampler_Height, densityUV, 0) * 2;
 
-        m.position.y = grassHeightRange.x + grassHeightRange.y * heightMapData.y + heightMapData.x * (grassHeightRange.y / 256);
+	m.position.y = grassHeightRange.x + grassHeightRange.y * heightMapData.y + heightMapData.x * (grassHeightRange.y / 256);
 
-        m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
-        m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));
+	m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
+	m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));
 
-        m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);
+	m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);
 
-        _Grass.Append(m);
-    }
+	_Grass[grassBladesOffset + id.x] = m;
+    
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.Assertions;
-
+[ExecuteAlways]
 public class GameObjectSpawner : Spawner
 {
 	public static async Task<SpawnableBody> SpawnAsync(AssetReferenceGameObject gameObject, Vector3 position, Quaternion rotation, Transform parent = null)
@@ -54,22 +54,33 @@ public class GameObjectSpawner : Spawner
 
 	private async void Start()
 	{
-		await Spawn();
-	}
 #if UNITY_EDITOR
+		if (Application.isPlaying)
+#endif
+			await Spawn();
+	}
+
+#if UNITY_EDITOR
+
+	private void Update()
+	{
+		if (Application.isPlaying) return;
+		DrawSpawnedItem(spawnedObject);
+	}
+
 	private void OnDrawGizmos()
 	{
 		if (Application.isPlaying) return;
-		Mesh m = spawnedObject.editorAsset.GetComponent<MeshFilter>().sharedMesh;
-		var mats = spawnedObject.editorAsset.GetComponent<MeshRenderer>().sharedMaterials;
-
-		for (int i = 0; i < m.subMeshCount; i++)
+		if (spawnedObject.editorAsset.TryGetComponent<MeshFilter>(out MeshFilter mf))
 		{
-			//Graphics.DrawMesh(m, transform.position, transform.rotation, mats[i], 0);
-			Gizmos.color = mats[i].color;
-			Gizmos.DrawMesh(m, i, transform.position, transform.rotation, transform.lossyScale);
-		}
+			Mesh m = mf.sharedMesh;
+			Gizmos.color = new Color(0, 1, 0, 0.02f);
+			Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, spawnedObject.editorAsset.transform.lossyScale);
+			Gizmos.DrawCube(m.bounds.center, m.bounds.size);
+			Gizmos.color = new Color(0, 1, 0, 0.2f);
 
+			Gizmos.DrawWireCube(m.bounds.center, m.bounds.size);
+		}
 	}
 #endif
 

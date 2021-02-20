@@ -11,7 +11,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 	public enum SightMode { View, Range }
 
 	public SightMode sightMode;
-	public ItemName meleeWeapon;
+	public MeleeWeaponItemData meleeWeapon;
 	public EnemyRoutine idleRoutine;
 	public bool autoEngage = false;
 
@@ -141,9 +141,9 @@ public class EnemyAI : AIBase, IExplosionEffector
 	}
 
 
-	public Task SetHeldWeapon(ItemName weapon)
+	public Task SetHeldWeapon(HoldableItemData weapon)
 	{
-		return weaponGraphics.holdables.melee.SetHeld((HoldableItemData)InventoryController.singleton.db[weapon]);
+		return weaponGraphics.holdables.melee.SetHeld(weapon);
 	}
 
 	public virtual void InitEnemy()
@@ -446,7 +446,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 
 			if (!trigger.inited)
 			{
-				trigger.Init(((MeleeWeaponItemData)InventoryController.singleton.db[meleeWeapon]).hitSparkEffect);
+				trigger.Init(meleeWeapon.hitSparkEffect);
 				trigger.weaponItem = meleeWeapon;
 				trigger.controller = gameObject;
 			}

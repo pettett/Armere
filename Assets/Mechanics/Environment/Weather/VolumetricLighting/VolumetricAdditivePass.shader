@@ -29,7 +29,7 @@ Shader "Hidden/Custom/VolumetricAdditivePass"
             float3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, i.texcoord);
 
             float raySample = SampleTexture(i.texcoord ,float2(0,0)) ;
-
+			
             raySample += SampleTexture( i.texcoord, float2(1,0) ) ;
             raySample += SampleTexture( i.texcoord ,float2(-1,0));
             raySample += SampleTexture( i.texcoord, float2(0,1));

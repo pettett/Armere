@@ -137,7 +137,14 @@ public class QuestManager : SaveableSO
 
 	public override void SaveBin(in GameDataWriter writer)
 	{
-		writer.Write(selectedQuest.questIndex);
+		if (selectedQuest == null)
+		{
+			writer.Write(-1);
+		}
+		else
+		{
+			writer.Write(selectedQuest.questIndex);
+		}
 		writer.Write(quests.Count);
 		writer.Write(completedQuests.Count);
 		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");

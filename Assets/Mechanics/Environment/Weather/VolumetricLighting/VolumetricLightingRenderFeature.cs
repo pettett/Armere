@@ -63,7 +63,7 @@ public class VolumetricLightingRenderFeature : ScriptableRendererFeature
 
 
 			// create a temporary render texture that matches the camera
-			cmd.GetTemporaryRT(sampleMap.id, m_IntermediateDesc.width, m_IntermediateDesc.height, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+			cmd.GetTemporaryRT(sampleMap.id, m_IntermediateDesc.width, m_IntermediateDesc.height, 0, FilterMode.Bilinear, RenderTextureFormat.R16);
 
 
 			//ConfigureTarget(sampleMap.Identifier());

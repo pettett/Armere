@@ -17,10 +17,10 @@ RWStructuredBuffer<MeshProperties> _Grass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(64,1,1)]
+[numthreads(THREADGROUPS,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id);
+    uint index = id.x;
 
     if (_Grass[index].chunkID == chunkID){
         _Grass[index].chunkID = 0;

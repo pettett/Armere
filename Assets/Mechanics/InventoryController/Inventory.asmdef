@@ -2,7 +2,6 @@
     "name": "Inventory",
     "rootNamespace": "Armere.Inventory",
     "references": [
-        "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:67eee2252d6606446998d1e1ebd34d13",
         "GUID:75469ad4d38634e559750d17036d5f7c",
@@ -14,7 +13,8 @@
         "GUID:fdf466a339e9a904c876ad44a47a52df",
         "GUID:d775d0892567ffe4596e26be73f32155",
         "GUID:98522ad6e33d1f847b30f036e1a50009",
-        "GUID:6583da777ddb692409ab0ff3ed793504"
+        "GUID:6583da777ddb692409ab0ff3ed793504",
+        "GUID:6bf7ec95c2c3ad2439a9b968432e123a"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

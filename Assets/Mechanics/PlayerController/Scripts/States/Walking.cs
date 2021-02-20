@@ -947,7 +947,7 @@ namespace Armere.PlayerController
 			if (!trigger.inited)
 			{
 				trigger.Init(meleeWeapon.hitSparkEffect);
-				trigger.weaponItem = meleeWeapon.itemName;
+				trigger.weaponItem = meleeWeapon;
 				trigger.controller = gameObject;
 			}
 		}

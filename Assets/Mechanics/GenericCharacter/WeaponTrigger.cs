@@ -7,7 +7,7 @@ using Armere.Inventory;
 [RequireComponent(typeof(SpawnableBody))]
 public class WeaponTrigger : MonoBehaviour
 {
-	public ItemName weaponItem;
+	public MeleeWeaponItemData weaponItem;
 	[System.NonSerialized] public GameObject controller;
 	[System.NonSerialized] public Collider trigger;
 	GameObject hitSparkEffect;
@@ -81,7 +81,7 @@ public class WeaponTrigger : MonoBehaviour
 			if (other.TryGetComponent<IAttackable>(out var attackable))
 			{
 				AttackResult attackResult = attackable.Attack(
-					((MeleeWeaponItemData)InventoryController.singleton.db[weaponItem]).attackFlags, weaponItem, controller, hitPosition);
+					weaponItem.attackFlags, weaponItem, controller, hitPosition);
 				//Attack the object, sending the result of the attack to the event listeners
 				onWeaponHit?.Invoke(attackResult);
 			}
@@ -107,22 +107,22 @@ public class WeaponTrigger : MonoBehaviour
 		}
 	}
 
-	private void OnDrawGizmos()
-	{
-		if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
-		{
-			filter = GetComponentInChildren<MeshFilter>();
-		}
+	// private void OnDrawGizmos()
+	// {
+	// 	if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
+	// 	{
+	// 		filter = GetComponentInChildren<MeshFilter>();
+	// 	}
 
-		Bounds grassBounds = filter.sharedMesh.bounds;
-		grassBounds.center = transform.position + transform.forward * 0.5f;
-		grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
-		float yRot = transform.eulerAngles.y;
+	// 	Bounds grassBounds = filter.sharedMesh.bounds;
+	// 	grassBounds.center = transform.position + transform.forward * 0.5f;
+	// 	grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
+	// 	float yRot = transform.eulerAngles.y;
 
 
-		Matrix4x4 mat = Matrix4x4.TRS(grassBounds.center, Quaternion.Euler(0, yRot, 0), grassBounds.size);
-		Gizmos.matrix = mat;
-		Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+	// 	Matrix4x4 mat = Matrix4x4.TRS(grassBounds.center, Quaternion.Euler(0, yRot, 0), grassBounds.size);
+	// 	Gizmos.matrix = mat;
+	// 	Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
 
-	}
+	// }
 }

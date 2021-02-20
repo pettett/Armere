@@ -84,6 +84,7 @@ public class GrassController : MonoBehaviour
 	public ComputeShader destroyGrassInBounds;
 	public ComputeShader destroyGrassInChunk;
 	public ComputeShader destroyGrassInRange;
+	public ComputeShader prefixScanCompute;
 
 	public Material material;
 	[System.NonSerialized] public Bounds bounds;
@@ -302,7 +303,12 @@ public class GrassController : MonoBehaviour
 	// Size() is a convenience funciton which returns the stride of the struct.
 	public struct MeshProperties
 	{
-
+		Vector3 position;
+		float yRot;
+		Vector2 scale;
+		Vector3 color;
+		//If chunkID = 0, grass does not exist
+		public uint chunkID;
 		//  rotation, position,size
 		public const int size = sizeof(float) * (3 + 1 + 2 + 3) + sizeof(int);
 	}
@@ -522,6 +528,91 @@ public class GrassController : MonoBehaviour
 		OnDestroy();
 		Start();
 	}
+
+	[ButtonMethod]
+	public void TestPrefixSum()
+	{
+
+
+
+		//This is all witchcraft :(
+		const int testSize = 20;
+
+		const int BLOCK_SIZE = 128;
+
+		int blocks = ((testSize + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
+		int scanBlocks = Mathf.NextPowerOfTwo(blocks);
+
+
+
+		var source = new ComputeBuffer(testSize, MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
+		var destination = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+		var workBuffer = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+
+		var a = source.BeginWrite<MeshProperties>(0, testSize);
+
+		uint[] correctData = new uint[testSize];
+		uint[] input = new uint[testSize];
+		uint runningTotal = 0;
+
+		for (int i = 0; i < testSize; i++)
+		{
+			uint value = (uint)UnityEngine.Random.Range(0, 2);
+			a[i] = new MeshProperties() { chunkID = value };
+			input[i] = value;
+
+			correctData[i] = runningTotal;
+
+			runningTotal += value;
+		}
+
+
+		source.EndWrite<MeshProperties>(testSize);
+
+		prefixScanCompute.SetBuffer(0, GrassController.ID_Grass, source);
+		prefixScanCompute.SetBuffer(0, "dst", destination);
+		prefixScanCompute.SetBuffer(0, "sumBuffer", workBuffer);
+
+		prefixScanCompute.SetBuffer(1, "dst", workBuffer);
+
+
+		prefixScanCompute.SetInt("m_numElems", testSize);
+		prefixScanCompute.SetInt("m_numBlocks", blocks); //Number of sharedmemory blokes
+		prefixScanCompute.SetInt("m_numScanBlocks", scanBlocks); //Number of thread groups
+
+
+		prefixScanCompute.Dispatch(0, blocks, 1, 1);
+
+
+		prefixScanCompute.Dispatch(1, 1, 1, 1);
+
+		if (blocks > 1)
+		{
+			prefixScanCompute.SetBuffer(2, "dst", destination);
+			prefixScanCompute.SetBuffer(2, "blockSum2", workBuffer);
+			prefixScanCompute.Dispatch(2, (blocks - 1), 1, 1);
+		}
+
+		uint[] result = new uint[testSize];
+		destination.GetData(result);
+
+
+		bool equal = Enumerable.SequenceEqual(result, correctData);
+		Debug.Log($"For {testSize} items prefix sum is equal? {equal}");
+		if (!equal || equal)
+		{
+			Debug.Log($"Blocks: {blocks}, scanBlocks: {scanBlocks}");
+			Debug.Log(string.Join(",", input));
+			Debug.Log(string.Join(",", result));
+			Debug.Log(string.Join(",", correctData));
+		}
+
+		source.Release();
+		destination.Release();
+		workBuffer.Release();
+	}
+
+
 
 	[System.NonSerialized] public Vector4[] pushersData = new Vector4[0];
 

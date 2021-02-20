@@ -38,8 +38,28 @@ public enum ItemName
 	CommonTrousers,
 	ExplosiveArrow,
 	SingleAxe,
-	DoubleAxe
+	DoubleAxe,
+	Mushroom0,
+	Mushroom1,
+	Mushroom2,
+	Broadsword,
+	Katana,
+	Longsword,
+	Rapier,
+	Sabre,
+	Scimitar,
+	Ulfberht
 }
+
+
+public enum AttackFlags
+{
+	Blunt,
+	Sharp,
+	Explosive
+}
+
+
 //Subset of item name
 public enum PotionItemName
 {

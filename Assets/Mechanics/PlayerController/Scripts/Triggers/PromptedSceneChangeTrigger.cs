@@ -5,7 +5,7 @@ using Armere.PlayerController;
 using Yarn;
 using Yarn.Unity;
 
-public class PromptedSceneChangeTrigger : SceneChangeTrigger, IDialogue, Yarn.Unity.IVariableAddon
+public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, Yarn.Unity.IVariableAddon
 {
     public YarnProgram dialogue;
 

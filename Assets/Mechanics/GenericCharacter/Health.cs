@@ -106,10 +106,9 @@ public class Health : SimpleHealth, IAttackable
 			healthChangedChannel?.RaiseEvent(health, maxHealth);
 	}
 
-	public AttackResult Attack(AttackFlags flags, ItemName weapon, GameObject controller, Vector3 hitPosition)
+	public AttackResult Attack(AttackFlags flags, WeaponItemData weapon, GameObject controller, Vector3 hitPosition)
 	{
-		WeaponItemData weaponData = (WeaponItemData)InventoryController.singleton.db[weapon];
-		return Damage(weaponData.damage, controller);
+		return Damage(weapon.damage, controller);
 	}
 
 	private void OnEnable()

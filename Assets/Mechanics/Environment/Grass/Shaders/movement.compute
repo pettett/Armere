@@ -23,6 +23,8 @@ cbuffer CB{
 StructuredBuffer<MeshProperties> _Properties;
 RWStructuredBuffer<MatrixStruct> _Output;
 
+StructuredBuffer<uint> _PrefixScanData;
+
 float4x4 Rotation(float z, float y, float x){
     return float4x4 (
         cos(x)*cos(y),cos(x)*sin(y)*sin(z)-sin(x)*cos(z),cos(x)*sin(y)*cos(z)+sin(x)*sin(z),0,
@@ -88,15 +90,26 @@ float LerpAngle(float a, float b, float t)
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
+[numthreads(THREADGROUPS,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id);
+    uint index = id.x;
+
+	uint placedIndex =index;// _PrefixScanData[index];
+	
+	//Count existing blades before this one - warning: slow, but faster than rendering? 
+	//TODO: Fix with scan
+
+	// for(uint i = 0; i < index; i++){
+	// 	placedIndex -= 1 - saturate(_Properties[i].chunkID);
+	// }
+	
+
 
     MeshProperties properties = _Properties[index];
 
 
-	_Output[index] = (MatrixStruct)0;
+	MatrixStruct output = (MatrixStruct)0;
 	
 	int exists = int(properties.chunkID > 0);
 
@@ -154,10 +167,13 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	//If over the threshold completely disappear it
 	size.x *= 1 - step(viewRadiusMinMax.y,distance);
 
-	_Output[index].mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size))) * exists;
-	_Output[index].color = properties.color * exists;
-	_Output[index].chunkID = properties.chunkID;
-	
+	if (exists){
+		output.mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
+		output.color = properties.color * exists;
+		output.chunkID = properties.chunkID;
+
+		_Output[placedIndex] = output;
+	}
     //_Output[index].color = view;
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.

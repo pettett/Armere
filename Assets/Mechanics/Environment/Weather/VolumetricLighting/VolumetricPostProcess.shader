@@ -115,12 +115,7 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
         	float3 rayDir = -normalize(viewDirWS);
 
-
-
-
             float depth = SampleSceneDepth(i.texcoord);
-
-
            //return float4(depth,0,0,0);
 
     

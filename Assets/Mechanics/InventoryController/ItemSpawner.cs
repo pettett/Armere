@@ -6,7 +6,7 @@ namespace Armere.Inventory
 {
 
 	//Needs a GUID so it's state can be saved
-	[RequireComponent(typeof(GuidComponent))]
+	[RequireComponent(typeof(GuidComponent)), ExecuteAlways]
 	public class ItemSpawner : Spawner
 	{
 
@@ -34,10 +34,40 @@ namespace Armere.Inventory
 		{
 			//Debug.Log($"Started, {SaveManager.gameLoadingCompleted}");
 			//TODO: Make this better - spawned item will be set by save manager before start
-			if (!spawnedItem)
-			{
-				var x = Spawn();
-			}
+
+			if (Application.isPlaying)
+				if (!spawnedItem)
+				{
+					var x = Spawn();
+				}
 		}
+
+
+
+#if UNITY_EDITOR
+
+		private void Update()
+		{
+			if (Application.isPlaying) return;
+			DrawSpawnedItem(item.gameObject);
+		}
+
+		private void OnDrawGizmos()
+		{
+			if (Application.isPlaying) return;
+			if (item.gameObject.editorAsset.TryGetComponent<MeshFilter>(out MeshFilter mf))
+			{
+				Mesh m = mf.sharedMesh;
+				Gizmos.color = new Color(0, 1, 0, 0.02f);
+				Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, item.gameObject.editorAsset.transform.lossyScale);
+				Gizmos.DrawCube(m.bounds.center, m.bounds.size);
+				Gizmos.color = new Color(0, 1, 0, 0.2f);
+
+				Gizmos.DrawWireCube(m.bounds.center, m.bounds.size);
+			}
+
+		}
+#endif
+
 	}
 }

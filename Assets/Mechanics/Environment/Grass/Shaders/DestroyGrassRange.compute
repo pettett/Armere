@@ -18,10 +18,10 @@ RWStructuredBuffer<MeshProperties> _Grass;
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
-[numthreads(THREADGROUPX,THREADGROUPY,1)]
+[numthreads(THREADGROUPS,1,1)]
 void CSDestroyGrassInRange (uint3 id : SV_DispatchThreadID) {
 
-    uint index = DispatchThreadToIndex(id);
+    uint index = id.x;
 
     //Transform the point into bounds local space
     float3 p = _Grass[index].position - rangeTransform.xyz;

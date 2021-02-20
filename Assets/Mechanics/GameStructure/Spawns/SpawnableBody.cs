@@ -7,11 +7,11 @@ public class SpawnableBody : MonoBehaviour
 	protected bool inited = false;
 	private void Start()
 	{
-		if (TryGetComponent<SimpleHealth>(out SimpleHealth h))
-		{
-			h.onDeathEvent.AddListener(Destroy);
+		// if (TryGetComponent<SimpleHealth>(out SimpleHealth h))
+		// {
+		// 	h.onDeathEvent.AddListener(Destroy);
 
-		}
+		// }
 	}
 
 	public virtual void Init()

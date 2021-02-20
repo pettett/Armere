@@ -30,8 +30,9 @@ public class TimeDayController : MonoBehaviour
 	public float maxCloudyScaler = 0.6f;
 	public float maxWindyScaler = 0.8f;
 
+
+	Transform sun => RenderSettings.sun.transform;
 	[Header("Sun")]
-	Transform sun;
 	DebugMenu.DebugEntry<float, float> entry;
 	public float hour = 12;
 
@@ -91,7 +92,7 @@ public class TimeDayController : MonoBehaviour
 	void Start()
 	{
 
-		sun = RenderSettings.sun.transform;
+
 		if (Application.isPlaying)
 		{
 			changeTime.OnEventRaised += ChangeTime;

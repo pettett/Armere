@@ -8,31 +8,21 @@ public class GameController : SceneSaveData
 	public float timeBeforeDeathScreen = 4;
 	public float deathScreenTime = 5;
 
-	public override string SaveTooltip => LevelInfo.currentLevelInfo.SaveTooltip;
+	public override string SaveTooltip => LevelInfo.currentLevelInfo.currentRegionName;
 
 	public VoidEventChannelSO onPlayerDeathChannel;
 
 	//Track when the player dies. When they do, show the UI and load the last save
 	private void Start()
 	{
-		SetOnDeathEvent();
-		LevelController.onLevelLoaded += UpdatePlayerHealth;
-	}
-	public void UpdatePlayerHealth(Scene s, LoadSceneMode l)
-	{
-		if (l == LoadSceneMode.Single)
-		{
-			//New player transform. Only called after first death as first load is not a save load (yet)
-			//TODO: This will break eventually when loading is more thorough
-			SetOnDeathEvent();
-
-		}
-	}
-
-	public void SetOnDeathEvent()
-	{
 		onPlayerDeathChannel.OnEventRaised += OnPlayerDeath;
 	}
+	private void OnDestroy()
+	{
+		onPlayerDeathChannel.OnEventRaised -= OnPlayerDeath;
+	}
+
+
 
 	public void OnPlayerDeath()
 	{

@@ -15,7 +15,7 @@ public class CommandManager : ConsoleReceiver
 	const string level = "level";
 	const string giveQuest = "givequest";
 
-	public readonly CommandStructure[] commands = {
+	public static readonly CommandStructure[] commands = {
 		new CommandStructure(tp,CommandArgument.Location),
 		new CommandStructure(time),
 		new CommandStructure(give,CommandArgument.ItemName,CommandArgument.Int),
@@ -91,7 +91,7 @@ public class CommandManager : ConsoleReceiver
 				break;
 			case level:
 				DesiredInputs(command, 1);
-				LevelController.ChangeToLevel((LevelName)Enum.Parse(typeof(LevelName), command.values[0]));
+				LevelManager.LoadLevel(command.values[0], true);
 				break;
 			case giveQuest:
 				DesiredInputs(command, 1);

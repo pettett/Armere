@@ -10,7 +10,9 @@ public class SceneConnector : PlayerTrigger
 	public float dollyTime = 2f;
 	AutoWalking walker;
 	public Transform endTransform;
-	public LevelName changeToLevel;
+	public Transform exitTransform;
+	public string changeToLevel;
+	public SaveableSO playerControllerSaveChannel;
 	public override void OnPlayerTrigger(PlayerController player)
 	{
 		StartSceneChange(player);
@@ -21,9 +23,9 @@ public class SceneConnector : PlayerTrigger
 		transitionToCamera.Priority = 20;
 		walker = player.ChangeToState<AutoWalking>();
 		walker.WalkTo(endTransform.position);
-		StartCoroutine(Dolly());
+		StartCoroutine(Dolly(player));
 	}
-	IEnumerator Dolly()
+	IEnumerator Dolly(PlayerController player)
 	{
 		float t = 0;
 		float m = 1 / dollyTime;
@@ -37,10 +39,52 @@ public class SceneConnector : PlayerTrigger
 			if (!faded && t > 0.6f)
 			{
 				faded = true;
-				UIController.singleton.FadeOut(0.1f, changeToLevel.ToString());
+				UIController.singleton.FadeOut(0.1f);
 			}
 		}
-		LevelController.ChangeToLevel(changeToLevel, null);
+
+		//Save the player's state temporarily - or maybe transfere go between scenes
+		// var stream = new System.IO.MemoryStream();
+		// var bw = new System.IO.BinaryWriter(stream);
+
+		// var writer = new GameDataWriter(bw);
+		// playerControllerSaveChannel.SaveBin(writer);
+		// bw.Flush(); //Do not close the memory stream
+
+
+		player.ChangeToState<Walking>();
+
+
+
+		SaveableSO test = playerControllerSaveChannel;
+		System.Action func = null;
+		func = () => OnLevelLoaded(test, null, exitConnection, func);
+
+		//LevelManager.afterLevelLoaded += func;
+		LevelManager.LoadLevel(changeToLevel, true, func);
 
 	}
+
+	public static void OnLevelLoaded(SaveableSO playerControllerSaveChannel, System.IO.MemoryStream saveStream, string exitConnector, System.Action func)
+	{
+		// saveStream.Position = 0;
+		// using (var bw = new System.IO.BinaryReader(saveStream))
+		// {
+		// 	var reader = new GameDataReader(bw);
+		// 	playerControllerSaveChannel.LoadBin(reader);
+		// }
+		//Teleport player to exit connector
+		foreach (var connector in FindObjectsOfType<SceneConnector>())
+		{
+			if (connector.connectorIdentifier == exitConnector)
+			{
+				//Telport here
+				PlayerController.activePlayerController.transform.SetPositionAndRotation(connector.exitTransform.position, connector.exitTransform.rotation);
+				break;
+			}
+		}
+
+		//LevelController.afterLevelLoaded -= func;
+	}
+
 }

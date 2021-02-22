@@ -184,11 +184,13 @@ public class DebugMenu : MonoBehaviour
 
 	public static void RemoveEntry(DebugEntryBase entry)
 	{
-		//remove this entry from the pile
-		singleton.currentEntryCharacters -= entry.format.Length;
-		for (int i = 0; i < singleton.entries.Length; i++) //Once removed, break loop
-			if (singleton.entries[i].Remove(entry)) return;
-
+		if (singleton != null && entry != null)
+		{
+			//remove this entry from the pile
+			singleton.currentEntryCharacters -= entry.format.Length;
+			for (int i = 0; i < singleton.entries.Length; i++) //Once removed, break loop
+				if (singleton.entries[i].Remove(entry)) return;
+		}
 	}
 
 	private void Update()

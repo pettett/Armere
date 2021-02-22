@@ -39,6 +39,7 @@ public class GrassLayer : ScriptableObject
 	public ComputeBuffer grassBladesBuffer { get; private set; }
 	public ComputeBuffer grassBladesScanWorkBuffer { get; private set; }
 	public ComputeBuffer grassBladesScanBuffer { get; private set; }
+	public ComputeBuffer grassBladesCullResultBuffer { get; private set; }
 
 	public ComputeBuffer matrixesBuffer { get; private set; }
 	public ComputeBuffer drawIndirectArgsBuffer { get; private set; }
@@ -90,7 +91,11 @@ public class GrassLayer : ScriptableObject
 
 	[System.NonSerialized] public int maxLoadedCells;
 	public int maxLoadedBlades => maxLoadedCells * groupsOf8PerCell * 8;
+	public int maxRenderedBlades => maxLoadedBlades / 2; //TODO: Make this better
 	[System.NonSerialized] public int loadedCellsCount = 0;
+
+	public int loadedBlades => loadedCellsCount * groupsOf8PerCell * 8;
+	public int renderedBlades => loadedBlades / 2; //TODO: Make this better
 
 	public bool TryFitChunk(QuadTreeEnd end, out int cellsOffsetPosition)
 	{
@@ -250,8 +255,9 @@ public class GrassLayer : ScriptableObject
 		grassBladesBuffer = new ComputeBuffer(maxLoadedBlades, GrassController.MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
 		grassBladesScanBuffer = new ComputeBuffer(maxLoadedBlades, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Immutable);
 		grassBladesScanWorkBuffer = new ComputeBuffer(maxLoadedBlades, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Immutable);
+		grassBladesCullResultBuffer = new ComputeBuffer(maxLoadedBlades, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
-		matrixesBuffer = new ComputeBuffer(maxLoadedBlades, GrassController.MatricesStruct.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
+		matrixesBuffer = new ComputeBuffer(maxRenderedBlades, GrassController.MatricesStruct.size, ComputeBufferType.Default, ComputeBufferMode.Immutable);
 
 		//material.SetBuffer("_Properties", matrixesBuffer);
 		block = new MaterialPropertyBlock();
@@ -262,6 +268,22 @@ public class GrassLayer : ScriptableObject
 	public void SetDispatchSize(GrassController c, ComputeShader shader, CommandBuffer cmd)
 	{
 		cmd.SetComputeIntParams(shader, GrassController.ID_dispatchSize, threadGroups, 1);
+	}
+
+	public void Test()
+	{
+		GrassController.MeshProperties[] grass = new GrassController.MeshProperties[maxLoadedBlades];
+		int[] scan = new int[maxLoadedBlades];
+		grassBladesBuffer.GetData(grass);
+		grassBladesScanBuffer.GetData(scan);
+
+		for (int i = 0; i < 20; i++)
+		{
+			if (grass[i].chunkID != 0)
+			{
+				Debug.Log($"Grass {i} to {scan[i]}");
+			}
+		}
 	}
 
 	public void InitComputeShaders(GrassController c, CommandBuffer cmd)
@@ -307,7 +329,7 @@ public class GrassLayer : ScriptableObject
 
 
 		//Also copy the new number of blades to the rendering args of instance count (1 uint into the array)
-		cmd.CopyCounterValue(grassBladesBuffer, drawIndirectArgsBuffer, sizeof(uint));
+		//cmd.CopyCounterValue(grassBladesBuffer, drawIndirectArgsBuffer, sizeof(uint));
 
 
 
@@ -330,15 +352,32 @@ public class GrassLayer : ScriptableObject
 
 
 			//Setup grass scan for culling
+			RunCullGrass(cmd, c);
+			//Compact the grass vector
+			RunPrefixSum(cmd, c);
 
-			//RunPrefixSum(cmd, c);
-			//cmd.SetComputeBufferParam(c.compute, 0, "_PrefixScanData", grassBladesScanBuffer);
+
+			cmd.SetComputeBufferParam(c.compute, 0, "_PrefixScanData", grassBladesScanBuffer);
+			cmd.SetComputeBufferParam(c.compute, 0, "_CullResult", grassBladesCullResultBuffer);
+
+
+
 
 			//Turn blades into matrices
 			cmd.DispatchCompute(c.compute, c.mainKernel, threadGroups, 1, 1);
 		}
 	}
 
+	public void RunCullGrass(CommandBuffer cmd, GrassController c)
+	{
+		cmd.SetComputeBufferParam(c.cullGrassCompute, 0, GrassController.ID_Grass, grassBladesBuffer);
+		cmd.SetComputeBufferParam(c.cullGrassCompute, 0, "_CullResult", grassBladesCullResultBuffer);
+
+
+		cmd.SetComputeMatrixParam(c.cullGrassCompute, "cameraFrustum", c.CameraFrustum);
+		//Cull
+		cmd.DispatchCompute(c.cullGrassCompute, 0, threadGroups, 1, 1);
+	}
 
 	public void RunPrefixSum(CommandBuffer cmd, GrassController c)
 	{
@@ -347,9 +386,15 @@ public class GrassLayer : ScriptableObject
 		int blocks = ((n + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
 		int scanBlocks = Mathf.NextPowerOfTwo(blocks);
 
+		//Clean buffer
+		cmd.SetComputeBufferParam(c.prefixScanCompute, 3, "dst", grassBladesScanBuffer);
+		cmd.SetComputeBufferParam(c.prefixScanCompute, 3, "sumBuffer", grassBladesScanWorkBuffer);
+		cmd.DispatchCompute(c.prefixScanCompute, 3, blocks, 1, 1);
+		//Do scan
 
-		cmd.SetComputeBufferParam(c.prefixScanCompute, 0, GrassController.ID_Grass, grassBladesBuffer);
+		cmd.SetComputeBufferParam(c.prefixScanCompute, 0, GrassController.ID_Grass, grassBladesCullResultBuffer);
 		cmd.SetComputeBufferParam(c.prefixScanCompute, 0, "dst", grassBladesScanBuffer);
+		cmd.SetComputeBufferParam(c.prefixScanCompute, 0, "sumBuffer", grassBladesScanWorkBuffer);
 
 		cmd.SetComputeBufferParam(c.prefixScanCompute, 1, "dst", grassBladesScanWorkBuffer);
 
@@ -370,6 +415,8 @@ public class GrassLayer : ScriptableObject
 			cmd.DispatchCompute(c.prefixScanCompute, 2, (blocks - 1), 1, 1);
 
 		}
+
+
 	}
 
 
@@ -382,6 +429,8 @@ public class GrassLayer : ScriptableObject
 			cmd.DispatchCompute(compute, kernelIndex, threadGroups, 1, 1);
 		}
 	}
+
+	int lastRenderedBlades = 0;
 
 	public void DrawGrassLayer(GrassController c)
 	{
@@ -405,13 +454,16 @@ public class GrassLayer : ScriptableObject
 
 		if (inited && hasBlades)
 		{
+			if (renderedBlades != lastRenderedBlades) //Dont update the compute buffer every frame if not needed
+			{
+				var array = drawIndirectArgsBuffer.BeginWrite<int>(1, 1);
 
-			var array = drawIndirectArgsBuffer.BeginWrite<int>(1, 1);
+				array[0] = renderedBlades;
 
-			array[0] = loadedCellsCount * groupsOf8PerCell * 8;
+				drawIndirectArgsBuffer.EndWrite<int>(1);
 
-			drawIndirectArgsBuffer.EndWrite<int>(1);
-
+				lastRenderedBlades = renderedBlades;
+			}
 			//Debug.Log("drawing grass");
 			Graphics.DrawMeshInstancedIndirect(
 				mesh, 0, c.material, c.bounds, drawIndirectArgsBuffer,
@@ -425,6 +477,8 @@ public class GrassLayer : ScriptableObject
 		inited = false;
 		DisposeBuffer(grassBladesBuffer);
 		DisposeBuffer(grassBladesScanBuffer);
+		DisposeBuffer(grassBladesScanWorkBuffer);
+		DisposeBuffer(grassBladesCullResultBuffer);
 		DisposeBuffer(matrixesBuffer);
 		DisposeBuffer(drawIndirectArgsBuffer);
 	}

@@ -59,13 +59,44 @@ public class GrassController : MonoBehaviour
 			}
 			else
 			{
-				return SceneView.lastActiveSceneView.pivot;
+				return SceneView.lastActiveSceneView.camera.transform.position;
 			}
 #else
 			return mainCamera.transform.position;
 #endif
 		}
 	}
+
+
+	public static Matrix4x4 GenerateFrustum(Camera cam)
+	{
+		return Matrix4x4.Perspective(cam.fieldOfView + 3, cam.aspect, cam.nearClipPlane - 0.05f, cam.farClipPlane + 0.05f) * cam.worldToCameraMatrix;
+	}
+	public Matrix4x4 CameraFrustum
+	{
+		get
+		{
+#if UNITY_EDITOR
+			if (Application.isPlaying)
+			{
+				return GenerateFrustum(mainCamera);
+			}
+			else
+			{
+				return GenerateFrustum(SceneView.lastActiveSceneView.camera);
+			}
+#else
+			return GenerateFrustum(mainCamera);
+#endif
+		}
+	}
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.matrix = CameraFrustum;
+		Gizmos.DrawCube(CameraPosition, Vector3.one);
+	}
+
 
 
 	[Header("Grass Creation")]
@@ -85,6 +116,7 @@ public class GrassController : MonoBehaviour
 	public ComputeShader destroyGrassInChunk;
 	public ComputeShader destroyGrassInRange;
 	public ComputeShader prefixScanCompute;
+	public ComputeShader cullGrassCompute;
 
 	public Material material;
 	[System.NonSerialized] public Bounds bounds;
@@ -535,81 +567,84 @@ public class GrassController : MonoBehaviour
 
 
 
-		//This is all witchcraft :(
-		const int testSize = 20;
+		// //This is all witchcraft :(
+		// const int testSize = 20;
 
-		const int BLOCK_SIZE = 128;
+		// const int BLOCK_SIZE = 128;
 
-		int blocks = ((testSize + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
-		int scanBlocks = Mathf.NextPowerOfTwo(blocks);
-
-
-
-		var source = new ComputeBuffer(testSize, MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
-		var destination = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-		var workBuffer = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-
-		var a = source.BeginWrite<MeshProperties>(0, testSize);
-
-		uint[] correctData = new uint[testSize];
-		uint[] input = new uint[testSize];
-		uint runningTotal = 0;
-
-		for (int i = 0; i < testSize; i++)
-		{
-			uint value = (uint)UnityEngine.Random.Range(0, 2);
-			a[i] = new MeshProperties() { chunkID = value };
-			input[i] = value;
-
-			correctData[i] = runningTotal;
-
-			runningTotal += value;
-		}
+		// int blocks = ((testSize + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
+		// int scanBlocks = Mathf.NextPowerOfTwo(blocks);
 
 
-		source.EndWrite<MeshProperties>(testSize);
 
-		prefixScanCompute.SetBuffer(0, GrassController.ID_Grass, source);
-		prefixScanCompute.SetBuffer(0, "dst", destination);
-		prefixScanCompute.SetBuffer(0, "sumBuffer", workBuffer);
+		// var source = new ComputeBuffer(testSize, MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
+		// var destination = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+		// var workBuffer = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
 
-		prefixScanCompute.SetBuffer(1, "dst", workBuffer);
+		// var a = source.BeginWrite<MeshProperties>(0, testSize);
 
+		// uint[] correctData = new uint[testSize];
+		// uint[] input = new uint[testSize];
+		// uint runningTotal = 0;
 
-		prefixScanCompute.SetInt("m_numElems", testSize);
-		prefixScanCompute.SetInt("m_numBlocks", blocks); //Number of sharedmemory blokes
-		prefixScanCompute.SetInt("m_numScanBlocks", scanBlocks); //Number of thread groups
+		// for (int i = 0; i < testSize; i++)
+		// {
+		// 	uint value = (uint)UnityEngine.Random.Range(0, 2);
+		// 	a[i] = new MeshProperties() { chunkID = value };
+		// 	input[i] = value;
 
+		// 	correctData[i] = runningTotal;
 
-		prefixScanCompute.Dispatch(0, blocks, 1, 1);
-
-
-		prefixScanCompute.Dispatch(1, 1, 1, 1);
-
-		if (blocks > 1)
-		{
-			prefixScanCompute.SetBuffer(2, "dst", destination);
-			prefixScanCompute.SetBuffer(2, "blockSum2", workBuffer);
-			prefixScanCompute.Dispatch(2, (blocks - 1), 1, 1);
-		}
-
-		uint[] result = new uint[testSize];
-		destination.GetData(result);
+		// 	runningTotal += value;
+		// }
 
 
-		bool equal = Enumerable.SequenceEqual(result, correctData);
-		Debug.Log($"For {testSize} items prefix sum is equal? {equal}");
-		if (!equal || equal)
-		{
-			Debug.Log($"Blocks: {blocks}, scanBlocks: {scanBlocks}");
-			Debug.Log(string.Join(",", input));
-			Debug.Log(string.Join(",", result));
-			Debug.Log(string.Join(",", correctData));
-		}
+		// source.EndWrite<MeshProperties>(testSize);
 
-		source.Release();
-		destination.Release();
-		workBuffer.Release();
+		// prefixScanCompute.SetBuffer(0, GrassController.ID_Grass, source);
+		// prefixScanCompute.SetBuffer(0, "dst", destination);
+		// prefixScanCompute.SetBuffer(0, "sumBuffer", workBuffer);
+
+		// prefixScanCompute.SetBuffer(1, "dst", workBuffer);
+
+
+		// prefixScanCompute.SetInt("m_numElems", testSize);
+		// prefixScanCompute.SetInt("m_numBlocks", blocks); //Number of sharedmemory blokes
+		// prefixScanCompute.SetInt("m_numScanBlocks", scanBlocks); //Number of thread groups
+
+
+		// prefixScanCompute.Dispatch(0, blocks, 1, 1);
+
+
+		// prefixScanCompute.Dispatch(1, 1, 1, 1);
+
+		// if (blocks > 1)
+		// {
+		// 	prefixScanCompute.SetBuffer(2, "dst", destination);
+		// 	prefixScanCompute.SetBuffer(2, "blockSum2", workBuffer);
+		// 	prefixScanCompute.Dispatch(2, (blocks - 1), 1, 1);
+		// }
+
+		// uint[] result = new uint[testSize];
+		// destination.GetData(result);
+
+
+		// bool equal = Enumerable.SequenceEqual(result, correctData);
+		// Debug.Log($"For {testSize} items prefix sum is equal? {equal}");
+		// if (!equal)
+		// {
+		// 	Debug.Log($"Blocks: {blocks}, scanBlocks: {scanBlocks}");
+		// 	Debug.Log(string.Join(",", input));
+		// 	Debug.Log(string.Join(",", result));
+		// 	Debug.Log(string.Join(",", correctData));
+		// }
+
+		// source.Release();
+		// destination.Release();
+		// workBuffer.Release();
+
+
+		layers[0].Test();
 	}
 
 

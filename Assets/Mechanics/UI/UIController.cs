@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Events;
 public class UIController : MonoBehaviour
 {
 
@@ -22,19 +23,24 @@ public class UIController : MonoBehaviour
 
 	public BoolEventChannelSO onToggleTabMenuEvent;
 
+	public UnityEvent onSceneChangeBegin;
 
 	private void Awake()
 	{
 		singleton = this;
+		fadeoutImage.gameObject.SetActive(true);
 	}
+
+
 	private void Start()
 	{
 		onToggleTabMenuEvent.OnEventRaised += SetTabMenu;
-		FadeIn(0.1f, false);
+		fadeoutImage.gameObject.SetActive(false);
 	}
 	private void OnDestroy()
 	{
 		onToggleTabMenuEvent.OnEventRaised -= SetTabMenu;
+		if (singleton == this) singleton = null;
 	}
 
 

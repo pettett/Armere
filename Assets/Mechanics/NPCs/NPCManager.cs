@@ -14,7 +14,6 @@ public class NPCManager : MonoBehaviour
 			Destroy(gameObject);
 		else
 		{
-			DontDestroyOnLoad(gameObject);
 			singleton = this;
 
 

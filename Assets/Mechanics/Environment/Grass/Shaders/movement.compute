@@ -14,6 +14,8 @@ cbuffer CB{
 
     int pushers;
     int2 dispatchSize;
+
+
 }; 
 
 #include "MeshProperties.hlsl"
@@ -21,6 +23,7 @@ cbuffer CB{
 
 
 StructuredBuffer<MeshProperties> _Properties;
+StructuredBuffer<uint> _CullResult;
 RWStructuredBuffer<MatrixStruct> _Output;
 
 StructuredBuffer<uint> _PrefixScanData;
@@ -95,7 +98,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = id.x;
 
-	uint placedIndex =index;// _PrefixScanData[index];
+	uint placedIndex = _PrefixScanData[index];
 	
 	//Count existing blades before this one - warning: slow, but faster than rendering? 
 	//TODO: Fix with scan
@@ -111,7 +114,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	MatrixStruct output = (MatrixStruct)0;
 	
-	int exists = int(properties.chunkID > 0);
+	uint exists = _CullResult[index];
 
 	// In a transform matrix, the position (translation) vector is the last column.
 

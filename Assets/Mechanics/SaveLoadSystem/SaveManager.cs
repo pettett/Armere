@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
@@ -93,6 +92,9 @@ public readonly struct GameDataWriter
 	public GameDataWriter(BinaryWriter writer)
 	{
 		this.writer = writer;
+
+		//Save the version of the game saved
+		Write(SaveManager.version);
 	}
 
 	public readonly void Write(int value) => writer.Write(value);
@@ -275,7 +277,6 @@ public class SaveManager : MonoBehaviour
 		}
 		Debug.Log("New save singleton");
 		singleton = this;
-		DontDestroyOnLoad(this);
 
 		if (autoLoadOnStart)
 			LoadMostRecentSave(false);
@@ -424,7 +425,7 @@ public class SaveManager : MonoBehaviour
 	public void HardLoadBlankSave()
 	{
 		//Reload current Scene
-		HardSceneLoad(SceneManager.GetActiveScene().name, _ =>
+		HardSceneLoad(LevelManager.singleton.currentLevel, () =>
 		{
 			SoftLoadBlankSave();
 		});
@@ -451,32 +452,21 @@ public class SaveManager : MonoBehaviour
 		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
 		{
 			GameDataReader gameDataReader = new GameDataReader(reader);
-			//Save the version of the game saved
+
 			levelName = gameDataReader.ReadString();
 		}
 
-		HardSceneLoad(levelName, _ =>
+		HardSceneLoad(levelName, () =>
 		{
 			SoftLoadSave(dir);
 		});
 	}
-	public void HardSceneLoad(string sceneName, System.Action<AsyncOperation> OnCompleted)
+	public void HardSceneLoad(string sceneName, System.Action OnCompleted)
 	{
-		gameLoadingCompleted = false;
-		var op = SceneManager.LoadSceneAsync(sceneName);
 
-		void Done(Scene _, LoadSceneMode __)
-		{
-			SceneManager.sceneLoaded -= Done;
-			StartCoroutine(WaitFrame(OnCompleted));
-		}
+		LevelManager.LoadLevel(sceneName, false, OnCompleted);
 
-		SceneManager.sceneLoaded += Done;
-	}
-	IEnumerator WaitFrame(System.Action<AsyncOperation> OnCompleted)
-	{
-		yield return null;
-		OnCompleted(null);
+
 	}
 
 	public void SoftLoadSave(string dir)
@@ -490,7 +480,6 @@ public class SaveManager : MonoBehaviour
 		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
 		{
 			GameDataReader gameDataReader = new GameDataReader(reader);
-			//Save the version of the game saved
 
 			//Level name not actually used - scene already loaded here
 			string levelName = gameDataReader.ReadString();
@@ -539,7 +528,7 @@ public class SaveManager : MonoBehaviour
 
 		WriteFile(savePath, gameWriter =>
 		{
-			gameWriter.Write(SceneManager.GetActiveScene().name);
+			gameWriter.Write(LevelManager.singleton.currentLevel);
 			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
 				//Debug.Log($"Saving {i} from position {gameWriter.writer.BaseStream.Position}");
@@ -569,8 +558,7 @@ public class SaveManager : MonoBehaviour
 		using (var writer = new BinaryWriter(File.Open(dir, FileMode.Create)))
 		{
 			GameDataWriter gameWriter = new GameDataWriter(writer);
-			//Save the version of the game saved
-			gameWriter.Write(version);
+
 			saveFunction(gameWriter);
 
 		}
@@ -585,7 +573,6 @@ public class SaveManager : MonoBehaviour
 		using (var reader = new BinaryReader(File.Open(Path.Combine(saveDirectory, metaSaveRecordFileName), FileMode.Open)))
 		{
 			GameDataReader gameDataReader = new GameDataReader(reader);
-			//Save the version of the game saved
 			info = new SaveInfo(gameDataReader);
 		}
 		return info;

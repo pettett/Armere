@@ -166,12 +166,22 @@ namespace Armere.PlayerController
 
 		public SaveLoadEventChannel playerSaveLoadChannel;
 
+		public System.Action<bool> onSwingStateChanged;
+
+
+		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
+
 		// Start is called before the first frame update
 		/// <summary>
 		/// Awake is called when the script instance is being loaded.
 		/// </summary>
 		private void Awake()
 		{
+			if (activePlayerController != null)
+			{
+				Destroy(gameObject);
+				return;
+			}
 			activePlayerController = this;
 			animationController = GetComponent<AnimationController>();
 
@@ -194,7 +204,8 @@ namespace Armere.PlayerController
 			inventory.bow.onItemRemoved -= OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
-			foreach (var s in allStates) s.End();
+			if (allStates != null)
+				foreach (var s in allStates) s.End();
 		}
 
 
@@ -202,7 +213,6 @@ namespace Armere.PlayerController
 		private void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
 
 
-		public System.Action<bool> onSwingStateChanged;
 
 		public void SwingStart() => onSwingStateChanged?.Invoke(true);
 
@@ -289,7 +299,10 @@ namespace Armere.PlayerController
 
 		public void LoadBin(in GameDataReader reader)
 		{
+			Debug.Log("Loading player controller");
+
 			transform.position = reader.ReadVector3();
+
 			transform.rotation = reader.ReadQuaternion();
 
 			armourSelections[0] = reader.ReadInt();
@@ -728,7 +741,6 @@ namespace Armere.PlayerController
 		}
 		#region Holdables
 
-		public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
 
 		public IEnumerator SheathItem(ItemType type)
 		{

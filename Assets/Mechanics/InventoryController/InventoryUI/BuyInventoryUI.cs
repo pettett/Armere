@@ -49,7 +49,7 @@ namespace Armere.Inventory.UI
 				//Inject the index of the button into the callback
 				buyMenuItem.selectButton.onClick.AddListener(() => SelectItem(buyMenuItem.index));
 
-				buyMenuItem.thumbnail.sprite = await Addressables.LoadAssetAsync<Sprite>(inventory[i].item.displaySprite).Task;
+				buyMenuItem.thumbnail.sprite = await Addressables.LoadAssetAsync<Sprite>(inventory[i].item.thumbnail).Task;
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Armere.Inventory.UI
 			{
 				inventory[selected].stock -= amount;
 
-				InventoryController.singleton.AddItem(inventory[selected].item, inventory[selected].count, true);
+				InventoryController.singleton.TryAddItem(inventory[selected].item, inventory[selected].count, true);
 
 				waitingForConfirmation = false;
 				if (inventory[selected].stock == 0)

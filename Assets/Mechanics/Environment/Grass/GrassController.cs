@@ -91,17 +91,11 @@ public class GrassController : MonoBehaviour
 		}
 	}
 
-	private void OnDrawGizmos()
-	{
-		Gizmos.matrix = CameraFrustum;
-		Gizmos.DrawCube(CameraPosition, Vector3.one);
-	}
 
 
-
+	public float range => terrain.terrainData.bounds.extents.x;
+	public float offset => terrain.terrainData.bounds.extents.x;
 	[Header("Grass Creation")]
-	public float range;
-	public float offset;
 	public ComputeShader createGrassInBoundsCompute;
 
 	public Terrain terrain;
@@ -188,7 +182,7 @@ public class GrassController : MonoBehaviour
 			cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassHeightRange,
 				new Vector2(c.grassHeightOffset, c.terrain.terrainData.heightmapScale.y));
 
-			int dispatch = chunk.cellsWidth * chunk.cellsWidth * layer.groupsOf8PerCell;
+			ushort dispatch = (ushort)(chunk.cellsWidth * chunk.cellsWidth * layer.groupsOf8PerCell);
 
 			if (dispatch > 0)
 			{
@@ -487,11 +481,6 @@ public class GrassController : MonoBehaviour
 
 	void UpdateBounds()
 	{
-		if (terrain != null)
-		{
-			offset = terrain.terrainData.bounds.extents.x;
-			range = terrain.terrainData.bounds.extents.x;
-		}
 		// Boundary surrounding the meshes we will be drawing.  Used for occlusion.
 		bounds = new Bounds(transform.position + new Vector3(offset, 0, offset), Vector3.one * (range * 2 + 1));
 	}
@@ -557,8 +546,13 @@ public class GrassController : MonoBehaviour
 	[ButtonMethod]
 	public void ReInitGrass()
 	{
-		OnDestroy();
-		Start();
+		if (!Application.isPlaying)
+		{
+			if (inited)
+				OnDestroy();
+			Start();
+
+		}
 	}
 
 	[ButtonMethod]
@@ -725,53 +719,56 @@ public class GrassController : MonoBehaviour
 
 	private void OnDrawGizmosSelected()
 	{
+
 		//Draw quad tree structure
 
 		Gizmos.DrawWireCube(bounds.center, bounds.size);
 
 
 		// UpdateChunkTree();
-		if (Application.isPlaying)
+
+		Gizmos.matrix = Matrix4x4.identity;
+		Gizmos.DrawWireSphere(CameraPosition, viewRadius);
+		Gizmos.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
+
+		Vector2 playerUV = new Vector2(CameraPosition.x - transform.position.x,
+							CameraPosition.z - transform.position.z) / (range * 2);
+
+
+
+		for (int i = 0; i < layers.Length; i++)
 		{
-			Gizmos.matrix = Matrix4x4.identity;
-			Gizmos.DrawWireSphere(CameraPosition, viewRadius);
-			Gizmos.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
-
-			Vector2 playerUV = new Vector2(CameraPosition.x - transform.position.x,
-								CameraPosition.z - transform.position.z) / (range * 2);
-
-
-
-
-			for (int i = 0; i < layers.Length; i++)
+			float uvViewRadius = (viewRadius * layers[i].viewRadiusScalar * 0.5f) / range;
+			//Debug.Log($"{playerUV}, {uvViewRadius}");
+			if (layers[i].chunkTree == null)
 			{
-				float uvViewRadius = (viewRadius * layers[i].viewRadiusScalar * 0.5f) / range;
-
-				foreach (var item in layers[i].chunkTree.GetLeavesInRange(playerUV, uvViewRadius))
-				{
-					item.DrawGizmos();
-				}
-
-				// UnityEngine.Random.InitState(100);
-
-				// foreach (int dataIndex in layers[i].fullQuadTree.GetNodesInRange(playerUV, uvViewRadius))
-				// {
-
-				// 	// Gizmos.color = new Color(
-				// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 0 : 1,
-				// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 1 : 0,
-				// 	// 	0,
-				// 	// 1
-				// 	// );
-				// 	Gizmos.color = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0, 1, 1, 1);
-
-				// 	Gizmos.DrawCube(new Vector3(0, 0, 1) + (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.center * 10,
-				// 	 (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.size * 10);
-				// }
-
+				Debug.Log($"Updating {i} chunk tree");
+				layers[i].UpdateChunkTree(this);
 			}
-			Gizmos.DrawCube(bounds.center, bounds.size);
+			else
+			{
+				layers[i].chunkTree.DrawGizmos(terrain, playerUV, uvViewRadius, layers[i].loadedChunks);
+			}
+			// UnityEngine.Random.InitState(100);
+
+			// foreach (int dataIndex in layers[i].fullQuadTree.GetNodesInRange(playerUV, uvViewRadius))
+			// {
+
+			// 	// Gizmos.color = new Color(
+			// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 0 : 1,
+			// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 1 : 0,
+			// 	// 	0,
+			// 	// 1
+			// 	// );
+			// 	Gizmos.color = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0, 1, 1, 1);
+
+			// 	Gizmos.DrawCube(new Vector3(0, 0, 1) + (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.center * 10,
+			// 	 (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.size * 10);
+			// }
 
 		}
+		Gizmos.DrawCube(bounds.center, bounds.size);
+
 	}
+
 }

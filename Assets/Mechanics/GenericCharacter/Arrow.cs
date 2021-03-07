@@ -23,19 +23,19 @@ public class Arrow : Projectile
 
 		LaunchProjectile(velocity);
 
-		destroyOnHit = ammo.flags.HasFlag(AmmoFlags.DropItemOnMiss);
+		destroyOnHit = !ammo.flags.HasFlag(AmmoFlags.DropItemOnMiss);
 
 	}
 
 
-	public override void OnProjectileHit(Collision collision)
+	public override void OnProjectileHit(Collision collision, out bool goodHit)
 	{
-		base.OnProjectileHit(collision);
+		base.OnProjectileHit(collision, out goodHit);
 
-		if (!destroyOnHit)
+		if (!destroyOnHit && !goodHit)
 		{
 			//Turn arrow into an item if it is permitted
-			var x = ItemSpawner.SpawnItemAsync(ammo, collision.contacts[0].point, transform.rotation);
+			var x = ItemSpawner.SpawnItemAsync(ammo, transform.position, transform.rotation);
 		}
 	}
 }

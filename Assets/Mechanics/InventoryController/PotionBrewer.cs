@@ -56,7 +56,7 @@ namespace Armere.Inventory
 							PotionItemUnique pot = new PotionItemUnique(playerInventory.db[(ItemName)ingredient.newPotionType]);
 
 							pot.potency = ingredient.increasedPotency;
-							playerInventory.AddItem(pot);
+							playerInventory.TryAddItem(pot);
 
 						}
 

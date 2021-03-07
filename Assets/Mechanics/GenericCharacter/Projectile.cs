@@ -60,19 +60,24 @@ public class Projectile : SpawnableBody
 		{
 			//Debug.Log($"{ammoName} collided with {other.gameObject.name}", other.gameObject);
 			collided = true;
-			OnProjectileHit(collision);
+			OnProjectileHit(collision, out bool goodHit);
 		}
 	}
 
-	public virtual void OnProjectileHit(Collision collision)
+	public virtual void OnProjectileHit(Collision collision, out bool goodHit)
 	{
 		Vector3 collisionPoint = collision.contacts[0].point;
 
-		DrawCross(collisionPoint, 1, 10);
-
+		//DrawCross(collisionPoint, 1, 10);
+		//		Debug.Log(collision.gameObject.name, collision.gameObject);
 		if (collision.gameObject.TryGetComponent<Health>(out var h))
 		{
 			h.Damage(hitDamage, gameObject);
+			goodHit = true;
+		}
+		else
+		{
+			goodHit = false;
 		}
 
 		onProjectileHitEventChannel?.RaiseEvent(collisionPoint);

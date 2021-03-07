@@ -37,9 +37,9 @@ namespace Armere.Inventory.UI
 
 
 
-			InventoryController.singleton.AddItem(item, count, true);
+			InventoryController.singleton.TryAddItem(item, count, true);
 
-			thumbnail.sprite = await item.displaySprite.LoadAssetAsync().Task;
+			thumbnail.sprite = await item.thumbnail.LoadAssetAsync().Task;
 
 			await Task.Delay(500);
 

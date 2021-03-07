@@ -569,7 +569,7 @@ public class SaveManager : MonoBehaviour
 	public static SaveInfo LoadSaveInfo(string saveDirectory)
 	{
 
-		SaveInfo info = null;
+		SaveInfo info;
 		using (var reader = new BinaryReader(File.Open(Path.Combine(saveDirectory, metaSaveRecordFileName), FileMode.Open)))
 		{
 			GameDataReader gameDataReader = new GameDataReader(reader);

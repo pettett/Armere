@@ -6,10 +6,9 @@ using UnityEngine.InputSystem;
 
 namespace Armere.PlayerController
 {
-	[Serializable]
-	public class Freefalling : MovementState
+
+	public class Freefalling : MovementState<FreefallingTemplate>
 	{
-		public override char StateSymbol => 'F';
 		public override string StateName => "Falling";
 
 		Vector3 desiredVelocity;
@@ -17,6 +16,9 @@ namespace Armere.PlayerController
 		int airJumps;
 		float currentHeight;
 
+		public Freefalling(PlayerController c, FreefallingTemplate t) : base(c, t)
+		{
+		}
 
 		public override void FixedUpdate()
 		{
@@ -32,7 +34,7 @@ namespace Armere.PlayerController
 
 			if (c.allCPs.Count > 0 && Math.Sign(c.rb.velocity.y) != 1)
 			{
-				ChangeToState<Walking>();
+				c.ChangeToState(c.defaultState);
 			}
 
 			//only change back when the body is actually touching the ground
@@ -52,7 +54,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)//shield surfing combo - shield, jump, interact
 			{
-				ChangeToState<Shieldsurfing>();
+				c.ChangeToState(t.airInteract);
 			}
 		}
 

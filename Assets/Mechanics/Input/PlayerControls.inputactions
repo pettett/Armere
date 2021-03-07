@@ -110,14 +110,6 @@
                     "interactions": ""
                 },
                 {
-                    "name": "SwitchWeaponSet",
-                    "type": "Button",
-                    "id": "4f8ff449-85f4-48f1-850c-056b0cf5bbaa",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
                     "name": "SelectSpell",
                     "type": "Value",
                     "id": "08949489-2e63-45e8-b72a-7891e6e7f714",
@@ -496,17 +488,6 @@
                 },
                 {
                     "name": "",
-                    "id": "dec51b40-5696-4e6e-a74d-71aa3956a9e6",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "SwitchWeaponSet",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "74178720-e353-43e7-bce0-babb9bfc2210",
                     "path": "<Keyboard>/1",
                     "interactions": "",
@@ -717,12 +698,6 @@
             ]
         },
         {
-            "name": "Dialogue",
-            "id": "3c6807f6-78c3-4920-80c6-2e410e6764b8",
-            "actions": [],
-            "bindings": []
-        },
-        {
             "name": "Debug",
             "id": "edf04f3e-56b9-4730-9c1d-c2292fb88b00",
             "actions": [
@@ -782,6 +757,172 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "QuickLoad",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "0cea4bfc-3cd5-4d20-8805-70984c79358a",
+            "actions": [
+                {
+                    "name": "Sumbit",
+                    "type": "Button",
+                    "id": "f9b0ed2f-dbd7-454a-825b-d7795b0aade4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Cancel",
+                    "type": "Button",
+                    "id": "626347bf-cd67-4310-b32a-3fbecf8ee28b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Navigate",
+                    "type": "Value",
+                    "id": "d86f9a1e-037a-40d1-a0b5-06838995759a",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Scroll",
+                    "type": "Value",
+                    "id": "8097f580-de40-48ab-9996-a1c3c8e6b9c5",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "284006f9-560e-41e1-b081-db7f2cb2eb3c",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Sumbit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a89f5b43-c06e-4885-8f39-5f709a412372",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Sumbit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c85d43a6-e65d-4060-a5df-45434d2463bf",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "wasd",
+                    "id": "ce76f527-08f9-469d-b4b0-502659c786ff",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "09344231-4bcc-456a-b33e-0f1657436b51",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "7efd2d79-bc06-435b-91fb-28310b76bba6",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "131d24be-1fa6-4a97-8de4-fb6a68716026",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "227bcf47-6402-4f96-92fc-b137026d78e8",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "d53c8101-5ac5-41f7-8e41-715cb7474978",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "AlwaysActive",
+            "id": "6d910ca2-0cbe-4180-916c-2cb10f87722f",
+            "actions": [
+                {
+                    "name": "ChangeSelection",
+                    "type": "Button",
+                    "id": "5a1dfa8b-ca30-4c39-8fe0-c24ae3cda290",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f439ecc6-009a-40a5-b8ce-e997f05ddb34",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeSelection",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

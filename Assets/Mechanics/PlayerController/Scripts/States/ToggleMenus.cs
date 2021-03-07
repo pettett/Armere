@@ -4,15 +4,17 @@ using UnityEngine.InputSystem;
 namespace Armere.PlayerController
 {
 	//allow the player to access the menu system if tab is pressed
-	[System.Serializable]
-	public class ToggleMenus : MovementState
+
+	public class ToggleMenus : MovementState<ToggleMenusTemplate>
 	{
 		public override string StateName => "Enter Menus";
-		public override char StateSymbol => 't';
 
 		[NonSerialized] bool inMenus;
 		[NonSerialized] bool inConsole;
 
+		public ToggleMenus(PlayerController c, ToggleMenusTemplate t) : base(c, t)
+		{
+		}
 
 		public override void Start()
 		{

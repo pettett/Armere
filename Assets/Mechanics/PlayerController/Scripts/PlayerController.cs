@@ -6,11 +6,12 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Armere.Inventory;
 using Armere.Inventory.UI;
+using UnityEngine.AddressableAssets;
 
 namespace Armere.PlayerController
 {
 	[RequireComponent(typeof(Rigidbody))]
-	public class PlayerController : MonoBehaviour, IAITarget, IWaterObject, IInteractor
+	public class PlayerController : Character, IAITarget, IWaterObject, IInteractor
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
@@ -44,18 +45,8 @@ namespace Armere.PlayerController
 		[NonSerialized] public float m_maxGroundDot = 0.3f;
 		public bool onGround;
 		[Header("Movement")]
-		public float walkingSpeed = 2f;
-		public float sprintingSpeed = 5f;
-		public float crouchingSpeed = 1f;
+
 		public float walkingHeight = 1.8f;
-		public float crouchingHeight = 0.9f;
-		public float groundClamp = 1f;
-		public float maxAcceleration = 20f;
-		public float maxStepHeight = 1f;
-		public float maxStepDown = 0.25f;
-		public float stepSearchOvershoot = 0.3f;
-		public float steppingTime = 0.1f;
-		public float jumpForce = 1000f;
 
 		[Range(0, 1)]
 		public float dynamicFriction = 0.2f;
@@ -75,19 +66,14 @@ namespace Armere.PlayerController
 		public float waterSittingDepth = 1;
 
 		public GameObject waterTrailPrefab;
-		[Header("Holding")]
-		public float throwForce = 100;
-		[Header("Climbing")]
-		public float climbingColliderHeight = 1.6f;
-		public float climbingSpeed = 4f;
-		public float transitionTime = 4f;
-		[Range(0, 180)] public float maxHeadBodyRotationDifference = 5f;
-		[Header("Shield Surfing")]
-		public float turningTorqueForce;
-		public float minSurfingSpeed;
-		public float turningAngle;
 
-		public PhysicMaterial surfPhysicMat;
+
+
+		[Header("States")]
+		public MovementStateTemplate defaultState;
+		public MovementStateTemplate deadState;
+		public KnockedOutTemplate knockoutState;
+		public AutoWalkingTemplate autoWalk;
 
 
 		[Header("Other")]
@@ -99,13 +85,6 @@ namespace Armere.PlayerController
 		[NonSerialized] public Animator animator;
 		[NonSerialized] public Health health;
 
-		[NonSerialized] public WeaponGraphicsController weaponGraphicsController;
-
-
-
-		public static PlayerController activePlayerController;
-
-		[NonSerialized] public AnimationController animationController;
 
 		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
 		[NonSerialized] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
@@ -177,12 +156,12 @@ namespace Armere.PlayerController
 		/// </summary>
 		private void Awake()
 		{
-			if (activePlayerController != null)
+			if (playerCharacter != null)
 			{
 				Destroy(gameObject);
 				return;
 			}
-			activePlayerController = this;
+			playerCharacter = this;
 			animationController = GetComponent<AnimationController>();
 
 			playerSaveLoadChannel.onSaveBinEvent += SaveBin;
@@ -231,7 +210,7 @@ namespace Armere.PlayerController
 			if (TryGetComponent<Health>(out health))
 				health.onDeathEvent.AddListener(OnDeath);
 
-			weaponGraphicsController = GetComponent<WeaponGraphicsController>();
+			weaponGraphics = GetComponent<WeaponGraphicsController>();
 
 			m_maxGroundDot = Mathf.Cos(m_maxGroundAngle * Mathf.Deg2Rad);
 
@@ -260,40 +239,25 @@ namespace Armere.PlayerController
 		private void OnEnable()
 		{
 			inputReader.equipBowEvent += OnEquipBow;
-			inputReader.switchWeaponSetEvent += OnSelectWeapon;
+			inputReader.changeSelection += OnChangeSelection;
 		}
 		private void OnDisable()
 		{
 			inputReader.equipBowEvent -= OnEquipBow;
-			inputReader.switchWeaponSetEvent -= OnSelectWeapon;
+			inputReader.changeSelection -= OnChangeSelection;
 		}
 
 
-		private static Type SearchForType(char symbol)
+
+		public static MovementStateTemplate SymbolToType(char symbol)
 		{
 			//Search assembly for the symbol by creating an instance of every class and comparing - slow
-			foreach (var t in typeof(MovementState).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MovementState))))
+			foreach (var t in Resources.LoadAll<MovementStateTemplate>("PlayerController"))
 				//Create an instance of the type and check it's symbol
-				if (((MovementState)Activator.CreateInstance(t)).StateSymbol == symbol)
+				if (t.stateSymbol == symbol)
 					return t;
 			throw new ArgumentException("Symbol not mapped to state");
 		}
-
-		public static Type SymbolToType(char symbol) => symbol switch
-		{
-			'W' => typeof(Walking),
-			'T' => typeof(TransitionState<Walking>),
-			's' => typeof(Shieldsurfing),
-			'S' => typeof(Swimming),
-			'L' => typeof(LadderClimb),
-			'K' => typeof(KnockedOut),
-			'I' => typeof(Interact),
-			'E' => typeof(Dead),
-			'A' => typeof(AutoWalking),
-			'D' => typeof(Dialogue),
-			'c' => typeof(Conversation),
-			_ => SearchForType(symbol)
-		};
 
 
 
@@ -327,7 +291,7 @@ namespace Armere.PlayerController
 				{
 					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
 					//Will automatically remove the old armour piece
-					weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+					weaponGraphics.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
 				}
 			}
 
@@ -343,8 +307,8 @@ namespace Armere.PlayerController
 					ItemData item = inventory.ItemAt(selection, t).item;
 					if (item is HoldableItemData holdableItemData)
 					{
-						var x = weaponGraphicsController.holdables[t].SetHeld(holdableItemData);
-						weaponGraphicsController.holdables[t].sheathed = sheathedItems[t];
+						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
+						weaponGraphics.holdables[t].sheathed = sheathedItems[t];
 
 						//OnSelectItem(t, selection);
 					}
@@ -369,12 +333,12 @@ namespace Armere.PlayerController
 			writer.Write(itemSelections[ItemType.Bow]);
 			writer.Write(itemSelections[ItemType.Ammo]);
 
-			writer.Write(weaponGraphicsController.holdables.melee.sheathed);
-			writer.Write(weaponGraphicsController.holdables.sidearm.sheathed);
-			writer.Write(weaponGraphicsController.holdables.bow.sheathed);
+			writer.Write(weaponGraphics.holdables.melee.sheathed);
+			writer.Write(weaponGraphics.holdables.sidearm.sheathed);
+			writer.Write(weaponGraphics.holdables.bow.sheathed);
 
 			//Save the current state
-			writer.Write(currentState.StateSymbol);
+			writer.Write(currentState.stateSymbol);
 			//currentState.SaveBin(writer);
 		}
 
@@ -382,7 +346,7 @@ namespace Armere.PlayerController
 		{
 			AfterLoaded();
 			//start a fresh state
-			ChangeToState<Walking>();
+			ChangeToState(defaultState);
 		}
 
 		public void EnterRoom(Room room)
@@ -402,7 +366,7 @@ namespace Armere.PlayerController
 				if (armourSelections[i] == index)
 				{
 					//this armour piece was removed, kill
-					weaponGraphicsController.characterMesh.RemoveClothing(i);
+					weaponGraphics.characterMesh.RemoveClothing(i);
 				}
 				else if (armourSelections[i] > index)
 				{
@@ -417,7 +381,7 @@ namespace Armere.PlayerController
 		public void OnDeath()
 		{
 			// The player has died.
-			ChangeToState<Dead>();
+			ChangeToState(deadState);
 
 		}
 
@@ -582,10 +546,10 @@ namespace Armere.PlayerController
 
 		}
 
-		private void OnSelectWeapon(InputActionPhase phase)
-		{
-			//print(String.Format("Switching on slot {0}", index));
 
+
+		private void OnChangeSelection(InputActionPhase phase)
+		{
 			if (phase == InputActionPhase.Started && selectingSlot == null && !paused)
 			{
 				selectingSlot = weaponSet switch
@@ -649,7 +613,7 @@ namespace Armere.PlayerController
 				if (index != -1)
 				{
 					//Will automatically remove the old armour piece
-					weaponGraphicsController.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+					weaponGraphics.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
 				}
 			}
 			else if (inventory.GetPanelFor(type).stackCount > index && index != itemSelections[type])
@@ -669,9 +633,9 @@ namespace Armere.PlayerController
 					{
 						itemSelections[type] = -1;
 
-						weaponGraphicsController.holdables[type].RemoveHeld();
+						weaponGraphics.holdables[type].RemoveHeld();
 
-						if (!weaponGraphicsController.holdables[type].sheathed)
+						if (!weaponGraphics.holdables[type].sheathed)
 						{
 							//No need to double sheath
 							//Do not trigger over time - remove immediately
@@ -685,7 +649,7 @@ namespace Armere.PlayerController
 						{
 							itemSelections[type] = index;
 
-							var x = weaponGraphicsController.holdables[type].SetHeld(holdableItemData);
+							var x = weaponGraphics.holdables[type].SetHeld(holdableItemData);
 						}
 					}
 
@@ -729,14 +693,14 @@ namespace Armere.PlayerController
 			if (currentBow != -1)
 			{
 				var ammo = (AmmoItemData)inventory.ItemAt(currentAmmo, ItemType.Ammo).item;
-				weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammo);
+				weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammo);
 			}
 		}
 		public void RemoveNotchedArrow()
 		{
 			if (currentBow != -1)
 			{
-				weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().RemoveNotchedArrow();
+				weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().RemoveNotchedArrow();
 			}
 		}
 		#region Holdables
@@ -749,7 +713,7 @@ namespace Armere.PlayerController
 			{
 				RemoveNotchedArrow();
 			}
-			yield return weaponGraphicsController.SheathItem(type, transitionSet);
+			yield return weaponGraphics.SheathItem(type, transitionSet);
 			sheathing[type] = false;
 		}
 
@@ -757,15 +721,15 @@ namespace Armere.PlayerController
 		{
 
 
-			if (!weaponGraphicsController.holdables.melee.sheathed)
+			if (!weaponGraphics.holdables.melee.sheathed)
 			{
 				yield return SheathItem(ItemType.Melee);
 			}
-			if (!weaponGraphicsController.holdables.sidearm.sheathed)
+			if (!weaponGraphics.holdables.sidearm.sheathed)
 			{
 				yield return SheathItem(ItemType.SideArm);
 			}
-			if (!weaponGraphicsController.holdables.bow.sheathed)
+			if (!weaponGraphics.holdables.bow.sheathed)
 			{
 				yield return SheathItem(ItemType.Bow);
 			}
@@ -794,54 +758,41 @@ namespace Armere.PlayerController
 				gamepad.SetMotorSpeeds(low, high);
 			}
 		}
-
-		public T ChangeToState<T>(params object[] parameters) where T : MovementState, new() => (T)ChangeToState(typeof(T), parameters);
-		public T ChangeToState<T>() where T : MovementState, new() => (T)ChangeToState(typeof(T));
-
-		private void InsatiateState(Type type)
+		public MovementState ChangeToState(MovementStateTemplate t)
 		{
 			currentState?.End(); // state specific end method
-			currentState = (MovementState)Activator.CreateInstance(type);
+			currentState = t.StartState(this);
 
-
-			//test to see if this state requires any parallel states to be started
-			RequiresParallelState requiresParallelStates = (RequiresParallelState)type.GetCustomAttributes(typeof(RequiresParallelState), true).FirstOrDefault();
 
 			//go through and end all the parallel states not used by this state
 			for (int i = 0; i < parallelStates.Length; i++)
 			{
-				if (requiresParallelStates != null)
-				{
-					Type stateType = parallelStates[i].GetType();
-					for (int j = 0; j < requiresParallelStates.states.Count; j++)
-						if (stateType == requiresParallelStates.states[j])
-							goto DoNotEndState;
-				}
+
+				Type stateType = parallelStates[i].GetType();
+				for (int j = 0; j < t.parallelStates.Length; j++)
+					if (stateType == t.parallelStates[j].StateType())
+						goto DoNotEndState;
+
 				//Goto saves time here - ending state will only be skipped if it is required
 				parallelStates[i].End();
 			DoNotEndState:
 				continue;
 			}
 
-			if (requiresParallelStates != null)
-			{
-				MovementState[] newStates = new MovementState[requiresParallelStates.states.Count];
 
-				for (int i = 0; i < requiresParallelStates.states.Count; i++)
-				{
-					//test if the desired parallel state is currently active
-					newStates[i] = GetParallelState(requiresParallelStates.states[i]);
-					if (newStates[i] == null)
-					{
-						newStates[i] = Activator.CreateInstance(requiresParallelStates.states[i]) as MovementState;
-					}
-				}
-				parallelStates = newStates;
-			}
-			else
+			MovementState[] newStates = new MovementState[t.parallelStates.Length];
+
+			for (int i = 0; i < t.parallelStates.Length; i++)
 			{
-				parallelStates = new MovementState[0];
+				//test if the desired parallel state is currently active
+				newStates[i] = GetParallelState(t.parallelStates[i].StateType());
+				if (newStates[i] == null)
+				{
+					newStates[i] = t.parallelStates[i].StartState(this);
+				}
 			}
+			parallelStates = newStates;
+
 
 
 
@@ -863,18 +814,9 @@ namespace Armere.PlayerController
 				entry.value0 = stringBuilder.ToString();
 			}
 			FillAllStates();
-		}
-		public MovementState ChangeToState(Type type)
-		{
-			InsatiateState(type);
-			StartAllStates();
-			return currentState;
-		}
 
-		public MovementState ChangeToState(Type type, params object[] parameters)
-		{
-			InsatiateState(type);
-			StartAllStates(parameters);
+			StartAllStates();
+
 			return currentState;
 		}
 
@@ -887,19 +829,8 @@ namespace Armere.PlayerController
 			}
 			allStates[parallelStates.Length] = currentState;
 		}
-		public void StartAllStates(params object[] parameters)
-		{
-			StartAllStates();
-			// start all the states after everything has been constructed
-			currentState.Start(parameters);
-		}
 		public void StartAllStates()
 		{
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-				parallelStates[i].Init(this);
-			}
-			currentState.Init(this); //non - overridable init method for reference to controller
 
 			for (int i = 0; i < parallelStates.Length; i++)
 			{
@@ -956,6 +887,9 @@ namespace Armere.PlayerController
 			currentWater = null;
 		}
 
-
+		public override void Knockout(float time)
+		{
+			ChangeToState(knockoutState);
+		}
 	}
 }

@@ -8,15 +8,19 @@ namespace Armere.PlayerController
 {
 
 
-	[Serializable]
-	public class Shieldsurfing : MovementState
+
+	public class ShieldSurfing : MovementState<ShieldSurfingTemplate>
 	{
-
-		public override void Start()
+		public ShieldSurfing(PlayerController c, ShieldSurfingTemplate t) : base(c, t)
 		{
-			originalMaterial = c.collider.material;
-			c.collider.material = c.surfPhysicMat;
 
+			originalMaterial = c.collider.material;
+
+			c.collider.material = new PhysicMaterial()
+			{
+				frictionCombine = PhysicMaterialCombine.Minimum,
+				dynamicFriction = t.friction
+			};
 
 			c.inputReader.jumpEvent += OnJump;
 			c.inputReader.sprintEvent += OnSprint;
@@ -33,7 +37,6 @@ namespace Armere.PlayerController
 		}
 
 		public override string StateName => "Shield Surfing";
-		public override char StateSymbol => 's';
 		float turning;
 
 		PhysicMaterial originalMaterial;
@@ -42,18 +45,18 @@ namespace Armere.PlayerController
 		public override void FixedUpdate()
 		{
 			currentSpeed = c.rb.velocity.magnitude;
-			if (currentSpeed <= c.minSurfingSpeed)
+			if (currentSpeed <= t.minSurfingSpeed)
 			{
-				c.ChangeToState<Walking>();
+				c.ChangeToState(c.defaultState);
 			}
 
-			turning = inputHorizontal.x * Time.fixedDeltaTime * c.turningTorqueForce;
+			turning = inputHorizontal.x * Time.fixedDeltaTime * t.turningTorqueForce;
 
 			c.rb.velocity = Quaternion.Euler(0, turning, 0) * c.rb.velocity;
 
 			//set player orientation
-			transform.forward = c.rb.velocity;
-			transform.rotation *= Quaternion.Euler(0, 0, inputHorizontal.x * -c.turningAngle);
+			//transform.forward = c.rb.velocity;
+			//transform.rotation *= Quaternion.Euler(0, 0, inputHorizontal.x * -t.turningAngle);
 		}
 		public override void Animate(AnimatorVariables vars)
 		{
@@ -68,7 +71,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.rb.AddForce(Vector3.up * c.jumpForce, ForceMode.Acceleration);
+				c.rb.AddForce(Vector3.up * t.jumpForce, ForceMode.VelocityChange);
 			}
 		}
 
@@ -76,10 +79,11 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.ChangeToState<Walking>();
+				c.ChangeToState(c.defaultState);
 			}
 		}
 		Vector2 inputHorizontal;
+
 
 		public void OnInputHorizontal(Vector2 input)
 		{

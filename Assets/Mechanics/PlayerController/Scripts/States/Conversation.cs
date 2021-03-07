@@ -12,8 +12,8 @@ namespace Armere.PlayerController
 	//Conversation - specific for talking to an NPC
 	//Converstation base class - runs dialogue, only requires player controller
 
-	[System.Serializable]
-	public class Conversation : Dialogue
+
+	public class Conversation : Dialogue<ConversationTemplate>
 	{
 		public const string GiveQuestCommand = "quest";
 		public const string DeliverQuestCommand = "DeliverQuest";
@@ -28,24 +28,19 @@ namespace Armere.PlayerController
 		public const string OfferToBuyCommand = "OfferToBuy";
 		public const string GoToCommand = "GoTo";
 		public override string StateName => "In Conversation";
-		public NPC talkingTarget;
+		public readonly NPC talkingTarget;
 
-		public override char StateSymbol => 'c';
+
 
 		BuyInventoryUI buyMenu;
 		bool hasSpeaker;
 		NPCName speakingNPC;
 
-		public override void Start(params object[] args)
+		public Conversation(PlayerController c, ConversationTemplate t) : base(c, t)
 		{
-			if (args[0] is NPC npc)
-			{
-				talkingTarget = npc;
-			}
-			else
-			{
-				throw new System.Exception("First arg must be npc");
-			}
+
+			talkingTarget = t.npc;
+
 
 			//Set up ik weights
 			c.animationController.headLookAtPositionWeight = 1;

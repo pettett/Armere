@@ -21,6 +21,9 @@ public class UIKeyPromptGroup : MonoBehaviour
 			this.name = name;
 			this.action = action;
 		}
+
+		public static implicit operator KeyPrompt((string name, string action) s) => new KeyPrompt(s.name, s.action);
+
 	}
 	[System.Serializable]
 	public struct KeyBindSprite
@@ -59,7 +62,8 @@ public class UIKeyPromptGroup : MonoBehaviour
 	{
 		foreach (Transform child in transform) Destroy(child.gameObject);
 	}
-	public void ShowPrompts(InputActionAsset input, string map, params KeyPrompt[] prompts)
+
+	public void ShowPrompts(InputReader input, string map, params KeyPrompt[] prompts)
 	{
 
 
@@ -76,7 +80,7 @@ public class UIKeyPromptGroup : MonoBehaviour
 			bindT.font = fontAsset;
 			bindT.fontSize = fontSize;
 			bindT.fontMaterial = maskingTextMaterial;
-			bindT.text = input[prompts[i].action].GetBindingDisplayString();
+			bindT.text = input.GetBindingDisplayString(map, prompts[i].action);
 
 			bindT.alignment = TextAlignmentOptions.Right;
 

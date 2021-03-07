@@ -27,6 +27,12 @@ public class Health : SimpleHealth, IAttackable
 
 	public VoidEventChannelSO deathEventChanel;
 	public FloatFloatEventChannelSO healthChangedChannel;
+	public UnityEvent<float, float> onHealthChanged;
+	void OnHealthChanged()
+	{
+		healthChangedChannel?.RaiseEvent(health, maxHealth);
+		onHealthChanged?.Invoke(health, maxHealth);
+	}
 	/// <summary>
 	/// Start is called on the frame when a script is enabled just before
 	/// any of the Update methods is called the first time.
@@ -34,7 +40,7 @@ public class Health : SimpleHealth, IAttackable
 	protected override void Start()
 	{
 		base.Start();
-		UpdateUI();
+		OnHealthChanged();
 	}
 	public void Respawn()
 	{
@@ -73,7 +79,8 @@ public class Health : SimpleHealth, IAttackable
 		{
 			onTakeDamage?.Invoke(origin, gameObject);
 		}
-		UpdateUI();
+
+		OnHealthChanged();
 
 		return r;
 	}
@@ -82,15 +89,17 @@ public class Health : SimpleHealth, IAttackable
 	{
 		dead = true;
 		onDeathEvent.Invoke();
+		enabled = false;
 		if (deathEventChanel != null)
 			deathEventChanel.RaiseEvent();
 	}
+
 
 	public void SetHealth(float newHealth)
 	{
 		health = Mathf.Clamp(newHealth, 0, maxHealth);
 
-		UpdateUI();
+		OnHealthChanged();
 	}
 
 	private void OnDrawGizmosSelected()
@@ -100,11 +109,6 @@ public class Health : SimpleHealth, IAttackable
 		Gizmos.DrawWireSphere(transform.position + offset, 0.1f);
 	}
 
-	void UpdateUI()
-	{
-		if (healthChangedChannel != null)
-			healthChangedChannel?.RaiseEvent(health, maxHealth);
-	}
 
 	public AttackResult Attack(AttackFlags flags, WeaponItemData weapon, GameObject controller, Vector3 hitPosition)
 	{

@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "ca.andydbc.unity-texture-packer": {
+      "version": "https://github.com/andydbc/unity-texture-packer.git#0.1.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "61de17f4dbb51a46aec89bc22e33db7b11b52bbf"
+    },
     "com.malee.reorderablelist": {
       "version": "https://github.com/cfoulston/Unity-Reorderable-List.git",
       "depth": 0,

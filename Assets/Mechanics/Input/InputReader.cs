@@ -7,8 +7,15 @@ using UnityEngine.Events;
 using CallbackContext = UnityEngine.InputSystem.InputAction.CallbackContext;
 
 [CreateAssetMenu(menuName = "Channels/Input Reader")]
-public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActions, PlayerControls.IDebugActions
+public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActions, PlayerControls.IDebugActions, PlayerControls.IUIActions, PlayerControls.IAlwaysActiveActions
 {
+	public const string groundActionMap = "Ground Action Map";
+	public const string attackAction = "Attack";
+	public const string altAttackAction = "AltAttack";
+	public string GetBindingDisplayString(string map, string action)
+	{
+		return asset.FindActionMap(map).FindAction(action).GetBindingDisplayString();
+	}
 	public static bool PhaseMeansPressed(InputActionPhase phase) => phase switch
 	{
 		InputActionPhase.Performed => true,
@@ -36,7 +43,8 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> openInventoryEvent;
 	public UnityAction<InputActionPhase> openMapEvent;
 	public UnityAction<InputActionPhase> openQuestsEvent;
-	public UnityAction<InputActionPhase> switchWeaponSetEvent;
+	public UnityAction<InputActionPhase> startChangeSelection;
+	public UnityAction<InputActionPhase> changeSelection;
 	public UnityAction<InputActionPhase> sprintEvent;
 	public UnityAction<InputActionPhase> shieldEvent;
 	public UnityAction<InputActionPhase> showReadoutScreenEvent;
@@ -44,6 +52,11 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> quicksaveEvent;
 	public UnityAction<InputActionPhase> quickloadEvent;
 	public UnityAction<InputActionPhase> equipBowEvent;
+
+	public UnityAction<InputActionPhase> uiSubmitEvent;
+	public UnityAction<InputActionPhase> uiCancelEvent;
+	public UnityAction<Vector2> uiNavigateEvent;
+	public UnityAction<InputAction.CallbackContext> uiScrollEvent;
 
 	private PlayerControls gameInput;
 
@@ -60,27 +73,41 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 			gameInput = new PlayerControls();
 			gameInput.GroundActionMap.SetCallbacks(this);
 			gameInput.Debug.SetCallbacks(this);
+			gameInput.UI.SetCallbacks(this);
+			gameInput.AlwaysActive.SetCallbacks(this);
 		}
 
-		EnableGameplayInput();
+		SwitchToGameplayInput();
+		gameInput.Debug.Enable();
+		gameInput.AlwaysActive.Enable();
 	}
 
 	private void OnDisable()
 	{
 		DisableAllInput();
+		gameInput.Debug.Disable();
+		gameInput.AlwaysActive.Disable();
 	}
 
-	public void EnableGameplayInput()
+	public void SwitchToGameplayInput()
 	{
 		gameInput.GroundActionMap.Enable();
-		gameInput.Debug.Enable();
+		gameInput.UI.Disable();
 	}
 
 	public void DisableAllInput()
 	{
 		gameInput.GroundActionMap.Disable();
-		gameInput.Debug.Disable();
+
+		gameInput.UI.Disable();
 	}
+
+	public void SwitchToUIInput()
+	{
+		gameInput.UI.Enable();
+		gameInput.GroundActionMap.Disable();
+	}
+
 
 
 	public void OnAction(CallbackContext context) => actionEvent?.Invoke(context.phase);
@@ -97,7 +124,6 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnEquipBow(CallbackContext context) => equipBowEvent?.Invoke(context.phase);
 	public void OnShield(CallbackContext context) => shieldEvent?.Invoke(context.phase);
 	public void OnSprint(CallbackContext context) => sprintEvent?.Invoke(context.phase);
-	public void OnSwitchWeaponSet(CallbackContext context) => switchWeaponSetEvent?.Invoke(context.phase);
 	public void OnTabMenu(CallbackContext context) => tabMenuEvent?.Invoke(context.phase);
 	public void OnOpenInventory(CallbackContext context) => openInventoryEvent?.Invoke(context.phase);
 	public void OnOpenQuests(CallbackContext context) => openQuestsEvent?.Invoke(context.phase);
@@ -119,4 +145,20 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnQuickSave(InputAction.CallbackContext context) => quicksaveEvent?.Invoke(context.phase);
 	public void OnQuickLoad(InputAction.CallbackContext context) => quickloadEvent?.Invoke(context.phase);
 
+	public void OnSumbit(CallbackContext context) => uiSubmitEvent?.Invoke(context.phase);
+
+	public void OnCancel(CallbackContext context) => uiCancelEvent?.Invoke(context.phase);
+
+	public void OnNavigate(CallbackContext context) => uiNavigateEvent?.Invoke(context.ReadValue<Vector2>());
+
+	public void OnScroll(CallbackContext context)
+	{
+		uiScrollEvent?.Invoke(context);
+	}
+
+
+	public void OnChangeSelection(CallbackContext context)
+	{
+		changeSelection?.Invoke(context.phase);
+	}
 }

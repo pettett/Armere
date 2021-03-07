@@ -97,6 +97,8 @@ float LerpAngle(float a, float b, float t)
 void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = id.x;
+	//Clear the output buffer
+	_Output[index] = (MatrixStruct)0;
 
 	uint placedIndex = _PrefixScanData[index];
 	

@@ -6,13 +6,22 @@ MonoImporter:
   defaultReferences:
   - createGrassInBoundsCompute: {fileID: 7200000, guid: f852d3ce0793eae4bb52cce257c24269,
       type: 3}
-  - gradientTexture: {fileID: 2800000, guid: 7d57d17506da1084dacf1b3ed620917f, type: 3}
   - terrain: {instanceID: 0}
   - compute: {fileID: 7200000, guid: 57f1dbd48c092f748bc4ad0b78b88088, type: 3}
   - destroyGrassInBounds: {fileID: 7200000, guid: b2f86f7d44fb57e40a0c024a6670594c,
       type: 3}
   - destroyGrassInChunk: {fileID: 7200000, guid: b98d5763cf121424aa4408c385e1979b,
       type: 3}
+  - destroyGrassInRange: {fileID: 7200000, guid: afb1ac25fdee1b34d95cde35aa5beab3,
+      type: 3}
+  - prefixScanCompute: {fileID: 7200000, guid: 4c34ca6ae2aa63d43872c08aca8818ec, type: 3}
+  - cullGrassCompute: {fileID: 7200000, guid: fe6708d853b87dc48aba4c357e767f8c, type: 3}
+  - material: {fileID: 2100000, guid: cb5b9944543a33a4e87b818cc7aa8395, type: 2}
+  - destroyGrassInRangeEventChannel: {fileID: 11400000, guid: 4a23cc8ca1bd4c94081ea5dbd77bf68d,
+      type: 2}
+  - destroyGrassInBoundsEventChannel: {fileID: 11400000, guid: df016e3a4fcf3084887b2eefcaf9cad2,
+      type: 2}
+  - terrainHeight: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

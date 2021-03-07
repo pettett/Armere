@@ -43,30 +43,40 @@ namespace Armere.PlayerController
 		}
 	}
 
-	[Serializable]
-	public abstract class MovementState : State
+	public abstract class MovementState : State<PlayerController>
 	{
 		public bool updateWhilePaused = false;
 		public bool canBeTargeted = true;
-		public void ChangeToState<T>() where T : MovementState, new() => c.ChangeToState<T>();
-
 		public Transform transform => c.transform;
 		public GameObject gameObject => c.gameObject;
-
 		public Animator animator => c.animator;
-		[NonSerialized] protected PlayerController c;
-
-		public void Init(PlayerController characterController)
+		public abstract char stateSymbol { get; }
+		public MovementState(PlayerController c) : base(c)
 		{
-			c = characterController;
+
 		}
 
 		public abstract string StateName { get; }
-		public abstract char StateSymbol { get; }
 		public virtual void Animate(AnimatorVariables vars) { }
 		public virtual void OnAnimatorIK(int layerIndex) { }
 		public virtual void OnTriggerEnter(Collider other) { }
 		public virtual void OnTriggerExit(Collider other) { }
+	}
+	public abstract class MovementState<TemplateT> : MovementState where TemplateT : MovementStateTemplate
+	{
+		public override char stateSymbol => t.stateSymbol;
+		protected readonly TemplateT t;
+
+		protected MovementState(PlayerController c, TemplateT t) : base(c)
+		{
+			this.t = t;
+		}
+	}
+
+
+	public abstract class MovementStateTemplate : StateTemplate<MovementStateTemplate, PlayerController, MovementState>
+	{
+
 	}
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -81,5 +91,7 @@ namespace Armere.PlayerController
 			this.states = Array.AsReadOnly(states);
 		}
 	}
+
+
 
 }

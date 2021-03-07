@@ -13,7 +13,8 @@
         "Game.Environment.Grass",
         "MyBox",
         "EventChannels",
-        "Armere.SaveLoadSystem"
+        "Armere.SaveLoadSystem",
+        "Game.Input"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

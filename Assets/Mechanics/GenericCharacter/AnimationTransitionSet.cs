@@ -6,7 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Animation Transition Set", menuName = "Game/Animation Transition Set", order = 0)]
 public class AnimationTransitionSet : ScriptableObject
 {
-	[Header("Swords")]
+	[Header("Weapons")]
 	public AnimationTransition swingSword = new AnimationTransition("Sword Slash", 0.05f, 0.15f, Layers.BaseLayer);
 	public AnimationTransition swingDoubleSword = new AnimationTransition("Double Sword Slash", 0.05f, 0.15f, Layers.BaseLayer);
 	public AnimationTransition backSwingSword = new AnimationTransition("Sword Back Slash", 0.05f, 0.15f, Layers.BaseLayer);
@@ -16,8 +16,9 @@ public class AnimationTransitionSet : ScriptableObject
 
 	public AnimationTransition swordWalking = new AnimationTransition("Sword Walking", 0.05f, 0.05f, Layers.BaseLayer);
 	public AnimationTransition sword180 = new AnimationTransition("Sword 180", 0.05f, 0.05f, Layers.BaseLayer);
+	public AnimationTransition holdBow = new AnimationTransition("Hold Bow", 0.05f, 0.05f, Layers.UpperBody);
 	[Header("Movement")]
-	public AnimationTransition bowWalking = new AnimationTransition("Strafing Movement", 0.05f, 0.05f, Layers.BaseLayer);
+	public AnimationTransition strafingMovement = new AnimationTransition("Strafing Movement", 0.05f, 0.05f, Layers.BaseLayer);
 
 
 
@@ -35,6 +36,8 @@ public class AnimationTransitionSet : ScriptableObject
 
 	public AnimationTransition swordBackImpact = new AnimationTransition("Back Impact", 0.05f, 0.05f, Layers.BaseLayer);
 	public AnimationTransition swordFrontImpact = new AnimationTransition("Front Impact", 0.05f, 0.05f, Layers.BaseLayer);
+
+	public AnimationTransition surfImpact = new AnimationTransition("Surfing", 0.05f, 0.05f, Layers.BaseLayer);
 
 	[Header("Ladders")]
 	public AnimationTransition ladderClimb = new AnimationTransition("Climbing Ladder", 0.05f, 0.05f, Layers.BaseLayer);

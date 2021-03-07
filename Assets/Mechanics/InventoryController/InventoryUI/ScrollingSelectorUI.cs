@@ -11,7 +11,8 @@ namespace Armere.Inventory.UI
 	public class ScrollingSelectorUI : MonoBehaviour
 	{
 
-		public InputAction scrollAction = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll");
+		public InventoryController selectingInventory;
+
 		[System.Serializable]
 		public struct SelectionLayer
 		{
@@ -19,9 +20,7 @@ namespace Armere.Inventory.UI
 			[System.NonSerialized] public int selection;
 			public RectTransform childGroup;
 			[System.NonSerialized] public InventoryPanel panel;
-			[System.NonSerialized] public float internalScroll;
-			[System.NonSerialized] public float scrollVel;
-			[System.NonSerialized] public float scroll; //Scroll in units of selection
+			[System.NonSerialized] public float internalScroll, scrollVel, scroll; //Scroll in units of selection
 		}
 		public SelectionLayer[] layers = new SelectionLayer[2];
 
@@ -44,7 +43,7 @@ namespace Armere.Inventory.UI
 			{
 				layers[i].childGroup.GetComponent<HorizontalLayoutGroup>().spacing = optionSpacing;
 
-				layers[i].panel = InventoryController.singleton.GetPanelFor(layers[i].selecting);
+				layers[i].panel = selectingInventory.GetPanelFor(layers[i].selecting);
 
 				//Create the first, blank panel
 				GameObject child = Instantiate(blankPanelPrefab, layers[i].childGroup);
@@ -78,18 +77,20 @@ namespace Armere.Inventory.UI
 
 			}
 
-			scrollAction.performed += OnScroll;
-			scrollAction.Enable();
-			input.movementEvent += OnMovement;
+			input.SwitchToUIInput();
+
+			input.uiScrollEvent += OnScroll;
+
+			input.uiNavigateEvent += OnMovement;
 		}
 
 		private void OnDisable()
 		{
 			foreach (var l in layers) foreach (Transform t in l.childGroup) Destroy(t.gameObject);
 
-			scrollAction.performed -= OnScroll;
-			input.movementEvent -= OnMovement;
-			scrollAction.Disable();
+			input.uiScrollEvent -= OnScroll;
+			input.uiNavigateEvent -= OnMovement;
+			input.SwitchToGameplayInput();
 		}
 
 		void OnScroll(InputAction.CallbackContext value)

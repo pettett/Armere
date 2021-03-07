@@ -3,7 +3,33 @@ guid: fe8e5e48dcc6f6d4289ca57fb8f35391
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - inventory: {fileID: 11400000, guid: 328fed1cf5a81f7439ef32d995016fe1, type: 2}
+  - spellTree: {instanceID: 0}
+  - runner: {instanceID: 0}
+  - currentRoom: {instanceID: 0}
+  - waterTrailPrefab: {instanceID: 0}
+  - surfPhysicMat: {instanceID: 0}
+  - rb: {instanceID: 0}
+  - collider: {instanceID: 0}
+  - animator: {instanceID: 0}
+  - health: {instanceID: 0}
+  - weaponGraphicsController: {instanceID: 0}
+  - animationController: {instanceID: 0}
+  - currentWater: {instanceID: 0}
+  - transitionSet: {instanceID: 0}
+  - onChangeSelectedMelee: {instanceID: 0}
+  - onChangeSelectedSidearm: {instanceID: 0}
+  - onChangeSelectedBow: {instanceID: 0}
+  - onChangeSelectedAmmo: {instanceID: 0}
+  - onPlayerInventoryItemAdded: {instanceID: 0}
+  - onAimModeEnable: {instanceID: 0}
+  - onAimModeDisable: {instanceID: 0}
+  - changeTimeEventChannel: {instanceID: 0}
+  - setTabMenuEventChannel: {instanceID: 0}
+  - setTabMenuPanelEventChannel: {instanceID: 0}
+  - inputReader: {instanceID: 0}
+  - playerSaveLoadChannel: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

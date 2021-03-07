@@ -8,8 +8,7 @@ namespace Armere.Inventory
 
 		public void Interact(IInteractor interactor)
 		{
-			AddItemsToInventory();
-			Destroy();
+			AddItemsToInventory(() => Destroy());
 		}
 	}
 }

@@ -4,36 +4,36 @@ using UnityEngine;
 
 public class StealthArena : MonoBehaviour
 {
-    public Barrier[] lockdownBarriers;
-    public EnemyAISpawner[] enemyAISpawners;
-    public void OnEnemyDetectedPlayer(EnemyAI enemy)
-    {
-        //Pause the game
+	public Barrier?[] lockdownBarriers = new Barrier?[0];
+	public EnemyAISpawner?[] enemyAISpawners = new EnemyAISpawner?[0];
+	public void OnEnemyDetectedPlayer(EnemyAI enemy)
+	{
+		//Pause the game
 
-        //Focus on the enemy
-        GameCameras.s.SetCameraTargets(enemy.transform);
-        GameCameras.s.EnableCutsceneCamera();
-        //Lock down the area
-        foreach (var barrier in lockdownBarriers)
-        {
-            barrier.Close();
-        }
+		//Focus on the enemy
+		GameCameras.s.SetCameraTargets(enemy.transform);
+		GameCameras.s.EnableCutsceneCamera();
+		//Lock down the area
+		foreach (var barrier in lockdownBarriers)
+		{
+			barrier.Close();
+		}
 
-        StartCoroutine(GiveControlBackToPlayer());
-    }
+		StartCoroutine(GiveControlBackToPlayer());
+	}
 
-    IEnumerator GiveControlBackToPlayer()
-    {
-        yield return new WaitForSeconds(2);
+	IEnumerator GiveControlBackToPlayer()
+	{
+		yield return new WaitForSeconds(2);
 
-        //Return camera to player so he can be killed by op characters
-        GameCameras.s.DisableCutsceneCamera();
-    }
-    public void RemoveAllEnemies()
-    {
-        foreach (var s in enemyAISpawners)
-        {
-            s.body.Destroy();
-        }
-    }
+		//Return camera to player so he can be killed by op characters
+		GameCameras.s.DisableCutsceneCamera();
+	}
+	public void RemoveAllEnemies()
+	{
+		foreach (var s in enemyAISpawners)
+		{
+			s.body.Destroy();
+		}
+	}
 }

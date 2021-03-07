@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
+
+
 [CreateAssetMenu(menuName = "Game/Contour Generator")]
 public class ContourGenerator : ScriptableObject
 {
 	public bool gizmos;
+
+
 	[System.Serializable]
 	public class ContourLine
 	{
@@ -440,4 +445,9 @@ public class ContourGenerator : ScriptableObject
 
 		//TODO - identify line segments to make line strings
 	}
+
+
+
+
+
 }

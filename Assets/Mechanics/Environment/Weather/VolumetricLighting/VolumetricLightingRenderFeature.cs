@@ -21,8 +21,8 @@ public class VolumetricLightingRenderFeature : ScriptableRendererFeature
 		readonly VolumetricLightingSettings settings;
 
 		// The postprocessing materials
-		private Material m_VolumetricAdditivePass;
-		private Material m_VolumetricPostProcess;
+		private Material? m_VolumetricAdditivePass;
+		private Material? m_VolumetricPostProcess;
 		// This isn't part of the ScriptableRenderPass class and is our own addition.
 		// For this custom pass we need the camera's color target, so that gets passed in.
 

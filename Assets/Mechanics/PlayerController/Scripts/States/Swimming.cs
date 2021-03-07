@@ -5,10 +5,9 @@ using UnityEngine.InputSystem;
 
 namespace Armere.PlayerController
 {
-	public class Swimming : MovementState
+	public class Swimming : MovementState<SwimmingTemplate>
 	{
 		public override string StateName => "Swimming";
-		public override char StateSymbol => 'S';
 		GameObject waterTrail;
 		WaterTrailController waterTrailController;
 
@@ -40,8 +39,9 @@ namespace Armere.PlayerController
 
 		DebugMenu.DebugEntry<int, float> entry;
 
-		public override void Start()
+		public Swimming(PlayerController c, SwimmingTemplate t) : base(c, t)
 		{
+
 			c.rb.useGravity = false;
 			c.rb.drag = c.waterDrag;
 			c.animationController.enableFeetIK = false;
@@ -98,7 +98,7 @@ namespace Armere.PlayerController
 					if (waterDepth <= c.maxWaterStrideDepth)
 					{
 						//Within walkable water
-						c.ChangeToState<Walking>();
+						c.ChangeToState(c.defaultState);
 					}
 				}
 			}
@@ -127,7 +127,8 @@ namespace Armere.PlayerController
 						{
 							//Can move to hit spot
 							transform.position = hit.point;
-							c.ChangeToState<TransitionState<Walking>>(0.2f);
+
+							c.ChangeToState(TransitionStateTemplate.GenerateTransition(0.2f, c.defaultState));
 							return;
 						}
 					}

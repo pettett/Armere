@@ -5,12 +5,11 @@ namespace Armere.PlayerController
 {
 
 	/// <summary> Climb climbable objects
-	[System.Serializable]
-	[RequiresParallelState(typeof(ToggleMenus))]
-	public class LadderClimb : MovementState
+
+
+	public class LadderClimb : MovementState<LadderClimbTemplate>
 	{
 		public override string StateName => "Climbing Ladder";
-		public override char StateSymbol => 'L';
 		Climbable ladder;
 		float height;
 
@@ -24,16 +23,17 @@ namespace Armere.PlayerController
 		float oldColliderHeight;
 
 
-
-		public override void Start(params object[] info)
+		public LadderClimb(PlayerController c, LadderClimbTemplate t) : base(c, t)
 		{
-			if (info.Length > 0 && info[0] is Climbable climbable)
-				ladder = climbable;
+
+
+			if (t.climbable != null)
+				ladder = t.climbable;
 			else
 				throw new System.ArgumentException("A Ladder object must be supplied to this state");
 
 			oldColliderHeight = c.collider.height;
-			c.collider.height = c.climbingColliderHeight;
+			c.collider.height = t.climbingColliderHeight;
 			switch (ladder.surfaceType)
 			{
 				case Climbable.ClimbableSurface.Line:
@@ -132,7 +132,7 @@ namespace Armere.PlayerController
 				//Jump off the ladder
 				c.rb.isKinematic = false;
 				c.rb.AddForce(ladder.transform.forward * -100);
-				c.ChangeToState<Walking>();
+				c.ChangeToState(c.defaultState);
 			}
 		}
 
@@ -147,7 +147,7 @@ namespace Armere.PlayerController
 			switch (ladder.surfaceType)
 			{
 				case Climbable.ClimbableSurface.Line:
-					height += inputHorizontal.y * Time.deltaTime * c.climbingSpeed;
+					height += inputHorizontal.y * Time.deltaTime * t.climbingSpeed;
 					height = Mathf.Clamp(height, 0, ladder.ladderHeight - c.walkingHeight);
 
 					transform.position = GetLadderPos(height);
@@ -157,7 +157,7 @@ namespace Armere.PlayerController
 						//Get off at the top of the ladder
 						transform.position = GetLadderPos(ladder.ladderHeight - c.walkingHeight);
 						reachedLadderTop = true;
-						c.ChangeToState<TransitionState<Walking>>(c.transitionTime);
+						c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
 					}
 
 					break;
@@ -167,7 +167,7 @@ namespace Armere.PlayerController
 					Vector3 upTangent = Vector3.Cross(leftTangent, currentNormal);
 
 
-					Vector3 deltaPos = (leftTangent * inputHorizontal.x + upTangent * inputHorizontal.y) * Time.deltaTime * c.climbingSpeed;
+					Vector3 deltaPos = (leftTangent * inputHorizontal.x + upTangent * inputHorizontal.y) * Time.deltaTime * t.climbingSpeed;
 					currentPosition += deltaPos;
 
 					var point = ladder.GetClosestPointOnMesh(currentPosition);
@@ -187,7 +187,7 @@ namespace Armere.PlayerController
 						if (Physics.Raycast(origin, Vector3.down, upOffset + minGroundDistance, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
 						{
 							//What we hit is not important as we know it is in range and on ground layer
-							c.ChangeToState<Walking>();
+							c.ChangeToState(c.defaultState);
 						}
 					}
 
@@ -212,7 +212,7 @@ namespace Armere.PlayerController
 					flatBodyNormal.y = 0;
 
 					float bodyHeadRotationDifference = Vector3.SignedAngle(flatHeadNormal, flatBodyNormal, Vector3.up);
-					if (Mathf.Abs(bodyHeadRotationDifference) > c.maxHeadBodyRotationDifference)
+					if (Mathf.Abs(bodyHeadRotationDifference) > t.maxHeadBodyRotationDifference)
 					{
 						//go back left / right
 						currentPosition.x -= deltaPos.x;
@@ -235,7 +235,7 @@ namespace Armere.PlayerController
 						{
 							//go to tops
 							reachedLadderTop = true;
-							c.ChangeToState<TransitionState<Walking>>(c.transitionTime);
+							c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
 
 						}
 						else
@@ -274,12 +274,13 @@ namespace Armere.PlayerController
 
 		public override void Animate(AnimatorVariables vars)
 		{
-			animator.SetFloat(vars.vertical.id, inputHorizontal.y * c.climbingSpeed);
+			animator.SetFloat(vars.vertical.id, inputHorizontal.y * t.climbingSpeed);
 			animator.SetFloat(vars.horizontal.id, 0f);
 		}
 
 
 		Vector2 inputHorizontal;
+
 
 		public void OnInputHorizontal(Vector2 input)
 		{

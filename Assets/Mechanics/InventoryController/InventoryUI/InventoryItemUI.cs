@@ -33,11 +33,13 @@ namespace Armere.Inventory.UI
 
 			itemIndex = newIndex;
 			if (itemIndex != -1)
-				SetupItemAsync(InventoryController.singleton.ItemAt(itemIndex, type));
+				SetupItemDisplayAsync(InventoryController.singleton.ItemAt(itemIndex, type));
 		}
 
-		public async void SetupItemAsync(ItemStackBase item)
+		public void SetupItemDisplayAsync(ItemStackBase item)
 		{
+			ReleaseCurrentSprite();
+
 			ItemData data = item.item;
 			type = data.type;
 
@@ -45,8 +47,6 @@ namespace Armere.Inventory.UI
 			{
 				case MeleeWeaponItemData melee:
 					infoText?.SetText(melee.damage.ToString());
-					if (countText != null) countText.enabled = false;
-
 					break;
 				default:
 					if (infoText != null)
@@ -54,19 +54,37 @@ namespace Armere.Inventory.UI
 
 					break;
 			}
-
-			if (data.displaySprite.RuntimeKeyIsValid())
+			uint count = item switch
 			{
-				asyncOperation = Addressables.LoadAssetAsync<Sprite>(data.displaySprite);
-				Sprite s = await asyncOperation.Task;
-				//The image may have been destroyed before finishing
-				if (thumbnail != null) thumbnail.sprite = s;
-			}
-			nameText?.SetText(data.displayName);
+				ItemStack s => s.count,
+				_ => 0
+			};
+
+			SetupItemDisplayAsync(item.item, count);
+		}
 
 
-
-
+		public async void SetupItemDisplayAsync(ItemData displayItem, uint count)
+		{
+			if (countText != null)
+				if (count == 0)
+				{
+					countText.enabled = false;
+				}
+				else
+				{
+					countText.SetText(count.ToString());
+				}
+			if (thumbnail != null)
+				if (displayItem.thumbnail.RuntimeKeyIsValid())
+				{
+					asyncOperation = Addressables.LoadAssetAsync<Sprite>(displayItem.thumbnail);
+					Sprite s = await asyncOperation.Task;
+					//The image may have been destroyed before finishing
+					thumbnail.sprite = s;
+					thumbnail.color = Color.white;
+				}
+			nameText?.SetText(displayItem.displayName);
 		}
 
 
@@ -78,6 +96,7 @@ namespace Armere.Inventory.UI
 		{
 			if (asyncOperation.IsValid())
 				Addressables.Release(asyncOperation);
+			thumbnail.color = Color.clear;
 		}
 
 	}

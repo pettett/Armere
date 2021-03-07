@@ -9,38 +9,39 @@ using Cinemachine;
 //Base class for basic functionality related to yarn
 //Should contain - setup for yarn programs
 //Camera control
-public class Dialogue : MovementState
+public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : DialogueTemplate
 {
 	public override string StateName => "In Dialogue";
-	public override char StateSymbol => 'D';
 	protected DialogueRunner runner => c.runner;
-	protected IDialogue dialogue;
+	protected readonly IDialogue dialogue;
 
-	// Start is called before the first frame update
-	public override void Start(params object[] args)
+
+
+	const float cameraAngleOffset = 15f;
+
+	public Dialogue(PlayerController c, TemplateT t) : base(c, t)
 	{
-		if (args[0] is IDialogue d)
+		dialogue = t.dialogue;
+		if (dialogue != null)
 		{
 			//Point camera towards the dialogue object
 			GameCameras.s.conversationGroup.m_Targets = new CinemachineTargetGroup.Target[2];
 			GameCameras.s.conversationGroup.m_Targets[0] = GenerateTarget(transform);
-			GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(d.transform);
-			PointCameraToSpeaker(d.transform);
+			GameCameras.s.conversationGroup.m_Targets[1] = GenerateTarget(dialogue.transform);
+			PointCameraToSpeaker(dialogue.transform);
 
-			if (d is IVariableAddon a)
+			if (dialogue is IVariableAddon a)
 			{
 				(runner.variableStorage as InMemoryVariableStorage).addons.Add(a);
 			}
 
-			StartDialogue(d);
+			StartDialogue(dialogue);
 		}
 		else
 		{
-			throw new System.Exception("First arg must be dialogue");
+			throw new System.Exception("Dialogue target must be assigned");
 		}
 	}
-
-	const float cameraAngleOffset = 15f;
 
 	public float GetCameraAngle(Transform target)
 	{
@@ -59,7 +60,6 @@ public class Dialogue : MovementState
 
 	public void StartDialogue(IDialogue d)
 	{
-		dialogue = d;
 		//Setup PlayerController for static conversation
 		GameCameras.s.lockingMouse = false;
 		c.rb.velocity = Vector3.zero;
@@ -111,7 +111,7 @@ public class Dialogue : MovementState
 
 	public virtual void OnDialogueComplete()
 	{
-		c.ChangeToState<Walking>();
+		c.ChangeToState(c.defaultState);
 	}
 
 	// Update is called once per frame

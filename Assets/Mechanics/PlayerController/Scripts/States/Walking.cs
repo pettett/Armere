@@ -8,16 +8,11 @@ using Armere.Inventory;
 
 namespace Armere.PlayerController
 {
-	[
-		Serializable,
-		RequiresParallelState(typeof(ToggleMenus), typeof(Interact), typeof(ScanForNear<IAttackable>))
-	]
 
-	public class Walking : MovementState, IInteractReceiver
+
+	public class Walking : MovementState<WalkingTemplate>, IInteractReceiver
 	{
 		public override string StateName => "Walking";
-
-		public override char StateSymbol => 'W';
 
 
 		enum WalkingType { Walking, Sprinting, Crouching }
@@ -48,8 +43,6 @@ namespace Armere.PlayerController
 		Dictionary<WalkingType, float> walkingSpeeds;
 		bool inControl = true;
 		Collider[] crouchTestColliders = new Collider[2];
-		ContactPoint groundCP;
-
 
 
 		MeleeWeaponItemData meleeWeapon => (MeleeWeaponItemData)c.inventory.melee.items[c.currentMelee].item;
@@ -78,7 +71,7 @@ namespace Armere.PlayerController
 
 		bool holdingAltAttack = false;
 
-		ScanForNear<IAttackable> nearAttackables;
+		ScanForNearT<IAttackable> nearAttackables;
 
 		public Spell currentCastingSpell;
 
@@ -110,9 +103,9 @@ namespace Armere.PlayerController
 			entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false);
 
 			walkingSpeeds = new Dictionary<WalkingType, float>(){
-				{WalkingType.Walking , c.walkingSpeed},
-				{WalkingType.Crouching , c.crouchingSpeed},
-				{WalkingType.Sprinting , c.sprintingSpeed},
+				{WalkingType.Walking , t.walkingSpeed},
+				{WalkingType.Crouching , t.crouchingSpeed},
+				{WalkingType.Sprinting , t.sprintingSpeed},
 			};
 
 			//c.controllingCamera = false; // debug for camera parallel state
@@ -129,7 +122,7 @@ namespace Armere.PlayerController
 			c.health.onBlockDamage += OnBlockDamage;
 
 
-			nearAttackables = (ScanForNear<IAttackable>)c.GetParallelState(typeof(ScanForNear<IAttackable>));
+			nearAttackables = (ScanForNearT<IAttackable>)c.GetParallelState(typeof(ScanForNearT<IAttackable>));
 			nearAttackables.updateEveryFrame = false;
 
 			//Add input reader events
@@ -194,7 +187,7 @@ namespace Armere.PlayerController
 		}
 		public void ThrowHoldable()
 		{
-			RemoveHoldable((transform.forward + Vector3.up).normalized * c.throwForce);
+			RemoveHoldable((transform.forward + Vector3.up).normalized * t.throwForce);
 		}
 
 		public void HoldHoldable(HoldableBody body)
@@ -210,11 +203,10 @@ namespace Armere.PlayerController
 			holdingBody = true;
 
 			UIKeyPromptGroup.singleton.ShowPrompts(
-				c.inputReader.asset,
-				"Ground Action Map",
-				new UIKeyPromptGroup.KeyPrompt("Drop", "Attack"),
-				new UIKeyPromptGroup.KeyPrompt("Throw", "AltAttack")
-				);
+				c.inputReader,
+				InputReader.groundActionMap,
+				("Drop", InputReader.attackAction),
+				("Throw", InputReader.altAttackAction));
 
 			(c.GetParallelState(typeof(Interact)) as Interact).End();
 
@@ -237,10 +229,10 @@ namespace Armere.PlayerController
 				inControl = false;
 
 				UIKeyPromptGroup.singleton.ShowPrompts(
-					c.inputReader.asset,
-					"Ground Action Map",
-					new UIKeyPromptGroup.KeyPrompt("Rest", "Action"),
-					new UIKeyPromptGroup.KeyPrompt("Roast Marshmellow", "Attack")
+					c.inputReader,
+					InputReader.groundActionMap,
+					new UIKeyPromptGroup.KeyPrompt("Rest", InputReader.attackAction),
+					new UIKeyPromptGroup.KeyPrompt("Roast Marshmellow", InputReader.altAttackAction)
 					);
 
 				if (c.TryGetParallelState<Interact>(out var s))
@@ -427,7 +419,7 @@ namespace Armere.PlayerController
 					{
 						//Start swimming
 						Debug.Log("Too deep to walk");
-						c.ChangeToState<Swimming>();
+						c.ChangeToState(t.swimming);
 					}
 					else if (scaledDepth >= 0)
 					{
@@ -445,7 +437,7 @@ namespace Armere.PlayerController
 
 				//Start swimming
 				Debug.Log("Too deep to walk");
-				c.ChangeToState<Swimming>();
+				c.ChangeToState(t.swimming);
 			}
 		}
 
@@ -529,7 +521,7 @@ namespace Armere.PlayerController
 
 			yield return new WaitForSeconds(c.animator.GetNextAnimatorClipInfo(0)[0].clip.length / 2 - Time.deltaTime);
 
-			if (c.weaponGraphicsController.holdables.melee.sheathed)
+			if (c.weaponGraphics.holdables.melee.sheathed)
 			{
 				c.animationController.TriggerTransition(c.transitionSet.freeMovement);
 			}
@@ -560,7 +552,7 @@ namespace Armere.PlayerController
 			Vector3 velocity = c.rb.velocity;
 			Vector3 playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
 
-			grounded = FindGround(out groundCP, out currentGroundNormal, playerDirection, c.allCPs);
+			grounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
 			c.animationController.enableFeetIK = grounded;
 
@@ -578,7 +570,7 @@ namespace Armere.PlayerController
 				{
 					if (!c.sheathing.melee)
 					{
-						if (!c.weaponGraphicsController.holdables.melee.sheathed)
+						if (!c.weaponGraphics.holdables.melee.sheathed)
 						{
 							//Will only operate is sword exists
 							c.StartCoroutine(c.SheathItem(ItemType.Melee));
@@ -590,7 +582,7 @@ namespace Armere.PlayerController
 					}
 
 					//Will only operate if sidearm exists
-					if (!c.sheathing[ItemType.SideArm] && !c.weaponGraphicsController.holdables[ItemType.SideArm].sheathed)
+					if (!c.sheathing[ItemType.SideArm] && !c.weaponGraphics.holdables[ItemType.SideArm].sheathed)
 					{
 						//Will only operate is sword exists
 						c.StartCoroutine(c.SheathItem(ItemType.SideArm));
@@ -602,7 +594,7 @@ namespace Armere.PlayerController
 
 					if (!c.sheathing.bow)
 					{
-						if (!c.weaponGraphicsController.holdables.bow.sheathed)
+						if (!c.weaponGraphics.holdables.bow.sheathed)
 						{
 							//Will only operate if bow exists
 							OnCancelBowEvent?.Invoke();
@@ -663,7 +655,7 @@ namespace Armere.PlayerController
 			//c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
 			if (holdingCrouchKey)
 			{
-				c.collider.height = c.crouchingHeight;
+				c.collider.height = t.crouchingHeight;
 				walkingType = WalkingType.Crouching;
 			}
 			else if (crouching)
@@ -687,13 +679,13 @@ namespace Armere.PlayerController
 			Vector3 requiredForce = desiredVelocity - c.rb.velocity;
 			requiredForce.y = 0;
 
-			requiredForce = Vector3.ClampMagnitude(requiredForce, c.maxAcceleration * Time.fixedDeltaTime);
+			requiredForce = Vector3.ClampMagnitude(requiredForce, t.maxAcceleration * Time.fixedDeltaTime);
 
 			//rotate the target based on the ground the player is standing on
 
 
 			if (grounded)
-				requiredForce -= currentGroundNormal * c.groundClamp;
+				requiredForce -= currentGroundNormal * t.groundClamp;
 
 			c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
 
@@ -731,7 +723,7 @@ namespace Armere.PlayerController
 			if (spell < c.spellTree.selectedNodes.Length && spell >= 0)
 				if (c.spellTree.selectedNodes[spell] != null)
 				{
-					currentCastingSpell = c.spellTree.selectedNodes[spell].spell.BeginCast(gameObject);
+					currentCastingSpell = c.spellTree.selectedNodes[spell].BeginCast(c);
 					forceForwardHeadingToCamera = true;
 
 				}
@@ -766,7 +758,7 @@ namespace Armere.PlayerController
 			{
 				if (inControl)
 				{
-					if (c.weaponGraphicsController.holdables.melee.sheathed == true)
+					if (c.weaponGraphics.holdables.melee.sheathed == true)
 					{
 						c.StartCoroutine(DrawItem(ItemType.Melee));
 					}
@@ -832,7 +824,7 @@ namespace Armere.PlayerController
 			{
 				//print("Charged bow to {0}", bowCharge);
 				//Fire ammo
-				var bow = c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>();
+				var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
 				bow.ReleaseArrow(GameCameras.s.cameraTransform.forward * GetArrowSpeed(bowCharge));
 
 				//Initialize arrow
@@ -858,8 +850,8 @@ namespace Armere.PlayerController
 
 				forceForwardHeadingToCamera = false;
 				c.animationController.lookAtPositionWeight = 0; // don't need to do others - master switch
-				c.animator.SetBool("Holding Bow", false);
-				c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
+
+				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
 
 
 
@@ -870,9 +862,9 @@ namespace Armere.PlayerController
 
 
 
-			if (c.weaponGraphicsController.holdables.bow.sheathed)
+			if (c.weaponGraphics.holdables.bow.sheathed)
 			{
-				c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Bow>().InitBow(c.inventory.bow.items[c.currentBow].itemData);
+				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().InitBow(c.inventory.bow.items[c.currentBow].itemData);
 				c.NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
 				yield return DrawItem(ItemType.Bow);
 			}
@@ -885,7 +877,6 @@ namespace Armere.PlayerController
 
 			EnableBowAimView();
 
-			c.animator.SetBool("Holding Bow", true);
 
 			c.animationController.lookAtPositionWeight = 1;
 			c.animationController.headLookAtPositionWeight = 1;
@@ -893,19 +884,19 @@ namespace Armere.PlayerController
 			c.animationController.bodyLookAtPositionWeight = 1;
 			c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
 
-			var bowAC = c.weaponGraphicsController.holdables.bow.gameObject.GetComponent<Animator>();
+			var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
 			while (chargingBow)
 			{
 				yield return null;
 				if (Physics.Raycast(GameCameras.s.cameraTransform.position, GameCameras.s.cameraTransform.forward, out RaycastHit hit))
 				{
 					c.animationController.lookAtPosition = hit.point;
-					c.weaponGraphicsController.holdables.bow.gameObject.transform.LookAt(hit.point);
+					c.weaponGraphics.holdables.bow.gameObject.transform.LookAt(hit.point);
 				}
 				else
 				{
 					c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
-					c.weaponGraphicsController.holdables.bow.gameObject.transform.forward = GameCameras.s.cameraTransform.forward;
+					c.weaponGraphics.holdables.bow.gameObject.transform.forward = GameCameras.s.cameraTransform.forward;
 				}
 
 
@@ -929,7 +920,7 @@ namespace Armere.PlayerController
 				holdingSprintKey = false; //Stop the player from immediately sprinting again
 			}
 
-			yield return c.weaponGraphicsController.DrawItem(type, c.transitionSet);
+			yield return c.weaponGraphics.DrawItem(type, c.transitionSet);
 
 			equipping[type] = false;
 			onComplete?.Invoke();
@@ -941,7 +932,7 @@ namespace Armere.PlayerController
 			// var collider = c.weaponGraphicsController.holdables.melee.worldObject.gameObject.AddComponent<MeshCollider>();
 			// collider.convex = true;
 			// collider.isTrigger = true;
-			var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
+			var trigger = c.weaponGraphics.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
 			trigger.enableTrigger = true;
 
 			if (!trigger.inited)
@@ -1019,7 +1010,7 @@ namespace Armere.PlayerController
 		void RemoveWeaponTrigger(bool wasBackSwing)
 		{
 			//Clean up the trigger detection of the sword
-			var trigger = c.weaponGraphicsController.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
+			var trigger = c.weaponGraphics.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
 			trigger.enableTrigger = false;
 
 			if (backSwingSword && !wasBackSwing)
@@ -1082,7 +1073,7 @@ namespace Armere.PlayerController
 					if (c.currentSidearm != -1)
 					{
 						//Equip the sidearm if it wasn't
-						if (!c.sheathing.sidearm && c.weaponGraphicsController.holdables.sidearm.sheathed)
+						if (!c.sheathing.sidearm && c.weaponGraphics.holdables.sidearm.sheathed)
 						{
 							Debug.Log("Drawing sidearm");
 							if (SidearmIsShield)
@@ -1198,6 +1189,12 @@ namespace Armere.PlayerController
 
 		bool debugStep = false;
 
+		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
+		{
+		}
+
+
+
 		/// Takes a contact point that looks as though it's the side face of a step and sees if we can climb it
 		/// \param stepTestCP ContactPoint to check.
 		/// \param groundCP ContactPoint on the ground.
@@ -1222,7 +1219,7 @@ namespace Armere.PlayerController
 			}
 
 			//( 2 ) Make sure the contact point is low enough to be a step
-			if (!(stepTestCP.point.y - groundCP.point.y < c.maxStepHeight))
+			if (!(stepTestCP.point.y - groundCP.point.y < t.maxStepHeight))
 			{
 				if (debugStep) Debug.Log("Contact to high");
 				return false;
@@ -1240,22 +1237,22 @@ namespace Armere.PlayerController
 			//( 3 ) Check to see if there's actually a place to step in front of us
 			//Fires one Raycast
 			RaycastHit hitInfo;
-			float stepHeight = groundCP.point.y + c.maxStepHeight + 0.0001f;
+			float stepHeight = groundCP.point.y + t.maxStepHeight + 0.0001f;
 
 			Vector3 stepTestInvDir = velocity.normalized; // new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
 
 			//check forward based off the direction the player is walking
 
-			Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * c.stepSearchOvershoot);
+			Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * t.stepSearchOvershoot);
 			Vector3 direction = Vector3.down;
-			if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, c.maxStepHeight + c.maxStepDown))
+			if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, t.maxStepHeight + t.maxStepDown))
 			{
 				if (debugStep) Debug.Log("Nothing to step to");
 				return false;
 			}
 
 			//We have enough info to calculate the points
-			Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * c.stepSearchOvershoot);
+			Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * t.stepSearchOvershoot);
 			Vector3 stepUpPointOffset = stepUpPoint - new Vector3(stepTestCP.point.x, groundCP.point.y, stepTestCP.point.z);
 
 			//We passed all the checks! Calculate and return the point!
@@ -1276,7 +1273,7 @@ namespace Armere.PlayerController
 
 			while (t < 1)
 			{
-				t += Time.deltaTime / c.steppingTime;
+				t += Time.deltaTime / this.t.steppingTime;
 				entry.values[2] = t;
 				t = Mathf.Clamp01(t);
 				//lerp y values
@@ -1332,11 +1329,16 @@ namespace Armere.PlayerController
 				// Vector3 v = c.rb.velocity;
 				// v.y = c.jumpForce;
 				// c.rb.velocity = v;
-				c.rb.AddForce(Vector3.up * c.jumpForce, ForceMode.VelocityChange);
+				c.rb.AddForce(Vector3.up * t.jumpForce, ForceMode.VelocityChange);
 
-				ChangeToState<Freefalling>();
+				c.ChangeToState(t.freefalling);
 			}
 		}
 
+
+		public override void OnDrawGizmos()
+		{
+			currentCastingSpell?.OnDrawGizmos();
+		}
 	}
 }

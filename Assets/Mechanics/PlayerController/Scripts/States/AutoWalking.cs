@@ -7,13 +7,17 @@ namespace Armere.PlayerController
 {
 
 	/// <summary> Same as walking except uses a navmeshagent to control the player
-	[System.Serializable]
-	public class AutoWalking : MovementState
+
+	public class AutoWalking : MovementState<AutoWalkingTemplate>
 	{
 		public override string StateName => "Auto-Walking";
-		public override char StateSymbol => 'W'; // Same as walking
 		NavMeshAgent agent;
 		float oldFriction;
+
+		public AutoWalking(PlayerController c, AutoWalkingTemplate t) : base(c, t)
+		{
+		}
+
 		public override void Start()
 		{
 			agent = c.gameObject.AddComponent<NavMeshAgent>();

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Armere.Inventory;
 using UnityEngine;
-[CreateAssetMenu(fileName = "Patrol Routine", menuName = "Game/Patrol Routine", order = 0)]
+[CreateAssetMenu(fileName = "Patrol Routine", menuName = "Game/NPCs/Patrol Routine", order = 0)]
 public class PatrolRoutine : EnemyRoutine
 {
 	public override bool alertOnAttack => true;
@@ -23,7 +23,7 @@ public class PatrolRoutine : EnemyRoutine
 	{
 		if (overrideHeldWeapon)
 		{
-			await enemy.SetHeldWeapon(holdingWeapon);
+			await enemy.SetHeldMelee(holdingWeapon);
 
 		}
 		if (lightFlammableBody && enemy.weaponGraphics.holdables.melee.gameObject.TryGetComponent<FlammableBody>(out var f))

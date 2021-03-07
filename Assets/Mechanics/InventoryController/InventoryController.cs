@@ -15,7 +15,6 @@ public interface IWriteableToBinary
 namespace Armere.Inventory
 {
 
-	public delegate void InventoryNewItemDelegate(ItemStackBase item, ItemType type, int index, bool hiddenAddition);
 	public delegate void InventoryOptionDelegate(ItemType type, int itemIndex);
 
 	[Flags]
@@ -62,6 +61,16 @@ namespace Armere.Inventory
 		const string itemPrefix = "$Item_";
 
 		public string prefix => itemPrefix;
+
+
+		public uint weaponLimit = 7;
+		public uint sidearmLimit = 7;
+		public uint bowLimit = 7;
+
+
+		public event System.Action<ItemData, System.Action> onTriggerReplaceItemDialogue;
+
+
 
 		public Value this[string name]
 		{
@@ -140,9 +149,9 @@ namespace Armere.Inventory
 		{
 			common = new StackPanel<ItemStack>("Items", int.MaxValue, ItemType.Common, ItemInteractionCommands.None);
 			quest = new UniquesPanel<ItemStackBase>("Quest Items", int.MaxValue, ItemType.Quest, ItemInteractionCommands.None);
-			melee = new UniquesPanel<ItemStackBase>("Weapons", 10, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-			sideArm = new UniquesPanel<ItemStackBase>("Side Arms", 10, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
-			bow = new UniquesPanel<ItemStackT<BowItemData>>("Bows", 10, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+			melee = new UniquesPanel<ItemStackBase>("Weapons", weaponLimit, ItemType.Melee, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+			sideArm = new UniquesPanel<ItemStackBase>("Side Arms", sidearmLimit, ItemType.SideArm, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
+			bow = new UniquesPanel<ItemStackT<BowItemData>>("Bows", bowLimit, ItemType.Bow, ItemInteractionCommands.Equip | ItemInteractionCommands.Drop);
 			armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
 			potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
 			ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
@@ -242,10 +251,10 @@ namespace Armere.Inventory
 
 
 
-		public bool AddItem(ItemData item, uint count, bool hiddenAddition)
+		public bool TryAddItem(ItemData item, uint count, bool hiddenAddition, int desiredPosition = -1)
 		{
 			InventoryPanel p = GetPanelFor(item.type);
-			var addedIndex = p.AddItem(item, count);
+			var addedIndex = p.AddItem(item, count, desiredPosition);
 
 			if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
 			{
@@ -256,9 +265,28 @@ namespace Armere.Inventory
 		}
 
 
+		public void ReplaceItemDialogue(ItemData item, System.Action onReplaced)
+		{
+			//Tell the UI to start a replacement
+
+			onTriggerReplaceItemDialogue?.Invoke(item, onReplaced);
+		}
+
+
 		public bool TakeItem(ItemName n, uint count = 1) => GetPanelFor(db[n].type).TakeItem(n, count);
 
-		public bool AddItem(int index, ItemType type, uint count, bool hiddenAddition)
+
+		public void ReplaceItem(int index, ItemData item)
+		{
+			//TODO: If the player has this item equipped, it will be unequipped.
+			// Need a different event for item replaced
+			TakeItem(index, item.type);
+			TryAddItem(item, 1, false, index);
+		}
+
+
+
+		public bool TryAddItem(int index, ItemType type, uint count, bool hiddenAddition)
 		{
 			var b = GetPanelFor(type).AddItem(index, count);
 			if (b) //Use itemat command to find the type of item that was added
@@ -266,7 +294,7 @@ namespace Armere.Inventory
 			return b;
 		}
 
-		public bool AddItem(ItemStackBase stack, bool hiddenAddition = false)
+		public bool TryAddItem(ItemStackBase stack, bool hiddenAddition = false)
 		{
 			ItemType type = stack.item.type;
 			var b = GetPanelFor(type).AddItem(stack);

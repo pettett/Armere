@@ -16,7 +16,7 @@ public class Focusable : MonoBehaviour, IVisable
 	public bool inVision { get; set; } = false;
 
 	// Start is called before the first frame update
-	void Start()
+	void OnEnable()
 	{
 		focusables.Add(this);
 		GameCameras.s.cameraVision.visionGroup.Add(this);
@@ -25,10 +25,19 @@ public class Focusable : MonoBehaviour, IVisable
 
 		indicatorUI.focusStateGraphic.canvasRenderer.SetAlpha(0);
 	}
-	private void OnDestroy()
+	void OnDisable()
 	{
 		focusables.Remove(this);
 		GameCameras.s.cameraVision.visionGroup.Remove(this);
+		Destroy(indicatorUI.gameObject);
+		inVision = false;
+		if (focused)
+		{
+			focused = false;
+
+			GameCameras.s.StopFocus();
+		}
+
 	}
 
 	// Update is called once per frame
@@ -36,13 +45,19 @@ public class Focusable : MonoBehaviour, IVisable
 	{
 
 	}
+	bool focused = false;
 	public void OnFocus()
 	{
+		focused = true;
 		indicatorUI.SetFocused();
 	}
 	public void OnUnFocus()
 	{
-		indicatorUI.SetUnFocused();
+		if (focused)
+		{
+			focused = false;
+			indicatorUI.SetUnFocused();
+		}
 	}
 
 	public void OnEnterVision()

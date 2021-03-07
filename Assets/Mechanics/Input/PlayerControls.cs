@@ -123,14 +123,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
-                    ""name"": ""SwitchWeaponSet"",
-                    ""type"": ""Button"",
-                    ""id"": ""4f8ff449-85f4-48f1-850c-056b0cf5bbaa"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)""
-                },
-                {
                     ""name"": ""SelectSpell"",
                     ""type"": ""Value"",
                     ""id"": ""08949489-2e63-45e8-b72a-7891e6e7f714"",
@@ -509,17 +501,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""dec51b40-5696-4e6e-a74d-71aa3956a9e6"",
-                    ""path"": ""<Keyboard>/q"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SwitchWeaponSet"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""74178720-e353-43e7-bce0-babb9bfc2210"",
                     ""path"": ""<Keyboard>/1"",
                     ""interactions"": """",
@@ -730,12 +711,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
             ]
         },
         {
-            ""name"": ""Dialogue"",
-            ""id"": ""3c6807f6-78c3-4920-80c6-2e410e6764b8"",
-            ""actions"": [],
-            ""bindings"": []
-        },
-        {
             ""name"": ""Debug"",
             ""id"": ""edf04f3e-56b9-4730-9c1d-c2292fb88b00"",
             ""actions"": [
@@ -799,6 +774,172 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""UI"",
+            ""id"": ""0cea4bfc-3cd5-4d20-8805-70984c79358a"",
+            ""actions"": [
+                {
+                    ""name"": ""Sumbit"",
+                    ""type"": ""Button"",
+                    ""id"": ""f9b0ed2f-dbd7-454a-825b-d7795b0aade4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""626347bf-cd67-4310-b32a-3fbecf8ee28b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Navigate"",
+                    ""type"": ""Value"",
+                    ""id"": ""d86f9a1e-037a-40d1-a0b5-06838995759a"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Scroll"",
+                    ""type"": ""Value"",
+                    ""id"": ""8097f580-de40-48ab-9996-a1c3c8e6b9c5"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""284006f9-560e-41e1-b081-db7f2cb2eb3c"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sumbit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a89f5b43-c06e-4885-8f39-5f709a412372"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sumbit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c85d43a6-e65d-4060-a5df-45434d2463bf"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""wasd"",
+                    ""id"": ""ce76f527-08f9-469d-b4b0-502659c786ff"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""09344231-4bcc-456a-b33e-0f1657436b51"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""7efd2d79-bc06-435b-91fb-28310b76bba6"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""131d24be-1fa6-4a97-8de4-fb6a68716026"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""227bcf47-6402-4f96-92fc-b137026d78e8"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d53c8101-5ac5-41f7-8e41-715cb7474978"",
+                    ""path"": ""<Mouse>/scroll"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Scroll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""AlwaysActive"",
+            ""id"": ""6d910ca2-0cbe-4180-916c-2cb10f87722f"",
+            ""actions"": [
+                {
+                    ""name"": ""ChangeSelection"",
+                    ""type"": ""Button"",
+                    ""id"": ""5a1dfa8b-ca30-4c39-8fe0-c24ae3cda290"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""f439ecc6-009a-40a5-b8ce-e997f05ddb34"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeSelection"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -851,7 +992,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_Aim = m_GroundActionMap.FindAction("Aim", throwIfNotFound: true);
         m_GroundActionMap_TabMenu = m_GroundActionMap.FindAction("TabMenu", throwIfNotFound: true);
         m_GroundActionMap_Console = m_GroundActionMap.FindAction("Console", throwIfNotFound: true);
-        m_GroundActionMap_SwitchWeaponSet = m_GroundActionMap.FindAction("SwitchWeaponSet", throwIfNotFound: true);
         m_GroundActionMap_SelectSpell = m_GroundActionMap.FindAction("SelectSpell", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
@@ -859,13 +999,20 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_OpenMap = m_GroundActionMap.FindAction("OpenMap", throwIfNotFound: true);
         m_GroundActionMap_OpenQuests = m_GroundActionMap.FindAction("OpenQuests", throwIfNotFound: true);
         m_GroundActionMap_EquipBow = m_GroundActionMap.FindAction("EquipBow", throwIfNotFound: true);
-        // Dialogue
-        m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         // Debug
         m_Debug = asset.FindActionMap("Debug", throwIfNotFound: true);
         m_Debug_ShowReadoutScreen = m_Debug.FindAction("ShowReadoutScreen", throwIfNotFound: true);
         m_Debug_QuickSave = m_Debug.FindAction("QuickSave", throwIfNotFound: true);
         m_Debug_QuickLoad = m_Debug.FindAction("QuickLoad", throwIfNotFound: true);
+        // UI
+        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        m_UI_Sumbit = m_UI.FindAction("Sumbit", throwIfNotFound: true);
+        m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
+        m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
+        m_UI_Scroll = m_UI.FindAction("Scroll", throwIfNotFound: true);
+        // AlwaysActive
+        m_AlwaysActive = asset.FindActionMap("AlwaysActive", throwIfNotFound: true);
+        m_AlwaysActive_ChangeSelection = m_AlwaysActive.FindAction("ChangeSelection", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -928,7 +1075,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_Aim;
     private readonly InputAction m_GroundActionMap_TabMenu;
     private readonly InputAction m_GroundActionMap_Console;
-    private readonly InputAction m_GroundActionMap_SwitchWeaponSet;
     private readonly InputAction m_GroundActionMap_SelectSpell;
     private readonly InputAction m_GroundActionMap_KO;
     private readonly InputAction m_GroundActionMap_ChangeFocus;
@@ -953,7 +1099,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @Aim => m_Wrapper.m_GroundActionMap_Aim;
         public InputAction @TabMenu => m_Wrapper.m_GroundActionMap_TabMenu;
         public InputAction @Console => m_Wrapper.m_GroundActionMap_Console;
-        public InputAction @SwitchWeaponSet => m_Wrapper.m_GroundActionMap_SwitchWeaponSet;
         public InputAction @SelectSpell => m_Wrapper.m_GroundActionMap_SelectSpell;
         public InputAction @KO => m_Wrapper.m_GroundActionMap_KO;
         public InputAction @ChangeFocus => m_Wrapper.m_GroundActionMap_ChangeFocus;
@@ -1009,9 +1154,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Console.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
-                @SwitchWeaponSet.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
-                @SwitchWeaponSet.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
-                @SwitchWeaponSet.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSwitchWeaponSet;
                 @SelectSpell.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
                 @SelectSpell.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
                 @SelectSpell.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
@@ -1076,9 +1218,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Console.started += instance.OnConsole;
                 @Console.performed += instance.OnConsole;
                 @Console.canceled += instance.OnConsole;
-                @SwitchWeaponSet.started += instance.OnSwitchWeaponSet;
-                @SwitchWeaponSet.performed += instance.OnSwitchWeaponSet;
-                @SwitchWeaponSet.canceled += instance.OnSwitchWeaponSet;
                 @SelectSpell.started += instance.OnSelectSpell;
                 @SelectSpell.performed += instance.OnSelectSpell;
                 @SelectSpell.canceled += instance.OnSelectSpell;
@@ -1104,31 +1243,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         }
     }
     public GroundActionMapActions @GroundActionMap => new GroundActionMapActions(this);
-
-    // Dialogue
-    private readonly InputActionMap m_Dialogue;
-    private IDialogueActions m_DialogueActionsCallbackInterface;
-    public struct DialogueActions
-    {
-        private @PlayerControls m_Wrapper;
-        public DialogueActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
-        public InputActionMap Get() { return m_Wrapper.m_Dialogue; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(DialogueActions set) { return set.Get(); }
-        public void SetCallbacks(IDialogueActions instance)
-        {
-            if (m_Wrapper.m_DialogueActionsCallbackInterface != null)
-            {
-            }
-            m_Wrapper.m_DialogueActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-            }
-        }
-    }
-    public DialogueActions @Dialogue => new DialogueActions(this);
 
     // Debug
     private readonly InputActionMap m_Debug;
@@ -1178,6 +1292,96 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         }
     }
     public DebugActions @Debug => new DebugActions(this);
+
+    // UI
+    private readonly InputActionMap m_UI;
+    private IUIActions m_UIActionsCallbackInterface;
+    private readonly InputAction m_UI_Sumbit;
+    private readonly InputAction m_UI_Cancel;
+    private readonly InputAction m_UI_Navigate;
+    private readonly InputAction m_UI_Scroll;
+    public struct UIActions
+    {
+        private @PlayerControls m_Wrapper;
+        public UIActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Sumbit => m_Wrapper.m_UI_Sumbit;
+        public InputAction @Cancel => m_Wrapper.m_UI_Cancel;
+        public InputAction @Navigate => m_Wrapper.m_UI_Navigate;
+        public InputAction @Scroll => m_Wrapper.m_UI_Scroll;
+        public InputActionMap Get() { return m_Wrapper.m_UI; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
+        public void SetCallbacks(IUIActions instance)
+        {
+            if (m_Wrapper.m_UIActionsCallbackInterface != null)
+            {
+                @Sumbit.started -= m_Wrapper.m_UIActionsCallbackInterface.OnSumbit;
+                @Sumbit.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnSumbit;
+                @Sumbit.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnSumbit;
+                @Cancel.started -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
+                @Cancel.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
+                @Cancel.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
+                @Navigate.started -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigate;
+                @Navigate.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigate;
+                @Navigate.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigate;
+                @Scroll.started -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
+                @Scroll.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
+                @Scroll.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
+            }
+            m_Wrapper.m_UIActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Sumbit.started += instance.OnSumbit;
+                @Sumbit.performed += instance.OnSumbit;
+                @Sumbit.canceled += instance.OnSumbit;
+                @Cancel.started += instance.OnCancel;
+                @Cancel.performed += instance.OnCancel;
+                @Cancel.canceled += instance.OnCancel;
+                @Navigate.started += instance.OnNavigate;
+                @Navigate.performed += instance.OnNavigate;
+                @Navigate.canceled += instance.OnNavigate;
+                @Scroll.started += instance.OnScroll;
+                @Scroll.performed += instance.OnScroll;
+                @Scroll.canceled += instance.OnScroll;
+            }
+        }
+    }
+    public UIActions @UI => new UIActions(this);
+
+    // AlwaysActive
+    private readonly InputActionMap m_AlwaysActive;
+    private IAlwaysActiveActions m_AlwaysActiveActionsCallbackInterface;
+    private readonly InputAction m_AlwaysActive_ChangeSelection;
+    public struct AlwaysActiveActions
+    {
+        private @PlayerControls m_Wrapper;
+        public AlwaysActiveActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ChangeSelection => m_Wrapper.m_AlwaysActive_ChangeSelection;
+        public InputActionMap Get() { return m_Wrapper.m_AlwaysActive; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(AlwaysActiveActions set) { return set.Get(); }
+        public void SetCallbacks(IAlwaysActiveActions instance)
+        {
+            if (m_Wrapper.m_AlwaysActiveActionsCallbackInterface != null)
+            {
+                @ChangeSelection.started -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
+                @ChangeSelection.performed -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
+                @ChangeSelection.canceled -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
+            }
+            m_Wrapper.m_AlwaysActiveActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @ChangeSelection.started += instance.OnChangeSelection;
+                @ChangeSelection.performed += instance.OnChangeSelection;
+                @ChangeSelection.canceled += instance.OnChangeSelection;
+            }
+        }
+    }
+    public AlwaysActiveActions @AlwaysActive => new AlwaysActiveActions(this);
     private int m_GamepadSchemeIndex = -1;
     public InputControlScheme GamepadScheme
     {
@@ -1211,7 +1415,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnAim(InputAction.CallbackContext context);
         void OnTabMenu(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
-        void OnSwitchWeaponSet(InputAction.CallbackContext context);
         void OnSelectSpell(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
@@ -1220,13 +1423,21 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnOpenQuests(InputAction.CallbackContext context);
         void OnEquipBow(InputAction.CallbackContext context);
     }
-    public interface IDialogueActions
-    {
-    }
     public interface IDebugActions
     {
         void OnShowReadoutScreen(InputAction.CallbackContext context);
         void OnQuickSave(InputAction.CallbackContext context);
         void OnQuickLoad(InputAction.CallbackContext context);
+    }
+    public interface IUIActions
+    {
+        void OnSumbit(InputAction.CallbackContext context);
+        void OnCancel(InputAction.CallbackContext context);
+        void OnNavigate(InputAction.CallbackContext context);
+        void OnScroll(InputAction.CallbackContext context);
+    }
+    public interface IAlwaysActiveActions
+    {
+        void OnChangeSelection(InputAction.CallbackContext context);
     }
 }

@@ -16,7 +16,7 @@ namespace Armere.Inventory.UI
 			title.text = stackBase.item.displayName;
 			description.text = stackBase.item.description;
 			//Load the sprite
-			spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(stackBase.item.displaySprite);
+			spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(stackBase.item.thumbnail);
 			thumbnail.sprite = await spriteAsyncOperation.Task;
 		}
 

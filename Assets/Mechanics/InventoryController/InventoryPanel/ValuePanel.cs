@@ -15,7 +15,7 @@ namespace Armere.Inventory
 
 		public override ItemStackBase this[int i] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public override int stackCount => 1;
-		public override int AddItem(ItemData item, uint count)
+		public override int AddItem(ItemData item, uint count, int desiredPosition = -1)
 		{
 			//Add the value of this item to the stack
 			currency += item.sellValue * count;

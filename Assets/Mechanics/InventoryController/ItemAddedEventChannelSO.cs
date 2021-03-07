@@ -6,7 +6,7 @@ using UnityEngine.Events;
 namespace Armere.Inventory
 {
 
-	[CreateAssetMenu(fileName = "Item Added Event", menuName = "Channels/Item Added Event", order = 0)]
+	[CreateAssetMenu(fileName = "Item Added Event", menuName = "Channels/Inventory/Item Added Event", order = 0)]
 	public class ItemAddedEventChannelSO : ScriptableObject
 	{
 		public event UnityAction<ItemStackBase, ItemType, int, bool> onItemAddedEvent;

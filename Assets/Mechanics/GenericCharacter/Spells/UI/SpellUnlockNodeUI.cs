@@ -4,6 +4,6 @@ using UnityEngine;
 using TMPro;
 public class SpellUnlockNodeUI : MonoBehaviour
 {
-	public SpellUnlockNode node;
+	public SpellAction node;
 	public TextMeshProUGUI textMesh;
 }

@@ -52,7 +52,7 @@ namespace Armere.Inventory.UI
 
 				GameObject go = await operation.Task;
 
-				go.GetComponent<InventoryItemUI>().SetupItemAsync(stack);
+				go.GetComponent<InventoryItemUI>().SetupItemDisplayAsync(stack);
 
 				entries.Enqueue(new Entry(go, Time.time, operation));
 			}

@@ -19,11 +19,15 @@ namespace Armere.Inventory
 		public void Interact(IInteractor c)
 		{
 
-			Destroy();
 
-			AddItemsToInventory();
 
-			OnEndHighlight();
+			AddItemsToInventory(() =>
+			{
+				Destroy();
+				OnEndHighlight();
+			});
+
+
 
 		}
 
@@ -51,10 +55,10 @@ namespace Armere.Inventory
 
 			spawner.transform.SetParent(transform.parent);
 
-			spawner.GetComponent<ItemSpawner>().item = (PhysicsItemData) item;
+			spawner.GetComponent<ItemSpawner>().item = (PhysicsItemData)item;
 			//spawner.GetComponent<ItemSpawner>().count = count;
 
-		
+
 		}
 
 #endif

@@ -7,7 +7,7 @@ public class RockThrowSpell : Spell
 	readonly Projectile createdRock;
 	Vector3 vel;
 
-	public RockThrowSpell(GameObject caster, Projectile rockPrefab) : base(caster)
+	public RockThrowSpell(Character caster, Projectile rockPrefab) : base(caster)
 	{
 		//Make the rock come from the bottom
 		createdRock = MonoBehaviour.Instantiate(rockPrefab, GetPoint() + Vector3.down * 3, Quaternion.identity);
@@ -48,7 +48,7 @@ public class RockThrowSpell : Spell
 public class RockThrowSpellAction : SpellAction
 {
 	public Projectile rockPrefab;
-	public override Spell BeginCast(GameObject caster)
+	public override Spell BeginCast(Character caster)
 	{
 		return new RockThrowSpell(caster, rockPrefab);
 	}

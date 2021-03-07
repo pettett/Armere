@@ -39,8 +39,6 @@ public class EnemyAI : AIBase, IExplosionEffector
 	Coroutine currentRoutine;
 
 	public AnimationTransitionSet transitionSet;
-	[System.NonSerialized] public WeaponGraphicsController weaponGraphics;
-	[System.NonSerialized] public AnimationController animationController;
 	Matrix4x4 viewMatrix;
 	Plane[] viewPlanes = new Plane[6];
 	[Header("Indicators")]
@@ -91,6 +89,14 @@ public class EnemyAI : AIBase, IExplosionEffector
 		ChangeRoutine(new KnockoutRoutine(knockoutTime));
 	}
 
+
+	public override void Knockout(float time)
+	{
+		//TODO: Make this better
+		health.Damage(time * 10, gameObject);
+		ChangeRoutine(new KnockoutRoutine(time));
+	}
+
 	private void OnValidate()
 	{
 		if (clippingPlanes.x > clippingPlanes.y)
@@ -128,7 +134,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 
 		GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
 
-		await SetHeldWeapon(meleeWeapon);
+		await SetHeldMelee(meleeWeapon);
 	}
 
 
@@ -141,10 +147,15 @@ public class EnemyAI : AIBase, IExplosionEffector
 	}
 
 
-	public Task SetHeldWeapon(HoldableItemData weapon)
+	public Task SetHeldMelee(HoldableItemData weapon)
 	{
 		return weaponGraphics.holdables.melee.SetHeld(weapon);
 	}
+	public Task SetHeldBow(HoldableItemData weapon)
+	{
+		return weaponGraphics.holdables.bow.SetHeld(weapon);
+	}
+
 
 	public virtual void InitEnemy()
 	{
@@ -288,7 +299,9 @@ public class EnemyAI : AIBase, IExplosionEffector
 		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
 		{
 			enemyAI.ragdoller.RagdollEnabled = true;
+			enemyAI.GetComponent<Focusable>().enabled = false;
 			yield return new WaitForSeconds(knockoutTime);
+			enemyAI.GetComponent<Focusable>().enabled = true;
 			enemyAI.ragdoller.RagdollEnabled = false;
 		}
 	}

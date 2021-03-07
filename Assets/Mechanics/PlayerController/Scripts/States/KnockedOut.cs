@@ -7,43 +7,49 @@ using UnityEngine.InputSystem;
 namespace Armere.PlayerController
 {
 
-    [Serializable]
-    public class KnockedOut : MovementState
-    {
-        public float knockoutTime = 4f;
-        public override string StateName => "Knocked Out";
-        public override char StateSymbol => 'K';
 
-        public override void Start()
-        {
-            canBeTargeted = false;
+	public class KnockedOut : MovementState<KnockedOutTemplate>
+	{
+		public readonly float knockoutTime = 4f;
 
-            c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = true;
-            c.StartCoroutine(WaitForRespawn());
-        }
+		public KnockedOut(PlayerController c, KnockedOutTemplate t) : base(c, t)
+		{
+			this.knockoutTime = t.time;
+		}
 
-        public IEnumerator WaitForRespawn()
-        {
-            yield return new WaitForSeconds(knockoutTime);
-            WakeUp();
-        }
+		public override string StateName => "Knocked Out";
 
-        public void WakeUp()
-        {
-            //transform.position = LevelController.respawnPoint.position;
-            //transform.rotation = LevelController.respawnPoint.rotation;
-            c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = false;
+		public override void Start()
+		{
+
+			canBeTargeted = false;
+
+			c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = true;
+			c.StartCoroutine(WaitForRespawn());
+		}
+
+		public IEnumerator WaitForRespawn()
+		{
+			yield return new WaitForSeconds(knockoutTime);
+			WakeUp();
+		}
+
+		public void WakeUp()
+		{
+			//transform.position = LevelController.respawnPoint.position;
+			//transform.rotation = LevelController.respawnPoint.rotation;
+			c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = false;
 
 
 
-            //go back to the spawn point
-            ChangeToState<Walking>();
-        }
+			//go back to the spawn point
+			c.ChangeToState(t.returnState);
+		}
 
-        //place this in end to make sure it always returns camera control even if state is externally changed
-        public override void End()
-        {
+		//place this in end to make sure it always returns camera control even if state is externally changed
+		public override void End()
+		{
 
-        }
-    }
+		}
+	}
 }

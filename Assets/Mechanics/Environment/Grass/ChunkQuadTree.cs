@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public abstract class QuadTreeLeaf : IEnumerable<QuadTreeLeaf>
+public abstract class QuadTreeLeaf
 {
 
 	public Rect rect;
 	public int id;
 	public int endID;
 
-	public abstract void DrawGizmos();
+	public abstract void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true);
 
 	public abstract IEnumerable<QuadTreeEnd> GetLeavesInRect(Rect rect);
-	public abstract IEnumerable<QuadTreeEnd> GetLeavesInRange(Vector2 uv, float radius);
+	public abstract void GetLeaves(System.Action<QuadTreeEnd> forEach);
+	public abstract void GetLeavesInRange(Vector2 uv, float radius, System.Action<QuadTreeEnd> forEach);
 	public abstract void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach);
 
 	public bool RectCircleOverlap(Vector2 uv, float radius)
@@ -36,9 +37,6 @@ public abstract class QuadTreeLeaf : IEnumerable<QuadTreeLeaf>
 		return RectCircleOverlap(uv1, radius1) && !RectCircleOverlap(uv2, radius2);
 	}
 
-	public abstract IEnumerator<QuadTreeLeaf> GetEnumerator();
-
-	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
@@ -60,22 +58,39 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	}
 
 
-	public override void DrawGizmos()
-	{
-		DrawGizmos(true);
-	}
-	public void DrawGizmos(bool setColor = true)
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true)
 	{
 
 		if (setColor)
-			Gizmos.color = new Color(enabled ? 0 : 1, enabled ? 1 : 0, 0, 0.5f);
+		{
+			if (loaded.Contains(id))
+			{
+				Gizmos.color = Color.yellow;
+			}
+			else
+			{
+				Gizmos.color = new Color(enabled ? 0 : 1, enabled ? 1 : 0, RectCircleOverlap(uv, uvRadius) ? 1 : 0, 0.5f);
+			}
+		}
+		var pos = new Vector3(rect.center.x, 0, rect.center.y);
+		var size = new Vector3(rect.size.x, 0, rect.size.y);
+		pos.x *= terrain.terrainData.size.x;
+		size.x *= terrain.terrainData.size.x;
+		pos.z *= terrain.terrainData.size.z;
+		size.z *= terrain.terrainData.size.z;
 
-		Gizmos.DrawCube(new Vector3(rect.center.x, 0, rect.center.y), new Vector3(rect.size.x, 0, rect.size.y));
+		pos.x += terrain.transform.position.x;
+		pos.z += terrain.transform.position.z;
+
+		pos.y = terrain.SampleHeight(pos) + terrain.transform.position.y + 1;
+
+
+		Gizmos.DrawCube(pos, size);
 
 		if (setColor)
 			Gizmos.color = Color.white;
 
-		Gizmos.DrawWireCube(new Vector3(rect.center.x, 0, rect.center.y), new Vector3(rect.size.x, 0, rect.size.y));
+		Gizmos.DrawWireCube(pos, size);
 
 	}
 
@@ -99,9 +114,9 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	{
 		yield return this;
 	}
-	public override IEnumerable<QuadTreeEnd> GetLeavesInRange(Vector2 uv, float radius)
+	public override void GetLeavesInRange(Vector2 uv, float radius, System.Action<QuadTreeEnd> forEach)
 	{
-		yield return this;
+		forEach(this);
 	}
 
 	public override void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach)
@@ -113,9 +128,10 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 		}
 	}
 
-	public override IEnumerator<QuadTreeLeaf> GetEnumerator()
+
+	public override void GetLeaves(Action<QuadTreeEnd> forEach)
 	{
-		yield return this;
+		forEach(this);
 	}
 }
 public class QuadTree : QuadTreeLeaf
@@ -224,6 +240,7 @@ public class QuadTree : QuadTreeLeaf
 		int midY = startY + leafSize / 2;
 		int midX = startX + leafSize / 2;
 
+
 		bottomLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, -offset.y), startX, startY, midX, midY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
 		bottomRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, -offset.y), midX, startY, endX, midY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
 		topLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, offset.y), startX, midY, midX, endY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
@@ -231,15 +248,12 @@ public class QuadTree : QuadTreeLeaf
 	}
 
 
-	public override void DrawGizmos()
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true)
 	{
 		Gizmos.color = Color.white;
 		Gizmos.DrawWireCube(new Vector3(rect.center.x, 0, rect.center.y), new Vector3(rect.size.x, 0, rect.size.y));
 
-		foreach (var l in this)
-		{
-			l.DrawGizmos();
-		}
+		GetLeaves(x => x.DrawGizmos(terrain, uv, uvRadius, loaded));
 	}
 
 	public override IEnumerable<QuadTreeEnd> GetLeavesInRect(Rect rect)
@@ -251,38 +265,31 @@ public class QuadTree : QuadTreeLeaf
 	}
 
 
-	public override IEnumerable<QuadTreeEnd> GetLeavesInRange(Vector2 uv, float radius)
+	public override void GetLeavesInRange(Vector2 uv, float radius, System.Action<QuadTreeEnd> forEach)
 	{
-		if (topRight.RectCircleOverlap(uv, radius)) foreach (var l in topRight.GetLeavesInRange(uv, radius)) yield return l;
-		if (topLeft.RectCircleOverlap(uv, radius)) foreach (var l in topLeft.GetLeavesInRange(uv, radius)) yield return l;
-		if (bottomRight.RectCircleOverlap(uv, radius)) foreach (var l in bottomRight.GetLeavesInRange(uv, radius)) yield return l;
-		if (bottomLeft.RectCircleOverlap(uv, radius)) foreach (var l in bottomLeft.GetLeavesInRange(uv, radius)) yield return l;
+		if (topRight.RectCircleOverlap(uv, radius)) topRight.GetLeavesInRange(uv, radius, forEach);
+		if (topLeft.RectCircleOverlap(uv, radius)) topLeft.GetLeavesInRange(uv, radius, forEach);
+		if (bottomRight.RectCircleOverlap(uv, radius)) bottomRight.GetLeavesInRange(uv, radius, forEach);
+		if (bottomLeft.RectCircleOverlap(uv, radius)) bottomLeft.GetLeavesInRange(uv, radius, forEach);
 	}
 
 	public override void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach)
 	{
 		//If inside circle one at all - need to add small amount to stop it just breaking
-		if (topRight.RectCircleOverlap(uv1, radius1 + 0.05f)) topRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (topLeft.RectCircleOverlap(uv1, radius1 + 0.05f)) topLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (bottomRight.RectCircleOverlap(uv1, radius1 + 0.05f)) bottomRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (bottomLeft.RectCircleOverlap(uv1, radius1 + 0.05f)) bottomLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
+		if (topRight.RectCircleOverlap(uv1, radius1)) topRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
+		if (topLeft.RectCircleOverlap(uv1, radius1)) topLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
+		if (bottomRight.RectCircleOverlap(uv1, radius1)) bottomRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
+		if (bottomLeft.RectCircleOverlap(uv1, radius1)) bottomLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
 	}
 
 
-
-
-	public override IEnumerator<QuadTreeLeaf> GetEnumerator()
+	public override void GetLeaves(Action<QuadTreeEnd> forEach)
 	{
-		yield return this;
-		//yield squares in clockwise order
-		foreach (var l in topLeft) yield return l;
-		foreach (var l in bottomRight) yield return l;
-		foreach (var l in bottomLeft) yield return l;
-		foreach (var l in topLeft) yield return l;
+		topRight.GetLeaves(forEach);
+		topLeft.GetLeaves(forEach);
+		bottomRight.GetLeaves(forEach);
+		bottomLeft.GetLeaves(forEach);
 	}
-
-
-
 }
 
 public struct QuadTreeNode

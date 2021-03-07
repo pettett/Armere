@@ -33,11 +33,11 @@ public class Console : MonoBehaviour
 	public InputAction suggestionSelect = new InputAction("suggestionSelect", InputActionType.Button, "<Keyboard>/tab");
 
 	public static Console singleton;
-	public ConsoleReceiver receiver;
-	public RectTransform suggestions;
-	public GameObject suggestionOptionPrefab;
-	public TMPro.TMP_InputField input;
-	System.Action onComplete;
+	public ConsoleReceiver? receiver;
+	public RectTransform? suggestions;
+	public GameObject? suggestionOptionPrefab;
+	public TMPro.TMP_InputField? input;
+	event System.Action onComplete;
 
 	int selectedSuggestion = 0;
 	int hoveredSuggestionButton => selectedSuggestion - selectionsViewOffset;

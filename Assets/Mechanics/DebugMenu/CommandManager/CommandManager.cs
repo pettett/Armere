@@ -75,7 +75,7 @@ public class CommandManager : ConsoleReceiver
 				if (TeleportWaypoints.singleton.waypoints.ContainsKey(command.values[0]))
 				{
 					var t = TeleportWaypoints.singleton.waypoints[command.values[0]];
-					Armere.PlayerController.PlayerController.activePlayerController.transform.SetPositionAndRotation(t.position, t.rotation);
+					Character.playerCharacter.transform.SetPositionAndRotation(t.position, t.rotation);
 				}
 				break;
 			case time:
@@ -87,7 +87,7 @@ public class CommandManager : ConsoleReceiver
 				DesiredInputs(command, 2);
 				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
 				uint count = uint.Parse(command.values[1]);
-				InventoryController.singleton.AddItem(InventoryController.singleton.db[item], count, false);
+				InventoryController.singleton.TryAddItem(InventoryController.singleton.db[item], count, false);
 				break;
 			case level:
 				DesiredInputs(command, 1);

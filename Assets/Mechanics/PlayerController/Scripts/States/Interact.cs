@@ -11,16 +11,21 @@ namespace Armere.PlayerController
 		void OnInteract(IInteractable interactable);
 	}
 
-	[System.Serializable]
+
 	//class to allow player interactions with the environment through IInteractable scripts
-	public class Interact : MovementState
+	public class Interact : MovementState<InteractTemplate>
 	{
 		public override string StateName => "Interact";
-		public override char StateSymbol => 'I';
 		int currentLookAt;
 		[NonSerialized] List<IInteractable> interactablesInRange = new List<IInteractable>();
 		[NonSerialized] IInteractable prevTarget;
 		public bool enabled = false;
+
+		public Interact(PlayerController c, InteractTemplate t) : base(c, t)
+		{
+
+		}
+
 		public override void Start()
 		{
 
@@ -210,13 +215,13 @@ namespace Armere.PlayerController
 						switch (i)
 						{
 							case NPC npc:
-								c.ChangeToState<Conversation>(npc);
+								c.ChangeToState(t.interactNPC.Interact(npc));
 								break;
 							case Climbable climbable:
-								c.ChangeToState<LadderClimb>(climbable);
+								c.ChangeToState(t.interactLadder.Interact(climbable));
 								break;
 							case IDialogue dialogue:
-								c.ChangeToState<Dialogue>(dialogue);
+								c.ChangeToState(t.interactDialogue.Interact(dialogue));
 								break;
 						}
 

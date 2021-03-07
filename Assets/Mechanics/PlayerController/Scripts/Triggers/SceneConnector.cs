@@ -21,7 +21,7 @@ public class SceneConnector : PlayerTrigger
 	public void StartSceneChange(PlayerController player)
 	{
 		transitionToCamera.Priority = 20;
-		walker = player.ChangeToState<AutoWalking>();
+		walker = (AutoWalking)player.ChangeToState(player.autoWalk);
 		walker.WalkTo(endTransform.position);
 		StartCoroutine(Dolly(player));
 	}
@@ -52,7 +52,7 @@ public class SceneConnector : PlayerTrigger
 		// bw.Flush(); //Do not close the memory stream
 
 
-		player.ChangeToState<Walking>();
+		player.ChangeToState(player.defaultState);
 
 
 
@@ -79,7 +79,7 @@ public class SceneConnector : PlayerTrigger
 			if (connector.connectorIdentifier == exitConnector)
 			{
 				//Telport here
-				PlayerController.activePlayerController.transform.SetPositionAndRotation(connector.exitTransform.position, connector.exitTransform.rotation);
+				Character.playerCharacter.transform.SetPositionAndRotation(connector.exitTransform.position, connector.exitTransform.rotation);
 				break;
 			}
 		}

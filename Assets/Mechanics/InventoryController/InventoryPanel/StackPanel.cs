@@ -60,7 +60,7 @@ namespace Armere.Inventory
 
 
 
-		public override int AddItem(ItemData item, uint count)
+		public override int AddItem(ItemData item, uint count, int desiredPosition = -1)
 		{
 
 			int stackIndex = items.FindIndex(s => s.item == item);

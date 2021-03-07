@@ -9,7 +9,7 @@ public class GrassLayer : ScriptableObject
 	public enum LayerType { Main, Detail }
 	public bool enabled = true;
 	public LayerType layerType;
-	private int threadGroups = 0;
+	private ushort threadGroups = 0;
 
 	public bool inited { get; private set; }
 	public int groupsOf8PerCell = 3;
@@ -69,14 +69,15 @@ public class GrassLayer : ScriptableObject
 
 	*/
 
-	public HashSet<int> loadedChunks = new HashSet<int>();
+	[System.NonSerialized] public HashSet<int> loadedChunks = new HashSet<int>();
 
 	public ushort greatestCellGroupPower = 5;
 
 	public int cellsInSmallestChunk => (1 << smallestCellGroupPower) * (1 << smallestCellGroupPower);
 	public int cellsInGreatestChunk => (1 << greatestCellGroupPower) * (1 << greatestCellGroupPower);
 
-	public QuadTree chunkTree;
+	public QuadTree chunkTree { get; private set; }
+
 	//public FullQuadTree fullQuadTree;
 	Queue<GrassController.GrassInstruction> localInstructions = new Queue<GrassController.GrassInstruction>();
 	//[System.NonSerialized] public QuadTreeEnd[] endsInRange = new QuadTreeEnd[0];
@@ -95,7 +96,7 @@ public class GrassLayer : ScriptableObject
 	[System.NonSerialized] public int loadedCellsCount = 0;
 
 	public int loadedBlades => loadedCellsCount * groupsOf8PerCell * 8;
-	public int renderedBlades => loadedBlades / 2; //TODO: Make this better
+	public int renderedBlades => loadedBlades / 4; //TODO: Make this better
 
 	public bool TryFitChunk(QuadTreeEnd end, out int cellsOffsetPosition)
 	{
@@ -168,9 +169,9 @@ public class GrassLayer : ScriptableObject
 		}
 	}
 
-	public int GetThreadGroups()
+	public ushort GetThreadGroups()
 	{
-		return Mathf.CeilToInt(loadedCellsCount * groupsOf8PerCell / 8f);
+		return (ushort)Mathf.CeilToInt(loadedCellsCount * groupsOf8PerCell / 8f);
 	}
 
 	public void RemoveChunk(int chunk)
@@ -202,27 +203,32 @@ public class GrassLayer : ScriptableObject
 	public void UpdateChunkTree(GrassController c)
 	{
 		Texture2D grassDensity = c.terrain.terrainData.alphamapTextures[0];
-		int texSize = grassDensity.width;
-		bool[,] cells = new bool[texSize, texSize];
-
-		Color32[] pix = grassDensity.GetPixels32();
-
-		for (int x = 0; x < texSize; x++)
+		if (grassDensity.isReadable)
 		{
-			for (int y = 0; y < texSize; y++)
+			Debug.Log("Reading texture");
+
+			int texSize = grassDensity.width;
+			bool[,] cells = new bool[texSize, texSize];
+
+			Color32[] pix = grassDensity.GetPixels32();
+
+			for (int x = 0; x < texSize; x++)
 			{
-				var col = pix[x + y * texSize];
+				for (int y = 0; y < texSize; y++)
+				{
+					var col = pix[x + y * texSize];
 
-				float weight = Vector4.Scale((Vector4)(Color)col, splatMapWeights).sqrMagnitude;
+					float weight = Vector4.Scale((Vector4)(Color)col, splatMapWeights).sqrMagnitude;
 
-				cells[x, y] = weight > 0;
+					cells[x, y] = weight > 0;
 
+				}
 			}
+
+			Debug.Log($"Creating layer quad tree width {texSize}");
+			chunkTree = QuadTree.CreateQuadTree(cells, Vector2.one * 0.5f, Vector2.one, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower);
+			//fullQuadTree = new FullQuadTree(cells, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower);
 		}
-
-
-		chunkTree = QuadTree.CreateQuadTree(cells, Vector2.one * 0.5f, Vector2.one, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower);
-		//fullQuadTree = new FullQuadTree(cells, 1 << smallestCellGroupPower, 1 << greatestCellGroupPower);
 	}
 
 
@@ -293,7 +299,7 @@ public class GrassLayer : ScriptableObject
 		// Arguments for drawing mesh.
 		// 0 == number of triangle indices, 1 == population, others are only relevant if drawing submeshes.
 		args[0] = mesh.GetIndexCount(0);
-		Debug.Log(maxLoadedBlades);
+		//Debug.Log(maxLoadedBlades);
 		args[1] = (uint)maxLoadedBlades;
 		args[2] = mesh.GetIndexStart(0);
 		args[3] = mesh.GetBaseVertex(0);

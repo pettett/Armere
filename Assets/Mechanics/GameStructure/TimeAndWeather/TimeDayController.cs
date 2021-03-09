@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
+
 public enum WeatherConditions
 {
 	Sunny,
@@ -15,9 +17,38 @@ public class TimeDayController : MonoBehaviour
 	public static readonly int shader_SunTangent = Shader.PropertyToID("_SunTangent");
 	public static readonly int shader_SunCoTangent = Shader.PropertyToID("_SunCoTangent");
 
-	public static readonly int shader_DaySkyColor = Shader.PropertyToID("_DaySkyColor");
-	public static readonly int shader_NightSkyColor = Shader.PropertyToID("_NightSkyColor");
-	public static readonly int shader_SkyColorTransitionPeriod = Shader.PropertyToID("_SkyColorTransitionPeriod");
+	public static readonly int shader_SkyColor = Shader.PropertyToID("_SkyColor");
+
+	[System.Serializable]
+	public struct ColorSet
+	{
+		[ColorUsage(false)] public Color skyColor, equatorColor, groundColor, skyboxColor;
+		public static ColorSet LerpAmbient(in ColorSet a, in ColorSet b, float t) => new ColorSet(
+			Color.Lerp(a.skyColor, b.skyColor, t),
+			Color.Lerp(a.equatorColor, b.equatorColor, t),
+			Color.Lerp(a.groundColor, b.groundColor, t),
+			default
+		);
+		public static ColorSet LerpSkybox(in ColorSet a, in ColorSet b, float t) => new ColorSet(
+			default,
+			default,
+			default,
+			Color.Lerp(a.skyboxColor, b.skyboxColor, t)
+		);
+		public ColorSet(Color skyColour, Color equatorColour, Color groundColour, Color skyboxColor)
+		{
+			this.skyColor = skyColour;
+			this.equatorColor = equatorColour;
+			this.groundColor = groundColour;
+			this.skyboxColor = skyboxColor;
+		}
+		public void SetAmbient()
+		{
+			RenderSettings.ambientSkyColor = skyColor;
+			RenderSettings.ambientEquatorColor = equatorColor;
+			RenderSettings.ambientGroundColor = groundColor;
+		}
+	}
 
 	const float degreesPerHour = 360 / 24;
 	const float oneOver24 = 1f / 24f;
@@ -48,7 +79,7 @@ public class TimeDayController : MonoBehaviour
 	public float windChangingSpeed = 2;
 	public Vector3 Wind { get; private set; }
 
-	public Vector3EventChannelSO onWindDirectionChanged;
+	public GlobalVector3SO windDirection;
 
 
 	[Header("Weather")]
@@ -56,14 +87,16 @@ public class TimeDayController : MonoBehaviour
 	public AnimationCurve weatherOverTime;
 	public Gradient fogOverDay;
 	public Vector2 fogDensityRange;
+	public float rainIntensity;
+	public VisualEffect rain;
+	public float maxRainPerSecondPerArea = 30;
 	[ReadOnly] public float weatherScaler;
 
 	[Header("Skybox Colours")]
-	public Color daySkyColour = new Color(0.6038275f, 1, 1);
-	public Color dayEquatorColour = new Color(0.6038275f, 1, 1);
-	public Color dayGroundColour = new Color(0.6038275f, 1, 1);
-	public Color nightSkyColour = new Color(0, 0, 0);
-	public Color nightSkyboxColour = new Color(0, 0, 0);
+	public ColorSet day;
+	public ColorSet night;
+	public ColorSet dayRain;
+	public ColorSet nightRain;
 	public Vector2 skyColorTransitionPeriod = new Vector2(0.3f, -0.3f);
 
 	public CloudDrawer clouds;
@@ -100,9 +133,7 @@ public class TimeDayController : MonoBehaviour
 			entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
 		}
 
-		RenderSettings.skybox.SetColor(shader_DaySkyColor, daySkyColour);
-		RenderSettings.skybox.SetColor(shader_NightSkyColor, nightSkyboxColour);
-		RenderSettings.skybox.SetVector(shader_SkyColorTransitionPeriod, skyColorTransitionPeriod);
+
 
 	}
 	private void OnDestroy()
@@ -120,9 +151,23 @@ public class TimeDayController : MonoBehaviour
 	}
 	public float GetColorTransition() => Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
 
-	public Color GetSkyColor() => Color.Lerp(daySkyColour, nightSkyboxColour, GetColorTransition());
+	public Color GetSkyboxColor()
+	{
+		float colorTransition = GetColorTransition();
+		ColorSet colors;
+		if (rainIntensity == 0)
+			colors = ColorSet.LerpSkybox(day, night, colorTransition);
+		else if (rainIntensity == 1)
+			colors = ColorSet.LerpSkybox(dayRain, nightRain, colorTransition);
+		else
+			colors = ColorSet.LerpSkybox(
+			   ColorSet.LerpSkybox(day, dayRain, rainIntensity),
+			   ColorSet.LerpSkybox(night, nightRain, rainIntensity),
+			   colorTransition
+		   );
 
-
+		return colors.skyboxColor;
+	}
 	// Update is called once per frame
 	void Update()
 	{
@@ -155,11 +200,35 @@ public class TimeDayController : MonoBehaviour
 
 		hour = Mathf.Repeat(hour, 24);
 
-		float colorTransition = Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
+		float colorTransition = GetColorTransition();
 
-		RenderSettings.ambientSkyColor = Color.Lerp(daySkyColour, nightSkyColour, colorTransition);
-		RenderSettings.ambientEquatorColor = Color.Lerp(dayEquatorColour, nightSkyColour, colorTransition);
-		RenderSettings.ambientGroundColor = Color.Lerp(dayGroundColour, nightSkyColour, colorTransition);
+		ColorSet colors;
+		if (rainIntensity == 0)
+			colors = ColorSet.LerpAmbient(day, night, colorTransition);
+		else if (rainIntensity == 1)
+			colors = ColorSet.LerpAmbient(dayRain, nightRain, colorTransition);
+		else
+			colors = ColorSet.LerpAmbient(
+			   ColorSet.LerpAmbient(day, dayRain, rainIntensity),
+			   ColorSet.LerpAmbient(night, nightRain, rainIntensity),
+			   colorTransition
+		   );
+
+		if (rainIntensity != 0)
+		{
+			rain.gameObject.SetActive(true);
+			rain.SetFloat("Drops Per Second Per Area", rainIntensity * maxRainPerSecondPerArea);
+		}
+		else
+		{
+			rain.gameObject.SetActive(false);
+		}
+
+
+		colors.SetAmbient();
+
+
+		RenderSettings.skybox.SetColor(shader_SkyColor, colors.skyColor);
 
 		UpdateSunPosition();
 
@@ -182,7 +251,7 @@ public class TimeDayController : MonoBehaviour
 			Mathf.Lerp(windStrengthRange.x, windStrengthRange.y, Mathf.PerlinNoise(Time.time * windChangingSpeed, 0.5f));
 
 		Wind = new Vector3(w.x, 0, w.y);
-		onWindDirectionChanged.RaiseEvent(Wind);
+		windDirection.value = Wind;
 
 	}
 	[MyBox.ButtonMethod]

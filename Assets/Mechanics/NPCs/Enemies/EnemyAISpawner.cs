@@ -9,9 +9,8 @@ public class EnemyAISpawner : Spawner
 	public AssetReferenceGameObject ai;
 	public AIWaypointGroup optionalWaypoints;
 	public bool autoEngage;
-	public EnemyRoutine idleRoutine;
 	public MeleeWeaponItemData meleeWeapon;
-	public UnityEngine.Events.UnityEvent<EnemyAI> onPlayerDetected;
+	public UnityEngine.Events.UnityEvent<AIHumanoid> onPlayerDetected;
 
 	[System.NonSerialized] public EnemyAI body;
 	public override async Task<SpawnableBody> Spawn()
@@ -19,10 +18,8 @@ public class EnemyAISpawner : Spawner
 		Assert.IsTrue(ai.RuntimeKeyIsValid(), "Reference is null");
 		body = (EnemyAI)await GameObjectSpawner.SpawnAsync(ai, transform.position, transform.rotation);
 		body.waypointGroup = optionalWaypoints;
-		body.autoEngage = autoEngage;
 		body.onPlayerDetected += onPlayerDetected.Invoke;
 		body.meleeWeapon = meleeWeapon;
-		body.idleRoutine = idleRoutine;
 		body.InitEnemy();
 		return body;
 	}

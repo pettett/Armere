@@ -39,7 +39,9 @@ public class GrassController : MonoBehaviour
 		ID_GrassBladesOffset = Shader.PropertyToID("grassBladesOffset"),
 		ID_boundsExtents = Shader.PropertyToID("boundsExtents"),
 		ID_boundsTransform = Shader.PropertyToID("boundsTransform"),
-		ID_rangeTransform = Shader.PropertyToID("rangeTransform");
+		ID_rangeTransform = Shader.PropertyToID("rangeTransform"),
+		ID_time = Shader.PropertyToID("time"),
+		ID_windDirection = Shader.PropertyToID("windDirection");
 
 	public GrassLayer[] layers = new GrassLayer[2];
 
@@ -52,7 +54,7 @@ public class GrassController : MonoBehaviour
 
 	public Matrix4x4 GenerateFrustum(Camera cam)
 	{
-		return Matrix4x4.Perspective(cam.fieldOfView + 3, cam.aspect, cam.nearClipPlane - 0.05f, Mathf.Min(cam.farClipPlane + 0.05f, viewRadius)) * cam.worldToCameraMatrix;
+		return Matrix4x4.Perspective(cam.fieldOfView + 6, cam.aspect, cam.nearClipPlane - 0.05f, Mathf.Min(cam.farClipPlane + 0.05f, viewRadius)) * cam.worldToCameraMatrix;
 	}
 	public Camera mainCam
 	{
@@ -106,6 +108,7 @@ public class GrassController : MonoBehaviour
 	[Header("Event Channels")]
 	public Vector3FloatEventChannelSO destroyGrassInRangeEventChannel;
 	public BoundsFloatEventChannelSO destroyGrassInBoundsEventChannel;
+	public GlobalVector3SO onWindDirectionChangedGlobal;
 
 
 	public abstract class GrassInstruction
@@ -393,6 +396,9 @@ public class GrassController : MonoBehaviour
 			cmd.SetComputeIntParam(compute, ID_pushers, pushersData.Length);
 
 			cmd.SetComputeVectorParam(compute, ID_cameraPosition, mainCam.transform.position - bounds.center);
+			cmd.SetComputeFloatParam(compute, ID_time, Time.time);
+			if (onWindDirectionChangedGlobal != null)
+				cmd.SetComputeVectorParam(compute, ID_windDirection, onWindDirectionChangedGlobal.value);
 
 			int maxInstructionIterations = 8;
 

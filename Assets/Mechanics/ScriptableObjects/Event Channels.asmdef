@@ -2,7 +2,8 @@
     "name": "EventChannels",
     "rootNamespace": "",
     "references": [
-        "GUID:48c9f6afdac61634db0e0f241c7d4d51"
+        "GUID:48c9f6afdac61634db0e0f241c7d4d51",
+        "GUID:d04eb9c554ad44ceab303cecf0c0cf82"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

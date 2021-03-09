@@ -63,7 +63,7 @@ public class SkyboxController : MonoBehaviour
 		if (TimeDayController.singleton == null) return;
 
 		//Get current skybox color and compare it to before
-		Vector4 currentCol = TimeDayController.singleton.GetSkyColor();
+		Vector4 currentCol = TimeDayController.singleton.GetSkyboxColor();
 
 		if ((lastColor - currentCol).sqrMagnitude > skyboxUpdateThreshold)
 		{
@@ -74,9 +74,7 @@ public class SkyboxController : MonoBehaviour
 
 
 
-			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_DaySkyColor, TimeDayController.singleton.daySkyColour);
-			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_NightSkyColor, TimeDayController.singleton.nightSkyColour);
-			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SkyColorTransitionPeriod, TimeDayController.singleton.skyColorTransitionPeriod);
+			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SkyColor, TimeDayController.singleton.day.skyColor);
 
 			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunDir, -RenderSettings.sun.transform.forward);
 			buffer.SetComputeVectorParam(skyboxCompute, TimeDayController.shader_SunCoTangent, -RenderSettings.sun.transform.up);

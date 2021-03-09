@@ -7,7 +7,7 @@ using TMPro;
 using System.Linq;
 using Armere.Inventory;
 
-public class NPC : AIBase, IInteractable, IVariableAddon, IDialogue
+public class NPC : AIHumanoid, IInteractable, IVariableAddon, IDialogue
 {
 	bool IInteractable.canInteract { get => enabled; set => enabled = value; }
 	string IVariableAddon.prefix => "$NPC_";

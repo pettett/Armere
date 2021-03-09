@@ -13,9 +13,7 @@ RWTexture2D<float4> Result;
 int face;
 int width;
 
-float3 _DaySkyColor;
-float3 _NightSkyColor;
-float2 _SkyColorTransitionPeriod;
+float3 _SkyColor;
 
 float3 _SunDir;
 float3 _SunTangent;
@@ -24,8 +22,7 @@ float3 _SunCoTangent;
 
 
 float3 SampleSkybox(float3 viewDirection){
-	float dayAmount = smoothstep(_SkyColorTransitionPeriod.x,_SkyColorTransitionPeriod.y,_SunDir.y);
-	
+
 	// float sunDot = dot(viewDirection,_SunDir);
 	// float3 horziontalDir = normalize(float3(viewDirection.x,0,viewDirection.z));
 
@@ -35,7 +32,7 @@ float3 SampleSkybox(float3 viewDirection){
 	// float sunSetPower = pow(saturate(( amountHorizontal - 0.94 ) * sunAngle),1.87) * 269;
 	
 	
-	return lerp(_DaySkyColor,_NightSkyColor,dayAmount);// + float3(0.9339623,0.4442319,0.03083839) *sunSetPower ;
+	return _SkyColor;// + float3(0.9339623,0.4442319,0.03083839) *sunSetPower ;
 }
 
 

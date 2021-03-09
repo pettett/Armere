@@ -5,72 +5,43 @@ using UnityEngine;
 using Armere.Inventory;
 
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
-public class EnemyAI : AIBase, IExplosionEffector
+public class EnemyAI : AIHumanoid, IExplosionEffector
 {
 
-	public enum SightMode { View, Range }
 
-	public SightMode sightMode;
-	public MeleeWeaponItemData meleeWeapon;
-	public EnemyRoutine idleRoutine;
-	public bool autoEngage = false;
 
 	[HideInInspector] public Health health;
 	[Header("Player Detection")]
-	public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
-	[MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
-	public Transform eye; //Used for vision frustum calculations
-	public LayerMask visionBlockingMask;
-	Collider playerCollider;
-	public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 
-	public AIWaypointGroup waypointGroup;
+	Collider playerCollider;
+
+
 
 	[Header("Player Engagement")]
 
-	public float approachDistance = 1;
-	float sqrApproachDistance => approachDistance * approachDistance;
-	public bool approachPlayer = true;
+	public InvestigateRoutine investigate;
 
 	public float knockoutTime = 4f;
 	public float maxExplosionKnockoutTime = 4f;
-
-	IEnemyRoutine currentRoutineObject;
-	Coroutine currentRoutine;
-
-	public AnimationTransitionSet transitionSet;
-	Matrix4x4 viewMatrix;
-	Plane[] viewPlanes = new Plane[6];
 	[Header("Indicators")]
 	public float height = 1.8f;
 	AlertIndicatorUI alert;
-	Ragdoller ragdoller;
 
-	Transform lookingAtTarget;
+
+
 	Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
 
 
 
-	public event System.Action<EnemyAI> onPlayerDetected;
 
 
-
-
-
-	void ChangeRoutine(IEnemyRoutine newRoutine)
-	{
-		if (currentRoutine != null)
-			StopCoroutine(currentRoutine);
-		currentRoutine = StartCoroutine(newRoutine.Routine(this));
-		currentRoutineObject = newRoutine;
-	}
 
 	public void OnDamageTaken(GameObject attacker, GameObject victim)
 	{
 		//Push the ai back
-		if (currentRoutineObject.alertOnAttack)
-			ChangeRoutine(new AlertRoutine(1));
+		if (currentState.alertOnAttack)
+			ChangeToState(new AlertRoutine(this, 1, playerCollider));
 	}
 
 	public void OnExplosion(Vector3 source, float radius, float force)
@@ -79,14 +50,14 @@ public class EnemyAI : AIBase, IExplosionEffector
 		float sqrDistance01 = 1 - Vector3.SqrMagnitude(transform.position - source) / (radius * radius);
 
 
-		ChangeRoutine(new KnockoutRoutine(sqrDistance01 * maxExplosionKnockoutTime));
+		ChangeToState(new KnockoutRoutine(this, sqrDistance01 * maxExplosionKnockoutTime));
 
 	}
 
 	[MyBox.ButtonMethod()]
 	public void Ragdoll()
 	{
-		ChangeRoutine(new KnockoutRoutine(knockoutTime));
+		ChangeToState(new KnockoutRoutine(this, knockoutTime));
 	}
 
 
@@ -94,7 +65,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 	{
 		//TODO: Make this better
 		health.Damage(time * 10, gameObject);
-		ChangeRoutine(new KnockoutRoutine(time));
+		ChangeToState(new KnockoutRoutine(this, time));
 	}
 
 	private void OnValidate()
@@ -113,7 +84,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 
 	public void Die()
 	{
-		ChangeRoutine(new DieRoutine());
+		ChangeToState(new DieRoutine(this));
 	}
 
 	protected override async void Start()
@@ -123,9 +94,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 		health = GetComponent<Health>();
 		weaponGraphics = GetComponent<WeaponGraphicsController>();
 		animationController = GetComponent<AnimationController>();
-		ragdoller = GetComponent<Ragdoller>();
 
-		ragdoller.RagdollEnabled = false;
 
 		health.onTakeDamage += OnDamageTaken;
 		health.onDeathEvent.AddListener(Die);
@@ -140,231 +109,160 @@ public class EnemyAI : AIBase, IExplosionEffector
 
 	public void OnNoiseHeard(Vector3 position)
 	{
-		if (currentRoutineObject.searchOnEvent)
+		if (currentState.searchOnEvent)
 		{
-			ChangeRoutine(new SearchForEventRoutine(position));
+			ChangeToState(new SearchForEventRoutine(this, position));
 		}
 	}
 
 
-	public Task SetHeldMelee(HoldableItemData weapon)
-	{
-		return weaponGraphics.holdables.melee.SetHeld(weapon);
-	}
-	public Task SetHeldBow(HoldableItemData weapon)
-	{
-		return weaponGraphics.holdables.bow.SetHeld(weapon);
-	}
 
 
 	public virtual void InitEnemy()
 	{
-		StartBaseRoutine();
+
 	}
 
-
-	IEnumerator DrawItem(ItemType type)
+	public class DieRoutine : AIState
 	{
-		yield return weaponGraphics.DrawItem(type, transitionSet);
-	}
+		public override bool alertOnAttack => false;
 
-	IEnumerator SheathItem(ItemType type)
-	{
-		yield return weaponGraphics.SheathItem(type, transitionSet);
-	}
+		public override bool searchOnEvent => false;
 
-
-	protected void StartBaseRoutine()
-	{
-		if (alert != null) Destroy(alert.gameObject);
-		if (autoEngage)
+		public override bool investigateOnSight => false;
+		Coroutine r;
+		public DieRoutine(AIHumanoid c) : base(c)
 		{
-			ChangeRoutine(new AlertRoutine(0));
+
+			r = c.StartCoroutine(Routine());
 		}
-		else
+		public override void End()
 		{
-			ChangeRoutine(idleRoutine);
+			c.StopCoroutine(r);
 		}
-	}
-	public struct DieRoutine : IEnemyRoutine
-	{
-		public bool alertOnAttack => false;
-
-		public bool searchOnEvent => false;
-
-		public bool investigateOnSight => false;
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+		IEnumerator Routine()
 		{
 
-			foreach (var x in enemyAI.weaponGraphics.holdables)
+			foreach (var x in c.weaponGraphics.holdables)
 				x.RemoveHeld();
 
-			enemyAI.ragdoller.RagdollEnabled = true;
+			c.ragdoller.RagdollEnabled = true;
 			yield return new WaitForSeconds(4);
-			Destroy(enemyAI.gameObject);
+			Destroy(c.gameObject);
 		}
 	}
 
-	public int GetClosestWaypoint()
+
+
+
+
+
+	public class KnockoutRoutine : AIState
 	{
-		//Pick the closest waypoint by non -pathed distance
-		int waypoint = 0;
-		for (int i = 1; i < waypointGroup.Length; i++)
-		{
-			if ((transform.position - waypointGroup[waypoint].position).sqrMagnitude > (transform.position - waypointGroup[i].position).sqrMagnitude)
-				waypoint = i;
-		}
-		return waypoint;
-	}
-	public IEnumerator GoToWaypoint(int index) => GoToTransform(waypointGroup[index]);
+		public override bool alertOnAttack => false;
 
+		public override bool searchOnEvent => false;
 
-
-
-	public struct InvestigateRoutine : IEnemyRoutine
-	{
-		public bool alertOnAttack => true;
-
-		public bool searchOnEvent => false;
-
-		public bool investigateOnSight => false;
-
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
-		{
-			//Do not re-enter investigate
-			if (enemyAI.alert == null || enemyAI.alert.gameObject == null)
-				enemyAI.alert = IndicatorsUIController.singleton.CreateAlertIndicator(enemyAI.transform, Vector3.up * enemyAI.height);
-
-			enemyAI.alert.EnableInvestigate(true);
-			enemyAI.alert.EnableAlert(false);
-
-			float investProgress = 0;
-			//Try to look at the player long enough to alert
-			while (true)
-			{
-				enemyAI.alert.SetInvestigation(investProgress);
-
-				float visibility = enemyAI.ProportionBoundsVisible(enemyAI.playerCollider.bounds);
-
-				if (visibility != 0)
-				{
-					//can see player
-					//Distance is the 0-1 scale where 0 is closestest visiable and 1 is furthest video
-					float playerDistance = Mathf.InverseLerp(enemyAI.clippingPlanes.x, enemyAI.clippingPlanes.y, Vector3.Distance(enemyAI.eye.position, enemyAI.playerCollider.transform.position));
-					//Invest the player slower if they are further away
-					investProgress += Time.deltaTime * enemyAI.investigateRateOverDistance.Evaluate(playerDistance) * visibility;
-				}
-				else
-				{
-					investProgress -= Time.deltaTime;
-				}
-
-
-				if (investProgress < -0.5f)
-				{
-					//Cannot see player
-					enemyAI.StartBaseRoutine();
-
-					break;
-				}
-				else if (investProgress >= 1)
-				{
-					//Seen player
-					enemyAI.ChangeRoutine(new AlertRoutine(1));
-					break;
-				}
-
-
-				yield return null;
-			}
-		}
-
-	}
-
-	public struct KnockoutRoutine : IEnemyRoutine
-	{
-		public bool alertOnAttack => false;
-
-		public bool searchOnEvent => false;
-
-		public bool investigateOnSight => false;
+		public override bool investigateOnSight => false;
 
 		readonly float knockoutTime;
 
-		public KnockoutRoutine(float knockoutTime)
+
+		Coroutine r;
+		public KnockoutRoutine(AIHumanoid c, float knockoutTime) : base(c)
 		{
 			this.knockoutTime = knockoutTime;
+			r = c.StartCoroutine(Routine());
+		}
+		public override void End()
+		{
+			c.StopCoroutine(r);
 		}
 
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+		IEnumerator Routine()
 		{
-			enemyAI.ragdoller.RagdollEnabled = true;
-			enemyAI.GetComponent<Focusable>().enabled = false;
+			c.ragdoller.RagdollEnabled = true;
+			c.GetComponent<Focusable>().enabled = false;
 			yield return new WaitForSeconds(knockoutTime);
-			enemyAI.GetComponent<Focusable>().enabled = true;
-			enemyAI.ragdoller.RagdollEnabled = false;
+			c.GetComponent<Focusable>().enabled = true;
+			c.ragdoller.RagdollEnabled = false;
 		}
 	}
 
 
-	public struct AlertRoutine : IEnemyRoutine
+	public class AlertRoutine : AIState
 	{
-		public bool alertOnAttack => false;
+		public override bool alertOnAttack => false;
 
-		public bool searchOnEvent => false;
+		public override bool searchOnEvent => false;
 
-		public bool investigateOnSight => false;
+		public override bool investigateOnSight => false;
 
 		public float waitTime;
-		public AlertRoutine(float waitTime)
+
+		Coroutine r;
+		Collider playerCollider;
+		public AlertRoutine(AIHumanoid c, float waitTime, Collider playerCollider) : base(c)
 		{
 			this.waitTime = waitTime;
+			this.playerCollider = playerCollider;
+			r = c.StartCoroutine(Routine());
+		}
+		public override void End()
+		{
+			c.StopCoroutine(r);
 		}
 
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+		IEnumerator Routine()
 		{
 
-			enemyAI.lookingAtTarget = enemyAI.playerCollider.transform;
+			c.lookingAtTarget = playerCollider.transform;
 
-			enemyAI.onPlayerDetected?.Invoke(enemyAI);
+			c.OnPlayerDetected();
 
 
-			enemyAI.animationController.TriggerTransition(enemyAI.transitionSet.surprised);
+			c.animationController.TriggerTransition(c.transitionSet.surprised);
 			yield return new WaitForSeconds(1);
 
-			if (enemyAI.weaponGraphics.holdables.melee.sheathed)
-				yield return enemyAI.DrawItem(ItemType.Melee);
+			if (c.weaponGraphics.holdables.melee.sheathed)
+				yield return c.DrawItem(ItemType.Melee);
 
 
 			//If alert is null create one
-			enemyAI.alert = enemyAI.alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(enemyAI.transform, Vector3.up * enemyAI.height);
+			//c.alert = c.alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(c.transform, Vector3.up * c.height);
 
-			enemyAI.alert.EnableInvestigate(false);
-			enemyAI.alert.EnableAlert(true);
+			//c.alert.EnableInvestigate(false);
+			//c.alert.EnableAlert(true);
 			yield return new WaitForSeconds(1);
 			//print("Alerted");
-			Destroy(enemyAI.alert.gameObject);
-			enemyAI.ChangeRoutine(new EngagePlayerRoutine());
+			//Destroy(c.alert.gameObject);
+			c.ChangeToState(new EngagePlayerRoutine(c, playerCollider));
 		}
 	}
 	public void ForceEngage()
 	{
-		ChangeRoutine(new AlertRoutine(0));
+		ChangeToState(new AlertRoutine(this, 0, playerCollider));
 	}
 
-	public struct SearchForEventRoutine : IEnemyRoutine
+	public class SearchForEventRoutine : AIState
 	{
-		public bool alertOnAttack => true;
+		public override bool alertOnAttack => true;
 
-		public bool searchOnEvent => true;
+		public override bool searchOnEvent => true;
 
-		public bool investigateOnSight => true;
-		Vector3 eventPos;
-		public SearchForEventRoutine(Vector3 eventPos)
+		public override bool investigateOnSight => true;
+		readonly Vector3 eventPos;
+		Coroutine r;
+		public SearchForEventRoutine(AIHumanoid c, Vector3 eventPos) : base(c)
 		{
 			this.eventPos = eventPos;
+			r = c.StartCoroutine(Routine());
 		}
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemyAI)
+		public override void End()
+		{
+			c.StopCoroutine(r);
+		}
+		IEnumerator Routine()
 		{
 
 			/*
@@ -375,33 +273,48 @@ public class EnemyAI : AIBase, IExplosionEffector
                 go back to what we were doing before
             */
 
-			enemyAI.debugText.SetText("Searching");
-			yield return enemyAI.RotateTo(Quaternion.LookRotation(eventPos - enemyAI.transform.position), enemyAI.agent.angularSpeed);
-			enemyAI.debugText.SetText("Searching - looking");
+			c.debugText.SetText("Searching");
+			yield return c.RotateTo(Quaternion.LookRotation(eventPos - c.transform.position), c.agent.angularSpeed);
+			c.debugText.SetText("Searching - looking");
 			yield return new WaitForSeconds(3);
 		}
 	}
-	public struct EngagePlayerRoutine : IEnemyRoutine
+	public class EngagePlayerRoutine : AIState
 	{
-		public bool alertOnAttack => false;
+		public override bool alertOnAttack => false;
 
-		public bool searchOnEvent => false;
+		public override bool searchOnEvent => false;
 
-		public bool investigateOnSight => false;
-		IEnumerator IEnemyRoutine.Routine(EnemyAI enemy)
+		public override bool investigateOnSight => false;
+		public float approachDistance = 1;
+		float sqrApproachDistance => approachDistance * approachDistance;
+		public bool approachPlayer = true;
+		Coroutine r;
+		Collider playerCollider;
+		public EngagePlayerRoutine(AIHumanoid c, Collider playerCollider) : base(c)
+		{
+			r = c.StartCoroutine(Routine());
+			this.playerCollider = playerCollider;
+		}
+		public override void End()
+		{
+			c.StopCoroutine(r);
+		}
+
+		IEnumerator Routine()
 		{
 			//Once they player has attacked or been seen, do not stop engageing until circumstances change
-			enemy.agent.isStopped = true;
+			c.agent.isStopped = true;
 
 			Vector3 directionToPlayer;
-			Health playerHealth = enemy.playerCollider.GetComponent<Health>();
+			Health playerHealth = playerCollider.GetComponent<Health>();
 			bool movingToCatchPlayer = false;
-			enemy.lookingAtTarget = enemy.playerCollider.transform;
+			c.lookingAtTarget = playerCollider.transform;
 			//Stop attacking the player after it has died
 			while (!playerHealth.dead)
 			{
-				directionToPlayer = enemy.playerCollider.transform.position - enemy.transform.position;
-				if (enemy.approachPlayer && directionToPlayer.sqrMagnitude > enemy.sqrApproachDistance)
+				directionToPlayer = playerCollider.transform.position - c.transform.position;
+				if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
 				{
 					if (!movingToCatchPlayer)
 					{
@@ -409,7 +322,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 						yield return new WaitForSeconds(0.1f);
 					}
 
-					enemy.agent.Move(directionToPlayer.normalized * Time.deltaTime * enemy.agent.speed);
+					c.agent.Move(directionToPlayer.normalized * Time.deltaTime * c.agent.speed);
 				}
 				else if (movingToCatchPlayer)
 				{
@@ -421,11 +334,11 @@ public class EnemyAI : AIBase, IExplosionEffector
 				{
 					//Within sword range of player
 					//Swing sword
-					yield return enemy.SwingSword();
+					yield return c.SwingSword();
 				}
 
 				directionToPlayer.y = 0;
-				enemy.transform.forward = directionToPlayer;
+				c.transform.forward = directionToPlayer;
 
 				//TODO: Test to see if the player is still in view
 
@@ -433,59 +346,12 @@ public class EnemyAI : AIBase, IExplosionEffector
 				yield return null;
 			}
 			//Once the player has died, return to normal routine to stop end looking janky
-			enemy.StartBaseRoutine();
+			c.ChangeToState(c.defaultState);
 		}
 
 	}
 
 
-	IEnumerator SwingSword()
-	{
-		agent.isStopped = true; //Stop the player moving
-								//swing the sword
-
-		//This is easier. Animation graphs suck
-		animationController.TriggerTransition(transitionSet.swingSword);
-
-		WeaponTrigger trigger = null;
-
-
-		void AddTrigger()
-		{
-			//Add collider and trigger logic to the blade object
-			trigger = weaponGraphics.holdables.melee.gameObject.GetComponent<WeaponTrigger>();
-
-			trigger.enableTrigger = true;
-
-			if (!trigger.inited)
-			{
-				trigger.Init(meleeWeapon.hitSparkEffect);
-				trigger.weaponItem = meleeWeapon;
-				trigger.controller = gameObject;
-			}
-
-		}
-
-		void RemoveTrigger()
-		{
-			//Clean up the trigger detection of the sword
-
-			trigger.enableTrigger = false;
-			onSwingStateChanged = null;
-		}
-
-		onSwingStateChanged = (bool on) =>
-		{
-			if (on) AddTrigger();
-			else RemoveTrigger();
-		};
-
-		yield return new WaitForSeconds(1);
-	}
-	//Triggered by animations
-	public System.Action<bool> onSwingStateChanged;
-	public void SwingStart() => onSwingStateChanged?.Invoke(true);
-	public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
 
@@ -493,7 +359,7 @@ public class EnemyAI : AIBase, IExplosionEffector
 	{
 		if (sightMode == SightMode.View)
 		{
-			viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
+			var viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
 			GeometryUtility.CalculateFrustumPlanes(viewMatrix * eye.worldToLocalMatrix, viewPlanes);
 			return GeometryUtility.TestPlanesAABB(viewPlanes, b);
 		}
@@ -508,59 +374,19 @@ public class EnemyAI : AIBase, IExplosionEffector
 		}
 		return false;
 	}
-	public float ProportionBoundsVisible(Bounds b)
+
+
+	protected override void Update()
 	{
-		if (sightMode == SightMode.View)
-		{
-			viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
-			GeometryUtility.CalculateFrustumPlanes(viewMatrix * eye.worldToLocalMatrix, viewPlanes);
-
-			float visibility = 0;
-			int samples = 2;
-
-			for (int i = 0; i < samples; i++)
-			{
-				Vector3 testPoint = b.center;
-				testPoint.y += b.size.y * (i / (samples - 1f)) - b.extents.y;
-
-				foreach (var plane in viewPlanes)
-				{
-					if (!plane.GetSide(testPoint))
-					{
-						//This point is not inside frustum, ignore it
-						goto SkipPoint;
-					}
-				}
-
-				//Line cast to point
-				if (!Physics.Linecast(eye.position, testPoint, out RaycastHit hit, visionBlockingMask, QueryTriggerInteraction.Ignore))
-				{
-					//Add to visibility
-					visibility += 1f / samples;
-
-				}
-
-			SkipPoint:
-				continue;
-
-			}
-
-			return visibility;
-		}
-
-		return 1;
-	}
-
-	private void Update()
-	{
-		//Test if the enemy can see the player at this point
-		if (currentRoutineObject?.investigateOnSight ?? false)
+		base.Update();
+		//Test if the c can see the player at this point
+		if (currentState?.investigateOnSight ?? false)
 		{
 			var b = playerCollider.bounds;
 			if (ProportionBoundsVisible(b) != 0)
 			{
 				//can see the player, interrupt current routine
-				ChangeRoutine(new InvestigateRoutine());
+				ChangeToState(investigate.Investigate(playerCollider));
 			}
 		}
 

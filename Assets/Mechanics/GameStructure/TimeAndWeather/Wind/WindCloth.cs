@@ -5,17 +5,10 @@ using UnityEngine;
 public class WindCloth : MonoBehaviour
 {
 	public Cloth cloth;
-	public Vector3EventChannelSO onWindDirectionChanged;
-	private void OnEnable()
+	public GlobalVector3SO windDirectionGlobal;
+	private void Update()
 	{
-		onWindDirectionChanged.OnEventRaised += UpdateCloth;
+		cloth.externalAcceleration = windDirectionGlobal.value;
 	}
-	private void OnDisable()
-	{
-		onWindDirectionChanged.OnEventRaised -= UpdateCloth;
-	}
-	public void UpdateCloth(Vector3 wind)
-	{
-		cloth.externalAcceleration = wind;
-	}
+
 }

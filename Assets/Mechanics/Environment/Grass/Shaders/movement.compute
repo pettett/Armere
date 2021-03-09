@@ -10,6 +10,8 @@ cbuffer CB{
     float deltatime;
 
     float time;
+	float3 windDirection;
+
     float2 viewRadiusMinMax;
 
     int pushers;
@@ -63,15 +65,24 @@ float4x4 RotationY(float y){
     );
 }
 
-float4x4 ScaleXYZ(float2 size){
-    return float4x4 (
-        size.x,0,0,0,
-        0,size.y,0,0,
-        0,0,size.x,0,
-        0,0,0,1
+// Rotation with angle (in radians) and axis
+float4x4 AngleAxis4x4(float angle, float3 axis)
+{
+    float c, s;
+    sincos(angle, s, c);
+
+    float t = 1 - c;
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+
+    return float4x4(
+        t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,0,
+        t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,0,
+        t * x * z - s * y,  t * y * z + s * x,  t * z * z + c,0,
+		0,0,0,1
     );
 }
-
 
 #define pi 3.14159265359
 
@@ -145,17 +156,47 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	//_Properties[id.x].rotation.y += 1 * deltatime;
 
-	float2 rot = float2(
-				snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
-				snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
+
+	 
+	// 			snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
+	// 			snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
 
 	// The amount of wind decreases as damp increases
 	//_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
 
 	
-	float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
+	//float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
 
-	float4x4 mat_local_r = Rotation(rot.x ,properties.yRot,rot.y);
+	float4x4 rotation = AngleAxis4x4(properties.yRot,float3(0,1,0));
+
+	float windStrength = length(windDirection);
+
+	float2 size = properties.size;
+
+
+	float x = snoise(properties.position.xz * 0.05 + float2(time,time) * 0.2) * 0.1;
+	float t = snoise(properties.position.xz * 0.05 ) + time;
+	t /= size.y;
+
+	// Apply translation to existing matrix, which will be read in the shader.
+
+	float distance = length(properties.position.xyz - cameraPosition);
+	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
+	size.y *= view;
+	//If over the threshold completely disappear it
+	size.x *= 1 - step(viewRadiusMinMax.y,distance);
+
+
+	float angle = 0;
+
+
+	angle += x;
+	// angle += sin(x) * 0.2 + 0.5;
+	angle += sin(t*2) * 0.1 *size.y;
+	angle += sin(t*8 ) * 0.025 *size.y;
+	angle *= windStrength;
+
+	rotation = mul(AngleAxis4x4(angle , windDirection / windStrength),rotation);
 // float4x4 mat_local_r = Rotation(pi,0,0);
 
 
@@ -166,20 +207,20 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 		0, 0, 1, properties.position.z,
 		0, 0, 0, 1
 	);
+	float4x4 scale = float4x4(
+		size.x, 0, 0, 0,
+		0, size.y, 0, 0,
+		0, 0, size.x,0,
+		0, 0, 0, 1
+	);
 
-	// Apply translation to existing matrix, which will be read in the shader.
 
-	float2 size = properties.size;
-	float distance = length(properties.position.xyz - cameraPosition);
-	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
 
-	size.y *= view;
-	//If over the threshold completely disappear it
-	size.x *= 1 - step(viewRadiusMinMax.y,distance);
+
 
 	if (exists){
-		output.mat = mul(translation,mul( mul( dampRotation,mat_local_r), ScaleXYZ(size)));
-		output.color = properties.color * exists;
+		output.mat =mul(mul(translation, rotation),scale);
+		output.color = properties.color ;
 		output.chunkID = properties.chunkID;
 
 		_Output[placedIndex] = output;

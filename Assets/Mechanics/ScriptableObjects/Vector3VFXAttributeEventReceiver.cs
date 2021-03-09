@@ -2,25 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-public class Vector3VFXAttributeEventReceiver : MonoBehaviour
+using UnityEngine.VFX.Utility;
+
+[VFXBinder("Vector3 Event")]
+public class Vector3VFXAttributeEventReceiver : VFXBinderBase
 {
-	public string attributeName;
-	int nameID;
-	public VisualEffect effect;
-	public Vector3EventChannelSO eventChannel;
+	[VFXPropertyBinding("Vector3")]
+	public ExposedProperty vector3Property;
+	public GlobalVector3SO vector3Global;
 	public float multiplier = 1f;
 
-	private void OnEnable()
+
+	public override bool IsValid(VisualEffect component)
 	{
-		nameID = Shader.PropertyToID(attributeName);
-		eventChannel.OnEventRaised += OnEvent;
+		return vector3Global != null && component.HasVector3(vector3Property);
 	}
-	private void OnDisable()
+
+	public override void UpdateBinding(VisualEffect component)
 	{
-		eventChannel.OnEventRaised -= OnEvent;
-	}
-	public void OnEvent(Vector3 val)
-	{
-		effect.SetVector3(nameID, val * multiplier);
+		component.SetVector3(vector3Property, vector3Global.value * multiplier);
 	}
 }

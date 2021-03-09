@@ -53,7 +53,7 @@ namespace Armere.PlayerController
 			}
 			c.rb.isKinematic = true;
 			c.animationController.enableFeetIK = false;
-			animator.SetBool("OnLadder", true);
+
 			c.animationController.TriggerTransition(c.transitionSet.ladderClimb);
 
 
@@ -84,7 +84,6 @@ namespace Armere.PlayerController
 				c.animationController.TriggerTransition(c.transitionSet.stepDownFromLadder);
 			}
 
-			animator.SetBool("OnLadder", false);
 
 			c.inputReader.jumpEvent -= OnJump;
 			c.inputReader.movementEvent -= OnInputHorizontal;

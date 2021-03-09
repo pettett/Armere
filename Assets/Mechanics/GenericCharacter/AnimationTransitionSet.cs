@@ -37,7 +37,7 @@ public class AnimationTransitionSet : ScriptableObject
 	public AnimationTransition swordBackImpact = new AnimationTransition("Back Impact", 0.05f, 0.05f, Layers.BaseLayer);
 	public AnimationTransition swordFrontImpact = new AnimationTransition("Front Impact", 0.05f, 0.05f, Layers.BaseLayer);
 
-	public AnimationTransition surfImpact = new AnimationTransition("Surfing", 0.05f, 0.05f, Layers.BaseLayer);
+	public AnimationTransition shieldSurf = new AnimationTransition("Surfing", 0.05f, 0.05f, Layers.BaseLayer);
 
 	[Header("Ladders")]
 	public AnimationTransition ladderClimb = new AnimationTransition("Climbing Ladder", 0.05f, 0.05f, Layers.BaseLayer);

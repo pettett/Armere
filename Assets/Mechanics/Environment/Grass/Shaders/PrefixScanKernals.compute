@@ -46,6 +46,9 @@ RWStructuredBuffer<uint> sumBuffer : register( u2 );
  
 RWStructuredBuffer<uint> blockSum2 : register( u1 );
 
+
+RWStructuredBuffer<uint> _IndirectArgs;
+
 groupshared u32 ldsData[2048];
 
 u32 ScanExclusive(u32 n, int lIdx, int lSize)
@@ -159,6 +162,9 @@ void AddOffsetKernel(uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_
 	{
 		dst[i] += iBlockSum;
 	}
+
+	// if (globalIdx.x == m_numElems << -1)
+	// 	_IndirectArgs[1] = dst[1<<16-1];
 }
 
 [numthreads(WG_SIZE, 1, 1)]

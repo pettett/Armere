@@ -75,8 +75,7 @@ public class AnimationController : MonoBehaviour
 	[SerializeField] private LayerMask groundLayer;
 	[SerializeField] private float pelvisOffset = 0f;
 	[SerializeField] private float crouchOffset = 0f;
-	[Range(0, 1)] [SerializeField] private float pelvisVerticalSpeed = 0.28f;
-	[Range(0, 1)] [SerializeField] private float feetToIKPositionSpeed = 0.5f;
+	[Range(0, 1)] [SerializeField] private float pelvisVerticalSpeed = 0.28f, feetToIKPositionSpeed = 0.5f;
 	public string leftFootAnimVariableName = "LeftFootCurve";
 	public string rightFootAnimVariableName = "RightFootCurve";
 
@@ -115,9 +114,10 @@ public class AnimationController : MonoBehaviour
 	public float velocityScaler = 1;
 	IAnimatable animationHook;
 	StringHashes hashes;
-
+	Transform head;
+	Rigidbody rb;
 	#endregion
-
+	public bool lookToVelocity;
 
 	void TriggerTransition(in AnimationTransition transition, int layer)
 	{
@@ -136,6 +136,9 @@ public class AnimationController : MonoBehaviour
 	{
 
 		anim = GetComponent<Animator>();
+
+		head = anim.GetBoneTransform(HumanBodyBones.Head);
+		rb = GetComponent<Rigidbody>();
 
 		if (useAnimationHook)
 		{
@@ -189,9 +192,24 @@ public class AnimationController : MonoBehaviour
 				anim.SetIKPosition(point.goal, point.gripPoint.position);
 				anim.SetIKRotation(point.goal, point.gripPoint.rotation);
 			}
+			if (lookToVelocity)
+			{
+				if (rb.velocity.sqrMagnitude > 0.1f)
+				{
+					anim.SetLookAtWeight(0.5f, 0, 0.5f, 1, 0.1f);
+					anim.SetLookAtPosition(head.position + rb.velocity);
+				}
+				else
+				{
+					anim.SetLookAtWeight(0, 0, 0, 0, 0);
+				}
+			}
+			else
+			{
 
-			anim.SetLookAtWeight(lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight);
-			anim.SetLookAtPosition(lookAtPosition);
+				anim.SetLookAtWeight(lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight);
+				anim.SetLookAtPosition(lookAtPosition);
+			}
 		}
 	}
 

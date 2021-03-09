@@ -29,13 +29,16 @@ public class Focusable : MonoBehaviour, IVisable
 	{
 		focusables.Remove(this);
 		GameCameras.s.cameraVision.visionGroup.Remove(this);
-		Destroy(indicatorUI.gameObject);
-		inVision = false;
-		if (focused)
+		if (inVision)
 		{
-			focused = false;
+			Destroy(indicatorUI.gameObject);
+			inVision = false;
+			if (focused)
+			{
+				focused = false;
 
-			GameCameras.s.StopFocus();
+				GameCameras.s.StopFocus();
+			}
 		}
 
 	}

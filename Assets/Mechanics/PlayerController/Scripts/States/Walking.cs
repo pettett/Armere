@@ -1295,7 +1295,6 @@ namespace Armere.PlayerController
 		#endregion
 		public override void Animate(AnimatorVariables vars)
 		{
-			animator.SetBool(vars.surfing.id, false);
 
 			float speed = c.inputReader.horizontalMovement.magnitude * (sprinting ? 1.5f : 1);
 			if (!inControl) speed = 0;

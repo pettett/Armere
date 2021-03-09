@@ -43,7 +43,6 @@ namespace Armere.PlayerController
 
 		public override void Animate(AnimatorVariables vars)
 		{
-			animator.SetBool(vars.surfing.id, false);
 			//animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
 			animator.SetBool(vars.isGrounded.id, c.onGround);
 			animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);

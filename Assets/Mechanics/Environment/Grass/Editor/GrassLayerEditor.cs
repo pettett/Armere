@@ -11,6 +11,10 @@ public class GrassLayerEditor : Editor
 
 		GUI.enabled = false;
 		EditorGUILayout.FloatField("Loaded Cells:", ((GrassLayer)target).loadedCellsCount);
+		EditorGUILayout.FloatField("Max Loaded Cells:", ((GrassLayer)target).maxLoadedCells);
+		EditorGUILayout.FloatField("Max Loaded Blades:", ((GrassLayer)target).maxLoadedBlades);
+		EditorGUILayout.FloatField("Max Rendered Blades:", ((GrassLayer)target).maxRenderedBlades);
+
 		EditorGUILayout.FloatField("Thread Groups:", ((GrassLayer)target).GetThreadGroups());
 		EditorGUILayout.FloatField("Loaded Chunks:", ((GrassLayer)target).loadedChunks.Count);
 
@@ -27,5 +31,7 @@ public class GrassLayerEditor : Editor
 				EditorGUI.DrawRect(new Rect(r.x + 5, r.y + i, r.width - 10, r.y + i + 1), Random.ColorHSV());
 			}
 		}
+
+		EditorUtility.SetDirty(this);
 	}
 }

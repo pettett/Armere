@@ -48,45 +48,27 @@ public class GrassController : MonoBehaviour
 	private ProfilingSampler m_Grass_Profile;
 	public static List<GrassPusher> pushers = new List<GrassPusher>();
 	public static GrassController singleton;
-	public Vector3 CameraPosition
+
+
+	public Matrix4x4 GenerateFrustum(Camera cam)
+	{
+		return Matrix4x4.Perspective(cam.fieldOfView + 3, cam.aspect, cam.nearClipPlane - 0.05f, Mathf.Min(cam.farClipPlane + 0.05f, viewRadius)) * cam.worldToCameraMatrix;
+	}
+	public Camera mainCam
 	{
 		get
 		{
 #if UNITY_EDITOR
 			if (Application.isPlaying)
 			{
-				return mainCamera.transform.position;
+				return mainCamera;
 			}
 			else
 			{
-				return SceneView.lastActiveSceneView.camera.transform.position;
+				return SceneView.lastActiveSceneView.camera;
 			}
 #else
-			return mainCamera.transform.position;
-#endif
-		}
-	}
-
-
-	public static Matrix4x4 GenerateFrustum(Camera cam)
-	{
-		return Matrix4x4.Perspective(cam.fieldOfView + 3, cam.aspect, cam.nearClipPlane - 0.05f, cam.farClipPlane + 0.05f) * cam.worldToCameraMatrix;
-	}
-	public Matrix4x4 CameraFrustum
-	{
-		get
-		{
-#if UNITY_EDITOR
-			if (Application.isPlaying)
-			{
-				return GenerateFrustum(mainCamera);
-			}
-			else
-			{
-				return GenerateFrustum(SceneView.lastActiveSceneView.camera);
-			}
-#else
-			return GenerateFrustum(mainCamera);
+			return mainCamera;
 #endif
 		}
 	}
@@ -146,6 +128,7 @@ public class GrassController : MonoBehaviour
 			{
 				return;
 			}
+
 			//Debug.Log($"Loading {chunk.cellsWidth * chunk.cellsWidth} cells at {cellsOffset} into buffer for chunk {chunk.id}");
 
 			//These passes could be done once
@@ -209,11 +192,12 @@ public class GrassController : MonoBehaviour
 		{
 			if (!layer.hasBlades)
 			{
+				Debug.Log("No blades???");
 				//No blades - nothing to try to destroy
 				return;
 			}
 
-
+			Debug.Log("Removing");
 
 			layer.SetDispatchSize(c, c.destroyGrassInBounds, cmd);
 
@@ -282,13 +266,11 @@ public class GrassController : MonoBehaviour
 
 	public class DestroyGrassInChunkInstruction : GrassInstruction
 	{
-		public readonly int chunkID;
-		public readonly int chunkCellCount;
+		public readonly QuadTreeEnd end;
 
-		public DestroyGrassInChunkInstruction(int chunkID, int area)
+		public DestroyGrassInChunkInstruction(QuadTreeEnd end)
 		{
-			this.chunkID = chunkID;
-			this.chunkCellCount = area;
+			this.end = end;
 		}
 
 		public override void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd)
@@ -302,7 +284,7 @@ public class GrassController : MonoBehaviour
 			layer.SetDispatchSize(c, c.destroyGrassInChunk, cmd);
 			//Send the data needed and destroy grass
 
-			cmd.SetComputeIntParam(c.destroyGrassInChunk, ID_chunkID, chunkID);
+			cmd.SetComputeIntParam(c.destroyGrassInChunk, ID_chunkID, end.id);
 
 			//dispatch a compute shader that will take in buffer of all mesh data
 			//And return an append buffer of mesh data remaining
@@ -316,7 +298,7 @@ public class GrassController : MonoBehaviour
 
 			layer.DispatchComputeWithThreads(cmd, c.destroyGrassInChunk, 0);
 
-			layer.RemoveChunk(chunkID);
+			layer.RemoveChunk(end);
 
 			//Lower by max amount of blades in a chunk
 			//layer.currentGrassCellCapacityInView -= chunkCellCount * layer.groupsOf8PerCell * 8;
@@ -410,7 +392,7 @@ public class GrassController : MonoBehaviour
 			cmd.SetComputeVectorArrayParam(compute, ID_PusherPositions, pushersData);
 			cmd.SetComputeIntParam(compute, ID_pushers, pushersData.Length);
 
-			cmd.SetComputeVectorParam(compute, ID_cameraPosition, CameraPosition - bounds.center);
+			cmd.SetComputeVectorParam(compute, ID_cameraPosition, mainCam.transform.position - bounds.center);
 
 			int maxInstructionIterations = 8;
 
@@ -659,7 +641,7 @@ public class GrassController : MonoBehaviour
 			for (int i = 0; i < pushers.Count; i++)
 			{
 				pushingQueue[i].data = pushers[i].Data;
-				pushingQueue[i].priority = Vector3.SqrMagnitude(pushers[i].transform.position - CameraPosition);
+				pushingQueue[i].priority = Vector3.SqrMagnitude(pushers[i].transform.position - mainCam.transform.position);
 			}
 			//Order by distance to main pusher
 			pushingQueue.OrderBy(x => x.priority);
@@ -728,11 +710,11 @@ public class GrassController : MonoBehaviour
 		// UpdateChunkTree();
 
 		Gizmos.matrix = Matrix4x4.identity;
-		Gizmos.DrawWireSphere(CameraPosition, viewRadius);
+		Gizmos.DrawWireSphere(mainCam.transform.position, viewRadius);
 		Gizmos.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
-		Vector2 playerUV = new Vector2(CameraPosition.x - transform.position.x,
-							CameraPosition.z - transform.position.z) / (range * 2);
+		Vector2 playerUV = new Vector2(mainCam.transform.position.x - transform.position.x,
+							mainCam.transform.position.z - transform.position.z) / (range * 2);
 
 
 

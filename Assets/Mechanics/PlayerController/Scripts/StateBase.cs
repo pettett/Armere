@@ -9,7 +9,6 @@ namespace Armere.PlayerController
 	[Serializable]
 	public class AnimatorVariables
 	{
-		public AnimatorVariable surfing = new AnimatorVariable("IsSurfing");
 		public AnimatorVariable vertical = new AnimatorVariable("InputVertical");
 		public AnimatorVariable horizontal = new AnimatorVariable("InputHorizontal");
 		public AnimatorVariable walkingSpeed = new AnimatorVariable("WalkingSpeed");
@@ -18,7 +17,6 @@ namespace Armere.PlayerController
 		public AnimatorVariable groundDistance = new AnimatorVariable("GroundDistance");
 		public void UpdateIDs()
 		{
-			surfing.UpdateID();
 			vertical.UpdateID();
 			horizontal.UpdateID();
 			walkingSpeed.UpdateID();
@@ -32,7 +30,7 @@ namespace Armere.PlayerController
 	public class AnimatorVariable
 	{
 		public string name;
-		[HideInInspector] public int id;
+		[NonSerialized] public int id;
 		public AnimatorVariable(string name)
 		{
 			this.name = name;

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -69,7 +70,9 @@ public class GrassLayer : ScriptableObject
 
 	*/
 
-	[System.NonSerialized] public HashSet<int> loadedChunks = new HashSet<int>();
+	[System.NonSerialized] public HashSet<QuadTreeEnd> loadedChunks = new HashSet<QuadTreeEnd>();
+
+	HashSet<QuadTreeEnd> nextLoadedChunks = new HashSet<QuadTreeEnd>();
 
 	public ushort greatestCellGroupPower = 5;
 
@@ -84,9 +87,6 @@ public class GrassLayer : ScriptableObject
 	public int seed { get; private set; }
 	MaterialPropertyBlock block;
 
-	Vector2 oldPlayerUV = Vector2.one * -1000;
-	float oldPlayerUVRadius = 0;
-
 
 
 
@@ -96,11 +96,11 @@ public class GrassLayer : ScriptableObject
 	[System.NonSerialized] public int loadedCellsCount = 0;
 
 	public int loadedBlades => loadedCellsCount * groupsOf8PerCell * 8;
-	public int renderedBlades => loadedBlades / 4; //TODO: Make this better
+	//Frustum cull estimate
 
 	public bool TryFitChunk(QuadTreeEnd end, out int cellsOffsetPosition)
 	{
-		if (loadedChunks.Contains(end.id))
+		if (loadedChunks.Contains(end))
 		{
 			Debug.LogError("Attempting to load chunk twice");
 			cellsOffsetPosition = -1;
@@ -158,7 +158,7 @@ public class GrassLayer : ScriptableObject
 			hasBlades = true; //Blades added, something to draw
 			threadGroups = GetThreadGroups();
 
-			loadedChunks.Add(end.id);
+			loadedChunks.Add(end);
 
 			return true;
 		}
@@ -174,7 +174,7 @@ public class GrassLayer : ScriptableObject
 		return (ushort)Mathf.CeilToInt(loadedCellsCount * groupsOf8PerCell / 8f);
 	}
 
-	public void RemoveChunk(int chunk)
+	public void RemoveChunk(QuadTreeEnd chunk)
 	{
 		bool foundEnd = false;
 		if (!loadedChunks.Contains(chunk))
@@ -185,7 +185,7 @@ public class GrassLayer : ScriptableObject
 		//Work from the back to the front to also find the last active cell
 		for (int i = occupiedBufferCells.Length - 1; i >= 0; i--)
 		{
-			if (occupiedBufferCells[i] == chunk)
+			if (occupiedBufferCells[i] == chunk.id)
 			{
 				occupiedBufferCells[i] = 0;
 			}
@@ -245,9 +245,10 @@ public class GrassLayer : ScriptableObject
 		drawIndirectArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments, ComputeBufferMode.SubUpdates);
 
 
+		float cellSize = c.terrain.terrainData.size.x / c.terrain.terrainData.alphamapResolution;
 
 		//FIXME: pi * r ^ 2
-		float radius = c.viewRadius * viewRadiusScalar * 3 / (1 << smallestCellGroupPower);
+		float radius = c.viewRadius * viewRadiusScalar / cellSize;
 
 		maxLoadedCells = Mathf.CeilToInt(radius * radius * Mathf.PI);
 
@@ -300,7 +301,7 @@ public class GrassLayer : ScriptableObject
 		// 0 == number of triangle indices, 1 == population, others are only relevant if drawing submeshes.
 		args[0] = mesh.GetIndexCount(0);
 		//Debug.Log(maxLoadedBlades);
-		args[1] = (uint)maxLoadedBlades;
+		args[1] = 0;
 		args[2] = mesh.GetIndexStart(0);
 		args[3] = mesh.GetBaseVertex(0);
 		args[4] = 0; //Start instance location
@@ -365,7 +366,7 @@ public class GrassLayer : ScriptableObject
 
 			cmd.SetComputeBufferParam(c.compute, 0, "_PrefixScanData", grassBladesScanBuffer);
 			cmd.SetComputeBufferParam(c.compute, 0, "_CullResult", grassBladesCullResultBuffer);
-
+			cmd.SetComputeBufferParam(c.compute, 0, "_IndirectArgs", drawIndirectArgsBuffer);
 
 
 
@@ -380,7 +381,7 @@ public class GrassLayer : ScriptableObject
 		cmd.SetComputeBufferParam(c.cullGrassCompute, 0, "_CullResult", grassBladesCullResultBuffer);
 
 
-		cmd.SetComputeMatrixParam(c.cullGrassCompute, "cameraFrustum", c.CameraFrustum);
+		cmd.SetComputeMatrixParam(c.cullGrassCompute, "cameraFrustum", c.GenerateFrustum(c.mainCam));
 		//Cull
 		cmd.DispatchCompute(c.cullGrassCompute, 0, threadGroups, 1, 1);
 	}
@@ -416,6 +417,7 @@ public class GrassLayer : ScriptableObject
 		if (blocks > 1)
 		{
 			cmd.SetComputeBufferParam(c.prefixScanCompute, 2, "dst", grassBladesScanBuffer);
+
 			cmd.SetComputeBufferParam(c.prefixScanCompute, 2, "blockSum2", grassBladesScanWorkBuffer);
 
 			cmd.DispatchCompute(c.prefixScanCompute, 2, (blocks - 1), 1, 1);
@@ -436,41 +438,41 @@ public class GrassLayer : ScriptableObject
 		}
 	}
 
-	int lastRenderedBlades = 0;
+	uint lastRenderedBlades = 0;
+
 
 	public void DrawGrassLayer(GrassController c)
 	{
 		//Use circle for less unneeded grass creation instructions
-		Vector2 playerUV = new Vector2(c.CameraPosition.x - c.transform.position.x,
-							c.CameraPosition.z - c.transform.position.z) / (c.range * 2);
+		Vector2 playerUV = new Vector2(c.mainCam.transform.position.x - c.transform.position.x,
+							c.mainCam.transform.position.z - c.transform.position.z) / (c.range * 2);
 
 		float uvViewRadius = (c.viewRadius * viewRadiusScalar * 0.5f) / c.range;
 		//Destroy grass that was in the old uv but not in this one
+		nextLoadedChunks.Clear();
+		chunkTree.GetLeavesInRange(playerUV, uvViewRadius, chunk => nextLoadedChunks.Add(chunk));
 
-		chunkTree.GetLeavesInSingleRange(oldPlayerUV, oldPlayerUVRadius, playerUV, uvViewRadius, chunk =>
-			localInstructions.Enqueue(new GrassController.DestroyGrassInChunkInstruction(chunk.id, chunk.cellsWidth * chunk.cellsWidth)));
+		foreach (var chunk in nextLoadedChunks.Except(loadedChunks))
+		{
+			localInstructions.Enqueue(new GrassController.CreateGrassInstruction(chunk));
+		}
 
-		chunkTree.GetLeavesInSingleRange(playerUV, uvViewRadius, oldPlayerUV, oldPlayerUVRadius, chunk =>
-			localInstructions.Enqueue(new GrassController.CreateGrassInstruction(chunk)));
+		foreach (var chunk in loadedChunks.Except(nextLoadedChunks))
+		{
+			localInstructions.Enqueue(new GrassController.DestroyGrassInChunkInstruction(chunk));
+		}
+
 		//endsInRange = chunksInView;
 
-		oldPlayerUV = playerUV;
-		oldPlayerUVRadius = uvViewRadius;
 
 
 		if (inited && hasBlades)
 		{
-			if (renderedBlades != lastRenderedBlades) //Dont update the compute buffer every frame if not needed
-			{
-				var array = drawIndirectArgsBuffer.BeginWrite<int>(1, 1);
+			//Display actual rendered blades
+			// Debug.Log(drawIndirectArgsBuffer.BeginWrite<uint>(1, 1)[0]);
+			// drawIndirectArgsBuffer.EndWrite<uint>(0);
 
-				array[0] = renderedBlades;
 
-				drawIndirectArgsBuffer.EndWrite<int>(1);
-
-				lastRenderedBlades = renderedBlades;
-			}
-			//Debug.Log("drawing grass");
 			Graphics.DrawMeshInstancedIndirect(
 				mesh, 0, c.material, c.bounds, drawIndirectArgsBuffer,
 				castShadows: shadowCastingMode, receiveShadows: true, properties: block);

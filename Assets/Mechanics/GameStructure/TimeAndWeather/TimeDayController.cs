@@ -63,6 +63,7 @@ public class TimeDayController : MonoBehaviour
 	public Color dayEquatorColour = new Color(0.6038275f, 1, 1);
 	public Color dayGroundColour = new Color(0.6038275f, 1, 1);
 	public Color nightSkyColour = new Color(0, 0, 0);
+	public Color nightSkyboxColour = new Color(0, 0, 0);
 	public Vector2 skyColorTransitionPeriod = new Vector2(0.3f, -0.3f);
 
 	public CloudDrawer clouds;
@@ -100,7 +101,7 @@ public class TimeDayController : MonoBehaviour
 		}
 
 		RenderSettings.skybox.SetColor(shader_DaySkyColor, daySkyColour);
-		RenderSettings.skybox.SetColor(shader_NightSkyColor, nightSkyColour);
+		RenderSettings.skybox.SetColor(shader_NightSkyColor, nightSkyboxColour);
 		RenderSettings.skybox.SetVector(shader_SkyColorTransitionPeriod, skyColorTransitionPeriod);
 
 	}
@@ -119,7 +120,7 @@ public class TimeDayController : MonoBehaviour
 	}
 	public float GetColorTransition() => Mathf.InverseLerp(skyColorTransitionPeriod.x, skyColorTransitionPeriod.y, -sun.forward.y);
 
-	public Color GetSkyColor() => Color.Lerp(daySkyColour, nightSkyColour, GetColorTransition());
+	public Color GetSkyColor() => Color.Lerp(daySkyColour, nightSkyboxColour, GetColorTransition());
 
 
 	// Update is called once per frame

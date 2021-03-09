@@ -3,7 +3,8 @@ guid: 0b051ca61824e2c4588accd44d0c21ce
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - skyboxCompute: {fileID: 7200000, guid: 12e398b61e798c045b61815fba8b454f, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

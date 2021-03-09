@@ -11,6 +11,7 @@ namespace Armere.PlayerController
 
 	public class ShieldSurfing : MovementState<ShieldSurfingTemplate>
 	{
+		SlideAnchor slide;
 		public ShieldSurfing(PlayerController c, ShieldSurfingTemplate t) : base(c, t)
 		{
 
@@ -22,18 +23,26 @@ namespace Armere.PlayerController
 				dynamicFriction = t.friction
 			};
 
+			c.animationController.TriggerTransition(c.transitionSet.shieldSurf);
+
 			c.inputReader.jumpEvent += OnJump;
 			c.inputReader.sprintEvent += OnSprint;
-			c.inputReader.movementEvent += OnInputHorizontal;
+
+			slide = MonoBehaviour.Instantiate(t.slideAnchor, c.transform);
+			slide.ac = c.animationController;
+			slide.enabled = true;
 		}
 
 		public override void End()
 		{
 			c.collider.material = originalMaterial;
 
+			c.animationController.TriggerTransition(c.transitionSet.freeMovement);
+
 			c.inputReader.jumpEvent -= OnJump;
 			c.inputReader.sprintEvent -= OnSprint;
-			c.inputReader.movementEvent -= OnInputHorizontal;
+
+			MonoBehaviour.Destroy(slide.gameObject);
 		}
 
 		public override string StateName => "Shield Surfing";
@@ -41,6 +50,8 @@ namespace Armere.PlayerController
 
 		PhysicMaterial originalMaterial;
 		float currentSpeed;
+
+		Vector2 movement;
 
 		public override void FixedUpdate()
 		{
@@ -50,28 +61,53 @@ namespace Armere.PlayerController
 				c.ChangeToState(c.defaultState);
 			}
 
-			turning = inputHorizontal.x * Time.fixedDeltaTime * t.turningTorqueForce;
+			movement = Vector2.Lerp(movement, c.inputReader.horizontalMovement, Time.fixedDeltaTime * t.directionChangeSpeed);
+			movement.y = Mathf.Clamp01(movement.y);
 
-			c.rb.velocity = Quaternion.Euler(0, turning, 0) * c.rb.velocity;
+			turning = movement.x * Time.fixedDeltaTime * t.turningTorqueForce;
 
+
+
+			Vector3 forward = c.rb.velocity;
+			forward.y = 0;
 			//set player orientation
-			//transform.forward = c.rb.velocity;
-			//transform.rotation *= Quaternion.Euler(0, 0, inputHorizontal.x * -t.turningAngle);
+			transform.forward = forward;
+
+			bool onGround = c.allCPs.Count > 0;
+			slide.particleEmission = onGround;
+
+			if (onGround)
+			{
+				c.rb.velocity = Quaternion.Euler(0, turning, 0) * c.rb.velocity;
+				//Accelerate 
+				c.rb.AddForce(c.rb.velocity.normalized * movement.y);
+				c.rb.AddForce(c.allCPs[0].normal * t.groundStickForce);
+
+				slide.transform.rotation = Quaternion.LookRotation(c.rb.velocity, c.allCPs[0].normal);
+			}
+			else
+			{
+
+				//In air turning does not editor velocity
+				transform.Rotate(Vector3.up, turning);
+
+				slide.transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
+			}
+
 		}
 		public override void Animate(AnimatorVariables vars)
 		{
-			animator.SetBool("IsSurfing", true);
-			animator.SetBool("IsGrounded", c.onGround);
-			animator.SetFloat("InputHorizontal", GameCameras.s.TransformInput(inputHorizontal).x);
-			animator.SetFloat("InputVertical", GameCameras.s.TransformInput(Vector2.up * c.rb.velocity.z).z);//set it to forward velocity
+			animator.SetBool(vars.isGrounded.id, true); //Lie and deceive
+			animator.SetFloat(vars.horizontal.id, movement.x);
+			animator.SetFloat(vars.vertical.id, movement.y);//set it to forward velocity
 			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
 
 		}
 		public void OnJump(InputActionPhase phase)
 		{
-			if (phase == InputActionPhase.Started)
+			if (phase == InputActionPhase.Started && c.allCPs.Count > 0)
 			{
-				c.rb.AddForce(Vector3.up * t.jumpForce, ForceMode.VelocityChange);
+				c.rb.AddForce(c.allCPs[0].normal * t.jumpForce, ForceMode.VelocityChange);
 			}
 		}
 
@@ -81,13 +117,6 @@ namespace Armere.PlayerController
 			{
 				c.ChangeToState(c.defaultState);
 			}
-		}
-		Vector2 inputHorizontal;
-
-
-		public void OnInputHorizontal(Vector2 input)
-		{
-			inputHorizontal = input;
 		}
 
 

@@ -24,7 +24,10 @@ cbuffer CB{
 
 StructuredBuffer<MeshProperties> _Properties;
 StructuredBuffer<uint> _CullResult;
+
 RWStructuredBuffer<MatrixStruct> _Output;
+
+RWStructuredBuffer<uint> _IndirectArgs;
 
 StructuredBuffer<uint> _PrefixScanData;
 
@@ -109,7 +112,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	// 	placedIndex -= 1 - saturate(_Properties[i].chunkID);
 	// }
 	
-
+	if (index == 0){
+		_IndirectArgs[1] = _PrefixScanData[THREADGROUPS * dispatchSize.x];
+	}
 
     MeshProperties properties = _Properties[index];
 

@@ -11,7 +11,7 @@ public abstract class QuadTreeLeaf
 	public int id;
 	public int endID;
 
-	public abstract void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true);
+	public abstract void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true);
 
 	public abstract IEnumerable<QuadTreeEnd> GetLeavesInRect(Rect rect);
 	public abstract void GetLeaves(System.Action<QuadTreeEnd> forEach);
@@ -20,15 +20,11 @@ public abstract class QuadTreeLeaf
 
 	public bool RectCircleOverlap(Vector2 uv, float radius)
 	{
+		Vector2 closestInside = new Vector2(Mathf.Clamp(uv.x, rect.xMin, rect.xMax), Mathf.Clamp(uv.y, rect.yMin, rect.yMax));
+
 		float r2 = radius * radius;
 		//If any point is within circle, true
-		return (
-			rect.Contains(uv) ||
-			(rect.max - uv).sqrMagnitude < r2 || //Test min and max first for less vector2 creation?
-			(rect.min - uv).sqrMagnitude < r2 ||
-			(new Vector2(rect.xMin, rect.yMax) - uv).sqrMagnitude < r2 ||
-			(new Vector2(rect.xMax, rect.yMin) - uv).sqrMagnitude < r2
-		);
+		return (closestInside - uv).sqrMagnitude < r2;
 	}
 
 	public bool SingleRectCircleOverlap(Vector2 uv1, float radius1, Vector2 uv2, float radius2)
@@ -41,8 +37,8 @@ public abstract class QuadTreeLeaf
 
 public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 {
-	public bool enabled;
-	public int cellsWidth = 1;
+	public readonly bool enabled;
+	public readonly int cellsWidth = 1;
 
 	public QuadTreeEnd(bool enabled, Vector2 centre, Vector2 size, int chunksWidth, ref int chunkID, ref int endID)
 	{
@@ -58,12 +54,12 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	}
 
 
-	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true)
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true)
 	{
 
 		if (setColor)
 		{
-			if (loaded.Contains(id))
+			if (loaded.Contains(this))
 			{
 				Gizmos.color = Color.yellow;
 			}
@@ -96,7 +92,7 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 
 	public bool Equals(QuadTreeEnd other)
 	{
-		return rect.Equals(other.rect);
+		return id == other.id;
 	}
 
 	public override int GetHashCode()
@@ -116,7 +112,8 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	}
 	public override void GetLeavesInRange(Vector2 uv, float radius, System.Action<QuadTreeEnd> forEach)
 	{
-		forEach(this);
+		if (enabled)
+			forEach(this);
 	}
 
 	public override void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach)
@@ -132,6 +129,16 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	public override void GetLeaves(Action<QuadTreeEnd> forEach)
 	{
 		forEach(this);
+	}
+
+	public override bool Equals(object obj)
+	{
+		return base.Equals(obj);
+	}
+
+	public override string ToString()
+	{
+		return base.ToString();
 	}
 }
 public class QuadTree : QuadTreeLeaf
@@ -248,7 +255,7 @@ public class QuadTree : QuadTreeLeaf
 	}
 
 
-	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<int> loaded, bool setColor = true)
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true)
 	{
 		Gizmos.color = Color.white;
 		Gizmos.DrawWireCube(new Vector3(rect.center.x, 0, rect.center.y), new Vector3(rect.size.x, 0, rect.size.y));
@@ -292,46 +299,46 @@ public class QuadTree : QuadTreeLeaf
 	}
 }
 
-public struct QuadTreeNode
-{
-	public int firstChild;
-	public int secondChild;
-	public int thirdChild;
-	public int fourthChild;
-	public Rect rect;
-	public bool isBranch;
+// public struct QuadTreeNode
+// {
+// 	public int firstChild;
+// 	public int secondChild;
+// 	public int thirdChild;
+// 	public int fourthChild;
+// 	public Rect rect;
+// 	public bool isBranch;
 
-	public QuadTreeNode(QuadTree tree)
-	{
-		this.firstChild = tree.topLeft.endID; // Point to nodes array
-		this.secondChild = tree.topRight.endID;
-		this.thirdChild = tree.bottomLeft.endID;
-		this.fourthChild = tree.bottomRight.endID;
-		this.rect = tree.rect;
-		this.isBranch = true;
-	}
-	public QuadTreeNode(QuadTreeEnd tree)
-	{
-		this.firstChild = tree.id; //Point to node data
-		this.secondChild = -1;
-		this.thirdChild = -1;
-		this.fourthChild = -1;
-		this.rect = tree.rect;
-		this.isBranch = false;
-	}
-}
-public struct QuadTreeNodeData
-{
-	public bool enabled;
-	public int chunkCellsWidth;
-	public Rect rect;
-	public QuadTreeNodeData(QuadTreeEnd tree)
-	{
-		this.enabled = tree.enabled;
-		this.chunkCellsWidth = tree.cellsWidth;
-		this.rect = tree.rect;
-	}
-}
+// 	public QuadTreeNode(QuadTree tree)
+// 	{
+// 		this.firstChild = tree.topLeft.endID; // Point to nodes array
+// 		this.secondChild = tree.topRight.endID;
+// 		this.thirdChild = tree.bottomLeft.endID;
+// 		this.fourthChild = tree.bottomRight.endID;
+// 		this.rect = tree.rect;
+// 		this.isBranch = true;
+// 	}
+// 	public QuadTreeNode(QuadTreeEnd tree)
+// 	{
+// 		this.firstChild = tree.id; //Point to node data
+// 		this.secondChild = -1;
+// 		this.thirdChild = -1;
+// 		this.fourthChild = -1;
+// 		this.rect = tree.rect;
+// 		this.isBranch = false;
+// 	}
+// }
+// public struct QuadTreeNodeData
+// {
+// 	public bool enabled;
+// 	public int chunkCellsWidth;
+// 	public Rect rect;
+// 	public QuadTreeNodeData(QuadTreeEnd tree)
+// 	{
+// 		this.enabled = tree.enabled;
+// 		this.chunkCellsWidth = tree.cellsWidth;
+// 		this.rect = tree.rect;
+// 	}
+// }
 
 // public class FullQuadTree
 // {

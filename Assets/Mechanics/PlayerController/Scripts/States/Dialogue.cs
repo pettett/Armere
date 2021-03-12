@@ -12,9 +12,8 @@ using Cinemachine;
 public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : DialogueTemplate
 {
 	public override string StateName => "In Dialogue";
-	protected DialogueRunner runner => c.runner;
+	protected DialogueRunner runner => DialogueInstances.singleton.runner;
 	protected readonly IDialogue dialogue;
-
 
 
 	const float cameraAngleOffset = 15f;
@@ -34,13 +33,17 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 			{
 				(runner.variableStorage as InMemoryVariableStorage).addons.Add(a);
 			}
-
-			StartDialogue(dialogue);
 		}
 		else
 		{
 			throw new System.Exception("Dialogue target must be assigned");
 		}
+	}
+
+	public override void Start()
+	{
+
+		StartDialogue(dialogue);
 	}
 
 	public float GetCameraAngle(Transform target)
@@ -82,6 +85,7 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	public virtual void SetupRunner()
 	{
+		Debug.Log("Starting runner", c);
 		runner.Add(dialogue.Dialogue);
 		DialogueUI.singleton.onLineStart.AddListener(OnLineStart);
 		DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);

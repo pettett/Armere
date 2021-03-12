@@ -1,9 +1,11 @@
 {
     "name": "Game.NPCs.Editor",
+    "rootNamespace": "",
     "references": [
         "GUID:bd2932073ef3c67499fc424f2892e1c8",
         "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
-        "GUID:d775d0892567ffe4596e26be73f32155"
+        "GUID:d775d0892567ffe4596e26be73f32155",
+        "GUID:513f96722d30c6d40b534a1f94eccbae"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -29,7 +29,6 @@ namespace Armere.PlayerController
 		[NonSerialized] private MovementState[] parallelStates = new MovementState[0];
 
 
-		public Yarn.Unity.DialogueRunner runner;
 
 		[NonSerialized] private MovementState[] allStates;
 

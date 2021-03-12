@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -320,7 +320,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 	}
 
 
-	public Mesh CreateCutMesh(TriangleCutMode cutMode, System.Action<Vector3, string>? label = null, System.Action<Vector3, Vector3>? line = null)
+	public Mesh CreateCutMesh(TriangleCutMode cutMode, System.Action<Vector3, string> label = null, System.Action<Vector3, Vector3> line = null)
 	{
 		Profiler.BeginSample("Create Cut Mesh");
 

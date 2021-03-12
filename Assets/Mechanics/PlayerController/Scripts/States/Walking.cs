@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Armere.Inventory.UI;
 using Armere.Inventory;
+using Yarn.Unity;
 
 namespace Armere.PlayerController
 {
@@ -17,6 +18,7 @@ namespace Armere.PlayerController
 
 		enum WalkingType { Walking, Sprinting, Crouching }
 
+		protected DialogueRunner runner => DialogueInstances.singleton.runner;
 
 
 		Vector3 currentGroundNormal = new Vector3();
@@ -298,35 +300,35 @@ namespace Armere.PlayerController
 							if (!inDialogue)
 							{
 								//Run the dialogue
-								c.runner.Add(restPoint.dialogue);
-								c.runner.StartDialogue("Start");
+								runner.Add(restPoint.dialogue);
+								runner.StartDialogue("Start");
 
-								c.runner.AddCommandHandler("Morning", _ =>
+								runner.AddCommandHandler("Morning", _ =>
 								{
 									c.StartCoroutine(TriggerTimeChange(6));
 								});
-								c.runner.AddCommandHandler("Noon", _ =>
+								runner.AddCommandHandler("Noon", _ =>
 								{
 									c.StartCoroutine(TriggerTimeChange(12));
 								});
-								c.runner.AddCommandHandler("Night", _ =>
+								runner.AddCommandHandler("Night", _ =>
 								{
 									c.StartCoroutine(TriggerTimeChange(24));
 								});
-								c.runner.AddCommandHandler("None", _ =>
+								runner.AddCommandHandler("None", _ =>
 								{
 									Debug.Log("None");
 								});
 
-								Yarn.Unity.DialogueUI.singleton.onDialogueEnd.AddListener(() =>
+								DialogueUI.singleton.onDialogueEnd.AddListener(() =>
 							   {
 								   inDialogue = false;
-								   c.runner.Clear();
-								   c.runner.ClearStringTable();
-								   c.runner.RemoveCommandHandler("Morning");
-								   c.runner.RemoveCommandHandler("Noon");
-								   c.runner.RemoveCommandHandler("Night");
-								   c.runner.RemoveCommandHandler("None");
+								   runner.Clear();
+								   runner.ClearStringTable();
+								   runner.RemoveCommandHandler("Morning");
+								   runner.RemoveCommandHandler("Noon");
+								   runner.RemoveCommandHandler("Night");
+								   runner.RemoveCommandHandler("None");
 							   });
 								inDialogue = true;
 							}

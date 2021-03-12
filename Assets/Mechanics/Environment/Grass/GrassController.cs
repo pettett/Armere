@@ -321,6 +321,8 @@ public class GrassController : MonoBehaviour
 		//If chunkID = 0, grass does not exist
 		public uint chunkID;
 		//  rotation, position,size
+
+		//Vector3 blank0, blank1;
 		public const int size = sizeof(float) * (3 + 1 + 2 + 3) + sizeof(int);
 	}
 

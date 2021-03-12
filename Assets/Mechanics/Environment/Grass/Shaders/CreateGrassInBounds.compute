@@ -57,23 +57,25 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 
+	m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
     //Create the t value of the lerp for position and density uv
-    float2 positionLerp = hash22(grassPositionBoundsMinMax.zw + id.xy+seed);
 
-    float2 pos = lerp(grassPositionBoundsMinMax.xy,grassPositionBoundsMinMax.zw, positionLerp);
+
+
+
+
+    float2 positionLerp = hash22(grassPositionBoundsMinMax.xy + id.x  + m.size + seed);
     float2 densityUV = lerp(grassDensityUVMinMax.xy,grassDensityUVMinMax.zw,positionLerp);
-    
-
-    //Perform rejection sampling on grass based on desired density at position
+        //Perform rejection sampling on grass based on desired density at position
     float4 densities = _Density.SampleLevel(sampler_Density, densityUV, 0) * densityLayerWeights;
 	float density = densities.x + densities.y + densities.z + densities.w;
+    float2 pos = lerp(grassPositionBoundsMinMax.xy,grassPositionBoundsMinMax.zw, positionLerp);
 
     float testValue = hash12(densityUV.xy + id.xy);
 
 	//If the test value is lower than density, make chunkID 0 (destroy it)
 	m.chunkID = int(testValue < density) * chunkID;
 			
-
 	m.position.xz = pos;
 
 	//For some reason, heightmap x is added to heightmap y with different scalars
@@ -81,7 +83,6 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	m.position.y = grassHeightRange.x + grassHeightRange.y * heightMapData.y + heightMapData.x * (grassHeightRange.y / 256);
 
-	m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
 	m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));
 
 	m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);

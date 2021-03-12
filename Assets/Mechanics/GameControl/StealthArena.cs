@@ -1,11 +1,11 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class StealthArena : MonoBehaviour
 {
-	public Barrier?[] lockdownBarriers = new Barrier?[0];
-	public EnemyAISpawner?[] enemyAISpawners = new EnemyAISpawner?[0];
+	public Barrier[] lockdownBarriers = new Barrier[0];
+	public EnemyAISpawner[] enemyAISpawners = new EnemyAISpawner[0];
 	public void OnEnemyDetectedPlayer(EnemyAI enemy)
 	{
 		//Pause the game

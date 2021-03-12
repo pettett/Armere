@@ -214,8 +214,8 @@ namespace Armere.PlayerController
 						//Somehow this needs to be improved
 						switch (i)
 						{
-							case NPC npc:
-								c.ChangeToState(t.interactNPC.Interact(npc));
+							case AIDialogue converser:
+								c.ChangeToState(t.interactNPC.Interact(converser));
 								break;
 							case Climbable climbable:
 								c.ChangeToState(t.interactLadder.Interact(climbable));

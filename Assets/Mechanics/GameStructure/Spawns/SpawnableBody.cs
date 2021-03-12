@@ -4,7 +4,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class SpawnableBody : MonoBehaviour
 {
 	public AsyncOperationHandle<GameObject> prefabHandle;
-	protected bool inited = false;
+	public bool inited { get; protected set; } = false;
 	private void Start()
 	{
 		// if (TryGetComponent<SimpleHealth>(out SimpleHealth h))

@@ -77,7 +77,7 @@ public class QuestStatus
 
 
 
-[CreateAssetMenu(menuName = "Game/Quest Book")]
+[CreateAssetMenu(menuName = "Game/Quests/Quest Book")]
 public class QuestManager : SaveableSO
 {
 	public static QuestManager singleton;

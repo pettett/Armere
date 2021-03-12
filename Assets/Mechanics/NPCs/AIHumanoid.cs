@@ -97,12 +97,12 @@ public abstract class AIHumanoid : Character
 	}
 
 
-	protected IEnumerator GoToPosition(Vector3 position)
+	public IEnumerator GoToPosition(Vector3 position)
 	{
 		agent.SetDestination(position);
 		yield return new WaitUntil(() => gameObject == null || !agent.pathPending && agent.remainingDistance < agent.stoppingDistance * 2 + 0.01f);
 	}
-	protected void GoToPosition(Vector3 position, System.Action onComplete)
+	public void GoToPosition(Vector3 position, System.Action onComplete)
 	{
 		agent.SetDestination(position);
 		StartCoroutine(WaitForAgent(onComplete));

@@ -103,7 +103,8 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 		GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
 
-		await SetHeldMelee(meleeWeapon);
+		if (meleeWeapon != null)
+			await SetHeldMelee(meleeWeapon);
 	}
 
 
@@ -120,7 +121,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	public virtual void InitEnemy()
 	{
-
+		gameObject.SetActive(true);
 	}
 
 	public class DieRoutine : AIState

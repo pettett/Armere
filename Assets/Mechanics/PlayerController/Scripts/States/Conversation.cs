@@ -4,7 +4,7 @@ using System.Collections;
 using Cinemachine;
 using Armere.Inventory.UI;
 using Armere.Inventory;
-
+using Yarn;
 
 namespace Armere.PlayerController
 {
@@ -28,8 +28,11 @@ namespace Armere.PlayerController
 		public const string OfferToBuyCommand = "OfferToBuy";
 		public const string GoToCommand = "GoTo";
 		public override string StateName => "In Conversation";
-		public readonly NPC talkingTarget;
+		public readonly AIDialogue talkingTarget;
 
+
+		public readonly (string, DialogueRunner.CommandHandler)[] commands;
+		public readonly (string, DialogueRunner.BlockingCommandHandler)[] blockingCommands;
 
 
 		BuyInventoryUI buyMenu;
@@ -38,6 +41,29 @@ namespace Armere.PlayerController
 
 		public Conversation(PlayerController c, ConversationTemplate t) : base(c, t)
 		{
+
+			commands = new (string, DialogueRunner.CommandHandler)[]
+			{
+				(GiveQuestCommand, GiveQuest),
+				(DeliverQuestCommand, DeliverQuest),
+				(TalkToQuestCommand, TalkToQuest),
+
+
+
+				(OfferToSellCommand, OfferToSell),
+				(OfferToBuyCommand, OfferToBuy)
+
+			};
+			blockingCommands = new (string, DialogueRunner.BlockingCommandHandler)[]{
+			(CameraPanCommand, CameraPan),
+						(GiveItemsCommand, GiveItems),
+									(TurnPlayerToTargetCommand, TurnPlayerToTarget),
+
+				(TurnNPCToTargetCommand, TurnNPCToTarget),
+				(TurnNPCAndPlayerToTargetCommand, TurnNPCAndPlayerToTarget),
+				(AnimateCommand, Animate),
+							(GoToCommand, GoTo)
+			};
 
 			talkingTarget = t.npc;
 
@@ -74,7 +100,6 @@ namespace Armere.PlayerController
 			GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = false;
 
 
-			StartDialogue(talkingTarget);
 		}
 
 
@@ -116,21 +141,15 @@ namespace Armere.PlayerController
 			//Add every command hander for dialogue usage
 
 			base.SetupRunner();
-
-			runner.AddCommandHandler(GiveQuestCommand, GiveQuest);
-			runner.AddCommandHandler(DeliverQuestCommand, DeliverQuest);
-			runner.AddCommandHandler(TalkToQuestCommand, TalkToQuest);
-			runner.AddCommandHandler(CameraPanCommand, CameraPan);
-			runner.AddCommandHandler(GiveItemsCommand, GiveItems);
-			runner.AddCommandHandler(TurnPlayerToTargetCommand, TurnPlayerToTarget);
-			runner.AddCommandHandler(TurnNPCToTargetCommand, TurnNPCToTarget);
-			runner.AddCommandHandler(TurnNPCAndPlayerToTargetCommand, TurnNPCAndPlayerToTarget);
-			runner.AddCommandHandler(AnimateCommand, Animate);
-			runner.AddCommandHandler(OfferToSellCommand, OfferToSell);
-			runner.AddCommandHandler(OfferToBuyCommand, OfferToBuy);
-			runner.AddCommandHandler(GoToCommand, GoTo);
-
-			(runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget);
+			foreach (var pair in commands)
+			{
+				runner.AddCommandHandler(pair.Item1, pair.Item2);
+			}
+			foreach (var pair in blockingCommands)
+			{
+				runner.AddCommandHandler(pair.Item1, pair.Item2);
+			}
+			(runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget.dialogueAddon);
 		}
 
 		public override void CleanUpRunner()
@@ -139,21 +158,16 @@ namespace Armere.PlayerController
 			//Remove all commands from the runner as well as removing dialogue
 			base.CleanUpRunner();
 
-			runner.RemoveCommandHandler(GiveQuestCommand);
-			runner.RemoveCommandHandler(DeliverQuestCommand);
-			runner.RemoveCommandHandler(TalkToQuestCommand);
-			runner.RemoveCommandHandler(CameraPanCommand);
-			runner.RemoveCommandHandler(GiveItemsCommand);
-			runner.RemoveCommandHandler(TurnPlayerToTargetCommand);
-			runner.RemoveCommandHandler(TurnNPCToTargetCommand);
-			runner.RemoveCommandHandler(TurnNPCAndPlayerToTargetCommand);
-			runner.RemoveCommandHandler(AnimateCommand);
-			runner.RemoveCommandHandler(OfferToSellCommand);
-			runner.RemoveCommandHandler(OfferToBuyCommand);
-			runner.RemoveCommandHandler(GoToCommand);
+			foreach (var pair in commands)
+			{
+				runner.RemoveCommandHandler(pair.Item1);
+			}
+			foreach (var pair in blockingCommands)
+			{
+				runner.RemoveCommandHandler(pair.Item1);
+			}
 
-
-			(runner.variableStorage as InMemoryVariableStorage).addons.Remove(talkingTarget);
+			(runner.variableStorage as InMemoryVariableStorage).addons.Remove(talkingTarget.dialogueAddon);
 		}
 
 

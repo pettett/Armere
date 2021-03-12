@@ -17,7 +17,7 @@ public abstract class AIState<TemplateT> : AIState where TemplateT : AIStateTemp
 
 	public override bool alertOnAttack => t.alertOnAttack;
 	public override bool searchOnEvent => t.searchOnEvent;
-	public override bool investigateOnSight => this.investigateOnSight;
+	public override bool investigateOnSight => t.investigateOnSight;
 
 	protected AIState(AIHumanoid c, TemplateT t) : base(c)
 	{

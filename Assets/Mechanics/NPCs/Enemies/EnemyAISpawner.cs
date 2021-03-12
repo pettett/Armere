@@ -13,13 +13,18 @@ public class EnemyAISpawner : Spawner
 	public UnityEngine.Events.UnityEvent<AIHumanoid> onPlayerDetected;
 
 	[System.NonSerialized] public EnemyAI body;
+
+	public AIStateTemplate startingState;
 	public override async Task<SpawnableBody> Spawn()
 	{
+
 		Assert.IsTrue(ai.RuntimeKeyIsValid(), "Reference is null");
 		body = (EnemyAI)await GameObjectSpawner.SpawnAsync(ai, transform.position, transform.rotation);
 		body.waypointGroup = optionalWaypoints;
 		body.onPlayerDetected += onPlayerDetected.Invoke;
 		body.meleeWeapon = meleeWeapon;
+		if (startingState != null)
+			body.defaultState = startingState;
 		body.InitEnemy();
 		return body;
 	}

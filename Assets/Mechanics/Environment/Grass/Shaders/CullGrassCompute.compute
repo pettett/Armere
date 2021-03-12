@@ -23,7 +23,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     // TODO: insert actual code here!
 
-	float4 clipSpace = mul(cameraFrustum,float4(_Grass[id.x].position,1));
+	float4 clipSpace = mul(cameraFrustum,float4(_Grass[id.x].position + float3(0,_Grass[id.x].size.y,0),1));
 	//_Grass[id.x].position = frustumPos;
     _CullResult[id.x] =saturate(_Grass[id.x].chunkID) && IsVisibleAfterFrustumCulling(clipSpace);// all(float4( saturate(_Grass[id.x].chunkID), abs(frustumPos) < 1));
 }

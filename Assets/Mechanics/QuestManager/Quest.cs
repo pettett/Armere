@@ -1,7 +1,7 @@
 using UnityEngine;
 
 
-[CreateAssetMenu(fileName = "Quest", menuName = "Game/Quest", order = 0)]
+[CreateAssetMenu(fileName = "Quest", menuName = "Game/Quests/Quest", order = 0)]
 public class Quest : ScriptableObject
 {
 

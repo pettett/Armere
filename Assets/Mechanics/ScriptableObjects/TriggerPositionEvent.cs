@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TriggerPositionEvent : MonoBehaviour
 {
-	public Vector3EventChannelSO? positionEventChannel;
+	public Vector3EventChannelSO positionEventChannel;
 
 	public void Trigger()
 	{

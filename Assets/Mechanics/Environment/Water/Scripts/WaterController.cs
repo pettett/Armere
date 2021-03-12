@@ -10,7 +10,7 @@ public class WaterController : MonoBehaviour
 	[System.Serializable]
 	public class WaterPathNode
 	{
-		public Transform? transform;
+		public Transform transform;
 		public float waterWidth = 5;
 	}
 	public WaterPathNode[] path = new WaterPathNode[0];

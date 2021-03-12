@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Linq;
 public class Ragdoller : MonoBehaviour
 {
 	public bool RagdollEnabled
@@ -41,7 +41,7 @@ public class Ragdoller : MonoBehaviour
 		}
 
 
-		foreach (var collider in GetComponentsInChildren<Collider>())
+		foreach (var collider in GetComponentsInChildren<Collider>().Where(x => !x.isTrigger))
 		{
 			//kinimatic true when ragdolling is false
 			collider.enabled = enabled;

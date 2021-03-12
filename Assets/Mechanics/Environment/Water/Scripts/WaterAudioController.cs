@@ -1,12 +1,12 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 [RequireComponent(typeof(WaterController))]
 public class WaterAudioController : MonoBehaviour
 {
-	public AudioSource? source;
-	public AudioListener? listener;
-	WaterController? c;
+	public AudioSource source;
+	public AudioListener listener;
+	WaterController c;
 	private void Start()
 	{
 		listener = FindObjectOfType<AudioListener>();

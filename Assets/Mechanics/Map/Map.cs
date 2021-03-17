@@ -57,7 +57,7 @@ public class Map : ScriptableObject
 	public ContourGenerator contours;
 	public QuestManager trackingQuests;
 
-	public Transform[] NPCTarget(NPCName npc)
+	public Transform[] NPCTarget(string npc)
 	{
 		if (NPCManager.singleton.data.ContainsKey(npc))
 

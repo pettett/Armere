@@ -8,10 +8,9 @@ public class FocusableIndicatorUI : IndicatorUI
 	public Color focusedCol;
 	public Color unFocusedCol;
 
-	protected override void Start()
+	protected void Start()
 	{
 		SetUnFocused();
-		base.Start();
 	}
 	public void SetFocused()
 	{

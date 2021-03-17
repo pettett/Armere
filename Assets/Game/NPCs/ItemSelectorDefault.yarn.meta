@@ -10,14 +10,14 @@ ScriptedImporter:
   script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
   baseLanguageID: 
   stringIDs:
-  - ItemSelectorDefault-WaitForSell-0
-  - ItemSelectorDefault-WaitForSell-1
-  - ItemSelectorDefault-Sell-2
-  - ItemSelectorDefault-Sell-3
-  - ItemSelectorDefault-Sell-4
-  - ItemSelectorDefault-Sell-5
+  - ItemSelectorDefault-WaitForSelection-0
+  - ItemSelectorDefault-WaitForSelection-1
+  - ItemSelectorDefault-Select-2
+  - ItemSelectorDefault-Select-3
+  - ItemSelectorDefault-Select-4
   compilationStatus: 1
   isSuccesfullyCompiled: 1
   compilationErrorMessage: 
-  baseLanguage: {instanceID: 0}
+  baseLanguage: {fileID: 7128917941130120860, guid: 71d12886f63ccfd49932e6e53a4f6ac1,
+    type: 3}
   localizations: []

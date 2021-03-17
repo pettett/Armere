@@ -10,6 +10,7 @@ using UnityEngine.Rendering;
 public class ContourGenerator : ScriptableObject
 {
 	public bool gizmos;
+	public bool useTerrain;
 
 
 	[System.Serializable]
@@ -140,13 +141,18 @@ public class ContourGenerator : ScriptableObject
 
 	public ContourLevel[] levels;
 
-	public Texture2D terrainHeightmap;
+	Texture2D terrainHeightmap;
 	public Gradient heightGradient = new Gradient();
 	float[,] heights;
 
 	float scale = 10;
 	public bool roundToNearest;
 	public float roundTo;
+
+	public Vector2 mapCenter = new Vector2(0, 0);
+	public Vector2 mapExtents = new Vector2(256, 256);
+
+
 	public void GenerateContours()
 	{
 		GetHeights();

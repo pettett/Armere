@@ -7,10 +7,6 @@ using UnityEngine.Assertions;
 
 public class NPCSpawn : Spawner
 {
-
-
-	public NPCName spawnedNPCName;
-
 	public NPCTemplate template;
 	public AssetReferenceGameObject baseNPCReference;
 

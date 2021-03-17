@@ -13,11 +13,11 @@ public enum WeatherConditions
 [ExecuteAlways]
 public class TimeDayController : MonoBehaviour
 {
-	public static readonly int shader_SunDir = Shader.PropertyToID("_SunDir");
-	public static readonly int shader_SunTangent = Shader.PropertyToID("_SunTangent");
-	public static readonly int shader_SunCoTangent = Shader.PropertyToID("_SunCoTangent");
-
-	public static readonly int shader_SkyColor = Shader.PropertyToID("_SkyColor");
+	public static readonly int shader_SunDir = Shader.PropertyToID("_SunDir"),
+		shader_SunTangent = Shader.PropertyToID("_SunTangent"),
+		shader_SunCoTangent = Shader.PropertyToID("_SunCoTangent"),
+		shader_CloudsPosition = Shader.PropertyToID("_CloudsPosition"),
+		shader_SkyColor = Shader.PropertyToID("_SkyColor");
 
 	[System.Serializable]
 	public struct ColorSet
@@ -49,13 +49,38 @@ public class TimeDayController : MonoBehaviour
 			RenderSettings.ambientGroundColor = groundColor;
 		}
 	}
+	[System.Serializable]
+	public struct CloudProfile
+	{
+		public Vector2 octavesCoverage;
+
+		public CloudProfile(Vector2 octavesCoverage)
+		{
+			this.octavesCoverage = octavesCoverage;
+		}
+
+		public static CloudProfile Lerp(in CloudProfile a, in CloudProfile b, float t) => new CloudProfile(
+			Vector2.Lerp(a.octavesCoverage, b.octavesCoverage, t)
+		);
+		public static void SetProperties(CloudProfile clear, CloudProfile rain, Texture2D weatherMap)
+		{
+			for (int x = 0; x < weatherMap.width; x++)
+			{
+				for (int y = 0; y < weatherMap.height; y++)
+				{
+					float t = weatherMap.GetPixel(x, y).r;
+					Vector2 cov = Vector2.Lerp(clear.octavesCoverage, rain.octavesCoverage, t);
+					weatherMap.SetPixel(x, y, new Color(t, cov.x, cov.y));
+				}
+			}
+			weatherMap.Apply();
+		}
+	}
 
 	const float degreesPerHour = 360 / 24;
 	const float oneOver24 = 1f / 24f;
 
 	public static TimeDayController singleton;
-	//current weather will depend on the weather scaler
-	public WeatherConditions weather;
 
 	public float maxSunnyScaler = 0.4f;
 	public float maxCloudyScaler = 0.6f;
@@ -77,6 +102,8 @@ public class TimeDayController : MonoBehaviour
 
 	public Vector2 windStrengthRange = new Vector2(0.2f, 3f);
 	public float windChangingSpeed = 2;
+	public float cloudWindSpeedMultiplier = 200f;
+	Vector2 cloudPosition;
 	public Vector3 Wind { get; private set; }
 
 	public GlobalVector3SO windDirection;
@@ -84,13 +111,13 @@ public class TimeDayController : MonoBehaviour
 
 	[Header("Weather")]
 
-	public AnimationCurve weatherOverTime;
 	public Gradient fogOverDay;
 	public Vector2 fogDensityRange;
-	public float rainIntensity;
+	[Range(0, 1)] public float rainIntensity;
 	public VisualEffect rain;
 	public float maxRainPerSecondPerArea = 30;
 	[ReadOnly] public float weatherScaler;
+	Texture2D weatherMap;
 
 	[Header("Skybox Colours")]
 	public ColorSet day;
@@ -99,7 +126,18 @@ public class TimeDayController : MonoBehaviour
 	public ColorSet nightRain;
 	public Vector2 skyColorTransitionPeriod = new Vector2(0.3f, -0.3f);
 
-	public CloudDrawer clouds;
+	public CloudProfile dryClouds;
+	public CloudProfile rainClouds;
+
+	[Header("Thunder")]
+	public float meanLightningInterval = 10;
+	public float stdDevLightningInterval = 10;
+	public float lightningLightTime = 0.5f;
+	public Light thunderLight;
+	float timeForNextLightning;
+
+	public AudioEventChannelSO thunderChannel;
+	public AudioClipSet thunderClips;
 
 	public static readonly Dictionary<string, float> specialTimes = new Dictionary<string, float>
 	{
@@ -131,6 +169,25 @@ public class TimeDayController : MonoBehaviour
 		{
 			changeTime.OnEventRaised += ChangeTime;
 			entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
+
+
+			weatherMap = new Texture2D(8, 8, TextureFormat.R8, false, true);
+			weatherMap.wrapMode = TextureWrapMode.Clamp;
+
+
+
+			for (int x = 0; x < weatherMap.width; x++)
+			{
+				for (int y = 0; y < weatherMap.height; y++)
+				{
+					weatherMap.SetPixel(x, y, new Color(Random.value, 0, 0));
+				}
+			}
+
+			CloudProfile.SetProperties(dryClouds, rainClouds, weatherMap);
+
+
+			RenderSettings.skybox.SetTexture("_WeatherMap", weatherMap);
 		}
 
 
@@ -168,24 +225,32 @@ public class TimeDayController : MonoBehaviour
 
 		return colors.skyboxColor;
 	}
+
+
+	IEnumerator Lightning()
+	{
+		float u1 = 1.0f - Random.value; //uniform(0,1] random doubles
+		float u2 = 1.0f - Random.value;
+		float randStdNormal = Mathf.Sqrt(-2.0f * Mathf.Log(u1)) *
+					 Mathf.Sin(2.0f * Mathf.PI * u2); //random normal(0,1)
+		float randNormal =
+					 meanLightningInterval + stdDevLightningInterval * randStdNormal; //random normal(mean,stdDev^2)
+
+		timeForNextLightning = Time.time + randNormal;
+
+		thunderLight.enabled = true;
+		yield return new WaitForSeconds(lightningLightTime);
+		thunderLight.enabled = false;
+
+		yield return new WaitForSeconds(1);
+
+
+		thunderChannel.RaiseEvent(thunderClips, default);
+	}
+
 	// Update is called once per frame
 	void Update()
 	{
-		weatherScaler = weatherOverTime.Evaluate(Time.time * hoursPerSecond);
-
-		if (weatherScaler > maxWindyScaler)
-			weather = WeatherConditions.Stormy;
-		else if (weatherScaler > maxCloudyScaler)
-			weather = WeatherConditions.Windy;
-		else if (weatherScaler > maxSunnyScaler)
-			weather = WeatherConditions.Cloudy;
-		else
-			weather = WeatherConditions.Sunny;
-
-
-		if (clouds != null)
-			clouds.SetCloudDensity(weatherScaler);
-
 		if (Application.isPlaying)
 		{
 			if (DebugMenu.menuEnabled)
@@ -196,6 +261,12 @@ public class TimeDayController : MonoBehaviour
 
 			hour += Time.deltaTime * hoursPerSecond;
 
+
+			cloudPosition += new Vector2(Wind.x, Wind.z) * Time.smoothDeltaTime * cloudWindSpeedMultiplier;
+
+
+			RenderSettings.skybox.SetVector(shader_CloudsPosition, cloudPosition);
+
 		}
 
 		hour = Mathf.Repeat(hour, 24);
@@ -204,20 +275,36 @@ public class TimeDayController : MonoBehaviour
 
 		ColorSet colors;
 		if (rainIntensity == 0)
+		{
 			colors = ColorSet.LerpAmbient(day, night, colorTransition);
+
+
+		}
 		else if (rainIntensity == 1)
+		{
 			colors = ColorSet.LerpAmbient(dayRain, nightRain, colorTransition);
+
+		}
 		else
+		{
 			colors = ColorSet.LerpAmbient(
 			   ColorSet.LerpAmbient(day, dayRain, rainIntensity),
 			   ColorSet.LerpAmbient(night, nightRain, rainIntensity),
 			   colorTransition
 		   );
+		}
 
 		if (rainIntensity != 0)
 		{
 			rain.gameObject.SetActive(true);
 			rain.SetFloat("Drops Per Second Per Area", rainIntensity * maxRainPerSecondPerArea);
+
+			if (Application.isPlaying)
+
+				if (Time.time > timeForNextLightning)
+				{
+					StartCoroutine(Lightning());
+				}
 		}
 		else
 		{

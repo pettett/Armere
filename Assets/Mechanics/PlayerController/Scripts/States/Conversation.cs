@@ -36,11 +36,12 @@ namespace Armere.PlayerController
 
 
 		BuyInventoryUI buyMenu;
-		bool hasSpeaker;
-		NPCName speakingNPC;
+		string speakingNPC = null;
 
 		public Conversation(PlayerController c, ConversationTemplate t) : base(c, t)
 		{
+			c.StartCoroutine(c.UnEquipAll());
+
 
 			commands = new (string, DialogueRunner.CommandHandler)[]
 			{
@@ -177,10 +178,10 @@ namespace Armere.PlayerController
 
 			if (line == null) return;
 
-			NPCName currentSpeaker;
+			string currentSpeaker;
 			try
 			{
-				currentSpeaker = (NPCName)System.Enum.Parse(typeof(NPCName), line.Split(':')[0]);
+				currentSpeaker = line.Split(':')[0];
 			}
 			catch (System.Exception ex)
 			{
@@ -188,18 +189,17 @@ namespace Armere.PlayerController
 				throw ex;
 			}
 
-			if (!hasSpeaker)
+			if (speakingNPC == null)
 			{
-				GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(NPC.activeNPCs[currentSpeaker].transform);
-				NPC.activeNPCs[currentSpeaker].StartSpeaking(transform);
-				hasSpeaker = true;
+				GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_XAxis.Value = GetCameraAngle(NPCRoutine.activeNPCs[currentSpeaker].transform);
+				NPCRoutine.activeNPCs[currentSpeaker].StartSpeaking(transform);
 			}
 			else if (speakingNPC != currentSpeaker)
 			{
-				NPC.activeNPCs[speakingNPC].StopSpeaking();
-				NPC.activeNPCs[currentSpeaker].StartSpeaking(transform);
+				NPCRoutine.activeNPCs[speakingNPC].StopSpeaking();
+				NPCRoutine.activeNPCs[currentSpeaker].StartSpeaking(transform);
 				//Re-target camera to point to the new speaker
-				PointCameraToSpeaker(NPC.activeNPCs[currentSpeaker].transform);
+				PointCameraToSpeaker(NPCRoutine.activeNPCs[currentSpeaker].transform);
 			}
 			speakingNPC = currentSpeaker;
 
@@ -257,7 +257,7 @@ namespace Armere.PlayerController
 		public override void OnDialogueComplete()
 		{
 			//Conversation over - clean up
-			NPC.activeNPCs[speakingNPC].StopSpeaking();
+			NPCRoutine.activeNPCs[speakingNPC].StopSpeaking();
 
 			//playerTransform.ChangeToState<Walking>();
 

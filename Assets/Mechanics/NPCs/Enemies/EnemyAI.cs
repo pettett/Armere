@@ -7,15 +7,7 @@ using Armere.Inventory;
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIHumanoid, IExplosionEffector
 {
-
-
-
 	[HideInInspector] public Health health;
-	[Header("Player Detection")]
-
-	Collider playerCollider;
-
-
 
 	[Header("Player Engagement")]
 
@@ -31,8 +23,8 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
-
-
+	new Collider collider;
+	public override Bounds bounds => collider.bounds;
 
 
 
@@ -40,8 +32,8 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	public void OnDamageTaken(GameObject attacker, GameObject victim)
 	{
 		//Push the ai back
-		if (currentState.alertOnAttack)
-			ChangeToState(new AlertRoutine(this, 1, playerCollider));
+		if (currentState.alertOnAttack && attacker.TryGetComponent(out Character c))
+			ChangeToState(new AlertRoutine(this, 1, c));
 	}
 
 	public void OnExplosion(Vector3 source, float radius, float force)
@@ -87,14 +79,11 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		ChangeToState(new DieRoutine(this));
 	}
 
-	protected override async void Start()
+	public override async void Start()
 	{
-		playerCollider = LevelInfo.currentLevelInfo.player.GetComponent<Collider>();
-
 		health = GetComponent<Health>();
-		weaponGraphics = GetComponent<WeaponGraphicsController>();
 		animationController = GetComponent<AnimationController>();
-
+		collider = GetComponent<Collider>();
 
 		health.onTakeDamage += OnDamageTaken;
 		health.onDeathEvent.AddListener(Die);
@@ -202,8 +191,8 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		public float waitTime;
 
 		Coroutine r;
-		Collider playerCollider;
-		public AlertRoutine(AIHumanoid c, float waitTime, Collider playerCollider) : base(c)
+		Character playerCollider;
+		public AlertRoutine(AIHumanoid c, float waitTime, Character playerCollider) : base(c)
 		{
 			this.waitTime = waitTime;
 			this.playerCollider = playerCollider;
@@ -240,9 +229,9 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 			c.ChangeToState(new EngagePlayerRoutine(c, playerCollider));
 		}
 	}
-	public void ForceEngage()
+	public void ForceEngage(Character c)
 	{
-		ChangeToState(new AlertRoutine(this, 0, playerCollider));
+		ChangeToState(new AlertRoutine(this, 0, c));
 	}
 
 	public class SearchForEventRoutine : AIState
@@ -291,11 +280,12 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		float sqrApproachDistance => approachDistance * approachDistance;
 		public bool approachPlayer = true;
 		Coroutine r;
-		Collider playerCollider;
-		public EngagePlayerRoutine(AIHumanoid c, Collider playerCollider) : base(c)
+		Character target;
+		public EngagePlayerRoutine(AIHumanoid c, Character target) : base(c)
 		{
+			this.target = target;
 			r = c.StartCoroutine(Routine());
-			this.playerCollider = playerCollider;
+
 		}
 		public override void End()
 		{
@@ -308,13 +298,13 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 			c.agent.isStopped = true;
 
 			Vector3 directionToPlayer;
-			Health playerHealth = playerCollider.GetComponent<Health>();
+			Health playerHealth = target.GetComponent<Health>();
 			bool movingToCatchPlayer = false;
-			c.lookingAtTarget = playerCollider.transform;
+			c.lookingAtTarget = target.transform;
 			//Stop attacking the player after it has died
 			while (!playerHealth.dead)
 			{
-				directionToPlayer = playerCollider.transform.position - c.transform.position;
+				directionToPlayer = target.transform.position - c.transform.position;
 				if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
 				{
 					if (!movingToCatchPlayer)
@@ -383,11 +373,23 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		//Test if the c can see the player at this point
 		if (currentState?.investigateOnSight ?? false)
 		{
-			var b = playerCollider.bounds;
-			if (ProportionBoundsVisible(b) != 0)
+			Team[] enemies = Enemies();
+			for (int i = 0; i < enemies.Length; i++)
 			{
-				//can see the player, interrupt current routine
-				ChangeToState(investigate.Investigate(playerCollider));
+				if (teams.ContainsKey(enemies[i]))
+				{
+					List<Character> targets = teams[enemies[i]];
+					for (int j = 0; j < targets.Count; j++)
+					{
+						var b = targets[i].bounds;
+						if (ProportionBoundsVisible(b) != 0)
+						{
+							//can see the player, interrupt current routine
+							ChangeToState(investigate.Investigate(targets[i]));
+							return;
+						}
+					}
+				}
 			}
 		}
 
@@ -406,30 +408,40 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	private void OnDrawGizmos()
 	{
 
-		if (playerCollider != null)
+
+		Team[] enemies = Enemies();
+		for (int i = 0; i < enemies.Length; i++)
 		{
-			var b = playerCollider.bounds;
-
-			float visibility = ProportionBoundsVisible(b);
-			if (CanSeeBounds(b))
+			if (teams.ContainsKey(enemies[i]))
 			{
-				Gizmos.color = new Color(visibility, 0, 0);
-				Gizmos.DrawWireCube(b.center, b.size);
-			}
+				List<Character> targets = teams[enemies[i]];
+				for (int j = 0; j < targets.Count; j++)
+				{
+					var b = targets[j].bounds;
+
+					float visibility = ProportionBoundsVisible(b);
+					if (CanSeeBounds(b))
+					{
+						Gizmos.color = new Color(visibility, 0, 0); Gizmos.DrawWireCube(b.center, b.size);
+					}
 
 
 
-			if (sightMode == SightMode.View)
-			{
-				Gizmos.color = Color.white;
-				Gizmos.matrix = eye.localToWorldMatrix;
-				Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.y, clippingPlanes.x, 1f);
+				}
 			}
-			else if (sightMode == SightMode.Range)
-			{
-				Gizmos.DrawWireSphere(eye.position, clippingPlanes.x);
-				Gizmos.DrawWireSphere(eye.position, clippingPlanes.y);
-			}
+		}
+
+
+		if (sightMode == SightMode.View)
+		{
+			Gizmos.color = Color.white;
+			Gizmos.matrix = eye.localToWorldMatrix;
+			Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.y, clippingPlanes.x, 1f);
+		}
+		else if (sightMode == SightMode.Range)
+		{
+			Gizmos.DrawWireSphere(eye.position, clippingPlanes.x);
+			Gizmos.DrawWireSphere(eye.position, clippingPlanes.y);
 		}
 	}
 }

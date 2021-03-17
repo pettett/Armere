@@ -18,7 +18,7 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 
 	public string interactionDescription => "Talk";
 	public Transform headPosition;
-	public NPCName npcName;
+	public string npcName;
 
 
 	public IDialogue target;

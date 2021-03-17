@@ -6,13 +6,13 @@ using UnityEngine;
 public class InvestigateRoutine : AIStateTemplate
 {
 	public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
-	[System.NonSerialized] public Collider investigating;
+	[System.NonSerialized] public Character investigating;
 	public override AIState StartState(AIHumanoid c)
 	{
 		return new Investigate(c, this);
 	}
 
-	public InvestigateRoutine Investigate(Collider investigating)
+	public InvestigateRoutine Investigate(Character investigating)
 	{
 		this.investigating = investigating;
 		return this;

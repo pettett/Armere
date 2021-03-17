@@ -11,7 +11,6 @@ public class MapUI : MonoBehaviour
 	public RectTransform map;
 	public RectTransform mapFrame;
 	public GameObject trackingMarkerPrefab;
-	public Map mapObject;
 
 	public RectTransform playerPositionIndicator;
 	public RectTransform playerViewIndicator;
@@ -66,14 +65,16 @@ public class MapUI : MonoBehaviour
 	protected void Start()
 	{
 		markers = FindObjectsOfType<MapMarker>();
-		mapBackground.SetTexture("_HeightTex", mapObject.contours.terrain.heightmapTexture);
+
+
+		mapBackground.SetTexture("_HeightTex", SceneMap.instance.map.contours.terrain.heightmapTexture);
 		UpdateZoom();
 
-		mapObject.onTrackingTargetsChanged += UpdateTrackingMarkers;
+		SceneMap.instance.map.onTrackingTargetsChanged += UpdateTrackingMarkers;
 	}
 	private void OnDestroy()
 	{
-		mapObject.onTrackingTargetsChanged -= UpdateTrackingMarkers;
+		SceneMap.instance.map.onTrackingTargetsChanged -= UpdateTrackingMarkers;
 	}
 
 	public void UpdateTrackingMarkers()
@@ -86,7 +87,7 @@ public class MapUI : MonoBehaviour
 				Destroy(trackingMarkers[i].gameObject);
 			}
 
-		trackingMarkerTargets = mapObject.TrackingMarkers;
+		trackingMarkerTargets = SceneMap.instance.map.TrackingMarkers;
 
 		if (trackingMarkerTargets != null)
 		{
@@ -110,7 +111,7 @@ public class MapUI : MonoBehaviour
 	/// <returns></returns>
 	public Vector2 WorldToMapSpace(Vector3 position)
 	{
-		return new Vector2(position.x / mapObject.contours.terrain.size.x, position.z / mapObject.contours.terrain.size.z);
+		return new Vector2(position.x / SceneMap.instance.map.contours.terrain.size.x, position.z / SceneMap.instance.map.contours.terrain.size.z);
 	}
 	/// <summary>
 	/// Turns Map UV into position on UI
@@ -147,12 +148,12 @@ public class MapUI : MonoBehaviour
 
 	protected void Update()
 	{
-		if (mapObject == null)
+		if (SceneMap.instance.map == null)
 		{
 			gameObject.SetActive(false);
 			return;
 		}
-		map.sizeDelta = new Vector2(mapObject.contours.terrain.size.x, mapObject.contours.terrain.size.z) * mapScale;
+		map.sizeDelta = new Vector2(SceneMap.instance.map.contours.terrain.size.x, SceneMap.instance.map.contours.terrain.size.z) * mapScale;
 
 
 

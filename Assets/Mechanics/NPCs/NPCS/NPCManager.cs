@@ -43,10 +43,10 @@ public class NPCManager : MonoBehaviour
 	public void LoadBin(in GameDataReader reader)
 	{
 		int dataCount = reader.ReadInt();
-		data = new Dictionary<NPCName, NPCData>(dataCount);
+		data = new Dictionary<string, NPCData>(dataCount);
 		for (int i = 0; i < dataCount; i++)
 		{
-			data[(NPCName)reader.ReadInt()] = new NPCData(reader.saveVersion, reader);
+			data[reader.ReadString()] = new NPCData(reader.saveVersion, reader);
 		}
 	}
 	public void SaveBin(in GameDataWriter writer)
@@ -54,9 +54,9 @@ public class NPCManager : MonoBehaviour
 		//Debug.Log(writer.writer.BaseStream.Position);
 
 		writer.Write(data.Count);
-		foreach (KeyValuePair<NPCName, NPCData> kvp in data)
+		foreach (KeyValuePair<string, NPCData> kvp in data)
 		{
-			writer.Write((int)kvp.Key);
+			writer.Write(kvp.Key);
 			writer.Write(kvp.Value.routineIndex);
 			writer.Write(kvp.Value.spokenTo);
 			writer.Write(kvp.Value.variables.Count);
@@ -164,7 +164,7 @@ public class NPCManager : MonoBehaviour
 		}
 	}
 
-	[System.NonSerialized] public Dictionary<NPCName, NPCData> data = new Dictionary<NPCName, NPCData>();
+	[System.NonSerialized] public Dictionary<string, NPCData> data = new Dictionary<string, NPCData>();
 
 
 }

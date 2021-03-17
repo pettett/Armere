@@ -70,8 +70,7 @@ public class GameCameras : MonoBehaviour
 		get => freeLook.Follow;
 		set
 		{
-			freeLook.Follow = value;
-			freeLook.LookAt = value;
+			cameraCollisionTarget = freeLook.Follow = freeLook.LookAt = value;
 		}
 	}
 
@@ -105,14 +104,8 @@ public class GameCameras : MonoBehaviour
 	{
 		entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
-		cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
+		freeLookTarget = cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
 		regularCamera = cameraTransform.GetComponent<Camera>();
-
-		freeLookTarget = cameraTrackingTarget;
-		cameraCollisionTarget = freeLookTarget;
-
-
-
 	}
 	private void OnEnable()
 	{

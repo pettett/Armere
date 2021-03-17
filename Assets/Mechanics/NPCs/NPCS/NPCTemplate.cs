@@ -6,6 +6,7 @@ using RotaryHeart;
 using Armere.Inventory;
 using Yarn.Unity;
 using Yarn;
+using UnityEngine.Assertions;
 
 [CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPC Template", order = 0)]
 public class NPCTemplate : AIStateTemplate
@@ -15,6 +16,8 @@ public class NPCTemplate : AIStateTemplate
 	public Yarn.Unity.InMemoryVariableStorage.DefaultVariable[] defaultValues;
 
 	public BuyMenuItem[] buyMenuItems;
+
+	public ClothesVariation[] clothes;
 
 	public enum RoutineActivity { None = 0, Stand, Sleep }
 	public enum RoutineAnimation { StandingIdle = 0, SittingIdle = 1, MaleSittingIdle = 2 }
@@ -93,7 +96,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 	public int currentRoutineStage;
 	new NPC c => (NPC)base.c;
 
-	public AIDialogue d;
+	public readonly AIDialogue d;
 
 	public int RoutineIndex { get => NPCManager.singleton.data[d.npcName].routineIndex; set => NPCManager.singleton.data[d.npcName].routineIndex = value; }
 
@@ -101,30 +104,99 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 	public string StartNode => CurrentRoutine.stages[currentRoutineStage].conversationStartNode;
 	public Transform transform => c.transform;
 	public YarnProgram Dialogue => t.dialogue;
-	Transform playerTransform;
+	readonly AIAmbientThought thought;
+
+	//Conversation currentConv; 
+	public static readonly Dictionary<string, NPCRoutine> activeNPCs = new Dictionary<string, NPCRoutine>();
 
 	Value IVariableAddon.this[string name]
 	{
-		//Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved
+		//Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved 
 		get => NPCManager.singleton.data[d.npcName].variables[name];
 		set => NPCManager.singleton.data[d.npcName].variables[name] = value;
+	}
+	IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
+	{
+		var dir = (transform.position - playerTransform.position);
+		dir.y = 0;
+		Quaternion desiredRot = Quaternion.LookRotation(dir);
+		while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
+		{
+			playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);
+			yield return null;
+		}
+	}
+
+
+
+
+	public IEnumerator TurnToPlayer(Vector3 playerPosition)
+	{
+		var dir = playerPosition - transform.position;
+		dir.y = 0;
+
+		//Debug.Log($"{d.npcName} turning to player");
+
+		Quaternion desiredRot = Quaternion.LookRotation(dir);
+		while (Quaternion.Angle(desiredRot, transform.rotation) > 1f)
+		{
+			transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRot, Time.deltaTime * 800);
+			yield return null;
+		}
+
+	}
+
+
+	public void StartSpeaking(Transform player)
+	{
+		c.StopAllCoroutines();
+		//Point the player towards the currently speaking npc
+		c.StartCoroutine(RotatePlayerTowardsNPC(player));
+
+		c.StartCoroutine(TurnToPlayer(player.position));
+	}
+
+	public void StopSpeaking()
+	{
+		c.StopAllCoroutines();
+	}
+
+	public void EndConversation()
+	{
+
 	}
 
 	public NPCRoutine(AIHumanoid c, NPCTemplate t) : base(c, t)
 	{
-		//Setup starting point for routine - instant so they start in the proper place
-		ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
 		d = c.GetComponent<AIDialogue>();
-		d.target = this;
-		d.dialogueAddon = this;
 
-		QuestManager.singleton.onQuestComplete += OnQuestComplete;
+		d.npcName = t.name;
+		thought = c.GetComponent<AIAmbientThought>();
 
 		if (!NPCManager.singleton.data.ContainsKey(d.npcName))
 		{
 			//Only add this data if the NPC has not existed in the save before
 			NPCManager.singleton.data[d.npcName] = new NPCManager.NPCData(t);
 		}
+
+		for (int i = 0; i < t.clothes.Length; i++)
+		{
+			Assert.IsNotNull(t.clothes[i].clothes, $"Clothes on {t.name} null");
+			//Apply all the clothes in the template
+			c.weaponGraphics.characterMesh.SetClothing(t.clothes[i]);
+		}
+
+		//Setup starting point for routine - instant so they start in the proper place
+		ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
+
+
+
+		d.target = this;
+		d.dialogueAddon = this;
+
+		activeNPCs[d.npcName] = this;
+
+		QuestManager.singleton.onQuestComplete += OnQuestComplete;
 
 		//Copy the buy inventory
 		d.buyInventory = new BuyMenuItem[t.buyMenuItems.Length];
@@ -166,7 +238,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 					ChangeRoutineStage(currentRoutineStage + 1);
 				}
 			}
-			else if (currentRoutineStage == CurrentRoutine.stages.Length - 1)
+			else if (currentRoutineStage == CurrentRoutine.stages.Length - 1 && currentRoutineStage != 0)
 			{
 				ChangeRoutineStage(0);
 			}
@@ -187,16 +259,12 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 	public void Interact(IInteractor interactor)
 	{
 		//currentConv = (interactor as Player_CharacterController).ChangeToState<Conversation>();
-		playerTransform = interactor.transform;
-
 
 
 		//Probably quicker to overrite true with true then find the value and
 		//check if it is true then find it again to set it
 		NPCManager.singleton.data[d.npcName].spokenTo = true;
 
-
-		c.StartCoroutine(c.TurnToPlayer(playerTransform.transform.position));
 	}
 
 
@@ -212,7 +280,11 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 			else
 			{
 				//Rotate to target rotation on finish walking
-				c.GoToPosition(target.position, () => c.transform.rotation = target.rotation);
+				c.GoToPosition(target.position, () =>
+				{
+
+					c.transform.rotation = target.rotation;
+				});
 			}
 		}
 		else
@@ -224,7 +296,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 	public void ChangeRoutineStage(int newStage, bool instant = false)
 	{
 		currentRoutineStage = newStage;
-		c.ambientThoughtText.text = CurrentRoutine.stages[currentRoutineStage].activity.ToString();
+		thought.ambientThoughtText.text = CurrentRoutine.stages[currentRoutineStage].activity.ToString();
 
 		//Apply routine animation
 		c.animator.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);

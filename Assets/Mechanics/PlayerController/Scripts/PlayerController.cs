@@ -11,7 +11,7 @@ using UnityEngine.AddressableAssets;
 namespace Armere.PlayerController
 {
 	[RequireComponent(typeof(Rigidbody))]
-	public class PlayerController : Character, IAITarget, IWaterObject, IInteractor
+	public class PlayerController : Character, IWaterObject, IInteractor
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
@@ -101,12 +101,6 @@ namespace Armere.PlayerController
 				return _entry;
 			}
 		}
-
-		Collider IAITarget.collider => collider;
-		public bool canBeTargeted => currentState != null && currentState.canBeTargeted;
-		public Vector3 velocity => rb.velocity;
-
-
 		public AnimatorVariables animatorVariables;
 
 		[NonSerialized] public WaterController currentWater;
@@ -197,7 +191,7 @@ namespace Armere.PlayerController
 		public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
-		private void Start()
+		public void Start()
 		{
 			Debug.Log("Starting player controller");
 
@@ -228,6 +222,8 @@ namespace Armere.PlayerController
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
 
 			enabled = false;
+
+
 		}
 
 		public void AfterLoaded()
@@ -235,12 +231,12 @@ namespace Armere.PlayerController
 			enabled = true;
 		}
 
-		private void OnEnable()
+		public override void OnEnable()
 		{
 			inputReader.equipBowEvent += OnEquipBow;
 			inputReader.changeSelection += OnChangeSelection;
 		}
-		private void OnDisable()
+		public override void OnDisable()
 		{
 			inputReader.equipBowEvent -= OnEquipBow;
 			inputReader.changeSelection -= OnChangeSelection;
@@ -290,7 +286,7 @@ namespace Armere.PlayerController
 				{
 					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
 					//Will automatically remove the old armour piece
-					weaponGraphics.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
 				}
 			}
 
@@ -401,7 +397,7 @@ namespace Armere.PlayerController
 			}
 		}
 
-		public int engagementCount { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public override Bounds bounds => collider.bounds;
 
 		public void Pause()
 		{
@@ -612,7 +608,7 @@ namespace Armere.PlayerController
 				if (index != -1)
 				{
 					//Will automatically remove the old armour piece
-					weaponGraphics.characterMesh.SetClothing((int)selected.armourPosition, selected.hideBody, selected.armaturePrefab);
+					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
 				}
 			}
 			else if (inventory.GetPanelFor(type).stackCount > index && index != itemSelections[type])
@@ -872,10 +868,6 @@ namespace Armere.PlayerController
 		}
 
 		//show the sound on the minimap?
-		void IAITarget.HearSound(IAITarget source, float volume, ref bool responded) { }
-
-
-
 		public void OnWaterEnter(WaterController waterController)
 		{
 			currentWater = waterController;

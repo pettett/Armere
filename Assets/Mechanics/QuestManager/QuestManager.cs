@@ -276,7 +276,7 @@ public class QuestManager : SaveableSO
 				return;
 			}
 	}
-	public void ForfillTalkToQuest(string questName, NPCName talkingNPC)
+	public void ForfillTalkToQuest(string questName, string talkingNPC)
 	{
 		for (int i = 0; i < quests.Count; i++)
 			if (quests[i].quest.name == questName)

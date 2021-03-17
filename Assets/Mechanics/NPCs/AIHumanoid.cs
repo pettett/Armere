@@ -16,8 +16,10 @@ public abstract class AIHumanoid : Character
 	[System.NonSerialized] public Animator anim;
 	[System.NonSerialized] public Transform lookingAtTarget;
 	[System.NonSerialized] public Ragdoller ragdoller;
+	[System.NonSerialized] public CharacterMeshController meshController;
 	public AIStateTemplate defaultState;
 	public MeleeWeaponItemData meleeWeapon;
+
 
 	[Header("Vision")]
 
@@ -34,14 +36,16 @@ public abstract class AIHumanoid : Character
 	public LayerMask visionBlockingMask;
 
 	// Start is called before the first frame update
-	protected virtual void Start()
+	public virtual void Start()
 	{
 		agent = GetComponent<NavMeshAgent>();
 		anim = GetComponent<Animator>();
 		ragdoller = GetComponent<Ragdoller>();
 
+		weaponGraphics = GetComponent<WeaponGraphicsController>();
 		ragdoller.RagdollEnabled = false;
 		ChangeToState(defaultState);
+
 	}
 	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
 	public float ProportionBoundsVisible(Bounds b)

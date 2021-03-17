@@ -14,7 +14,7 @@ public class DungeonBossAI : BossAI
 	int currentStage = 0;
 	float[] healthStages;
 
-	protected override void Start()
+	public override void Start()
 	{
 		base.Start();
 		health.onTakeDamage += OnBossDamageTaken;

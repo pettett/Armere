@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 public class UIController : MonoBehaviour
 {
 
@@ -24,6 +25,8 @@ public class UIController : MonoBehaviour
 	public BoolEventChannelSO onToggleTabMenuEvent;
 
 	public UnityEvent onSceneChangeBegin;
+
+	public InputReader inputReader;
 
 	private void Awake()
 	{
@@ -129,8 +132,6 @@ public class UIController : MonoBehaviour
 		else
 			tabMenu.CloseMenu();
 	}
-
-
 
 
 }

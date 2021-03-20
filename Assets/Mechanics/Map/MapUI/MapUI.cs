@@ -64,6 +64,11 @@ public class MapUI : MonoBehaviour
 
 	protected void Start()
 	{
+		if (SceneMap.instance == null){
+			enabled = false;
+			return;
+
+		}
 		markers = FindObjectsOfType<MapMarker>();
 
 
@@ -74,6 +79,7 @@ public class MapUI : MonoBehaviour
 	}
 	private void OnDestroy()
 	{
+		if (SceneMap.instance != null)
 		SceneMap.instance.map.onTrackingTargetsChanged -= UpdateTrackingMarkers;
 	}
 

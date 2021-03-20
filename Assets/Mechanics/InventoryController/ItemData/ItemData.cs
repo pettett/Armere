@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Armere.UI;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 namespace Armere.Inventory
@@ -35,6 +36,7 @@ namespace Armere.Inventory
 		[Header("Interaction")]
 		[Tooltip("Should be none for most normal items")]
 		public ItemInteractionCommands disabledCommands;
+
 
 	}
 }

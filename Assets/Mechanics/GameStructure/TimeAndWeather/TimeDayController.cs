@@ -53,14 +53,17 @@ public class TimeDayController : MonoBehaviour
 	public struct CloudProfile
 	{
 		public Vector2 octavesCoverage;
+		public float scale;
 
-		public CloudProfile(Vector2 octavesCoverage)
+		public CloudProfile(Vector2 octavesCoverage, float scale)
 		{
 			this.octavesCoverage = octavesCoverage;
+			this.scale = scale;
 		}
 
 		public static CloudProfile Lerp(in CloudProfile a, in CloudProfile b, float t) => new CloudProfile(
-			Vector2.Lerp(a.octavesCoverage, b.octavesCoverage, t)
+			Vector2.Lerp(a.octavesCoverage, b.octavesCoverage, t),
+			Mathf.Lerp(a.scale, b.scale, t)
 		);
 		public static void SetProperties(CloudProfile clear, CloudProfile rain, Texture2D weatherMap)
 		{
@@ -70,7 +73,8 @@ public class TimeDayController : MonoBehaviour
 				{
 					float t = weatherMap.GetPixel(x, y).r;
 					Vector2 cov = Vector2.Lerp(clear.octavesCoverage, rain.octavesCoverage, t);
-					weatherMap.SetPixel(x, y, new Color(t, cov.x, cov.y));
+					float scale = Mathf.Lerp(clear.scale, rain.scale, t);
+					weatherMap.SetPixel(x, y, new Color(t, cov.x, cov.y, scale));
 				}
 			}
 			weatherMap.Apply();
@@ -116,7 +120,9 @@ public class TimeDayController : MonoBehaviour
 	[Range(0, 1)] public float rainIntensity;
 	public VisualEffect rain;
 	public float maxRainPerSecondPerArea = 30;
-	[ReadOnly] public float weatherScaler;
+	public float weatherSimulationTileSize = 50;
+	public float weatherSimulationTileOffset = -500;
+	public int weatherSimulationResolution = 16;
 	Texture2D weatherMap;
 
 	[Header("Skybox Colours")]
@@ -160,6 +166,34 @@ public class TimeDayController : MonoBehaviour
 	{
 		singleton = this;
 	}
+	public static float Square(float a) => a * a;
+	[MyBox.ButtonMethod]
+	public void MakeWeatherMap()
+	{
+		weatherMap = new Texture2D(weatherSimulationResolution, weatherSimulationResolution, TextureFormat.RGBAHalf, false, true);
+		weatherMap.wrapMode = TextureWrapMode.Clamp;
+
+
+
+		for (int x = 0; x < weatherMap.width; x++)
+		{
+			for (int y = 0; y < weatherMap.height; y++)
+			{
+				float val = 1 - Mathf.Sqrt(Square(y - weatherMap.height / 2f) + Square(x - weatherMap.width / 2f)) * 0.1f;
+				val *= x == 0 ? 0f : 1f;
+				val *= y == 0 ? 0f : 1f;
+				val *= x == weatherMap.width - 1 ? 0f : 1f;
+				val *= y == weatherMap.width - 1 ? 0f : 1f;
+
+				weatherMap.SetPixel(x, y, new Color(val, 0, 0));
+			}
+		}
+
+		CloudProfile.SetProperties(dryClouds, rainClouds, weatherMap);
+
+
+		RenderSettings.skybox.SetTexture("_WeatherMap", weatherMap);
+	}
 	// Start is called before the first frame update
 	void Start()
 	{
@@ -170,24 +204,7 @@ public class TimeDayController : MonoBehaviour
 			changeTime.OnEventRaised += ChangeTime;
 			entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
 
-
-			weatherMap = new Texture2D(8, 8, TextureFormat.R8, false, true);
-			weatherMap.wrapMode = TextureWrapMode.Clamp;
-
-
-
-			for (int x = 0; x < weatherMap.width; x++)
-			{
-				for (int y = 0; y < weatherMap.height; y++)
-				{
-					weatherMap.SetPixel(x, y, new Color(Random.value, 0, 0));
-				}
-			}
-
-			CloudProfile.SetProperties(dryClouds, rainClouds, weatherMap);
-
-
-			RenderSettings.skybox.SetTexture("_WeatherMap", weatherMap);
+			MakeWeatherMap();
 		}
 
 

@@ -279,7 +279,7 @@ namespace Armere.Inventory.UI
 			CleanUpInventory();
 
 
-			TooltipUI.current.OnCursorExitItemUI();
+			Armere.UI.TooltipUI.current.EndCursorTooltip();
 		}
 		public void EnableMenu(System.Predicate<ItemStackBase> predicate)
 		{

@@ -56,6 +56,7 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public UnityAction<InputActionPhase> uiSubmitEvent;
 	public UnityAction<InputActionPhase> uiCancelEvent;
 	public UnityAction<Vector2> uiNavigateEvent;
+	public UnityAction<InputActionPhase, float> uiNavigateHorizontalEvent;
 	public UnityAction<InputAction.CallbackContext> uiScrollEvent;
 
 	private PlayerControls gameInput;
@@ -160,5 +161,10 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnChangeSelection(CallbackContext context)
 	{
 		changeSelection?.Invoke(context.phase);
+	}
+
+	public void OnNavigateHorizontal(CallbackContext context)
+	{
+		uiNavigateHorizontalEvent?.Invoke(context.phase, context.ReadValue<float>());
 	}
 }

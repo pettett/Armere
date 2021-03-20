@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Armere.UI;
 
 namespace Armere.Inventory.UI
 {
@@ -13,12 +14,13 @@ namespace Armere.Inventory.UI
 		public event System.Action<ItemStackBase> onSelect;
 		[HideInInspector] public InventoryUI inventoryUI;
 
+
 		public void OnPointerClick(PointerEventData eventData)
 		{
 			if (interactable)
 			{
 				inventoryUI.ShowContextMenu(type, itemIndex, eventData.position);
-				TooltipUI.current.OnCursorExitItemUI();
+				TooltipUI.current.EndCursorTooltip();
 			}
 		}
 
@@ -26,9 +28,9 @@ namespace Armere.Inventory.UI
 		{
 			if (interactable)
 			{
-				var stack = InventoryController.singleton.ItemAt(itemIndex, type);
+				ItemStackBase stack = InventoryController.singleton.ItemAt(itemIndex, type);
 				onSelect?.Invoke(stack);
-				TooltipUI.current.OnCursorEnterItemUI(stack);
+				TooltipUI.current.BeginCursorTooltip(stack.title, stack.description);
 
 			}
 
@@ -39,7 +41,7 @@ namespace Armere.Inventory.UI
 		public override void OnPointerExit(PointerEventData eventData)
 		{
 			if (interactable)
-				TooltipUI.current.OnCursorExitItemUI();
+				TooltipUI.current.EndCursorTooltip();
 
 
 			base.OnPointerExit(eventData);

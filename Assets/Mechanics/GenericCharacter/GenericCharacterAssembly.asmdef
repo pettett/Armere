@@ -14,7 +14,10 @@
         "MyBox",
         "EventChannels",
         "Armere.SaveLoadSystem",
-        "Game.Input"
+        "Game.Input",
+        "XNode",
+        "Unity.InputSystem",
+        "LeanTween"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -123,14 +123,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
-                    ""name"": ""SelectSpell"",
-                    ""type"": ""Value"",
-                    ""id"": ""08949489-2e63-45e8-b72a-7891e6e7f714"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """"
-                },
-                {
                     ""name"": ""KO"",
                     ""type"": ""Button"",
                     ""id"": ""42f9125d-94a5-4316-911e-64a0c2e88121"",
@@ -500,116 +492,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""74178720-e353-43e7-bce0-babb9bfc2210"",
-                    ""path"": ""<Keyboard>/1"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=0)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""7d1b4800-0654-48fd-b6f4-9e61a010aafa"",
-                    ""path"": ""<Keyboard>/2"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""39baec3a-3bd1-4755-a8e0-c7fbe7502769"",
-                    ""path"": ""<Keyboard>/3"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=2)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""2a75b0f8-c76f-4d69-89c1-bf9c2799fbac"",
-                    ""path"": ""<Keyboard>/4"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=3)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""57da548d-df76-4003-befe-3d107a20ba43"",
-                    ""path"": ""<Keyboard>/5"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=4)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""42613d7e-3a8f-4154-94fa-86e828ad61e4"",
-                    ""path"": ""<Keyboard>/6"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=5)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""7b5e75c0-4af3-46db-bc4b-dad5adb5bcaa"",
-                    ""path"": ""<Keyboard>/7"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=6)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""3c897bdd-ead6-4188-a57e-653bb3491e1e"",
-                    ""path"": ""<Keyboard>/8"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=7)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""8c1d09be-bd5d-4517-8bed-e078bb0196f9"",
-                    ""path"": ""<Keyboard>/9"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=8)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""929c8315-01dc-445f-beb3-1fd8fb408b77"",
-                    ""path"": ""<Keyboard>/0"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=9)"",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""SelectSpell"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
                     ""name"": ""1D Axis"",
                     ""id"": ""daa6c3cc-4adc-4c0a-9e49-91a4f921279f"",
                     ""path"": ""1DAxis"",
@@ -810,6 +692,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""NavigateHorizontal"",
+                    ""type"": ""Value"",
+                    ""id"": ""9972e50c-f80f-4620-9aef-35ef6c13881e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -911,6 +801,39 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""action"": ""Scroll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""09740128-d85b-4747-8125-41a8369b7c5b"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NavigateHorizontal"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""8383832d-cb73-467c-ad22-5c1086726639"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""NavigateHorizontal"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""101dcdd8-3837-4ec8-b7f3-15e61268e421"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""NavigateHorizontal"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -925,6 +848,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""SelectSpell"",
+                    ""type"": ""Value"",
+                    ""id"": ""490d233b-8860-428c-b8b1-b91b9f4cea1e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -936,6 +867,116 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ChangeSelection"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dd2762f5-08bf-48a2-ace4-8ec46371fb93"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=0)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d110bf6e-dd75-4f5f-97a4-7a53cd77059c"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0fa32e23-b357-46e7-9456-f4823b32d2eb"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=2)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a8761580-cb23-4ee9-9205-51e38ec797bb"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=3)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3c3c5ba-5fe8-4c3f-be88-268070e6e0a9"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=4)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6e6735c2-7b07-40ff-ba73-492e49b5c785"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=5)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""97e810af-2195-4235-af3d-34fa5bf50708"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=6)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b8411a7c-37ff-441f-9322-c54e33390f88"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=7)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5fa979d2-5e8b-4ed9-8022-cde5940ed0a3"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=8)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""834e6500-99d7-42ad-a3f1-94af56ce2787"",
+                    ""path"": ""<Keyboard>/0"",
+                    ""interactions"": """",
+                    ""processors"": ""Scale(factor=9)"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -992,7 +1033,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_Aim = m_GroundActionMap.FindAction("Aim", throwIfNotFound: true);
         m_GroundActionMap_TabMenu = m_GroundActionMap.FindAction("TabMenu", throwIfNotFound: true);
         m_GroundActionMap_Console = m_GroundActionMap.FindAction("Console", throwIfNotFound: true);
-        m_GroundActionMap_SelectSpell = m_GroundActionMap.FindAction("SelectSpell", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
         m_GroundActionMap_OpenInventory = m_GroundActionMap.FindAction("OpenInventory", throwIfNotFound: true);
@@ -1010,9 +1050,11 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
         m_UI_Scroll = m_UI.FindAction("Scroll", throwIfNotFound: true);
+        m_UI_NavigateHorizontal = m_UI.FindAction("NavigateHorizontal", throwIfNotFound: true);
         // AlwaysActive
         m_AlwaysActive = asset.FindActionMap("AlwaysActive", throwIfNotFound: true);
         m_AlwaysActive_ChangeSelection = m_AlwaysActive.FindAction("ChangeSelection", throwIfNotFound: true);
+        m_AlwaysActive_SelectSpell = m_AlwaysActive.FindAction("SelectSpell", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -1075,7 +1117,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_Aim;
     private readonly InputAction m_GroundActionMap_TabMenu;
     private readonly InputAction m_GroundActionMap_Console;
-    private readonly InputAction m_GroundActionMap_SelectSpell;
     private readonly InputAction m_GroundActionMap_KO;
     private readonly InputAction m_GroundActionMap_ChangeFocus;
     private readonly InputAction m_GroundActionMap_OpenInventory;
@@ -1099,7 +1140,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @Aim => m_Wrapper.m_GroundActionMap_Aim;
         public InputAction @TabMenu => m_Wrapper.m_GroundActionMap_TabMenu;
         public InputAction @Console => m_Wrapper.m_GroundActionMap_Console;
-        public InputAction @SelectSpell => m_Wrapper.m_GroundActionMap_SelectSpell;
         public InputAction @KO => m_Wrapper.m_GroundActionMap_KO;
         public InputAction @ChangeFocus => m_Wrapper.m_GroundActionMap_ChangeFocus;
         public InputAction @OpenInventory => m_Wrapper.m_GroundActionMap_OpenInventory;
@@ -1154,9 +1194,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Console.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
-                @SelectSpell.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
-                @SelectSpell.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
-                @SelectSpell.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnSelectSpell;
                 @KO.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
                 @KO.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
                 @KO.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnKO;
@@ -1218,9 +1255,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Console.started += instance.OnConsole;
                 @Console.performed += instance.OnConsole;
                 @Console.canceled += instance.OnConsole;
-                @SelectSpell.started += instance.OnSelectSpell;
-                @SelectSpell.performed += instance.OnSelectSpell;
-                @SelectSpell.canceled += instance.OnSelectSpell;
                 @KO.started += instance.OnKO;
                 @KO.performed += instance.OnKO;
                 @KO.canceled += instance.OnKO;
@@ -1300,6 +1334,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_UI_Cancel;
     private readonly InputAction m_UI_Navigate;
     private readonly InputAction m_UI_Scroll;
+    private readonly InputAction m_UI_NavigateHorizontal;
     public struct UIActions
     {
         private @PlayerControls m_Wrapper;
@@ -1308,6 +1343,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @Cancel => m_Wrapper.m_UI_Cancel;
         public InputAction @Navigate => m_Wrapper.m_UI_Navigate;
         public InputAction @Scroll => m_Wrapper.m_UI_Scroll;
+        public InputAction @NavigateHorizontal => m_Wrapper.m_UI_NavigateHorizontal;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1329,6 +1365,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Scroll.started -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
                 @Scroll.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
                 @Scroll.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnScroll;
+                @NavigateHorizontal.started -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigateHorizontal;
+                @NavigateHorizontal.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigateHorizontal;
+                @NavigateHorizontal.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnNavigateHorizontal;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -1345,6 +1384,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Scroll.started += instance.OnScroll;
                 @Scroll.performed += instance.OnScroll;
                 @Scroll.canceled += instance.OnScroll;
+                @NavigateHorizontal.started += instance.OnNavigateHorizontal;
+                @NavigateHorizontal.performed += instance.OnNavigateHorizontal;
+                @NavigateHorizontal.canceled += instance.OnNavigateHorizontal;
             }
         }
     }
@@ -1354,11 +1396,13 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputActionMap m_AlwaysActive;
     private IAlwaysActiveActions m_AlwaysActiveActionsCallbackInterface;
     private readonly InputAction m_AlwaysActive_ChangeSelection;
+    private readonly InputAction m_AlwaysActive_SelectSpell;
     public struct AlwaysActiveActions
     {
         private @PlayerControls m_Wrapper;
         public AlwaysActiveActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @ChangeSelection => m_Wrapper.m_AlwaysActive_ChangeSelection;
+        public InputAction @SelectSpell => m_Wrapper.m_AlwaysActive_SelectSpell;
         public InputActionMap Get() { return m_Wrapper.m_AlwaysActive; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1371,6 +1415,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ChangeSelection.started -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
                 @ChangeSelection.performed -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
                 @ChangeSelection.canceled -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnChangeSelection;
+                @SelectSpell.started -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.performed -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.canceled -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
             }
             m_Wrapper.m_AlwaysActiveActionsCallbackInterface = instance;
             if (instance != null)
@@ -1378,6 +1425,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @ChangeSelection.started += instance.OnChangeSelection;
                 @ChangeSelection.performed += instance.OnChangeSelection;
                 @ChangeSelection.canceled += instance.OnChangeSelection;
+                @SelectSpell.started += instance.OnSelectSpell;
+                @SelectSpell.performed += instance.OnSelectSpell;
+                @SelectSpell.canceled += instance.OnSelectSpell;
             }
         }
     }
@@ -1415,7 +1465,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnAim(InputAction.CallbackContext context);
         void OnTabMenu(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
-        void OnSelectSpell(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
         void OnOpenInventory(InputAction.CallbackContext context);
@@ -1435,9 +1484,11 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnCancel(InputAction.CallbackContext context);
         void OnNavigate(InputAction.CallbackContext context);
         void OnScroll(InputAction.CallbackContext context);
+        void OnNavigateHorizontal(InputAction.CallbackContext context);
     }
     public interface IAlwaysActiveActions
     {
         void OnChangeSelection(InputAction.CallbackContext context);
+        void OnSelectSpell(InputAction.CallbackContext context);
     }
 }

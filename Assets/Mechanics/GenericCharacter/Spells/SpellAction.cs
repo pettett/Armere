@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Armere.UI;
 using UnityEngine;
 using UnityEngine.AI;
-
+using XNode;
 public abstract class Spell
 {
 	public readonly Character caster;
@@ -61,11 +62,27 @@ public abstract class Spell
 
 
 
-public abstract class SpellAction : ProgressNode<SpellAction>
+public abstract class SpellAction : Node
 {
 	[Header("Prompts")]
 	public InputReader input;
+	[Header("Info")]
+	public string title;
+	[TextArea] public string description;
+	public Sprite sprite;
 
+
+
+
+
+	[Input] public SpellAction dependency;
+	[Output] public SpellAction self;
+
+	public override object GetValue(NodePort port)
+	{
+		self = this;
+		return this;
+	}
 
 	public abstract Spell BeginCast(Character caster);
 

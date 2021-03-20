@@ -1300,6 +1300,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs: []
   cullMode: 0
   zWriteMode: 0
@@ -2016,8 +2017,9 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   m_customType:
-    m_SerializableType: UnityEditor.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
+    m_SerializableType: UnityEngine.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_customScript: {fileID: 11500000, guid: 81245c602cfd90449a609fedf849279a, type: 3}
 --- !u!114 &8926484042661614800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4056,6 +4058,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs: []
   cullMode: 0
   zWriteMode: 0
@@ -5601,8 +5604,9 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   m_customType:
-    m_SerializableType: UnityEditor.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
+    m_SerializableType: UnityEngine.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_customScript: {fileID: 11500000, guid: 81245c602cfd90449a609fedf849279a, type: 3}
 --- !u!114 &8926484042661615452
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6863,8 +6867,9 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   m_customType:
-    m_SerializableType: UnityEditor.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
+    m_SerializableType: UnityEngine.VFX.SpawnOverDistance, Unity.VisualEffectGraph.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_customScript: {fileID: 11500000, guid: 81245c602cfd90449a609fedf849279a, type: 3}
 --- !u!114 &8926484042661615493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7708,6 +7713,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs: []
   cullMode: 0
   zWriteMode: 0

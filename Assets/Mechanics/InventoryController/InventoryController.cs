@@ -38,6 +38,18 @@ namespace Armere.Inventory
 			this.item = item;
 		}
 
+		public string title => item.displayName;
+
+		public string description => this switch
+		{
+			PotionItemUnique pot => pot.item.itemName switch
+			{
+				ItemName.HealingPotion => string.Concat(Enumerable.Repeat('♥', Mathf.RoundToInt(pot.potency))),
+				_ => string.Empty
+			},
+			_ => string.Empty
+		};
+
 		public virtual void Write(GameDataWriter writer)
 		{
 			writer.Write((int)item.itemName);

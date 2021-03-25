@@ -4,6 +4,7 @@ using UnityEngine;
 
 using Armere.PlayerController;
 
+using Armere.UI;
 public class FadeoutTrigger : PlayerTrigger
 {
 	public Transform wakeupTransform;

@@ -14,6 +14,9 @@ public class HoldableBody : MonoBehaviour, IInteractable
 	public float requiredLookDot => 0;
 	public string holdableTriggerTag = "Default";
 	public string interactionDescription => "Pickup";
+
+	public string interactionName => null;
+
 	public FixedJoint joint;
 	float oldMass;
 	private void Start()
@@ -36,15 +39,6 @@ public class HoldableBody : MonoBehaviour, IInteractable
 		Destroy(joint);
 	}
 
-	public void OnEndHighlight()
-	{
-
-	}
-
-	public void OnStartHighlight()
-	{
-
-	}
 
 	private void OnDestroy()
 	{

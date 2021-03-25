@@ -53,6 +53,15 @@ public readonly struct Version
 		return string.Join(".", major, minor, patch);
 	}
 }
+
+public interface IWriteableToBinary
+{
+	void Write(in GameDataWriter writer);
+
+	//T Read(in GameDataReader reader);
+}
+
+
 public readonly struct GameDataReader
 {
 	public readonly Version saveVersion;
@@ -129,6 +138,9 @@ public readonly struct GameDataWriter
 		writer.Write(value.x);
 		writer.Write(value.y);
 	}
+
+
+
 	public readonly void Write(string value) => writer.Write(value);
 
 
@@ -138,12 +150,30 @@ public readonly struct GameDataWriter
 		Write(byteList.Length);
 		Write(byteList);
 	}
+	public readonly void WriteList<T>(T[] items) where T : IWriteableToBinary
+	{
+		Write(items.Length);
+		for (int i = 0; i < items.Length; i++)
+		{
+			items[i].Write(this);
+		}
+	}
+
+	public readonly void WriteList<T>(List<T> items) where T : IWriteableToBinary
+	{
+		Write(items.Count);
+
+		for (int i = 0; i < items.Count; i++)
+		{
+			items[i].Write(this);
+		}
+	}
 
 }
 public class SaveManager : MonoBehaviour
 {
 
-	public static readonly Version version = new Version(0, 0, 2);
+	public static readonly Version version = new Version(0, 0, 3);
 
 	public const string savesDirectoryName = "saves";
 	public static string currentSaveFileDirectoryName = "save1";

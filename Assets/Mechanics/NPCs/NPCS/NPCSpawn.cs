@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Assertions;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class NPCSpawn : Spawner
 {
@@ -18,11 +19,9 @@ public class NPCSpawn : Spawner
 
 
 	// Start is called before the first frame update
-	async void Start()
+	void Start()
 	{
-		var npc = (NPC)await Spawn();
-		npc.defaultState = template;
-		npc.InitNPC(template, this, conversationGroupTargetsOverride);
+		Spawn();
 	}
 
 
@@ -44,9 +43,18 @@ public class NPCSpawn : Spawner
 	}
 #endif
 
-	public override async Task<SpawnableBody> Spawn()
+	public void OnNPCLoaded(AsyncOperationHandle<GameObject> handle)
+	{
+
+		var npc = handle.Result.GetComponent<NPC>();
+		npc.defaultState = template;
+		npc.InitNPC(this);
+	}
+
+	public void Spawn()
 	{
 		Assert.IsTrue(baseNPCReference.RuntimeKeyIsValid(), "Reference to npc base is null");
-		return await GameObjectSpawner.SpawnAsync(baseNPCReference, transform.position, transform.rotation);
+		var handle = GameObjectSpawner.Spawn(baseNPCReference, transform.position, transform.rotation);
+		GameObjectSpawner.OnDone(handle, OnNPCLoaded);
 	}
 }

@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class RestPoint : MonoBehaviour, IInteractable
 {
-    public string restPromptText = "Sit";
-    [TextArea]
-    public string restTimeSelectText = "Rest by the fire until...";
+	public string restPromptText = "Sit";
+	[TextArea]
+	public string restTimeSelectText = "Rest by the fire until...";
 
-    public YarnProgram dialogue;
+	public YarnProgram dialogue;
 
 
-    public void Interact(IInteractor interactor) { }
-    public bool canInteract { get; set; } = true;
-    public void OnStartHighlight() { }
-    public void OnEndHighlight() { }
-    public float requiredLookDot => 0;
-    public string interactionDescription => restPromptText;
+	public void Interact(IInteractor interactor) { }
+	public bool canInteract { get; set; } = true;
+	public float requiredLookDot => 0;
+	public string interactionDescription => restPromptText;
+
+	public string interactionName => null;
 }

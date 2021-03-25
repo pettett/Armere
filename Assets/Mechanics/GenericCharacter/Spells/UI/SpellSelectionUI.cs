@@ -9,7 +9,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 	Image image;
 	[System.NonSerialized] public int index;
 
-	SpellAction selected;
+	[System.NonSerialized] public SpellAction selected;
 
 	private void Awake()
 	{
@@ -22,7 +22,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 		GetComponentInParent<SpellUnlockTreeUI>().SetSelection(index, SpellUnlockNodeUI.dragging);
 
 		Armere.UI.TooltipUI.current.EndCursorTooltip();
-		LeanTween.scale(image.gameObject, Vector3.one, 0.05f);
+		LeanTween.scale(image.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
 
 		SpellUnlockNodeUI.dragging = null;
 	}
@@ -44,7 +44,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 	{
 		if (SpellUnlockNodeUI.dragging != null && selected != SpellUnlockNodeUI.dragging.node)
 		{
-			LeanTween.scale(image.gameObject, Vector3.one * 1.1f, 0.05f);
+			LeanTween.scale(image.gameObject, Vector3.one * 1.1f, 0.05f).setIgnoreTimeScale(true);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 		if (SpellUnlockNodeUI.dragging != null && selected != SpellUnlockNodeUI.dragging.node)
 		{
 
-			LeanTween.scale(image.gameObject, Vector3.one, 0.05f);
+			LeanTween.scale(image.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
 		}
 	}
 }

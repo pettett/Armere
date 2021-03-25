@@ -8,6 +8,11 @@ namespace Armere.PlayerController
 		public ConversationTemplate interactNPC;
 		public LadderClimbTemplate interactLadder;
 		public DialogueTemplate interactDialogue;
+
+
+		public System.Action<IInteractable> OnBeginHighlight;
+		public System.Action OnEndHighlight;
+
 		public override MovementState StartState(PlayerController c)
 		{
 			return new Interact(c, this);

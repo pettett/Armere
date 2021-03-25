@@ -13,16 +13,11 @@ namespace Armere.Inventory
 		public float requiredLookDot => 0;
 		public string interactionDescription => "Brew Potion";
 
+		public string interactionName => null;
 
 		public YarnProgram selectionDialogue;
 
-
-		InventoryController playerInventory;
-		private void Start()
-		{
-			playerInventory = InventoryController.singleton;
-		}
-
+		public InventoryController playerInventory;
 
 		public async void Interact(IInteractor interactor)
 		{
@@ -70,14 +65,6 @@ namespace Armere.Inventory
 
 		}
 
-		public void OnEndHighlight()
-		{
 
-		}
-
-		public void OnStartHighlight()
-		{
-
-		}
 	}
 }

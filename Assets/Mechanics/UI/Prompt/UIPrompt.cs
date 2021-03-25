@@ -4,49 +4,44 @@ using UnityEngine;
 
 public class UIPrompt : MonoBehaviour
 {
-    public static UIPrompt singleton;
+	public TMPro.TextMeshProUGUI promptText;
 
-    public TMPro.TextMeshProUGUI promptText;
+	public TMPro.TextMeshProUGUI keybindPromptText1;
 
-    public TMPro.TextMeshProUGUI keybindPromptText1;
-
-
-
-    public static void ApplyPrompt(string prompt, float retension = 0)
-    {
-        singleton.promptText.enabled = true;
-
-        singleton.promptText.text = prompt;
-        if (retension != 0)
-        {
-            singleton.Invoke("ResetPrompt", retension);
-        }
-    }
-
-    public static void ApplyPrompt(string prompt, string keybind, float retension = 0)
-    {
-        singleton.promptText.enabled = true;
-        singleton.keybindPromptText1.enabled = true;
-
-        singleton.promptText.text = prompt;
-        singleton.keybindPromptText1.text = keybind;
+	//public Interacta
 
 
-        if (retension != 0)
-        {
-            singleton.Invoke("ResetPrompt", retension);
-        }
-    }
 
-    public static void ResetPrompt()
-    {
-        if (singleton == null) return;
-        singleton.promptText.enabled = false;
-        singleton.keybindPromptText1.enabled = false;
+	public void ApplyPrompt(string prompt, float retension = 0)
+	{
+		promptText.enabled = true;
 
-    }
-    private void Start()
-    {
-        singleton = this;
-    }
+		promptText.text = prompt;
+		if (retension != 0)
+		{
+			Invoke("ResetPrompt", retension);
+		}
+	}
+
+	public void ApplyPrompt(string prompt, string keybind, float retension = 0)
+	{
+		promptText.enabled = true;
+		keybindPromptText1.enabled = true;
+
+		promptText.text = prompt;
+		keybindPromptText1.text = keybind;
+
+
+		if (retension != 0)
+		{
+			Invoke("ResetPrompt", retension);
+		}
+	}
+
+	public void ResetPrompt()
+	{
+		promptText.enabled = false;
+		keybindPromptText1.enabled = false;
+
+	}
 }

@@ -16,23 +16,25 @@ namespace Armere.Inventory
 		public uint containerCount = 1;
 		public UnityEngine.Events.UnityEvent onChestOpened;
 
-
-		public override async Task<SpawnableBody> Spawn()
+		void OnChestLoaded(AsyncOperationHandle<GameObject> handle)
+		{
+			var spawnable = handle.Result.GetComponent<InteractableChest>();
+			spawnable.Init(item, containerCount);
+			spawnable.onChestOpened += OnChestOpened;
+		}
+		public void Spawn()
 		{
 			Assert.IsTrue(chest.RuntimeKeyIsValid(), "Reference is null");
-			SpawnableBody spawnable = await GameObjectSpawner.SpawnAsync(chest, transform.position, transform.rotation);
-			((InteractableChest)spawnable).Init(item, containerCount);
-			((InteractableChest)spawnable).onChestOpened += OnChestOpened;
-			return spawnable;
+			GameObjectSpawner.OnDone(GameObjectSpawner.Spawn(chest, transform.position, transform.rotation), OnChestLoaded);
 		}
 
 		public void OnChestOpened()
 		{
 			onChestOpened.Invoke();
 		}
-		private async void Start()
+		private void Start()
 		{
-			await Spawn();
+			Spawn();
 		}
 	}
 }

@@ -27,26 +27,20 @@ public class CutLog : MonoBehaviour, IAttackable
 		invincible = false;
 	}
 
-	public async void Cut()
+	public void Cut()
 	{
 		if (spawnedItem != null)
 		{
 			int spawns = Random.Range(itemCount.x, itemCount.y + 1);
 
-			IEnumerable<Task<ItemSpawnable>> SpawnTasks()
-			{
-				for (int i = 0; i < spawns; i++)
-				{
-					yield return ItemSpawner.SpawnItemAsync(
-						spawnedItem,
-						transform.position + transform.up * Mathf.Lerp(lengthRegion.x, lengthRegion.y, (i + 0.5f) / (float)spawns),
-						Quaternion.Euler(0, Random.Range(0, 360), 0));
-				}
-			}
 
-			await Task.WhenAll(
-				SpawnTasks()
-			);
+			for (int i = 0; i < spawns; i++)
+			{
+				ItemSpawner.SpawnItem(
+					spawnedItem,
+					transform.position + transform.up * Mathf.Lerp(lengthRegion.x, lengthRegion.y, (i + 0.5f) / (float)spawns),
+					Quaternion.Euler(0, Random.Range(0, 360), 0));
+			}
 		}
 
 		Destroy(gameObject);

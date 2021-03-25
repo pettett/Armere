@@ -51,7 +51,6 @@ public enum ItemName
 	Ulfberht
 }
 
-
 public enum AttackFlags
 {
 	Blunt,

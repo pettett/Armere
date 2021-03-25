@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory.UI;
 using System.Threading.Tasks;
+using Armere.UI;
 
 namespace Armere.Inventory
 {
@@ -14,10 +15,13 @@ namespace Armere.Inventory
 
 		public float requiredLookDot => -1;
 
-		public string interactionDescription => "Open Chest";
+		public string interactionDescription => "Open";
 		public string highlightDescription = "Chest";
 
 		public Vector3 offset => throw new System.NotImplementedException();
+
+		public string interactionName => highlightDescription;
+
 		public event System.Action onChestOpened;
 
 		public ItemData item;
@@ -27,16 +31,12 @@ namespace Armere.Inventory
 			this.item = item;
 			this.count = count;
 		}
-		public async void SpawnItemsToWorld()
+		public void SpawnItemsToWorld()
 		{
-			Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
-
 			for (int i = 0; i < count; i++)
 			{
-				t[i] = ItemSpawner.SpawnItemAsync((PhysicsItemData)item, transform.position, transform.rotation);
+				ItemSpawner.SpawnItem((PhysicsItemData)item, transform.position, transform.rotation);
 			}
-
-			await Task.WhenAll(t);
 		}
 		public void Interact(IInteractor c)
 		{
@@ -55,16 +55,6 @@ namespace Armere.Inventory
 			count = 0;
 		}
 
-		public void OnStartHighlight()
-		{
-			//Show an arrow for this item with name on ui
-			UIController.singleton.itemIndicator.StartIndication(transform, highlightDescription);
-		}
 
-		public void OnEndHighlight()
-		{
-			//remove arrow
-			UIController.singleton.itemIndicator.EndIndication();
-		}
 	}
 }

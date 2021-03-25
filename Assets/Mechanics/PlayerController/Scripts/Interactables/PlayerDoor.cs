@@ -17,7 +17,9 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 	public float requiredLookAngle = 180;
 	public float requiredLookDot => Mathf.Cos(requiredLookAngle);
 
-	public string interactionDescription => "Open Door";
+	public string interactionDescription => "Open";
+
+	public string interactionName => null;
 
 	public Room forwardRoom;
 	public Room backwardRoom;
@@ -99,15 +101,6 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 		player.ChangeToState(player.defaultState);
 	}
 
-	public void OnEndHighlight()
-	{
-
-	}
-
-	public void OnStartHighlight()
-	{
-
-	}
 
 	private void OnDrawGizmos()
 	{

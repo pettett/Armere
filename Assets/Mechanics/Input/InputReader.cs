@@ -67,6 +67,14 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public float verticalMovement { get; private set; }
 
 
+
+	public void VirtualCameraMove(Vector2 movement, bool mouse) => cameraMoveEvent?.Invoke(movement, mouse);
+	public void VirtualMovement(Vector2 movement)
+	{
+		movementEvent?.Invoke(movement);
+		horizontalMovement = movement;
+	}
+
 	private void OnEnable()
 	{
 		if (gameInput == null)
@@ -166,5 +174,10 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnNavigateHorizontal(CallbackContext context)
 	{
 		uiNavigateHorizontalEvent?.Invoke(context.phase, context.ReadValue<float>());
+	}
+
+	public string GetActionDisplayName(string action)
+	{
+		return asset.FindAction(action).controls[0].displayName;
 	}
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Yarn.Unity;
 using Yarn;
-
+using Armere.UI;
 using TMPro;
 using System.Linq;
 using Armere.Inventory;
@@ -51,24 +51,10 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 		onInteract?.Invoke(interactor);
 	}
 
-
-	public void OnStartHighlight()
-	{
-		//show arrow
-		UIController.singleton.npcIndicator.StartIndication(
-			transform,
-			NPCManager.singleton.data[npcName].spokenTo ? npcName.ToString() : "", //Do not show the npc name if the player has never spoken to them
-			Vector3.up * 2);
-	}
-
-	public void OnEndHighlight()
-	{
-		//remove arrow
-		UIController.singleton.npcIndicator.EndIndication();
-	}
-
 	public YarnProgram Dialogue => target.Dialogue;
 	public string StartNode => target.StartNode;
+
+	public string interactionName => NPCManager.singleton.data[npcName].spokenTo ? npcName : "";
 
 	[System.NonSerialized] public IVariableAddon dialogueAddon;
 

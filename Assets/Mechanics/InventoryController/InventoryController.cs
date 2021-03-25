@@ -6,10 +6,6 @@ using UnityEngine;
 using Yarn.Unity;
 using Yarn;
 
-public interface IWriteableToBinary
-{
-	void Write(GameDataWriter writer);
-}
 
 
 namespace Armere.Inventory
@@ -50,10 +46,13 @@ namespace Armere.Inventory
 			_ => string.Empty
 		};
 
-		public virtual void Write(GameDataWriter writer)
+
+		public virtual void Write(in GameDataWriter writer)
 		{
 			writer.Write((int)item.itemName);
 		}
+
+
 	}
 	public class ItemStackT<ItemDataT> : ItemStackBase where ItemDataT : ItemData
 	{
@@ -66,6 +65,18 @@ namespace Armere.Inventory
 	[CreateAssetMenu(menuName = "Game/Inventory")]
 	public class InventoryController : SaveableSO, IVariableAddon
 	{
+
+		public struct ItemHistroy : IWriteableToBinary
+		{
+			public bool hasPickedUp;
+
+			public void Write(in GameDataWriter writer)
+			{
+				writer.Write(hasPickedUp);
+			}
+		}
+		ItemHistroy[] itemsHistroy;
+
 		public ItemAddedEventChannelSO onItemAdded;
 
 		public ItemDatabase db;
@@ -89,7 +100,7 @@ namespace Armere.Inventory
 			get
 			{
 				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name);
-				return new Value(InventoryController.singleton.ItemCount(item));
+				return new Value(ItemCount(item));
 			}
 			set => throw new System.NotImplementedException("Cannot set stage of quest");
 		}
@@ -126,15 +137,7 @@ namespace Armere.Inventory
 			return list;
 		}
 
-		public void WriteList<T>(GameDataWriter writer, List<T> items) where T : IWriteableToBinary
-		{
-			writer.Write(items.Count);
 
-			for (int i = 0; i < items.Count; i++)
-			{
-				items[i].Write(writer);
-			}
-		}
 
 		public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack(db[(ItemName)reader.ReadInt()], reader.ReadUInt());
 		public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase(db[(ItemName)reader.ReadInt()]);
@@ -167,11 +170,11 @@ namespace Armere.Inventory
 			armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
 			potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
 			ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
-			currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
+			currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency, db);
 		}
 		public override void LoadBlank()
 		{
-
+			itemsHistroy = new ItemHistroy[db.itemData.Length];
 		}
 		public override void LoadBin(in GameDataReader reader)
 		{
@@ -190,19 +193,33 @@ namespace Armere.Inventory
 
 			currency.currency = reader.ReadUInt();
 
+			itemsHistroy = new ItemHistroy[db.itemData.Length];
+
+			if (reader.saveVersion > new Version(0, 0, 2))
+			{
+				int saved = reader.ReadInt();
+				for (int i = 0; i < saved; i++)
+				{
+					itemsHistroy[i].hasPickedUp = reader.ReadBool();
+				}
+			}
+
 			//Debug.Log($"Loaded inventory: {currency.currency}");
 		}
 		public override void SaveBin(in GameDataWriter writer)
 		{
-			WriteList(writer, common.items);
-			WriteList(writer, quest.items);
-			WriteList(writer, melee.items);
-			WriteList(writer, sideArm.items);
-			WriteList(writer, bow.items);
-			WriteList(writer, armour.items);
-			WriteList(writer, potions.items);
-			WriteList(writer, ammo.items);
+			writer.WriteList(common.items);
+			writer.WriteList(quest.items);
+			writer.WriteList(melee.items);
+			writer.WriteList(sideArm.items);
+			writer.WriteList(bow.items);
+			writer.WriteList(armour.items);
+			writer.WriteList(potions.items);
+			writer.WriteList(ammo.items);
 			writer.Write(currency.currency);
+
+
+			writer.WriteList(itemsHistroy);
 		}
 
 		private void OnEnable()
@@ -234,10 +251,59 @@ namespace Armere.Inventory
 
 
 
+		//[System.Obsolete("Please dont use singletons lol")] 
 		public static InventoryController singleton;
 		public event InventoryOptionDelegate OnSelectItemEvent;
 		public event InventoryOptionDelegate OnDropItemEvent;
 		public event InventoryOptionDelegate OnConsumeItemEvent;
+
+
+
+		public bool TryAddItem(ItemData item, uint count, bool hiddenAddition, int desiredPosition = -1)
+		{
+			InventoryPanel p = GetPanelFor(item.type);
+			var addedIndex = p.AddItem(item, count, desiredPosition);
+
+			if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
+			{
+				onItemAdded.OnItemAdded(p[addedIndex], item.type, addedIndex, hiddenAddition);
+				IncreaseItemHistroy(item.itemName);
+			}
+
+			return addedIndex != -1;
+		}
+		public bool TryAddItem(int index, ItemType type, uint count, bool hiddenAddition)
+		{
+			var b = GetPanelFor(type).AddItem(index, count);
+			if (b) //Use itemat command to find the type of item that was added
+			{
+				onItemAdded.OnItemAdded(ItemAt(index, type), type, index, hiddenAddition);
+				IncreaseItemHistroy(ItemAt(index, type).item.itemName);
+			}
+			return b;
+		}
+
+		public bool TryAddItem(ItemStackBase stack, bool hiddenAddition = false)
+		{
+			ItemType type = stack.item.type;
+			var b = GetPanelFor(type).AddItem(stack);
+			if (b) //Use itemat command to find the type of item that was added
+			{
+				onItemAdded.OnItemAdded(stack, type, GetPanelFor(type).stackCount - 1, hiddenAddition);
+				IncreaseItemHistroy(stack.item.itemName);
+			}
+			return b;
+		}
+
+		void IncreaseItemHistroy(ItemName name)
+		{
+			if (!itemsHistroy[(int)name].hasPickedUp)
+			{
+				UI.NewItemPrompt.singleton.ShowPrompt(db[name], 1, null, addItemsToInventory: false);
+				itemsHistroy[(int)name].hasPickedUp = true;
+			}
+		}
+
 
 
 		public void OnSelectItem(ItemType type, int itemIndex)
@@ -263,20 +329,6 @@ namespace Armere.Inventory
 
 
 
-		public bool TryAddItem(ItemData item, uint count, bool hiddenAddition, int desiredPosition = -1)
-		{
-			InventoryPanel p = GetPanelFor(item.type);
-			var addedIndex = p.AddItem(item, count, desiredPosition);
-
-			if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
-			{
-				onItemAdded.OnItemAdded(p[addedIndex], item.type, addedIndex, hiddenAddition);
-			}
-
-			return addedIndex != -1;
-		}
-
-
 		public void ReplaceItemDialogue(ItemData item, System.Action onReplaced)
 		{
 			//Tell the UI to start a replacement
@@ -298,22 +350,7 @@ namespace Armere.Inventory
 
 
 
-		public bool TryAddItem(int index, ItemType type, uint count, bool hiddenAddition)
-		{
-			var b = GetPanelFor(type).AddItem(index, count);
-			if (b) //Use itemat command to find the type of item that was added
-				onItemAdded.OnItemAdded(ItemAt(index, type), type, index, hiddenAddition);
-			return b;
-		}
 
-		public bool TryAddItem(ItemStackBase stack, bool hiddenAddition = false)
-		{
-			ItemType type = stack.item.type;
-			var b = GetPanelFor(type).AddItem(stack);
-			if (b) //Use itemat command to find the type of item that was added
-				onItemAdded.OnItemAdded(stack, type, GetPanelFor(type).stackCount - 1, hiddenAddition);
-			return b;
-		}
 
 		public bool TakeItem(int index, ItemType type, uint count = 1) => GetPanelFor(type).TakeItem(index, count);
 		public uint ItemCount(ItemName n) => GetPanelFor(db[n].type).ItemCount(n);

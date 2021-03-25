@@ -36,9 +36,9 @@ public class AutoBow : AIState<AutoBowRoutine>
 	{
 		var arrowNotch = new WaitForSeconds(t.arrowNotchTime);
 		//Shoot the bow forever
-
-		var task = c.SetHeldBow(t.bowItem);
-		while (!task.IsCompleted) yield return null;
+		var handle = c.SetHeldBow(t.bowItem);
+		while (!handle.IsDone)
+			yield return null;
 
 		c.weaponGraphics.holdables.bow.sheathed = false;
 
@@ -48,11 +48,11 @@ public class AutoBow : AIState<AutoBowRoutine>
 		var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
 		bow.InitBow(t.bowItem);
 
-		c.animationController.lookAtPositionWeight = 1;
-		c.animationController.headLookAtPositionWeight = 1;
-		c.animationController.eyesLookAtPositionWeight = 1;
-		c.animationController.bodyLookAtPositionWeight = 1;
-		c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
+		c.animationController.weights.weight = 1;
+		c.animationController.weights.headWeight = 1;
+		c.animationController.weights.eyesWeight = 1;
+		c.animationController.weights.bodyWeight = 1;
+		c.animationController.weights.clampWeight = 0.5f; //180 degrees
 		c.animationController.TriggerTransition(c.transitionSet.holdBow);
 
 		while (true)

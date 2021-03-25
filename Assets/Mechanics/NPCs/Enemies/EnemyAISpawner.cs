@@ -3,6 +3,7 @@ using Armere.Inventory;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Assertions;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class EnemyAISpawner : Spawner
 {
@@ -15,25 +16,31 @@ public class EnemyAISpawner : Spawner
 	[System.NonSerialized] public EnemyAI body;
 
 	public AIStateTemplate startingState;
-	public override async Task<SpawnableBody> Spawn()
-	{
 
-		Assert.IsTrue(ai.RuntimeKeyIsValid(), "Reference is null");
-		body = (EnemyAI)await GameObjectSpawner.SpawnAsync(ai, transform.position, transform.rotation);
+	void OnEnemySpawned(AsyncOperationHandle<GameObject> handle)
+	{
+		var body = handle.Result.GetComponent<EnemyAI>();
+
 		body.waypointGroup = optionalWaypoints;
 		body.onPlayerDetected += onPlayerDetected.Invoke;
 		body.meleeWeapon = meleeWeapon;
 		if (startingState != null)
 			body.defaultState = startingState;
 		body.InitEnemy();
-		return body;
+	}
+
+	public void Spawn()
+	{
+		Assert.IsTrue(ai.RuntimeKeyIsValid(), "Reference is null");
+		var handle = GameObjectSpawner.Spawn(ai, transform.position, transform.rotation);
+		GameObjectSpawner.OnDone(handle, OnEnemySpawned);
 	}
 
 
 
 
-	private async void Start()
+	private void Start()
 	{
-		await Spawn();
+		Spawn();
 	}
 }

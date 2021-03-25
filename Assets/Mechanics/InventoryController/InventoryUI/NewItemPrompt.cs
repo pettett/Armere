@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.AddressableAssets;
 using System.Threading.Tasks;
+using Armere.UI;
 
 namespace Armere.Inventory.UI
 {
@@ -13,12 +14,11 @@ namespace Armere.Inventory.UI
 	{
 		public static NewItemPrompt singleton;
 		public GameObject holder;
-		public ItemDatabase db;
 		public Image thumbnail;
 		public TextMeshProUGUI title;
 		public TextMeshProUGUI description;
 
-		public async void ShowPrompt(ItemData item, uint count, System.Action onPromptRemoved)
+		public async void ShowPrompt(ItemData item, uint count, System.Action onPromptRemoved, bool addItemsToInventory = true)
 		{
 			if (count == 0)
 			{
@@ -27,6 +27,8 @@ namespace Armere.Inventory.UI
 			}
 
 			holder.SetActive(true);
+			holder.transform.localPosition = Vector2.down * (((RectTransform)UIController.singleton.transform).sizeDelta.y + 200);
+			LeanTween.moveLocalY(holder, 0, 1).setIgnoreTimeScale(true).setEaseOutCubic();
 
 			if (count == 1)
 				title.text = item.name;
@@ -36,8 +38,8 @@ namespace Armere.Inventory.UI
 			description.text = item.description;
 
 
-
-			InventoryController.singleton.TryAddItem(item, count, true);
+			if (addItemsToInventory)
+				InventoryController.singleton.TryAddItem(item, count, true);
 
 			thumbnail.sprite = await item.thumbnail.LoadAssetAsync().Task;
 
@@ -52,11 +54,13 @@ namespace Armere.Inventory.UI
 
 			await onButtonPressed.Task;
 
+			LeanTween.moveLocalY(holder, (((RectTransform)UIController.singleton.transform).sizeDelta.y + 200), 1
+				).setIgnoreTimeScale(true).setEaseInCubic().setOnComplete(() => holder.SetActive(false));
+
 			continueAction.Disable();
 			//Remove the prompt
 			Addressables.Release(thumbnail.sprite);
 
-			holder.SetActive(false);
 			onPromptRemoved?.Invoke();
 		}
 

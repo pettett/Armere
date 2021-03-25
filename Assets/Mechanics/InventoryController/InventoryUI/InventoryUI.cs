@@ -14,7 +14,7 @@ namespace Armere.Inventory.UI
 		public GameObject gridPanelTemplate;
 		public GameObject template;
 		public GameObject blankSlotTemplate;
-		public ItemDatabase db;
+		public InventoryController inventory;
 		public Transform gridPanelHolder;
 		public ItemInfoDisplay selectedDisplay;
 		public bool sellMenu;
@@ -93,13 +93,13 @@ namespace Armere.Inventory.UI
 			switch (commands)
 			{
 				case ItemInteractionCommands.Drop:
-					InventoryController.singleton.OnDropItem(type, index);
+					inventory.OnDropItem(type, index);
 					break;
 				case ItemInteractionCommands.Equip:
-					InventoryController.singleton.OnSelectItem(type, index);
+					inventory.OnSelectItem(type, index);
 					break;
 				case ItemInteractionCommands.Consume:
-					InventoryController.singleton.OnConsumeItem(type, index);
+					inventory.OnConsumeItem(type, index);
 					break;
 			}
 		}
@@ -117,12 +117,12 @@ namespace Armere.Inventory.UI
 
 
 
-				InventoryPanel p = InventoryController.singleton.GetPanelFor(type);
+				InventoryPanel p = inventory.GetPanelFor(type);
 				ItemInteractionCommands[] commands = CommandsEnabled(p).ToArray();
 
 				if (commands.Length != 0)
 				{
-					ItemData item = InventoryController.singleton.ItemAt(index, type).item;
+					ItemData item = inventory.ItemAt(index, type).item;
 
 					contextMenu = Instantiate(contextMenuPrefab, transform);
 
@@ -192,7 +192,7 @@ namespace Armere.Inventory.UI
 
 		public void OnItemSelected(ItemStackBase item)
 		{
-			selectedDisplay.ShowInfo(item, db);
+			selectedDisplay.ShowInfo(item, inventory.db);
 		}
 
 		void AddItemGroup(InventoryPanel panel)
@@ -266,14 +266,14 @@ namespace Armere.Inventory.UI
 		{
 			inventoryUIPanels = null;
 
-			RemoveItemGroup(InventoryController.singleton.melee);
-			RemoveItemGroup(InventoryController.singleton.sideArm);
-			RemoveItemGroup(InventoryController.singleton.bow);
-			RemoveItemGroup(InventoryController.singleton.ammo);
-			RemoveItemGroup(InventoryController.singleton.armour);
-			RemoveItemGroup(InventoryController.singleton.common);
-			RemoveItemGroup(InventoryController.singleton.quest);
-			RemoveItemGroup(InventoryController.singleton.potions);
+			RemoveItemGroup(inventory.melee);
+			RemoveItemGroup(inventory.sideArm);
+			RemoveItemGroup(inventory.bow);
+			RemoveItemGroup(inventory.ammo);
+			RemoveItemGroup(inventory.armour);
+			RemoveItemGroup(inventory.common);
+			RemoveItemGroup(inventory.quest);
+			RemoveItemGroup(inventory.potions);
 
 
 			CleanUpInventory();
@@ -291,14 +291,14 @@ namespace Armere.Inventory.UI
 			//Currency if left for the currency display
 
 
-			AddItemGroup(InventoryController.singleton.melee);
-			AddItemGroup(InventoryController.singleton.sideArm);
-			AddItemGroup(InventoryController.singleton.bow);
-			AddItemGroup(InventoryController.singleton.ammo);
-			AddItemGroup(InventoryController.singleton.armour);
-			AddItemGroup(InventoryController.singleton.common);
-			AddItemGroup(InventoryController.singleton.quest);
-			AddItemGroup(InventoryController.singleton.potions);
+			AddItemGroup(inventory.melee);
+			AddItemGroup(inventory.sideArm);
+			AddItemGroup(inventory.bow);
+			AddItemGroup(inventory.ammo);
+			AddItemGroup(inventory.armour);
+			AddItemGroup(inventory.common);
+			AddItemGroup(inventory.quest);
+			AddItemGroup(inventory.potions);
 		}
 	}
 }

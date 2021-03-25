@@ -109,11 +109,6 @@ public class UIPanels : MonoBehaviour
 	}
 	void SwitchPanels(int from, int to)
 	{
-		StartCoroutine(AnimatePanels(from, to));
-
-	}
-	IEnumerator AnimatePanels(int from, int to)
-	{
 		panels[to].MakeSelected();
 		panels[from].MakeUnSelected();
 		panels[to].openButton.Select();
@@ -121,16 +116,18 @@ public class UIPanels : MonoBehaviour
 		float direction = Mathf.Sign(to - from);
 
 		panels[to].transform.localPosition = new Vector2(2000 * direction, 0);
-
 		endTransition = Time.time + transitionTime;
-
-		LeanTween.moveLocal(panels[to].gameObject, Vector2.zero, transitionTime).setEaseInCubic().setEaseOutCubic();
-		LeanTween.moveLocal(panels[from].gameObject, new Vector2(-2000 * direction, 0), transitionTime).setEaseInCubic().setEaseOutCubic();
-
-
 		panels[to].gameObject.SetActive(true);
 
-		yield return new WaitForSeconds(transitionTime);
-		panels[from].gameObject.SetActive(false);
+		LeanTween.moveLocal(panels[to].gameObject, Vector2.zero, transitionTime).setIgnoreTimeScale(true).setEaseInCubic().setEaseOutCubic();
+
+		LeanTween.moveLocal(panels[from].gameObject, new Vector2(-2000 * direction, 0), transitionTime).setIgnoreTimeScale(true).setEaseInCubic(
+		).setEaseOutCubic().setOnComplete(() =>
+		{
+			panels[from].gameObject.SetActive(false);
+		});
+
+
+
 	}
 }

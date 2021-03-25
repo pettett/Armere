@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Armere.UI;
 public class DungeonBossAI : BossAI
 {
 	//Responsible for providing the states of the boss fight

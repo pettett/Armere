@@ -18,7 +18,7 @@ namespace Armere.Inventory
 			this.count = count;
 		}
 
-		public override void Write(GameDataWriter writer)
+		public override void Write(in GameDataWriter writer)
 		{
 			writer.Write((int)item.itemName);
 			writer.Write(count);

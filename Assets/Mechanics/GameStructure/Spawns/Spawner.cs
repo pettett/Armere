@@ -1,10 +1,46 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
 public abstract class Spawner : MonoBehaviour
 {
-	public abstract Task<SpawnableBody> Spawn();
 
+	static uint handles = 0;
+
+	public static void LoadAsset<T>(AssetReferenceT<T> reference, System.Action<AsyncOperationHandle<T>> onDone) where T : UnityEngine.Object
+	{
+		if (reference.RuntimeKeyIsValid())
+		{
+			var handle = Addressables.LoadAssetAsync<T>(reference);
+
+			handles++;
+			//Debug.Log($"Loading, currentley: {handles}");
+			OnDone(handle, onDone);
+		}
+	}
+	public static void ReleaseAsset<T>(AsyncOperationHandle<T> reference) where T : UnityEngine.Object
+	{
+		if (reference.IsValid())
+		{
+			handles--;
+			Addressables.Release(reference);
+
+			//Debug.Log($"Releasing, currentley: {handles}");
+		}
+	}
+
+	public static void OnDone<T>(AsyncOperationHandle<T> handle, System.Action<AsyncOperationHandle<T>> onDone) where T : UnityEngine.Object
+	{
+		if (!handle.IsDone)
+			handle.Completed += onDone;
+		else
+		{
+			Debug.Log($"Immediately done {handle.Result.name}");
+			onDone(handle);
+		}
+	}
 
 #if UNITY_EDITOR
 	protected void DrawSpawnedItem(AssetReferenceGameObject go)

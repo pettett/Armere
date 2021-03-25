@@ -120,6 +120,8 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		var dir = (transform.position - playerTransform.position);
 		dir.y = 0;
 		Quaternion desiredRot = Quaternion.LookRotation(dir);
+
+
 		while (Quaternion.Angle(desiredRot, playerTransform.rotation) > 1f)
 		{
 			playerTransform.rotation = Quaternion.RotateTowards(playerTransform.rotation, desiredRot, Time.deltaTime * 800);

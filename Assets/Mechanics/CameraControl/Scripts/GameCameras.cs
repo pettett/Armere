@@ -110,11 +110,20 @@ public class GameCameras : MonoBehaviour
 	private void OnEnable()
 	{
 		inputReader.changeFocusEvent += OnChangeFocus;
+		inputReader.cameraMoveEvent += OnCameraMove;
 	}
 	private void OnDisable()
 	{
 		inputReader.changeFocusEvent -= OnChangeFocus;
+		if (controlling)
+			inputReader.cameraMoveEvent -= OnCameraMove;
 	}
+
+	private void OnCameraMove(Vector2 movement, bool isMouse)
+	{
+		mouseDelta = movement * SettingsManager.settings.sensitivity * 0.01f;
+	}
+
 	public void OnChangeFocus(InputActionPhase phase)
 	{
 		if (phase == InputActionPhase.Performed)
@@ -214,15 +223,24 @@ public class GameCameras : MonoBehaviour
 
 	public void DisableControl()
 	{
-		controlling = false;
-		mouseDelta = Vector2.zero;
-		GameCameras.s.freeLook.enabled = false;
+		if (controlling)
+		{
+			controlling = false;
+			inputReader.cameraMoveEvent -= OnCameraMove;
+			mouseDelta = Vector2.zero;
+			GameCameras.s.freeLook.enabled = false;
+		}
 	}
 	public void EnableControl()
 	{
-		//start the transition from free camare to game camera
-		controlling = true;
-		GameCameras.s.freeLook.enabled = true;
+		if (!controlling)
+		{
+			//start the transition from free camare to game camera
+			controlling = true;
+
+			inputReader.cameraMoveEvent += OnCameraMove;
+			GameCameras.s.freeLook.enabled = true;
+		}
 	}
 
 
@@ -270,8 +288,8 @@ public class GameCameras : MonoBehaviour
 			}
 		}
 
-		if (controlling)
-			mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
+		// if (controlling)
+		// 	mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
 
 		Cursor.lockState = lockingMouse ? CursorLockMode.Locked : CursorLockMode.None;
 		Cursor.visible = !lockingMouse;

@@ -64,7 +64,9 @@ namespace Armere.Inventory.UI
 		}
 
 
-		public async void SetupItemDisplayAsync(ItemData displayItem, uint count)
+
+
+		public void SetupItemDisplayAsync(ItemData displayItem, uint count)
 		{
 			if (countText != null)
 				if (count == 0)
@@ -76,14 +78,14 @@ namespace Armere.Inventory.UI
 					countText.SetText(count.ToString());
 				}
 			if (thumbnail != null)
-				if (displayItem.thumbnail.RuntimeKeyIsValid())
+				Spawner.LoadAsset(displayItem.thumbnail, (handle) =>
 				{
-					asyncOperation = Addressables.LoadAssetAsync<Sprite>(displayItem.thumbnail);
-					Sprite s = await asyncOperation.Task;
+					asyncOperation = handle;
 					//The image may have been destroyed before finishing
-					thumbnail.sprite = s;
+					thumbnail.sprite = handle.Result;
 					thumbnail.color = Color.white;
-				}
+				});
+
 			nameText?.SetText(displayItem.displayName);
 		}
 
@@ -94,8 +96,7 @@ namespace Armere.Inventory.UI
 		}
 		public void ReleaseCurrentSprite()
 		{
-			if (asyncOperation.IsValid())
-				Addressables.Release(asyncOperation);
+			Spawner.ReleaseAsset(asyncOperation);
 			thumbnail.color = Color.clear;
 		}
 

@@ -35,7 +35,7 @@ public class Arrow : Projectile
 		if (!destroyOnHit && !goodHit)
 		{
 			//Turn arrow into an item if it is permitted
-			var x = ItemSpawner.SpawnItemAsync(ammo, transform.position, transform.rotation);
+			ItemSpawner.SpawnItem(ammo, transform.position, transform.rotation);
 		}
 	}
 }

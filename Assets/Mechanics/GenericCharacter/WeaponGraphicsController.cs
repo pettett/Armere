@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Assertions;
 using Armere.Inventory;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 [System.Serializable]
 public struct EquipmentSet<T> : IEnumerable<T>
@@ -101,7 +102,7 @@ public class WeaponGraphicsController : MonoBehaviour
 				Anchor();
 			}
 		}
-		[HideInInspector] public SpawnableBody gameObject;
+		[System.NonSerialized] public SpawnableBody gameObject;
 		HoldableItemData holdable;
 		public void Init(Animator a)
 		{
@@ -118,18 +119,20 @@ public class WeaponGraphicsController : MonoBehaviour
 					holdPoint.Anchor(gameObject.transform);
 		}
 
-		public async Task SetHeld(HoldableItemData holdable)
+		public AsyncOperationHandle<GameObject> SetHeld(HoldableItemData holdable)
 		{
 			this.holdable = holdable;
 			if (gameObject != null) gameObject.Destroy();
 
 			Assert.IsTrue(holdable.holdableGameObject.RuntimeKeyIsValid(), "Reference to holdable is null");
-
-
-
-			gameObject = (await GameObjectSpawner.SpawnAsync(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default));
-
-			Anchor();
+			var handle = GameObjectSpawner.Spawn(holdable.holdableGameObject, Vector3.zero, Quaternion.identity, default);
+			GameObjectSpawner.OnDone(handle,
+			(handle) =>
+			{
+				gameObject = handle.Result.GetComponent<SpawnableBody>();
+				Anchor();
+			});
+			return handle;
 		}
 
 		public void RemoveHeld()

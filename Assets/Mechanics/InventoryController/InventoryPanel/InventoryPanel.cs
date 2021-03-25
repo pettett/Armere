@@ -8,7 +8,6 @@ namespace Armere.Inventory
 		public readonly string name;
 		public readonly ItemType type;
 		public readonly ItemInteractionCommands commands;
-
 		public uint limit;
 
 		public event Action<InventoryPanel> onPanelUpdated;

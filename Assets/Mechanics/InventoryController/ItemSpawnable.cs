@@ -34,17 +34,5 @@ namespace Armere.Inventory
 			}
 		}
 
-		// public async void SpawnItemsToWorld()
-		// {
-		// 	Task<ItemSpawnable>[] t = new Task<ItemSpawnable>[count];
-
-		// 	for (int i = 0; i < count; i++)
-		// 	{
-		// 		t[i] = ItemSpawner.SpawnItemAsync(()item, transform.position, transform.rotation);
-		// 	}
-
-		// 	await Task.WhenAll(t);
-		// }
-
 	}
 }

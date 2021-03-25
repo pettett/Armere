@@ -44,17 +44,18 @@ namespace Armere.Inventory.UI
 			onPlayerInventoryItemAdded.onItemAddedEvent -= OnItemAdded;
 		}
 
-		async void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hidden)
+		void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hidden)
 		{
 			if (!hidden)
 			{
-				var operation = Addressables.InstantiateAsync(entryPrefab, transform, trackHandle: false);
+				Spawner.OnDone(Addressables.InstantiateAsync(entryPrefab, transform, trackHandle: false), (handle) =>
+				{
 
-				GameObject go = await operation.Task;
+					GameObject go = handle.Result;
+					go.GetComponent<InventoryItemUI>().SetupItemDisplayAsync(stack);
 
-				go.GetComponent<InventoryItemUI>().SetupItemDisplayAsync(stack);
-
-				entries.Enqueue(new Entry(go, Time.time, operation));
+					entries.Enqueue(new Entry(go, Time.time, handle));
+				});
 			}
 		}
 

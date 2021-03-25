@@ -5,6 +5,7 @@ using Cinemachine;
 using Armere.Inventory.UI;
 using Armere.Inventory;
 using Yarn;
+using Armere.UI;
 
 namespace Armere.PlayerController
 {
@@ -70,9 +71,9 @@ namespace Armere.PlayerController
 
 
 			//Set up ik weights
-			c.animationController.headLookAtPositionWeight = 1;
-			c.animationController.lookAtPositionWeight = 1;
-			c.animationController.clampLookAtPositionWeight = 0.5f; //Half rotation away
+			c.animationController.weights.headWeight = 1;
+			c.animationController.weights.weight = 1;
+			c.animationController.weights.clampWeight = 0.5f; //Half rotation away
 			c.animationController.lookAtPosition = talkingTarget.headPosition.position;
 
 			//GameCameras.s.freeLookTarget = GameCameras.s.cameraTrackingTarget;
@@ -111,8 +112,8 @@ namespace Armere.PlayerController
 
 
 
-			c.animationController.headLookAtPositionWeight = 0;
-			c.animationController.lookAtPositionWeight = 0;
+			c.animationController.weights.headWeight = 0;
+			c.animationController.weights.weight = 0;
 		}
 
 		public override void Update()
@@ -294,7 +295,7 @@ namespace Armere.PlayerController
 
 			UIController.singleton.buyMenu.SetActive(true);
 			//Wait for a buy
-			buyMenu.ShowInventory(talkingTarget.buyInventory, InventoryController.singleton.db, OnBuyMenuItemSelected);
+			buyMenu.ShowInventory(talkingTarget.buyInventory, c.inventory, OnBuyMenuItemSelected);
 		}
 
 		void OnBuyMenuItemSelected()
@@ -424,7 +425,7 @@ namespace Armere.PlayerController
 				count = uint.Parse(arg[1]);
 
 			//give [count] items of type [item]
-			NewItemPrompt.singleton.ShowPrompt(InventoryController.singleton.db[item], count, onComplete);
+			NewItemPrompt.singleton.ShowPrompt(c.inventory.db[item], count, onComplete);
 		}
 
 

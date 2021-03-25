@@ -17,8 +17,8 @@ namespace Armere.PlayerController
 	{
 		public override string StateName => "Interact";
 		int currentLookAt;
-		[NonSerialized] List<IInteractable> interactablesInRange = new List<IInteractable>();
-		[NonSerialized] IInteractable prevTarget;
+		List<IInteractable> interactablesInRange = new List<IInteractable>();
+		IInteractable prevTarget;
 		public bool enabled = false;
 
 		public Interact(PlayerController c, InteractTemplate t) : base(c, t)
@@ -54,7 +54,8 @@ namespace Armere.PlayerController
 				interactablesInRange = null;
 
 				//Remove the "Interact" prompt
-				UIPrompt.ResetPrompt();
+
+				t.OnEndHighlight?.Invoke();
 
 				c.inputReader.actionEvent -= OnInteract;
 			}
@@ -161,29 +162,29 @@ namespace Armere.PlayerController
 
 			if (currentLookAt == -1)
 			{
-				//Not looking at any targets or no targets exist
-				RemovePrevTarget();
+				if (prevTarget != null)
+					//Not looking at any targets or no targets exist
+					RemovePrevTarget();
 			}
 			else if (prevTarget != interactablesInRange[currentLookAt])
 			{
-				if (prevTarget != null)
-					prevTarget.OnEndHighlight();
 				//no target before this, start applying the prompt
-				UIPrompt.ApplyPrompt(interactablesInRange[currentLookAt].interactionDescription, c.inputReader.asset.FindAction("Action").controls[0].displayName);
+				t.OnBeginHighlight?.Invoke(interactablesInRange[currentLookAt]);
 
-				interactablesInRange[currentLookAt].OnStartHighlight();
 				prevTarget = interactablesInRange[currentLookAt];
+
+				c.animationController.lookAtTarget = interactablesInRange[currentLookAt].gameObject.transform;
 			}
 		}
 
 		void RemovePrevTarget()
 		{
-			if (prevTarget != null)
-			{
-				prevTarget.OnEndHighlight();
-				prevTarget = null;
-				UIPrompt.ResetPrompt();
-			}
+			c.animationController.lookAtTarget = null;
+			prevTarget = null;
+
+
+			t.OnEndHighlight?.Invoke();
+
 		}
 
 		void OnInteractableRemoved(IInteractable interactable)
@@ -194,7 +195,10 @@ namespace Armere.PlayerController
 
 		void ExitInteractable(IInteractable exit)
 		{
-			exit.OnEndHighlight();
+			if (prevTarget == exit)
+			{
+				RemovePrevTarget();
+			}
 			interactablesInRange.Remove(exit);
 		}
 

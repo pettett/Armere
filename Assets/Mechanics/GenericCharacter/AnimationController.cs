@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 public interface IAnimatable
 {
@@ -98,16 +99,25 @@ public class AnimationController : MonoBehaviour
 		public float rotationWeight;
 	}
 
+	[System.Serializable]
+	public struct LookAtWeights
+	{
+		[Range(0, 1)] public float weight, bodyWeight, headWeight, eyesWeight, clampWeight;
+	}
+
+
+
 
 	public List<HoldPoint> holdPoints;
 
 
 	Animator anim;
 
+	[System.NonSerialized] public LookAtWeights weights;
+	public LookAtWeights lookAtTargetWeights;
 
-	public float lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight = 0;
+	[System.NonSerialized] public Transform lookAtTarget;
 	[System.NonSerialized] public Vector3 lookAtPosition;
-
 
 	public bool useAnimationHook = false;
 
@@ -118,7 +128,13 @@ public class AnimationController : MonoBehaviour
 	Rigidbody rb;
 	#endregion
 	public bool lookToVelocity;
+	public float maxTurningAngle = 1;
+	public float turningMultiplier = 3;
+	public float turningTime = 0.5f;
+	float turingVel = 0;
+	float averageTurning = 0;
 
+	Vector3 lastDirection;
 	void TriggerTransition(in AnimationTransition transition, int layer)
 	{
 		anim.CrossFadeInFixedTime(transition.nameHash, transition.duration, layer, transition.offset);
@@ -146,9 +162,14 @@ public class AnimationController : MonoBehaviour
 			hashes = new StringHashes("VelocityX", "VelocityZ");
 		}
 	}
-
 	private void FixedUpdate()
 	{
+		if (useAnimationHook)
+		{
+			Vector3 localVelocity = animationHook.transform.InverseTransformDirection(animationHook.velocity / animationHook.maxSpeed);
+			anim.SetFloat(hashes.VelocityX, localVelocity.x * velocityScaler);
+			anim.SetFloat(hashes.VelocityZ, localVelocity.z * velocityScaler);
+		}
 		if (enableFeetIK && anim != null)
 		{
 			AdjustFeetTarget(ref rightFootPosition, HumanBodyBones.RightFoot);
@@ -157,6 +178,22 @@ public class AnimationController : MonoBehaviour
 			//find and raycast to the ground to find positions
 			FeetPositionSolver(rightFootPosition, ref rightFootIKPosition, ref rightFootIKRotation); // find ground under right foot
 			FeetPositionSolver(leftFootPosition, ref leftFootIKPosition, ref leftFootIKRotation); // find ground under right foot
+		}
+	}
+	private void Update()
+	{
+		if (lookToVelocity)
+		{
+			//record current rotation for graphics controller
+
+			averageTurning = Mathf.SmoothDamp(
+				averageTurning,
+				Vector3.SignedAngle(transform.forward, lastDirection, Vector3.up) / Time.deltaTime,
+				ref turingVel, turningTime);
+
+			averageTurning = Mathf.Clamp(averageTurning, -maxTurningAngle, maxTurningAngle);
+
+			lastDirection = transform.forward;
 		}
 	}
 	void OnAnimatorIK(int layerIndex)
@@ -192,37 +229,35 @@ public class AnimationController : MonoBehaviour
 				anim.SetIKPosition(point.goal, point.gripPoint.position);
 				anim.SetIKRotation(point.goal, point.gripPoint.rotation);
 			}
-			if (lookToVelocity)
+
+			if (lookAtTarget != null)
 			{
+				anim.SetLookAtWeight(lookAtTargetWeights.weight, lookAtTargetWeights.bodyWeight, lookAtTargetWeights.headWeight, lookAtTargetWeights.eyesWeight, lookAtTargetWeights.clampWeight);
+				anim.SetLookAtPosition(lookAtTarget.position);
+			}
+			else if (lookToVelocity)
+			{
+				Quaternion rotation = Quaternion.Euler(0, -averageTurning * turningMultiplier, 0);
+				anim.SetLookAtWeight(1, 0, 0.5f, 1, 0.15f);
 				if (rb.velocity.sqrMagnitude > 0.1f)
 				{
-					anim.SetLookAtWeight(0.5f, 0, 0.5f, 1, 0.1f);
-					anim.SetLookAtPosition(head.position + rb.velocity);
+					anim.SetLookAtPosition(head.position + rotation * rb.velocity);
 				}
 				else
 				{
-					anim.SetLookAtWeight(0, 0, 0, 0, 0);
+					anim.SetLookAtPosition(head.position + rotation * transform.forward);
 				}
 			}
 			else
 			{
 
-				anim.SetLookAtWeight(lookAtPositionWeight, bodyLookAtPositionWeight, headLookAtPositionWeight, eyesLookAtPositionWeight, clampLookAtPositionWeight);
+				anim.SetLookAtWeight(weights.weight, weights.bodyWeight, weights.headWeight, weights.eyesWeight, weights.clampWeight);
 				anim.SetLookAtPosition(lookAtPosition);
 			}
 		}
 	}
 
-	private void Update()
-	{
-		if (useAnimationHook)
-		{
-			Vector3 localVelocity = animationHook.transform.InverseTransformDirection(animationHook.velocity / animationHook.maxSpeed);
-			anim.SetFloat(hashes.VelocityX, localVelocity.x * velocityScaler);
-			anim.SetFloat(hashes.VelocityZ, localVelocity.z * velocityScaler);
-		}
 
-	}
 
 	#region Solver Methods
 

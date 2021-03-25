@@ -11,6 +11,9 @@ public abstract class Character : SpawnableBody
 		Evil = 1,
 		Neutral = 2,
 	}
+
+
+
 	public static Team[][] enemies = new Team[][]{
 		new Team[]{ Team.Evil}, //Good
 		new Team[]{ Team.Good}, //Evil
@@ -19,6 +22,41 @@ public abstract class Character : SpawnableBody
 
 	public static readonly Dictionary<Team, List<Character>> teams = new Dictionary<Team, List<Character>>();
 
+	public enum BuffType
+	{
+		Burning,
+		Frozen,
+		Strength,
+		Speed,
+		Stealth,
+	}
+
+	public class Buff
+	{
+		public BuffType buff;
+		public float remainingTime;
+	}
+
+	public List<Buff> buffs = new List<Buff>();
+
+	public OnBuffChangedEventChannel onBuffAdded;
+	[MyBox.ButtonMethod]
+	public void AddRandomBuff()
+	{
+		AddBuff(new Buff() { buff = (BuffType)Random.Range(0, 5), remainingTime = Random.Range(10, 400) });
+	}
+	public void AddBuff(Buff buff)
+	{
+		buffs.Add(buff);
+		onBuffAdded?.RaiseEvent(buff);
+	}
+	protected virtual void Update()
+	{
+		for (int i = 0; i < buffs.Count; i++)
+		{
+			buffs[i].remainingTime -= Time.deltaTime;
+		}
+	}
 	public Team team;
 	public bool SameTeamAs(Character other) => !enemies[(int)team].Contains(other.team);
 	public Team[] Enemies() => enemies[(int)team];

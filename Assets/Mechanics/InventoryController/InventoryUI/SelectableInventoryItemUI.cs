@@ -28,7 +28,7 @@ namespace Armere.Inventory.UI
 		{
 			if (interactable)
 			{
-				ItemStackBase stack = InventoryController.singleton.ItemAt(itemIndex, type);
+				ItemStackBase stack = inventoryUI.inventory.ItemAt(itemIndex, type);
 				onSelect?.Invoke(stack);
 				TooltipUI.current.BeginCursorTooltip(stack.title, stack.description);
 
@@ -50,7 +50,7 @@ namespace Armere.Inventory.UI
 		public override void OnSelect(BaseEventData eventData)
 		{
 			if (interactable)
-				onSelect?.Invoke(InventoryController.singleton.ItemAt(itemIndex, type));
+				onSelect?.Invoke(inventoryUI.inventory.ItemAt(itemIndex, type));
 			base.OnSelect(eventData);
 		}
 	}

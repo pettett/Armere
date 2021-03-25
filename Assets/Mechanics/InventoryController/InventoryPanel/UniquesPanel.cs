@@ -10,7 +10,8 @@ namespace Armere.Inventory
 
 		public List<UniqueT> items;
 
-		public UniquesPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands) : base(name, limit, type, commands)
+		public UniquesPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands)
+			: base(name, limit, type, commands)
 		{
 			items = new List<UniqueT>(limit > 20 ? 20 : (int)limit);
 		}

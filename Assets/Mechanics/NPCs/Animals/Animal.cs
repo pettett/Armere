@@ -24,7 +24,7 @@ public class Animal : MonoBehaviour
 		//Die
 		print("Hit Animal");
 		for (int i = 0; i < count; i++)
-			ItemSpawner.SpawnItemAsync(drop, transform.position, transform.rotation);
+			ItemSpawner.SpawnItem(drop, transform.position, transform.rotation);
 
 		Destroy(gameObject);
 	}

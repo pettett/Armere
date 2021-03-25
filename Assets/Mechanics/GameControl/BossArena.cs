@@ -5,6 +5,7 @@ using UnityEngine.Playables;
 using UnityEngine.Events;
 using UnityEngine.AddressableAssets;
 
+using Armere.UI;
 public class BossArena : MonoBehaviour
 {
 	public PlayableDirector entranceCutsceneDirector;
@@ -34,15 +35,18 @@ public class BossArena : MonoBehaviour
 		onFightStart.Invoke();
 	}
 
-	public async void SpawnBoss()
+	public void SpawnBoss()
 	{
-		GameObject go = await boss.InstantiateAsync(bossSpawn.position, Quaternion.identity).Task;
-		bossAI = go.GetComponent<BossAI>();
+		Spawner.OnDone(boss.InstantiateAsync(bossSpawn.position, Quaternion.identity), (handle) =>
+		{
+			GameObject go = handle.Result;
+			bossAI = go.GetComponent<BossAI>();
 
-		bossAI.health.onDeathEvent.AddListener(OnBossDied);
-		bossAI.musicController = musicController;
-		bossAI.Init();
-		UIController.singleton.bossBar.StartBossBarTracking(go.name);
+			bossAI.health.onDeathEvent.AddListener(OnBossDied);
+			bossAI.musicController = musicController;
+			bossAI.Init();
+			UIController.singleton.bossBar.StartBossBarTracking(go.name);
+		});
 	}
 
 	public void OnBossDied()

@@ -8,6 +8,8 @@ public class IndicatorUI : MonoBehaviour
 	protected Transform target = null;
 	protected Vector3 worldOffset;
 
+	protected Vector2 localOffset;
+
 	public void Init(Transform target, Vector3 worldOffset = default)
 	{
 		Assert.IsNotNull(target, "No target");
@@ -25,6 +27,6 @@ public class IndicatorUI : MonoBehaviour
 		//Sort by distance
 		screenPos.z = Vector3.SqrMagnitude(target.position + worldOffset - Camera.main.transform.position);
 
-		transform.position = screenPos;
+		transform.position = screenPos + (Vector3)localOffset;
 	}
 }

@@ -12,16 +12,17 @@ namespace Armere.Inventory.UI
 		[SerializeField] BuyMenuItem[] inventory;
 		public ItemInfoDisplay selectedDisplay;
 		int selected;
-		ItemDatabase db;
 		System.Action onItemSelected;
 		bool waitingForConfirmation = false;
 		public string outOfStockAlert = "Out Of Stock";
 
-		public async void ShowInventory(BuyMenuItem[] inventory, ItemDatabase db, System.Action onItemSelected)
+		InventoryController playerInventory;
+
+		public async void ShowInventory(BuyMenuItem[] inventory, InventoryController playerInventory, System.Action onItemSelected)
 		{
 			print("Showing Buy Menu");
 			this.inventory = inventory;
-			this.db = db;
+			this.playerInventory = playerInventory;
 			this.onItemSelected = onItemSelected;
 			waitingForConfirmation = false;
 			holder.SetActive(true);
@@ -40,7 +41,7 @@ namespace Armere.Inventory.UI
 
 				buyMenuItem.UpdateCost(
 					inventory[i].cost,
-					InventoryController.singleton.currency.ItemCount(0)
+					playerInventory.currency.ItemCount(0)
 					);
 
 				buyMenuItem.controller = this;
@@ -65,7 +66,7 @@ namespace Armere.Inventory.UI
 
 		public void ShowInfo(int index)
 		{
-			selectedDisplay.ShowInfo(new ItemStackBase(inventory[index].item), db);
+			selectedDisplay.ShowInfo(new ItemStackBase(inventory[index].item), playerInventory.db);
 		}
 		public void WaitForBuyConfirmation()
 		{
@@ -83,11 +84,11 @@ namespace Armere.Inventory.UI
 
 			//Will return true if the currency is successfully removed
 			//Only need to take the item being sold as it will interpret that as the value
-			else if (InventoryController.singleton.currency.TakeValue(inventory[selected].cost * amount))
+			else if (playerInventory.currency.TakeValue(inventory[selected].cost * amount))
 			{
 				inventory[selected].stock -= amount;
 
-				InventoryController.singleton.TryAddItem(inventory[selected].item, inventory[selected].count, true);
+				playerInventory.TryAddItem(inventory[selected].item, inventory[selected].count, true);
 
 				waitingForConfirmation = false;
 				if (inventory[selected].stock == 0)
@@ -104,7 +105,7 @@ namespace Armere.Inventory.UI
 				{
 					inventoryDisplayHolder.GetChild(i).GetComponent<BuyInventoryUIItem>().UpdateCost(
 						inventory[i].cost,
-						InventoryController.singleton.currency.ItemCount(0));
+						playerInventory.currency.ItemCount(0));
 
 
 				}

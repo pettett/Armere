@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Armere.UI;
 public class GameController : SceneSaveData
 {
 	public float timeBeforeDeathScreen = 4;

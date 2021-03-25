@@ -13,15 +13,12 @@ public class NPC : AIHumanoid
 	new Collider collider;
 	public override Bounds bounds => collider.bounds;
 
-	public void InitNPC(NPCTemplate template, NPCSpawn spawn, Transform[] conversationGroupOverride)
+	public void InitNPC(NPCSpawn spawn)
 	{
 
 		this.spawn = spawn;
 
 		collider = GetComponent<Collider>();
-
-
-		gameObject.SetActive(true);
 	}
 
 	public override void Start()

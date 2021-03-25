@@ -21,7 +21,7 @@ namespace Armere.Inventory
 		}
 
 
-		public override void Write(GameDataWriter writer)
+		public override void Write(in GameDataWriter writer)
 		{
 			writer.Write((int)item.itemName);
 			writer.Write(potency);

@@ -64,15 +64,16 @@ public class MapUI : MonoBehaviour
 
 	protected void Start()
 	{
-		if (SceneMap.instance == null){
+		if (SceneMap.instance == null)
+		{
 			enabled = false;
 			return;
 
 		}
 		markers = FindObjectsOfType<MapMarker>();
 
-
-		mapBackground.SetTexture("_HeightTex", SceneMap.instance.map.contours.terrain.heightmapTexture);
+		if (SceneMap.instance.map.contours.terrain != null)
+			mapBackground.SetTexture("_HeightTex", SceneMap.instance.map.contours.terrain.heightmapTexture);
 		UpdateZoom();
 
 		SceneMap.instance.map.onTrackingTargetsChanged += UpdateTrackingMarkers;
@@ -80,7 +81,7 @@ public class MapUI : MonoBehaviour
 	private void OnDestroy()
 	{
 		if (SceneMap.instance != null)
-		SceneMap.instance.map.onTrackingTargetsChanged -= UpdateTrackingMarkers;
+			SceneMap.instance.map.onTrackingTargetsChanged -= UpdateTrackingMarkers;
 	}
 
 	public void UpdateTrackingMarkers()
@@ -159,7 +160,9 @@ public class MapUI : MonoBehaviour
 			gameObject.SetActive(false);
 			return;
 		}
-		map.sizeDelta = new Vector2(SceneMap.instance.map.contours.terrain.size.x, SceneMap.instance.map.contours.terrain.size.z) * mapScale;
+
+
+		map.sizeDelta = SceneMap.instance.map.contours.mapExtents * 2 * mapScale;
 
 
 

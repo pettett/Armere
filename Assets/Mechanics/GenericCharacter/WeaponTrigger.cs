@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
 using Armere.Inventory;
-
-
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 [RequireComponent(typeof(SpawnableBody))]
 public class WeaponTrigger : MonoBehaviour
@@ -10,7 +9,7 @@ public class WeaponTrigger : MonoBehaviour
 	public MeleeWeaponItemData weaponItem;
 	[System.NonSerialized] public GameObject controller;
 	[System.NonSerialized] public Collider trigger;
-	GameObject hitSparkEffect;
+	AsyncOperationHandle<GameObject> hitSparkEffect;
 	public event System.Action<AttackResult> onWeaponHit;
 	bool _enableTrigger = false;
 	public bool inited { get; private set; }
@@ -27,11 +26,14 @@ public class WeaponTrigger : MonoBehaviour
 		}
 	}
 
-	public async void Init(AssetReferenceGameObject hitSparkEffectReference)
+	public void Init(AssetReferenceGameObject hitSparkEffectReference)
 	{
-
+		inited = true;
 		if (hitSparkEffectReference != null)
-			hitSparkEffect = await Addressables.LoadAssetAsync<GameObject>(hitSparkEffectReference).Task;
+			Spawner.LoadAsset(hitSparkEffectReference, (x) =>
+				{
+					hitSparkEffect = x;
+				});
 	}
 	private void Start()
 	{
@@ -40,8 +42,7 @@ public class WeaponTrigger : MonoBehaviour
 
 	private void OnDestroy()
 	{
-		if (hitSparkEffect != null)
-			Addressables.Release(hitSparkEffect);
+		Spawner.ReleaseAsset(hitSparkEffect);
 	}
 
 	private void OnTriggerEnter(Collider other)
@@ -75,8 +76,8 @@ public class WeaponTrigger : MonoBehaviour
 			// Debug.Break();
 
 			//Create a spark
-			if (hitSparkEffect != null)
-				Destroy(Instantiate(hitSparkEffect, hitPosition, Quaternion.identity), 1);
+			if (hitSparkEffect.Result != null)
+				Destroy(Instantiate(hitSparkEffect.Result, hitPosition, Quaternion.identity), 1);
 
 			if (other.TryGetComponent<IAttackable>(out var attackable))
 			{

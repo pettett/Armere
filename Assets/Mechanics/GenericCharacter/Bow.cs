@@ -27,7 +27,7 @@ public class Bow : SpawnableBody
 
 		//create the arrow that should be fired next
 
-		notchedArrow = (Arrow)await GameObjectSpawner.SpawnAsync(ammo.ammoGameObject, arrowAnchor);
+		notchedArrow = (await GameObjectSpawner.Spawn(ammo.ammoGameObject, arrowAnchor).Task).GetComponent<Arrow>();
 
 		Assert.IsNotNull(notchedArrow, "No arrow on ammo");
 

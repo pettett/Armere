@@ -31,12 +31,13 @@ public class Patrol : AIState<PatrolRoutine>
 	{
 		c.StopCoroutine(r);
 	}
-	public async void SetupWeapon()
+	public IEnumerator SetupWeapon()
 	{
 		if (t.overrideHeldWeapon)
 		{
-			await c.SetHeldMelee(t.holdingWeapon);
-
+			var handle = c.SetHeldMelee(t.holdingWeapon);
+			while (!handle.IsDone) // May be done immediately
+				yield return null;
 		}
 		if (t.lightFlammableBody && c.weaponGraphics.holdables.melee.gameObject.TryGetComponent<FlammableBody>(out var f))
 		{
@@ -45,9 +46,8 @@ public class Patrol : AIState<PatrolRoutine>
 	}
 	public IEnumerator Routine()
 	{
+		yield return SetupWeapon();
 
-
-		SetupWeapon();
 		c.animationController.TriggerTransition(c.transitionSet.swordWalking);
 		c.weaponGraphics.holdables.melee.sheathed = !t.holdWeaponDrawn;
 

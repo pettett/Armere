@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
+using Armere.UI;
+
 namespace Armere.Inventory
 {
 
@@ -12,36 +14,18 @@ namespace Armere.Inventory
 
 		public float requiredLookDot => -1;
 
-		public string interactionDescription => $"Pickup {item.displayName}";
+		public string interactionDescription => "Pickup";
 
-
+		public string interactionName => item.displayName;
 
 		public void Interact(IInteractor c)
 		{
-
-
-
 			AddItemsToInventory(() =>
 			{
 				Destroy();
-				OnEndHighlight();
 			});
-
-
-
 		}
 
-		public void OnStartHighlight()
-		{
-			//Show an arrow for this item with name on ui
-			UIController.singleton.itemIndicator.StartIndication(transform, item.ToString());
-		}
-
-		public void OnEndHighlight()
-		{
-			//remove arrow
-			UIController.singleton.itemIndicator.EndIndication();
-		}
 
 
 #if UNITY_EDITOR //Utility methods for dealing with item spawner systems

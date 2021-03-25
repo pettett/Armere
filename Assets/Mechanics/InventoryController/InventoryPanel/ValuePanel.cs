@@ -7,10 +7,12 @@ namespace Armere.Inventory
 	public class ValuePanel : InventoryPanel
 	{
 		public uint currency;
+		public readonly ItemDatabase db;
 
-		public ValuePanel(string name, uint limit, ItemType type) : base(name, limit, type, ItemInteractionCommands.None)
+		public ValuePanel(string name, uint limit, ItemType type, ItemDatabase db) : base(name, limit, type, ItemInteractionCommands.None)
 		{
 			currency = 0;
+			this.db = db;
 		}
 
 		public override ItemStackBase this[int i] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -34,8 +36,8 @@ namespace Armere.Inventory
 		}
 		public override uint ItemCount(ItemName item)
 		{
-			if (InventoryController.singleton.db[item].sellable)
-				return currency % InventoryController.singleton.db[item].sellValue;
+			if (db[item].sellable)
+				return currency % db[item].sellValue;
 			else
 				return 0;
 		}
@@ -45,7 +47,7 @@ namespace Armere.Inventory
 		}
 		public override bool TakeItem(ItemName name, uint count)
 		{
-			return TakeValue(InventoryController.singleton.db[name].sellValue * count);
+			return TakeValue(db[name].sellValue * count);
 		}
 		public bool TakeValue(uint value)
 		{

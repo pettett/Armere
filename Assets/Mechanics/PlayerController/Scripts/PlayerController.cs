@@ -8,6 +8,7 @@ using Armere.Inventory;
 using Armere.Inventory.UI;
 using UnityEngine.AddressableAssets;
 
+using Armere.UI;
 namespace Armere.PlayerController
 {
 	[RequireComponent(typeof(Rigidbody))]
@@ -228,6 +229,7 @@ namespace Armere.PlayerController
 
 		public void AfterLoaded()
 		{
+			inputReader.SwitchToGameplayInput();
 			enabled = true;
 		}
 
@@ -431,12 +433,12 @@ namespace Armere.PlayerController
 		public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
 
 
-		public async void OnDropItem(ItemType type, int itemIndex)
+		public void OnDropItem(ItemType type, int itemIndex)
 		{
 			var item = (PhysicsItemData)inventory.GetPanelFor(type)[itemIndex].item;
 			//TODO - Add way to drop multiple items
 			if (inventory.TakeItem(itemIndex, type))
-				await ItemSpawner.SpawnItemAsync(item, transform.position + Vector3.up * 0.1f + transform.forward, transform.rotation);
+				ItemSpawner.SpawnItem(item, transform.position + Vector3.up * 0.1f + transform.forward, transform.rotation);
 		}
 		public void OnConsumeItem(ItemType type, int itemIndex)
 		{
@@ -456,8 +458,9 @@ namespace Armere.PlayerController
 
 		private float sqrMagTemp;
 		// Update is called once per frame
-		private void Update()
+		protected override void Update()
 		{
+			base.Update();
 
 			for (int i = 0; i < allStates.Length; i++)
 				if (StateActive(i))
@@ -671,7 +674,7 @@ namespace Armere.PlayerController
 
 		public void SelectAmmo(int index)
 		{
-			if (InventoryController.singleton.ammo.items.Count > index && index >= 0)
+			if (inventory.ammo.items.Count > index && index >= 0)
 			{
 				currentAmmo = index;
 				NotchArrow();

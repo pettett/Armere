@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Armere.Inventory;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class AIHumanoid : Character
 {
@@ -239,11 +241,11 @@ public abstract class AIHumanoid : Character
 	}
 
 
-	public Task SetHeldMelee(HoldableItemData weapon)
+	public AsyncOperationHandle<GameObject> SetHeldMelee(HoldableItemData weapon)
 	{
 		return weaponGraphics.holdables.melee.SetHeld(weapon);
 	}
-	public Task SetHeldBow(HoldableItemData weapon)
+	public AsyncOperationHandle<GameObject> SetHeldBow(HoldableItemData weapon)
 	{
 		return weaponGraphics.holdables.bow.SetHeld(weapon);
 	}
@@ -256,8 +258,9 @@ public abstract class AIHumanoid : Character
 		currentState.Start();
 	}
 
-	protected virtual void Update()
+	protected override void Update()
 	{
+		base.Update();
 		currentState.Update();
 	}
 	protected virtual void FixedUpdate()

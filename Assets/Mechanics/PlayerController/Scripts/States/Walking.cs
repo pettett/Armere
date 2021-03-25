@@ -6,7 +6,8 @@ using UnityEngine.InputSystem;
 using Armere.Inventory.UI;
 using Armere.Inventory;
 using Yarn.Unity;
-
+using System.Linq;
+using Armere.UI;
 namespace Armere.PlayerController
 {
 
@@ -534,10 +535,13 @@ namespace Armere.PlayerController
 			inControl = true;
 
 		}
+
 		public override void Update()
 		{
 			currentCastingSpell?.Update();
 		}
+
+
 		public override void FixedUpdate()
 		{
 			// if (c.onGround == false)
@@ -551,7 +555,16 @@ namespace Armere.PlayerController
 
 			if (!inControl) return; //currently being controlled by some other movement coroutine
 
+
+
+
 			Vector3 velocity = c.rb.velocity;
+
+
+			//Debug.Log($"Average turning {averageTurning}");
+
+
+
 			Vector3 playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
 
 			grounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
@@ -851,7 +864,7 @@ namespace Armere.PlayerController
 				DisableBowAimView();
 
 				forceForwardHeadingToCamera = false;
-				c.animationController.lookAtPositionWeight = 0; // don't need to do others - master switch
+				c.animationController.weights.weight = 0; // don't need to do others - master switch
 
 				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
 
@@ -880,11 +893,11 @@ namespace Armere.PlayerController
 			EnableBowAimView();
 
 
-			c.animationController.lookAtPositionWeight = 1;
-			c.animationController.headLookAtPositionWeight = 1;
-			c.animationController.eyesLookAtPositionWeight = 1;
-			c.animationController.bodyLookAtPositionWeight = 1;
-			c.animationController.clampLookAtPositionWeight = 0.5f; //180 degrees
+			c.animationController.weights.weight = 1;
+			c.animationController.weights.headWeight = 1;
+			c.animationController.weights.eyesWeight = 1;
+			c.animationController.weights.bodyWeight = 1;
+			c.animationController.weights.clampWeight = 0.5f; //180 degrees
 
 			var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
 			while (chargingBow)
@@ -977,11 +990,12 @@ namespace Armere.PlayerController
 				Vector3 target = closest.transform.TransformPoint(closest.offset);
 				c.animationController.lookAtPosition = target;
 
-				float time = 0.07f;
-				c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, 0, 1, time));
-				c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, 0, 1, time));
+				const float time = 0.07f;
 
-				c.animationController.headLookAtPositionWeight = 0;
+				LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
+				LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.weight = x);
+
+				c.animationController.weights.weight = 0;
 
 			}
 			//This is easier. Animation graphs suck
@@ -1037,23 +1051,15 @@ namespace Armere.PlayerController
 			c.animationController.TriggerTransition(c.transitionSet.swordWalking);
 
 			float time = 0.07f;
-			c.StartCoroutine(LerpNumber((x) => c.animationController.bodyLookAtPositionWeight = x, c.animationController.bodyLookAtPositionWeight, 0, time));
-			c.StartCoroutine(LerpNumber((x) => c.animationController.lookAtPositionWeight = x, c.animationController.lookAtPositionWeight, 0, time));
+
+			LeanTween.value(
+				c.gameObject, c.animationController.weights.weight, 0, time
+				).setOnUpdate(x => c.animationController.weights.weight = x);
+			LeanTween.value(
+				c.gameObject, c.animationController.weights.bodyWeight, 0, time
+				).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
 		}
 		#endregion
-		IEnumerator LerpNumber(Action<float> update, float from, float to, float time)
-		{
-			float t = 0;
-			float invTime = 1 / time;
-			while (t < 1)
-			{
-				t += Time.deltaTime * invTime;
-				update(Mathf.Lerp(from, to, t));
-				yield return null;
-			}
-			update(to);
-		}
-
 		#region Sidearms
 
 		public void OnAltAttack(InputActionPhase phase)
@@ -1137,26 +1143,17 @@ namespace Armere.PlayerController
 		public bool FindGround(out ContactPoint groundCP, out Vector3 groundNormal, Vector3 playerDirection, List<ContactPoint> allCPs)
 		{
 			groundCP = default;
-
 			bool found = false;
-			float dot;
 			float bestDirectionDot = 1;
 			groundNormal = default;
 			foreach (ContactPoint cp in allCPs)
 			{
-				dot = Vector3.Dot(Vector3.up, cp.normal);
-
 				//Pointing with some up direction
-				if (dot > c.m_maxGroundDot)
+				if (Vector3.Dot(Vector3.up, cp.normal) > c.m_maxGroundDot)
 				{
-
 					//Get the most upwards pointing contact point
-
 					//Also get the point that points most in the current direction the player desires to move
 					float directionDot = Vector3.Dot(cp.normal, playerDirection);
-
-
-
 					if (found == false || /*cp.normal.y > groundCP.normal.y ||*/ directionDot < bestDirectionDot)
 					{
 						groundCP = cp;
@@ -1166,7 +1163,6 @@ namespace Armere.PlayerController
 					}
 				}
 			}
-
 			return found;
 		}
 		/// Find the first step up point if we hit a step
@@ -1176,16 +1172,13 @@ namespace Armere.PlayerController
 		bool FindStep(out Vector3 stepUpOffset, List<ContactPoint> allCPs, ContactPoint groundCP, Vector3 currVelocity)
 		{
 			stepUpOffset = default(Vector3);
-
 			//No chance to step if the player is not moving
 			Vector2 velocityXZ = new Vector2(currVelocity.x, currVelocity.z);
 			if (velocityXZ.sqrMagnitude < 0.0001f)
 				return false;
 			for (int i = 0; i < allCPs.Count; i++)// test if every point is suitable for a step up
-			{
 				if (ResolveStepUp(out stepUpOffset, allCPs[i], groundCP, currVelocity))
 					return true;
-			}
 			return false;
 		}
 

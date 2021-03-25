@@ -7,7 +7,7 @@ using Armere.Inventory;
 [RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
 public class EnemyAI : AIHumanoid, IExplosionEffector
 {
-	[HideInInspector] public Health health;
+	[System.NonSerialized] public Health health;
 
 	[Header("Player Engagement")]
 
@@ -79,7 +79,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		ChangeToState(new DieRoutine(this));
 	}
 
-	public override async void Start()
+	public override void Start()
 	{
 		health = GetComponent<Health>();
 		animationController = GetComponent<AnimationController>();
@@ -93,7 +93,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
 
 		if (meleeWeapon != null)
-			await SetHeldMelee(meleeWeapon);
+			SetHeldMelee(meleeWeapon);
 	}
 
 
@@ -110,7 +110,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	public virtual void InitEnemy()
 	{
-		gameObject.SetActive(true);
+		//gameObject.SetActive(true);
 	}
 
 	public class DieRoutine : AIState

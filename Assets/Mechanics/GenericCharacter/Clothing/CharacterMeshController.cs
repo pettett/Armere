@@ -29,26 +29,32 @@ public class CharacterMeshController : MonoBehaviour
 		bodyParts[0] = headObject;
 	}
 
-	public async void SetClothing(ClothesVariation variation)
+	public void SetClothing(ClothesVariation variation)
 	{
-		await SetClothing(variation.clothes.position, variation.clothes.hideBody, variation.clothes.skinnedMesh, variation.clothes.clothes);
-		if (variation.clothes.variations.Length > 0)
+		var handle = SetClothing(variation.clothes.position, variation.clothes.hideBody, variation.clothes.skinnedMesh, variation.clothes.clothes);
+		GameObjectSpawner.OnDone(handle, x =>
 		{
-			Renderer r = clothingHandles[(int)variation.clothes.position].Result.GetComponentInChildren<Renderer>();
-			Assert.IsNotNull(r);
-			r.materials = variation.clothes.variations[variation.variation].materials;
+			if (variation.clothes.variations.Length > 0)
+			{
+				Renderer r = x.Result.GetComponentInChildren<Renderer>();
+				Assert.IsNotNull(r);
+				r.materials = variation.clothes.variations[variation.variation].materials;
+			}
 		}
+		);
 	}
 
-	public async Task SetClothing(ClothPosition clothingIndex, bool hideBody, bool skinned, AssetReferenceGameObject reference)
+	public AsyncOperationHandle<GameObject> SetClothing(ClothPosition clothingIndex, bool hideBody, bool skinned, AssetReferenceGameObject reference)
 	{
 		AsyncOperationHandle<GameObject> oldHandle = clothingHandles[(int)clothingIndex];
 
-		clothingHandles[(int)clothingIndex] = Addressables.InstantiateAsync(reference, transform);
+		var newHandle = Addressables.InstantiateAsync(reference, transform);
 		if (skinned)
-			LinkSkinnedMesh(await clothingHandles[(int)clothingIndex].Task);
+			GameObjectSpawner.OnDone(newHandle, x => LinkSkinnedMesh(x.Result));
 		else
-			(await clothingHandles[(int)clothingIndex].Task).transform.SetParent(headTransform, false);
+			GameObjectSpawner.OnDone(newHandle, x => x.Result.transform.SetParent(headTransform, false));
+
+		clothingHandles[(int)clothingIndex] = newHandle;
 		//After this mesh exists
 
 		bodyParts[(int)clothingIndex]?.SetActive(!hideBody);
@@ -59,6 +65,8 @@ public class CharacterMeshController : MonoBehaviour
 
 			Addressables.ReleaseInstance(oldHandle);
 		}
+
+		return newHandle;
 	}
 
 	public void RemoveClothing(int clothingIndex)

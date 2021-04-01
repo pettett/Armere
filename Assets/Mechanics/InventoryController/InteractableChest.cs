@@ -18,9 +18,10 @@ namespace Armere.Inventory
 		public string interactionDescription => "Open";
 		public string highlightDescription = "Chest";
 
-		public Vector3 offset => throw new System.NotImplementedException();
 
 		public string interactionName => highlightDescription;
+
+		public Vector3 worldOffset => default;
 
 		public event System.Action onChestOpened;
 

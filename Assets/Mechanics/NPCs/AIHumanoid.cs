@@ -38,15 +38,16 @@ public abstract class AIHumanoid : Character
 	public LayerMask visionBlockingMask;
 
 	// Start is called before the first frame update
-	public virtual void Start()
+	public override void Start()
 	{
 		agent = GetComponent<NavMeshAgent>();
-		anim = GetComponent<Animator>();
+		anim = GetComponentInChildren<Animator>();
 		ragdoller = GetComponent<Ragdoller>();
 
-		weaponGraphics = GetComponent<WeaponGraphicsController>();
 		ragdoller.RagdollEnabled = false;
 		ChangeToState(defaultState);
+
+		base.Start();
 
 	}
 	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];

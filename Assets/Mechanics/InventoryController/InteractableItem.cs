@@ -18,6 +18,8 @@ namespace Armere.Inventory
 
 		public string interactionName => item.displayName;
 
+		public Vector3 worldOffset => default;
+
 		public void Interact(IInteractor c)
 		{
 			AddItemsToInventory(() =>

@@ -30,6 +30,8 @@ public class InteractableDialogue : MonoBehaviour, IInteractable, IDialogue
 
 	public string interactionName => null;
 
+	public Vector3 worldOffset => default;
+
 	public YarnProgram dialogue;
 	public string startNode = "Start";
 	public void Interact(IInteractor interactor)

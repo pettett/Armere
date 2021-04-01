@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-[RequireComponent(typeof(WeaponGraphicsController), typeof(AnimationController))]
+[RequireComponent(typeof(WeaponGraphicsController))]
 public abstract class Character : SpawnableBody
 {
 	public enum Team
@@ -70,8 +70,11 @@ public abstract class Character : SpawnableBody
 
 	public abstract void Knockout(float time);
 
-
-
+	public virtual void Start()
+	{
+		animationController = GetComponentInChildren<AnimationController>();
+		weaponGraphics = GetComponent<WeaponGraphicsController>();
+	}
 	public virtual void OnEnable()
 	{
 		if (!teams.ContainsKey(team))

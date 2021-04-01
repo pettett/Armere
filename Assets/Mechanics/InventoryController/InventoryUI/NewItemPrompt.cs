@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.AddressableAssets;
 using System.Threading.Tasks;
 using Armere.UI;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Armere.Inventory.UI
 {
@@ -18,17 +19,30 @@ namespace Armere.Inventory.UI
 		public TextMeshProUGUI title;
 		public TextMeshProUGUI description;
 
-		public async void ShowPrompt(ItemData item, uint count, System.Action onPromptRemoved, bool addItemsToInventory = true)
+		public InputReader reader;
+		public float entryTime = 1;
+		public float readingTime = 0.1f;
+
+		public void ShowPrompt(ItemData item, uint count, System.Action onPromptRemoved, bool addItemsToInventory = true)
+		{
+			StartCoroutine(RunPromptRoutine(item, count, onPromptRemoved, addItemsToInventory));
+		}
+		IEnumerator RunPromptRoutine(ItemData item, uint count, System.Action onPromptRemoved, bool addItemsToInventory)
 		{
 			if (count == 0)
 			{
 				Debug.LogWarning("Giving prompt for 0 items!");
-				return;
+				yield break;
 			}
+			Debug.Log("Opeing new item prompt");
 
 			holder.SetActive(true);
 			holder.transform.localPosition = Vector2.down * (((RectTransform)UIController.singleton.transform).sizeDelta.y + 200);
-			LeanTween.moveLocalY(holder, 0, 1).setIgnoreTimeScale(true).setEaseOutCubic();
+			LeanTween.moveLocalY(holder, 0, entryTime).setIgnoreTimeScale(true).setEaseOutCubic();
+
+			Time.timeScale = 0;
+
+			//reader.DisableAllInput();
 
 			if (count == 1)
 				title.text = item.name;
@@ -41,23 +55,36 @@ namespace Armere.Inventory.UI
 			if (addItemsToInventory)
 				InventoryController.singleton.TryAddItem(item, count, true);
 
-			thumbnail.sprite = await item.thumbnail.LoadAssetAsync().Task;
+			AsyncOperationHandle<Sprite> handle = item.thumbnail.LoadAssetAsync();
 
-			await Task.Delay(500);
+			Spawner.OnDone(
+				handle,
+				x => thumbnail.sprite = x.Result
+			);
+
+
+			yield return new WaitForSecondsRealtime(entryTime + readingTime);
 
 			var continueAction = new InputAction(binding: "/*/<button>");
 
 			TaskCompletionSource<InputAction.CallbackContext> onButtonPressed = new TaskCompletionSource<InputAction.CallbackContext>();
-
-			continueAction.performed += onButtonPressed.SetResult;
+			bool pressed = false;
+			continueAction.performed += (x) => pressed = true;
 			continueAction.Enable();
 
-			await onButtonPressed.Task;
+			while (!pressed)
+				yield return null;
 
-			LeanTween.moveLocalY(holder, (((RectTransform)UIController.singleton.transform).sizeDelta.y + 200), 1
+
+			LeanTween.moveLocalY(holder, (((RectTransform)UIController.singleton.transform).sizeDelta.y + 200), 0.1f
 				).setIgnoreTimeScale(true).setEaseInCubic().setOnComplete(() => holder.SetActive(false));
 
+
+			Time.timeScale = 1;
+
+			//reader.SwitchToGameplayInput();
 			continueAction.Disable();
+			continueAction.Dispose();
 			//Remove the prompt
 			Addressables.Release(thumbnail.sprite);
 

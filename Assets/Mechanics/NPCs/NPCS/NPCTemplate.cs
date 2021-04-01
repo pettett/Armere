@@ -301,7 +301,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		thought.ambientThoughtText.text = CurrentRoutine.stages[currentRoutineStage].activity.ToString();
 
 		//Apply routine animation
-		c.animator.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);
+		c.anim.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);
 
 		switch (CurrentRoutine.stages[currentRoutineStage].activity)
 		{

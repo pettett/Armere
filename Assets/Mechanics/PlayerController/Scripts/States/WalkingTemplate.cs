@@ -1,5 +1,6 @@
 
 
+using Armere.Inventory;
 using UnityEngine;
 
 namespace Armere.PlayerController
@@ -7,7 +8,6 @@ namespace Armere.PlayerController
 	[CreateAssetMenu(menuName = "Game/PlayerController/Walking")]
 	public class WalkingTemplate : MovementStateTemplate
 	{
-		public MovementStateTemplate swimming;
 		public MovementStateTemplate freefalling;
 
 		[Header("Movement")]
@@ -26,6 +26,24 @@ namespace Armere.PlayerController
 
 		public float throwForce = 100;
 
+		[Header("Weapons")]
+		public float swordUseDelay = 0.4f;
+		public Vector2 arrowSpeedRange = new Vector2(70, 100);
+		[Header("Camera")]
+
+		public float shoulderViewXOffset = 0.6f;
+		[Header("Water")]
+
+		[Range(0, 1), Tooltip("0 means no movement in water, 1 means full speed at full depth")]
+		public float maxStridingDepthSpeedScalar = 0.6f;
+
+		public MovementStateTemplate swimming;
+
+		[Header("Channels")]
+		public ItemAddedEventChannelSO onPlayerInventoryItemAdded;
+		public VoidEventChannelSO onAimModeEnable;
+		public VoidEventChannelSO onAimModeDisable;
+		public FloatEventChannelSO changeTimeEventChannel;
 		public override MovementState StartState(PlayerController c)
 		{
 			return new Walking(c, this);

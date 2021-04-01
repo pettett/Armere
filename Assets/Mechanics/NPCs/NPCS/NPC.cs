@@ -5,10 +5,6 @@ using UnityEngine;
 [RequireComponent(typeof(AIDialogue))]
 public class NPC : AIHumanoid
 {
-
-
-	public Animator animator;
-
 	public NPCSpawn spawn;
 	new Collider collider;
 	public override Bounds bounds => collider.bounds;
@@ -18,12 +14,12 @@ public class NPC : AIHumanoid
 
 		this.spawn = spawn;
 
-		collider = GetComponent<Collider>();
 	}
 
 	public override void Start()
 	{
+
+		collider = GetComponent<Collider>();
 		base.Start();
-		animator = GetComponent<Animator>();
 	}
 }

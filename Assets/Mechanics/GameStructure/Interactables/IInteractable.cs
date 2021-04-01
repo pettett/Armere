@@ -12,6 +12,7 @@ public interface IInteractable
 	float requiredLookDot { get; }
 	string interactionDescription { get; }
 	string interactionName { get; }
+	Vector3 worldOffset { get; }
 
 }
 

@@ -173,13 +173,13 @@ namespace Armere.PlayerController
 
 				prevTarget = interactablesInRange[currentLookAt];
 
-				c.animationController.lookAtTarget = interactablesInRange[currentLookAt].gameObject.transform;
+				c.animationController.SetLookAtTarget(interactablesInRange[currentLookAt].gameObject.transform);
 			}
 		}
 
 		void RemovePrevTarget()
 		{
-			c.animationController.lookAtTarget = null;
+			c.animationController.ClearLookAtTargets();
 			prevTarget = null;
 
 

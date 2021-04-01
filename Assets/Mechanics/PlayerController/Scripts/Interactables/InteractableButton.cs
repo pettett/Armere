@@ -20,6 +20,8 @@ public class InteractableButton : MonoBehaviour, IInteractable
 
 	public string interactionName => null;
 
+	public Vector3 worldOffset => default;
+
 	public void Interact(IInteractor c)
 	{
 		isOn = !isOn;

@@ -48,11 +48,12 @@ namespace Armere.PlayerController
 		{
 			agent.SetDestination(position);
 		}
-		public override void Animate(AnimatorVariables vars)
+
+		public override void Update()
 		{
 
-			animator.SetFloat(vars.vertical.id, agent.velocity.magnitude);
-			animator.SetFloat(vars.horizontal.id, 0f);
+			animator.SetFloat(c.transitionSet.vertical.id, agent.velocity.magnitude);
+			animator.SetFloat(c.transitionSet.horizontal.id, 0f);
 		}
 	}
 

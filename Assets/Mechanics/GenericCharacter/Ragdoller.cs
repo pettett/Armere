@@ -23,7 +23,7 @@ public class Ragdoller : MonoBehaviour
 
 	private void Awake()
 	{
-		animator = GetComponent<Animator>();
+		animator = GetComponentInChildren<Animator>();
 	}
 
 	void SetRagdollActive(bool enabled)

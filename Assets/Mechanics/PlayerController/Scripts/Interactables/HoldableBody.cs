@@ -17,6 +17,8 @@ public class HoldableBody : MonoBehaviour, IInteractable
 
 	public string interactionName => null;
 
+	public Vector3 worldOffset => default;
+
 	public FixedJoint joint;
 	float oldMass;
 	private void Start()

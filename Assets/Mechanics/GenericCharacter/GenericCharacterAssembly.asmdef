@@ -17,7 +17,8 @@
         "Game.Input",
         "XNode",
         "Unity.InputSystem",
-        "LeanTween"
+        "LeanTween",
+        "Unity.Animation.Rigging"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

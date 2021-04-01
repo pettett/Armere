@@ -21,6 +21,8 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 
 	public string interactionName => null;
 
+	public Vector3 worldOffset => default;
+
 	public Room forwardRoom;
 	public Room backwardRoom;
 

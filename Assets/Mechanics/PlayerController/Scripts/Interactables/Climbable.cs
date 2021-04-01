@@ -30,7 +30,9 @@ public class Climbable : MonoBehaviour, IInteractable
 	int[] triangles;
 	bool MeshLoaded => vertices != null && vertices.Length >= 3;
 
-	public string interactionName => throw new System.NotImplementedException();
+	public string interactionName => null;
+
+	public Vector3 worldOffset => default;
 
 	public void SyncMesh(MeshFilter mesh)
 	{

@@ -55,7 +55,6 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 	public MeshFilter meshFilter;
 	public MeshCollider meshCollider;
 	public MeshRenderer meshRenderer;
-	public AudioSource audioSource;
 	public CuttableTreeProfile profile;
 
 	public List<CutVector> activeCutVectors = new List<CutVector>();
@@ -118,8 +117,10 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		totalDamage += intensity;
 
 		if (profile.cutClips.Valid())
-			audioSource.PlayOneShot(profile.cutClips.SelectClip());
-
+		{
+			profile.soundProfile.position = transform.position;
+			profile.audioEventChannelSO.RaiseEvent(profile.cutClips, profile.soundProfile);
+		}
 		//Cut or split the tree
 		if (totalDamage < profile.damageToCut)
 		{

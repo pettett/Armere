@@ -8,29 +8,37 @@ using UnityEngine.AddressableAssets;
 public class WaterController : MonoBehaviour
 {
 	[System.Serializable]
-	public class WaterPathNode
+	public struct WaterPathNode
 	{
 		public Transform transform;
-		public float waterWidth = 5;
-	}
-	public WaterPathNode[] path = new WaterPathNode[0];
-	public static VisualEffect splashEffect = null;
-	public static bool loadingSplashEffect = false;
-	public AssetReferenceGameObject splashEffectPrefab;
+		public float waterWidth;
 
+		public float tangentStrength;
+		[Range(0, 1)]
+		public float edgeFlowStrength;
+	}
+
+	[System.Serializable]
+	public struct WaterFlowSource
+	{
+		public Transform transform;
+		public float strength;
+		public float radius;
+	}
+
+	public WaterPathNode[] path = new WaterPathNode[0];
+	public WaterFlowSource[] sources = new WaterFlowSource[0];
+	public FluidTemplate template;
 	public Collider waterVolume;
 
-	public float density = 1000f;
+	public float flowRate = 1f;
 
 	public Bounds bounds => waterVolume.bounds;
-	private async void Start()
-	{
-		if (splashEffect == null && loadingSplashEffect == false)
-		{
-			loadingSplashEffect = true;
-			splashEffect = (await Addressables.InstantiateAsync(splashEffectPrefab).Task).GetComponent<VisualEffect>();
-		}
-	}
+	public float density => template.density;
+
+
+
+
 
 	static void DrawCross(Vector3 center, float size)
 	{
@@ -78,12 +86,12 @@ public class WaterController : MonoBehaviour
 	public void CreateSplash(Vector3 position, float size = 1)
 	{
 		position.y += 0.03f;
-		if (splashEffect != null)
+		if (template.splashEffect != null)
 		{
-			splashEffect.transform.position = position;
+			template.splashEffect.transform.position = position;
 
-			splashEffect.SetFloat("Splash Size", size);
-			splashEffect.SendEvent("Splash");
+			template.splashEffect.SetFloat("Splash Size", size);
+			template.splashEffect.SendEvent("Splash");
 		}
 	}
 
@@ -101,30 +109,42 @@ public class WaterController : MonoBehaviour
 	{
 		return (Normal(p1, p2) + Normal(p2, p3)).normalized;
 	}
-	Vector3 Extrude(int i, float e)
+	static Vector2 Tangent(Vector2 p1, Vector2 p2)
 	{
-		Vector3 start = path[i].transform.position;
-		Vector2 n;
+		return (p1 - p2).normalized;
+	}
+	static Vector2 PointTangent(Vector2 p1, Vector2 p2, Vector2 p3)
+	{
+		return (Tangent(p1, p2) + Tangent(p2, p3)).normalized;
+	}
+	public Vector3 GetTangent(int i)
+	{
+		Vector2 t;
 		if (i == 0)
 		{
-			n = Normal(
+			t = -Tangent(
 				Flatten(path[i].transform.position),
 				Flatten(path[i + 1].transform.position));
 		}
 		else if (i == path.Length - 1)
 		{
-			n = Normal(
+			t = -Tangent(
 				Flatten(path[i - 1].transform.position),
 				Flatten(path[i].transform.position));
 		}
 		else
 		{
-			n = PointNormal(
+			t = -PointTangent(
 				Flatten(path[i - 1].transform.position),
 				Flatten(path[i].transform.position),
 				Flatten(path[i + 1].transform.position));
 		}
-		return start + new Vector3(n.x, 0, n.y) * e;
+		return new Vector3(t.x, 0, t.y);
+	}
+	public Vector3 Extrude(int i, float e)
+	{
+		Vector3 start = path[i].transform.position;
+		return start + Vector3.Cross(GetTangent(i), Vector3.up) * e;
 	}
 
 	public Vector3[] GetExtrudedPath(float multiplier)
@@ -134,23 +154,114 @@ public class WaterController : MonoBehaviour
 			p[i] = Extrude(i, path[i].waterWidth * multiplier);
 		return p;
 	}
-	public Vector3[] GetPath()
+	public Vector3 SampleBezier(Vector3 start, Vector3 end, Vector3 startHint, Vector3 endHint, float t)
 	{
-		Vector3[] p = new Vector3[path.Length];
-		for (int i = 0; i < path.Length; i++)
-			p[i] = path[i].transform.position;
+		float j = 1 - t;
+		return j * j * j * start + 3 * j * j * t * startHint + 3 * j * t * t * endHint + t * t * t * end;
+	}
+
+	public Vector3 SampleBezierNormal(Vector3 start, Vector3 end, Vector3 startNormal, Vector3 endNormal, float t)
+	{
+		return SampleBezier(start, end, start + startNormal, end + endNormal, t);
+	}
+
+
+
+	public Vector3[] GetPath(int subDivisions)
+	{
+		Vector3[] p = new Vector3[path.Length + path.Length * subDivisions - subDivisions];
+		int width = (subDivisions + 1);
+
+		p[0] = path[0].transform.position;
+		for (int i = 0; i < path.Length - 1; i++)
+		{
+			//p[i * width] = path[i].transform.position;
+
+			//print(p[i]);
+
+
+			Vector3 ti = GetTangent(i);
+			Vector3 ti1 = GetTangent(i + 1);
+
+
+			float repr = 1f / width;
+			for (int j = 1; j <= width; j++)
+			{
+				//print(repr * j);
+				p[i * width + j] = SampleBezierNormal(path[i].transform.position, path[i + 1].transform.position, ti * 5, ti1 * 5, repr * j) + Vector3.up * j;
+
+				//print(p[i + j]);
+			}
+
+
+		}
 		return p;
 	}
 
-	private void OnDrawGizmosSelected()
+	public int subDivisions = 3;
+	private void OnDrawGizmos()
 	{
+		if (path.Length <= 1)
+		{
+			return;
+		}
+
 		var l = GetExtrudedPath(1);
 		var r = GetExtrudedPath(-1);
+
+		Gizmos.color = Color.cyan;
+
+
+		Vector3[] p = new Vector3[path.Length + path.Length * subDivisions - subDivisions];
+		int width = (subDivisions + 1);
+
+		//print(p.Length);
+		p[0] = path[0].transform.position;
+		for (int i = 0; i < path.Length - 1; i++)
+		{
+			//p[i * width] = path[i].transform.position;
+
+			//print(p[i]);
+
+
+			Vector3 ti = GetTangent(i);
+			Vector3 ti1 = GetTangent(i + 1);
+
+
+			float repr = 1f / width;
+			for (int j = 1; j <= width; j++)
+			{
+				float t = repr * j;
+
+				//print(t);
+				int index = i * width + j;
+
+				p[index] = SampleBezierNormal(path[i].transform.position, path[i + 1].transform.position, ti * path[i].tangentStrength, -ti1 * path[i + 1].tangentStrength, t);
+
+				Gizmos.DrawLine(path[i].transform.position, path[i].transform.position + ti * path[i].tangentStrength);
+				//print(p[i + j]);
+			}
+		}
+
+		Gizmos.color = Color.green;
+		for (int i = 0; i < p.Length - 1; i++)
+		{
+			Gizmos.DrawLine(p[i], p[i + 1]);
+		}
+
 		Gizmos.color = Color.blue;
 		for (int i = 0; i < path.Length - 1; i++)
 		{
 			Gizmos.DrawLine(l[i], l[i + 1]);
 			Gizmos.DrawLine(r[i], r[i + 1]);
+		}
+
+
+		Gizmos.color = Color.red;
+
+		for (int i = 0; i < sources.Length; i++)
+		{
+			Gizmos.DrawWireSphere(sources[i].transform.position, sources[i].radius);
 		}
 	}
 

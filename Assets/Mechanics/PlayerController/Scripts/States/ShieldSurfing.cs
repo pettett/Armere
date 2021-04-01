@@ -95,14 +95,14 @@ namespace Armere.PlayerController
 			}
 
 		}
-		public override void Animate(AnimatorVariables vars)
+		public override void Update()
 		{
-			animator.SetBool(vars.isGrounded.id, true); //Lie and deceive
-			animator.SetFloat(vars.horizontal.id, movement.x);
-			animator.SetFloat(vars.vertical.id, movement.y);//set it to forward velocity
+			animator.SetBool(c.transitionSet.isGrounded.id, true); //Lie and deceive
+			animator.SetFloat(c.transitionSet.horizontal.id, movement.x);
+			animator.SetFloat(c.transitionSet.vertical.id, movement.y);//set it to forward velocity
 			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
-
 		}
+
 		public void OnJump(InputActionPhase phase)
 		{
 			if (phase == InputActionPhase.Started && c.allCPs.Count > 0)

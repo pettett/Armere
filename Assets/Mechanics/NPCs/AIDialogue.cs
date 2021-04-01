@@ -27,6 +27,16 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 	public System.Action<IInteractor> onInteract;
 
 	public BuyMenuItem[] buyInventory;
+
+	public YarnProgram Dialogue => target.Dialogue;
+	public string StartNode => target.StartNode;
+
+	public string interactionName => NPCManager.singleton.data[npcName].spokenTo ? npcName : "";
+
+	public Vector3 worldOffset => headPosition.localPosition;
+
+	[System.NonSerialized] public IVariableAddon dialogueAddon;
+
 	private void Start()
 	{
 		ai = GetComponent<AIHumanoid>();
@@ -51,11 +61,5 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 		onInteract?.Invoke(interactor);
 	}
 
-	public YarnProgram Dialogue => target.Dialogue;
-	public string StartNode => target.StartNode;
-
-	public string interactionName => NPCManager.singleton.data[npcName].spokenTo ? npcName : "";
-
-	[System.NonSerialized] public IVariableAddon dialogueAddon;
 
 }

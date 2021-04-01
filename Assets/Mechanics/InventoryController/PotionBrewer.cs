@@ -15,6 +15,8 @@ namespace Armere.Inventory
 
 		public string interactionName => null;
 
+		public Vector3 worldOffset => default;
+
 		public YarnProgram selectionDialogue;
 
 		public InventoryController playerInventory;

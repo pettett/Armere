@@ -48,4 +48,12 @@ public class AnimationTransitionSet : ScriptableObject
 	public AnimationTransition surprised = new AnimationTransition("Surprised", 0.05f, 0.05f, Layers.BaseLayer);
 
 
+	[Header("Animator Variables")]
+	public AnimatorVariable vertical = new AnimatorVariable("InputVertical");
+	public AnimatorVariable horizontal = new AnimatorVariable("InputHorizontal");
+	public AnimatorVariable walkingSpeed = new AnimatorVariable("WalkingSpeed");
+	public AnimatorVariable isGrounded = new AnimatorVariable("IsGrounded");
+	public AnimatorVariable verticalVelocity = new AnimatorVariable("VerticalVelocity");
+	public AnimatorVariable groundDistance = new AnimatorVariable("GroundDistance");
+
 }

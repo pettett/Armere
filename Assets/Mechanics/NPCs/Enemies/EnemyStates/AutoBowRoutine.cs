@@ -48,12 +48,10 @@ public class AutoBow : AIState<AutoBowRoutine>
 		var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
 		bow.InitBow(t.bowItem);
 
-		c.animationController.weights.weight = 1;
-		c.animationController.weights.headWeight = 1;
-		c.animationController.weights.eyesWeight = 1;
-		c.animationController.weights.bodyWeight = 1;
-		c.animationController.weights.clampWeight = 0.5f; //180 degrees
+
 		c.animationController.TriggerTransition(c.transitionSet.holdBow);
+
+		c.animationController.SetLookAtTarget(c.animationController.localHeadLookTarget);
 
 		while (true)
 		{
@@ -68,7 +66,7 @@ public class AutoBow : AIState<AutoBowRoutine>
 				bowAC.SetFloat("Charge", t);
 
 				bow.transform.forward = c.transform.forward;
-				c.animationController.lookAtPosition = bow.arrowSpawnPosition.position + c.transform.forward * this.t.arrowSpeed;
+				c.animationController.localHeadLookTarget.transform.position = bow.arrowSpawnPosition.position + c.transform.forward * this.t.arrowSpeed;
 
 				yield return null;
 			}

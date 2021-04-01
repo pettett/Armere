@@ -71,8 +71,8 @@ namespace Armere.PlayerController
 			//Dont do if manually moved
 			c.collider.height = oldColliderHeight;
 			//prepare for climb up animation
-			c.animator.SetFloat(c.animatorVariables.horizontal.id, 0);
-			c.animator.SetFloat(c.animatorVariables.vertical.id, 0);
+			c.animator.SetFloat(c.transitionSet.horizontal.id, 0);
+			c.animator.SetFloat(c.transitionSet.vertical.id, 0);
 			animator.applyRootMotion = true;
 
 			if (reachedLadderTop)
@@ -143,6 +143,10 @@ namespace Armere.PlayerController
 
 		public override void Update()
 		{
+
+			animator.SetFloat(c.transitionSet.vertical.id, inputHorizontal.y * t.climbingSpeed);
+			animator.SetFloat(c.transitionSet.horizontal.id, 0f);
+
 			switch (ladder.surfaceType)
 			{
 				case Climbable.ClimbableSurface.Line:
@@ -271,11 +275,6 @@ namespace Armere.PlayerController
 			}
 		}
 
-		public override void Animate(AnimatorVariables vars)
-		{
-			animator.SetFloat(vars.vertical.id, inputHorizontal.y * t.climbingSpeed);
-			animator.SetFloat(vars.horizontal.id, 0f);
-		}
 
 
 		Vector2 inputHorizontal;

@@ -70,11 +70,8 @@ namespace Armere.PlayerController
 			talkingTarget = t.npc;
 
 
-			//Set up ik weights
-			c.animationController.weights.headWeight = 1;
-			c.animationController.weights.weight = 1;
-			c.animationController.weights.clampWeight = 0.5f; //Half rotation away
-			c.animationController.lookAtPosition = talkingTarget.headPosition.position;
+			//Set up ik
+			c.animationController.SetLookAtTarget(talkingTarget.headPosition);
 
 			//GameCameras.s.freeLookTarget = GameCameras.s.cameraTrackingTarget;
 
@@ -109,26 +106,13 @@ namespace Armere.PlayerController
 		public override void End()
 		{
 			base.End();
-
-
-
-			c.animationController.weights.headWeight = 0;
-			c.animationController.weights.weight = 0;
+			c.animationController.ClearLookAtTargets();
 		}
 
 		public override void Update()
 		{
-
-
-
+			animator.SetFloat(c.transitionSet.vertical.id, 0);
 		}
-
-		public override void Animate(AnimatorVariables vars)
-		{
-			animator.SetFloat(vars.vertical.id, 0);
-		}
-
-
 		public override void OnAnimatorIK(int layerIndex)
 		{
 			//Make head look at npc
@@ -404,7 +388,7 @@ namespace Armere.PlayerController
 				target.y = transform.position.y;
 				transform.LookAt(target);
 
-				c.animationController.lookAtPosition = focus.position;
+				c.animationController.SetLookAtTarget(focus);
 
 
 			}

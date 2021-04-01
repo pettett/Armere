@@ -4,8 +4,8 @@ using UnityEngine;
 [System.Serializable]
 public struct AudioProfile
 {
-	public Vector3 position;
-	public float spacialBlend;
+	[System.NonSerialized] public Vector3 position;
+	[Range(0, 1)] public float spacialBlend;
 }
 
 [CreateAssetMenu(fileName = "AudioEventChannelSO", menuName = "Game/Audio/AudioEventChannelSO")]

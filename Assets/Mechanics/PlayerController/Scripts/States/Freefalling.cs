@@ -40,14 +40,14 @@ namespace Armere.PlayerController
 			//only change back when the body is actually touching the ground
 
 		}
-
-		public override void Animate(AnimatorVariables vars)
+		public override void Update()
 		{
 			//animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
-			animator.SetBool(vars.isGrounded.id, c.onGround);
-			animator.SetFloat(vars.verticalVelocity.id, c.rb.velocity.y);
-			animator.SetFloat(vars.groundDistance.id, currentHeight);
+			animator.SetBool(c.transitionSet.isGrounded.id, c.onGround);
+			animator.SetFloat(c.transitionSet.verticalVelocity.id, c.rb.velocity.y);
+			animator.SetFloat(c.transitionSet.groundDistance.id, currentHeight);
 		}
+
 
 		public void OnInteract(InputActionPhase phase)
 		{

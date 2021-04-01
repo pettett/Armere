@@ -5,23 +5,27 @@ using UnityEngine.Events;
 
 public class WorldIndicator : IndicatorUI
 {
-	public UnityEvent<string> onIndicate;
-	public UnityEvent onEndIndicate;
+
+	public TMPro.TextMeshProUGUI titleText;
+	public Vector2 titleTextHeightRange = new Vector2(50, 70);
 	public void StartIndication(Transform target, string title, Vector3 worldOffset = default)
 	{
 		Init(target, worldOffset);
 
-		onIndicate?.Invoke(title);
+		titleText.SetText(title);
 		gameObject.SetActive(true);
+		titleText.transform.localPosition = Vector3.up * titleTextHeightRange.x;
 
-		LeanTween.value(gameObject, -5, 5, 0.8f).setOnUpdate(x => localOffset.y = x).setLoopPingPong().setEaseInOutSine();
+		LeanTween.moveLocalY(
+			titleText.gameObject,
+			titleTextHeightRange.y,
+			 0.8f).setLoopPingPong().setEaseInOutSine();
 	}
 	public void EndIndication()
 	{
 		if (this != null) //Test for destruction
 		{
 			target = null;
-			onEndIndicate?.Invoke();
 			gameObject?.SetActive(false);
 		}
 	}

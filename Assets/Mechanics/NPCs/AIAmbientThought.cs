@@ -7,6 +7,9 @@ public class AIAmbientThought : MonoBehaviour
 {
 	public Transform ambientThought;
 	public TextMeshPro ambientThoughtText;
+	private void Start() {
+		
+	}
 	private void Update()
 	{
 		ambientThought.rotation = Camera.main.transform.rotation;

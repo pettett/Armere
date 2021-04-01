@@ -36,7 +36,6 @@ public class CuttableTreeEditor : Editor
 		Property("meshFilter");
 		Property("meshCollider");
 		Property("meshRenderer");
-		Property("audioSource");
 		Property("profile");
 
 		// GUILayout.Label("Cutting", EditorStyles.boldLabel);

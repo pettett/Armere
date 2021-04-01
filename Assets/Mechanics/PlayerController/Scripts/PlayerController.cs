@@ -37,7 +37,6 @@ namespace Armere.PlayerController
 		[Header("Cameras")]
 
 		[NonSerialized] public Room currentRoom;
-		public float shoulderViewXOffset = 0.6f;
 
 
 		[Header("Ground detection")]
@@ -51,21 +50,11 @@ namespace Armere.PlayerController
 		[Range(0, 1)]
 		public float dynamicFriction = 0.2f;
 
-		[Header("Weapons")]
-		public float swordUseDelay = 0.4f;
-		public Vector2 arrowSpeedRange = new Vector2(70, 100);
 
 		[Header("Water")]
 		public float maxWaterStrideDepth = 1;
-		[Range(0, 1), Tooltip("0 means no movement in water, 1 means full speed at full depth")]
-		public float maxStridingDepthSpeedScalar = 0.6f;
-		public float waterDrag = 1;
-		public float waterMovementForce = 1;
 
-		public float waterMovementSpeed = 1;
-		public float waterSittingDepth = 1;
 
-		public GameObject waterTrailPrefab;
 
 
 
@@ -102,8 +91,6 @@ namespace Armere.PlayerController
 				return _entry;
 			}
 		}
-		public AnimatorVariables animatorVariables;
-
 		[NonSerialized] public WaterController currentWater;
 
 
@@ -129,12 +116,7 @@ namespace Armere.PlayerController
 		public IntEventChannelSO onChangeSelectedSidearm;
 		public IntEventChannelSO onChangeSelectedBow;
 		public IntEventChannelSO onChangeSelectedAmmo;
-		public ItemAddedEventChannelSO onPlayerInventoryItemAdded;
-		public VoidEventChannelSO onAimModeEnable;
-		public VoidEventChannelSO onAimModeDisable;
-		public FloatEventChannelSO changeTimeEventChannel;
-		public BoolEventChannelSO setTabMenuEventChannel;
-		public IntEventChannelSO setTabMenuPanelEventChannel;
+
 		public InputReader inputReader;
 
 		public SaveLoadEventChannel playerSaveLoadChannel;
@@ -192,14 +174,14 @@ namespace Armere.PlayerController
 		public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
-		public void Start()
+		public override void Start()
 		{
+			base.Start();
+
 			Debug.Log("Starting player controller");
 
-			animatorVariables.UpdateIDs();
-
 			rb = GetComponent<Rigidbody>();
-			animator = GetComponent<Animator>();
+			animator = GetComponentInChildren<Animator>();
 			collider = GetComponent<CapsuleCollider>();
 			if (TryGetComponent<Health>(out health))
 				health.onDeathEvent.AddListener(OnDeath);
@@ -465,10 +447,6 @@ namespace Armere.PlayerController
 			for (int i = 0; i < allStates.Length; i++)
 				if (StateActive(i))
 					allStates[i].Update();
-
-			for (int i = 0; i < allStates.Length; i++)
-				if (StateActive(i))
-					allStates[i].Animate(animatorVariables);
 
 
 			for (int i = 0; i < PlayerRelativeObject.relativeObjects.Count; i++)
@@ -794,7 +772,7 @@ namespace Armere.PlayerController
 
 
 
-			if (DebugMenu.menuEnabled)
+			if (DebugMenu.menuEnabled && entry != null)
 			{
 				//Show all the currentley active states
 				System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(currentState.StateName);

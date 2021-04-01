@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using UnityEngine.Animations.Rigging;
 
 public interface IAnimatable
 {
@@ -58,7 +59,28 @@ public struct AnimationTransition
 		this.layers = layers;
 	}
 }
+[Serializable]
+public struct AnimatorVariable
+{
+	public string name;
+	private int? _id;
+	public int id
+	{
+		get
+		{
+			if (!_id.HasValue)
+				_id = Animator.StringToHash(name);
+			return _id.Value;
+		}
+	}
+	public AnimatorVariable(string name)
+	{
+		this.name = name;
+		_id = null;
+	}
+}
 
+[RequireComponent(typeof(Animator))]
 public class AnimationController : MonoBehaviour
 {
 	#region Private Variables
@@ -74,7 +96,7 @@ public class AnimationController : MonoBehaviour
 
 	[Range(0, 2)] [SerializeField] private float raycastDownDistance = 1.5f;
 	[SerializeField] private LayerMask groundLayer;
-	[SerializeField] private float pelvisOffset = 0f;
+	public float pelvisOffset = 0f;
 	[SerializeField] private float crouchOffset = 0f;
 	[Range(0, 1)] [SerializeField] private float pelvisVerticalSpeed = 0.28f, feetToIKPositionSpeed = 0.5f;
 	public string leftFootAnimVariableName = "LeftFootCurve";
@@ -83,9 +105,17 @@ public class AnimationController : MonoBehaviour
 	public bool useFootCurvesForRotationGrounding;
 	public bool showSolver;
 
+	public Transform localHeadLookTarget;
+
 	[Header("AC")]
 
 	public bool useIK;
+
+	public TwoBoneIKConstraint rightHandConstraint;
+	public TwoBoneIKConstraint leftHandConstraint;
+	public TwoBoneIKConstraint rightFootConstraint;
+	public TwoBoneIKConstraint leftFootConstraint;
+	public MultiAimConstraint headLook;
 
 
 	[System.Serializable]
@@ -99,12 +129,6 @@ public class AnimationController : MonoBehaviour
 		public float rotationWeight;
 	}
 
-	[System.Serializable]
-	public struct LookAtWeights
-	{
-		[Range(0, 1)] public float weight, bodyWeight, headWeight, eyesWeight, clampWeight;
-	}
-
 
 
 
@@ -113,12 +137,9 @@ public class AnimationController : MonoBehaviour
 
 	Animator anim;
 
-	[System.NonSerialized] public LookAtWeights weights;
-	public LookAtWeights lookAtTargetWeights;
-
-	[System.NonSerialized] public Transform lookAtTarget;
-	[System.NonSerialized] public Vector3 lookAtPosition;
-
+	[System.NonSerialized] public float headWeight;
+	[Range(0, 1)] public float lookAtHeadWeight = 1;
+	public Transform lookAtTarget { get; private set; }
 	public bool useAnimationHook = false;
 
 	public float velocityScaler = 1;
@@ -135,6 +156,20 @@ public class AnimationController : MonoBehaviour
 	float averageTurning = 0;
 
 	Vector3 lastDirection;
+
+	public void SetLookAtTarget(Transform target)
+	{
+		headLook.weight = lookAtHeadWeight;
+		headLook.data.sourceObjects.Add(new WeightedTransform(target, 1));
+		lookAtTarget = target.transform;
+	}
+	public void ClearLookAtTargets()
+	{
+		headLook.data.sourceObjects.Clear();
+		SetLookAtTarget(localHeadLookTarget);
+		lookAtTarget = null;
+	}
+
 	void TriggerTransition(in AnimationTransition transition, int layer)
 	{
 		anim.CrossFadeInFixedTime(transition.nameHash, transition.duration, layer, transition.offset);
@@ -182,77 +217,69 @@ public class AnimationController : MonoBehaviour
 	}
 	private void Update()
 	{
-		if (lookToVelocity)
+		if (lookToVelocity && Time.deltaTime > 0)
 		{
 			//record current rotation for graphics controller
-
+			float angle = Vector3.SignedAngle(transform.forward, lastDirection, Vector3.up) / Time.deltaTime;
 			averageTurning = Mathf.SmoothDamp(
 				averageTurning,
-				Vector3.SignedAngle(transform.forward, lastDirection, Vector3.up) / Time.deltaTime,
+				angle,
 				ref turingVel, turningTime);
 
 			averageTurning = Mathf.Clamp(averageTurning, -maxTurningAngle, maxTurningAngle);
 
 			lastDirection = transform.forward;
 		}
-	}
-	void OnAnimatorIK(int layerIndex)
-	{
-		if (anim == null) return;
 
 		if (enableFeetIK)
 		{
-			MovePelvisHeight();
+			//MovePelvisHeight();
 			//Right foot ik position and rotation
 
-			anim.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1);
-			if (useFootCurvesForRotationGrounding)            //pro features?
-				anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, anim.GetFloat(leftFootAnimVariableName));
-			MoveFeetToIKPoint(AvatarIKGoal.RightFoot, rightFootIKPosition, rightFootIKRotation, ref lastRightFootPositionY);
+			if (useFootCurvesForRotationGrounding)
+				leftFootConstraint.weight = anim.GetFloat(leftFootAnimVariableName);
+			else
+				leftFootConstraint.weight = 1;
 
-			anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
-			if (useFootCurvesForRotationGrounding)            //pro features?
-				anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, anim.GetFloat(leftFootAnimVariableName));
-			MoveFeetToIKPoint(AvatarIKGoal.LeftFoot, leftFootIKPosition, leftFootIKRotation, ref lastLeftFootPositionY);
+			MoveFeetToIKPoint(rightFootConstraint, rightFootIKPosition, rightFootIKRotation, ref lastRightFootPositionY);
+
+			if (useFootCurvesForRotationGrounding)
+				leftFootConstraint.weight = anim.GetFloat(leftFootAnimVariableName);
+			else
+				leftFootConstraint.weight = 1;
+
+			MoveFeetToIKPoint(leftFootConstraint, leftFootIKPosition, leftFootIKRotation, ref lastLeftFootPositionY);
 		}
 
 		if (useIK)
 		{
-			foreach (HoldPoint point in holdPoints)
-			{
-				if (point.gripPoint == null)
-					continue;
+			// foreach (HoldPoint point in holdPoints)
+			// {
+			// 	if (point.gripPoint == null)
+			// 		continue;
 
-				anim.SetIKPositionWeight(point.goal, point.positionWeight);
-				anim.SetIKRotationWeight(point.goal, point.rotationWeight);
+			// 	anim.SetIKPositionWeight(point.goal, point.positionWeight);
+			// 	anim.SetIKRotationWeight(point.goal, point.rotationWeight);
 
-				anim.SetIKPosition(point.goal, point.gripPoint.position);
-				anim.SetIKRotation(point.goal, point.gripPoint.rotation);
-			}
+			// 	anim.SetIKPosition(point.goal, point.gripPoint.position);
+			// 	anim.SetIKRotation(point.goal, point.gripPoint.rotation);
+			// }
 
-			if (lookAtTarget != null)
+			if (lookAtTarget == null && lookToVelocity)
 			{
-				anim.SetLookAtWeight(lookAtTargetWeights.weight, lookAtTargetWeights.bodyWeight, lookAtTargetWeights.headWeight, lookAtTargetWeights.eyesWeight, lookAtTargetWeights.clampWeight);
-				anim.SetLookAtPosition(lookAtTarget.position);
-			}
-			else if (lookToVelocity)
-			{
+
 				Quaternion rotation = Quaternion.Euler(0, -averageTurning * turningMultiplier, 0);
-				anim.SetLookAtWeight(1, 0, 0.5f, 1, 0.15f);
+				Vector3 lookAt;
 				if (rb.velocity.sqrMagnitude > 0.1f)
 				{
-					anim.SetLookAtPosition(head.position + rotation * rb.velocity);
+					lookAt = (head.position + rotation * rb.velocity);
 				}
 				else
 				{
-					anim.SetLookAtPosition(head.position + rotation * transform.forward);
+					lookAt = (head.position + rotation * transform.forward);
 				}
-			}
-			else
-			{
 
-				anim.SetLookAtWeight(weights.weight, weights.bodyWeight, weights.headWeight, weights.eyesWeight, weights.clampWeight);
-				anim.SetLookAtPosition(lookAtPosition);
+				headLook.data.sourceObjects[0].transform.position = lookAt;
 			}
 		}
 	}
@@ -261,9 +288,9 @@ public class AnimationController : MonoBehaviour
 
 	#region Solver Methods
 
-	void MoveFeetToIKPoint(AvatarIKGoal foot, Vector3 positionIKHolder, Quaternion rotationIKHolder, ref float lastFootPositionY)
+	void MoveFeetToIKPoint(TwoBoneIKConstraint foot, Vector3 positionIKHolder, Quaternion rotationIKHolder, ref float lastFootPositionY)
 	{
-		Vector3 targetIKPosition = anim.GetIKPosition(foot);
+		Vector3 targetIKPosition = foot.data.target.position;
 		if (positionIKHolder != default(Vector3))
 		{
 			targetIKPosition = transform.InverseTransformPoint(targetIKPosition);
@@ -272,9 +299,10 @@ public class AnimationController : MonoBehaviour
 			targetIKPosition.y += y;
 			lastFootPositionY = y;
 			targetIKPosition = transform.TransformPoint(targetIKPosition);
-			anim.SetIKRotation(foot, rotationIKHolder);
+
+			foot.data.target.rotation = rotationIKHolder;
 		}
-		anim.SetIKPosition(foot, targetIKPosition);
+		foot.data.target.position = targetIKPosition;
 	}
 	void MovePelvisHeight()
 	{

@@ -43,7 +43,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.setTabMenuPanelEventChannel.RaiseEvent(2);
+				t.setTabMenuPanelEventChannel.RaiseEvent(2);
 				if (!inMenus)
 					ToggleTabMenu();
 			}
@@ -52,7 +52,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.setTabMenuPanelEventChannel.RaiseEvent(1);
+				t.setTabMenuPanelEventChannel.RaiseEvent(1);
 				if (!inMenus)
 					ToggleTabMenu();
 			}
@@ -61,7 +61,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.setTabMenuPanelEventChannel.RaiseEvent(3);
+				t.setTabMenuPanelEventChannel.RaiseEvent(3);
 				if (!inMenus)
 					ToggleTabMenu();
 			}
@@ -109,7 +109,7 @@ namespace Armere.PlayerController
 
 		void UpdateMenus()
 		{
-			c.setTabMenuEventChannel.RaiseEvent(inMenus);
+			t.setTabMenuEventChannel.RaiseEvent(inMenus);
 			SetPaused(inMenus);
 		}
 

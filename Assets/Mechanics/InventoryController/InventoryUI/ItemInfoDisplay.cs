@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
+using System.Collections;
+
 namespace Armere.Inventory.UI
 {
 	public class ItemInfoDisplay : MonoBehaviour
@@ -11,13 +13,19 @@ namespace Armere.Inventory.UI
 		public TextMeshProUGUI title;
 		public TextMeshProUGUI description;
 		AsyncOperationHandle<Sprite> spriteAsyncOperation;
-		public async void ShowInfo(ItemStackBase stackBase, ItemDatabase db)
+		public void ShowInfo(ItemStackBase stackBase, ItemDatabase db)
 		{
 			title.text = stackBase.item.displayName;
 			description.text = stackBase.item.description;
+			StartCoroutine(LoadSprite(stackBase));
+		}
+		IEnumerator LoadSprite(ItemStackBase stackBase)
+		{
 			//Load the sprite
 			spriteAsyncOperation = Addressables.LoadAssetAsync<Sprite>(stackBase.item.thumbnail);
-			thumbnail.sprite = await spriteAsyncOperation.Task;
+			if (!spriteAsyncOperation.IsDone)
+				yield return spriteAsyncOperation;
+			thumbnail.sprite = spriteAsyncOperation.Result;
 		}
 
 		private void OnDestroy()

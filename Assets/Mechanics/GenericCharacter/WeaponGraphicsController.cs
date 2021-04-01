@@ -231,7 +231,7 @@ public class WeaponGraphicsController : MonoBehaviour
 	{
 		animationController = GetComponent<AnimationController>();
 
-		animator = GetComponent<Animator>();
+		animator = GetComponentInChildren<Animator>();
 
 		foreach (HoldableObject h in holdables)
 			h.Init(animator);

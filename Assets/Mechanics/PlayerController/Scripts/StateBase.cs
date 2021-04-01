@@ -9,37 +9,9 @@ namespace Armere.PlayerController
 	[Serializable]
 	public class AnimatorVariables
 	{
-		public AnimatorVariable vertical = new AnimatorVariable("InputVertical");
-		public AnimatorVariable horizontal = new AnimatorVariable("InputHorizontal");
-		public AnimatorVariable walkingSpeed = new AnimatorVariable("WalkingSpeed");
-		public AnimatorVariable isGrounded = new AnimatorVariable("IsGrounded");
-		public AnimatorVariable verticalVelocity = new AnimatorVariable("VerticalVelocity");
-		public AnimatorVariable groundDistance = new AnimatorVariable("GroundDistance");
-		public void UpdateIDs()
-		{
-			vertical.UpdateID();
-			horizontal.UpdateID();
-			walkingSpeed.UpdateID();
-			isGrounded.UpdateID();
-			isGrounded.UpdateID();
-			verticalVelocity.UpdateID();
-			groundDistance.UpdateID();
-		}
+
 	}
-	[Serializable]
-	public class AnimatorVariable
-	{
-		public string name;
-		[NonSerialized] public int id;
-		public AnimatorVariable(string name)
-		{
-			this.name = name;
-		}
-		public void UpdateID()
-		{
-			id = Animator.StringToHash(name);
-		}
-	}
+
 
 	public abstract class MovementState : State<PlayerController>
 	{
@@ -55,7 +27,6 @@ namespace Armere.PlayerController
 		}
 
 		public abstract string StateName { get; }
-		public virtual void Animate(AnimatorVariables vars) { }
 		public virtual void OnAnimatorIK(int layerIndex) { }
 		public virtual void OnTriggerEnter(Collider other) { }
 		public virtual void OnTriggerExit(Collider other) { }

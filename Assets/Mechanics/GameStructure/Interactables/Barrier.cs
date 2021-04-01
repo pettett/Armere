@@ -12,6 +12,8 @@ public class Barrier : MonoBehaviour, IInteractable
 
 	public string interactionName => null;
 
+	public Vector3 worldOffset => default;
+
 	public bool open;
 	public bool moving = false;
 	public bool canOpen = true;

@@ -17,4 +17,6 @@ public class RestPoint : MonoBehaviour, IInteractable
 	public string interactionDescription => restPromptText;
 
 	public string interactionName => null;
+
+	public Vector3 worldOffset => default;
 }

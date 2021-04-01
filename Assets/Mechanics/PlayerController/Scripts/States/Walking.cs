@@ -119,7 +119,7 @@ namespace Armere.PlayerController
 
 			animator.applyRootMotion = false;
 
-			c.onPlayerInventoryItemAdded.onItemAddedEvent += OnItemAdded;
+			t.onPlayerInventoryItemAdded.onItemAddedEvent += OnItemAdded;
 
 			c.health.onTakeDamage += OnTakeDamage;
 			c.health.onBlockDamage += OnBlockDamage;
@@ -154,7 +154,7 @@ namespace Armere.PlayerController
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
-			c.onPlayerInventoryItemAdded.onItemAddedEvent -= OnItemAdded;
+			t.onPlayerInventoryItemAdded.onItemAddedEvent -= OnItemAdded;
 
 			//Remove input reader events
 
@@ -285,7 +285,7 @@ namespace Armere.PlayerController
 						float fullyBlackTime = time - fadeTime * 2;
 
 						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
-						c.changeTimeEventChannel.RaiseEvent(newTime);
+						t.changeTimeEventChannel.RaiseEvent(newTime);
 						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
 
 						yield return UIController.singleton.Fade(1, 0, fadeTime, false);
@@ -429,7 +429,7 @@ namespace Armere.PlayerController
 						//Striding through water
 						//Slow speed of walk
 						//Full depth walks at half speed
-						speedScalar = (1 - scaledDepth) * c.maxStridingDepthSpeedScalar + (1 - c.maxStridingDepthSpeedScalar);
+						speedScalar = (1 - scaledDepth) * t.maxStridingDepthSpeedScalar + (1 - t.maxStridingDepthSpeedScalar);
 					}
 
 				}
@@ -529,7 +529,7 @@ namespace Armere.PlayerController
 				c.animationController.TriggerTransition(c.transitionSet.freeMovement);
 			}
 
-			animator.SetFloat(c.animatorVariables.vertical.id, 1);
+			animator.SetFloat(c.transitionSet.vertical.id, 1);
 			//transform.forward = -transform.forward;
 			c.animator.applyRootMotion = false;
 			inControl = true;
@@ -539,6 +539,32 @@ namespace Armere.PlayerController
 		public override void Update()
 		{
 			currentCastingSpell?.Update();
+
+
+
+			float speed = c.inputReader.horizontalMovement.magnitude * (sprinting ? 1.5f : 1);
+			if (!inControl) speed = 0;
+
+			animator.SetBool("Idle", speed == 0);
+
+			const float dampTime = 0.1f;
+			Vector3 localVel = transform.InverseTransformDirection(c.rb.velocity).normalized * speed;
+
+			animator.SetFloat(c.transitionSet.vertical.id, localVel.z, dampTime, Time.deltaTime);
+			animator.SetFloat(c.transitionSet.horizontal.id, localVel.x, dampTime, Time.deltaTime);
+
+
+			//c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
+
+			animator.SetFloat("WalkingSpeed", 1);
+			animator.SetBool("IsGrounded", true);
+
+
+			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
+			//animator.SetFloat(vars.groundDistance.id, c.currentHeight);
+			animator.SetBool("Crouching", crouching);
+			animator.SetBool("IsStrafing", true);
+
 		}
 
 
@@ -803,15 +829,15 @@ namespace Armere.PlayerController
 			}
 		}
 		#region Bows
-		float GetArrowSpeed(float bowCharge) => Mathf.Lerp(c.arrowSpeedRange.x, c.arrowSpeedRange.y, bowCharge);
+		float GetArrowSpeed(float bowCharge) => Mathf.Lerp(t.arrowSpeedRange.x, t.arrowSpeedRange.y, bowCharge);
 
 		public void EnableBowAimView()
 		{
-			GameCameras.s.cameraTargetXOffset = c.shoulderViewXOffset;
+			GameCameras.s.cameraTargetXOffset = t.shoulderViewXOffset;
 
 			GameCameras.s.EnableFreeLookAimMode();
 
-			c.onAimModeEnable.RaiseEvent();
+			t.onAimModeEnable.RaiseEvent();
 		}
 		public void DisableBowAimView()
 		{
@@ -819,7 +845,7 @@ namespace Armere.PlayerController
 
 			GameCameras.s.DisableFreeLookAimMode();
 
-			c.onAimModeDisable.RaiseEvent();
+			t.onAimModeDisable.RaiseEvent();
 		}
 		IEnumerator ChargeBow()
 		{
@@ -864,7 +890,7 @@ namespace Armere.PlayerController
 				DisableBowAimView();
 
 				forceForwardHeadingToCamera = false;
-				c.animationController.weights.weight = 0; // don't need to do others - master switch
+				c.animationController.headWeight = 0; // don't need to do others - master switch
 
 				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
 
@@ -893,11 +919,11 @@ namespace Armere.PlayerController
 			EnableBowAimView();
 
 
-			c.animationController.weights.weight = 1;
-			c.animationController.weights.headWeight = 1;
-			c.animationController.weights.eyesWeight = 1;
-			c.animationController.weights.bodyWeight = 1;
-			c.animationController.weights.clampWeight = 0.5f; //180 degrees
+			// c.animationController.weights.weight = 1;
+			// c.animationController.weights.headWeight = 1;
+			// c.animationController.weights.eyesWeight = 1;
+			// c.animationController.weights.bodyWeight = 1;
+			// c.animationController.weights.clampWeight = 0.5f; //180 degrees
 
 			var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
 			while (chargingBow)
@@ -905,12 +931,12 @@ namespace Armere.PlayerController
 				yield return null;
 				if (Physics.Raycast(GameCameras.s.cameraTransform.position, GameCameras.s.cameraTransform.forward, out RaycastHit hit))
 				{
-					c.animationController.lookAtPosition = hit.point;
+					//c.animationController.lookAtPosition = hit.point;
 					c.weaponGraphics.holdables.bow.gameObject.transform.LookAt(hit.point);
 				}
 				else
 				{
-					c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
+					//c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
 					c.weaponGraphics.holdables.bow.gameObject.transform.forward = GameCameras.s.cameraTransform.forward;
 				}
 
@@ -987,15 +1013,17 @@ namespace Armere.PlayerController
 
 			if (closest != null && bestDot > 0.5f) //Only bend body if it is clear the player is aiming at this attackable
 			{
-				Vector3 target = closest.transform.TransformPoint(closest.offset);
-				c.animationController.lookAtPosition = target;
+				//TODO: Make player bend down
 
-				const float time = 0.07f;
+				// Vector3 target = closest.transform.TransformPoint(closest.offset);
+				// c.animationController.lookAtPosition = target;
 
-				LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
-				LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.weight = x);
+				// const float time = 0.07f;
 
-				c.animationController.weights.weight = 0;
+				// LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
+				// LeanTween.value(c.gameObject, 0, 1, time).setOnUpdate(x => c.animationController.weights.weight = x);
+
+				// c.animationController.weights.weight = 0;
 
 			}
 			//This is easier. Animation graphs suck
@@ -1044,20 +1072,20 @@ namespace Armere.PlayerController
 		}
 		IEnumerator SwordUseCooldown()
 		{
-			yield return new WaitForSeconds(c.swordUseDelay);
+			yield return new WaitForSeconds(t.swordUseDelay);
 			inControl = true;
 			activated.melee = false;
 			//Go back to walking
 			c.animationController.TriggerTransition(c.transitionSet.swordWalking);
 
-			float time = 0.07f;
+			//float time = 0.07f;
 
-			LeanTween.value(
-				c.gameObject, c.animationController.weights.weight, 0, time
-				).setOnUpdate(x => c.animationController.weights.weight = x);
-			LeanTween.value(
-				c.gameObject, c.animationController.weights.bodyWeight, 0, time
-				).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
+			// LeanTween.value(
+			// 	c.gameObject, c.animationController.weights.weight, 0, time
+			// 	).setOnUpdate(x => c.animationController.weights.weight = x);
+			// LeanTween.value(
+			// 	c.gameObject, c.animationController.weights.bodyWeight, 0, time
+			// 	).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
 		}
 		#endregion
 		#region Sidearms
@@ -1288,32 +1316,7 @@ namespace Armere.PlayerController
 		}
 
 		#endregion
-		public override void Animate(AnimatorVariables vars)
-		{
 
-			float speed = c.inputReader.horizontalMovement.magnitude * (sprinting ? 1.5f : 1);
-			if (!inControl) speed = 0;
-
-			animator.SetBool("Idle", speed == 0);
-
-			const float dampTime = 0.1f;
-			Vector3 localVel = transform.InverseTransformDirection(c.rb.velocity).normalized * speed;
-
-			animator.SetFloat(vars.vertical.id, localVel.z, dampTime, Time.deltaTime);
-			animator.SetFloat(vars.horizontal.id, localVel.x, dampTime, Time.deltaTime);
-
-
-			//c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
-
-			animator.SetFloat("WalkingSpeed", 1);
-			animator.SetBool("IsGrounded", true);
-
-
-			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
-			//animator.SetFloat(vars.groundDistance.id, c.currentHeight);
-			animator.SetBool("Crouching", crouching);
-			animator.SetBool("IsStrafing", true);
-		}
 
 		public void OnJump(InputActionPhase phase)
 		{

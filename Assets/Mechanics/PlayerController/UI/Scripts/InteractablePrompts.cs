@@ -28,7 +28,7 @@ namespace Armere.PlayerController.UI
 		{
 			prompt.ApplyPrompt(interactable.interactionDescription, inputReader.GetActionDisplayName("Action"));
 			if (interactable.interactionName != null)
-				indicator.StartIndication(interactable.gameObject.transform, interactable.interactionName);
+				indicator.StartIndication(interactable.gameObject.transform, interactable.interactionName, interactable.worldOffset);
 		}
 
 		private void EndHighlight()

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Armere.Inventory;
-
 public class CutLog : MonoBehaviour, IAttackable
 {
 	public GameObject canopy;
@@ -12,8 +10,6 @@ public class CutLog : MonoBehaviour, IAttackable
 	//Needed to spawn items and place offset
 	public Vector2 lengthRegion;
 
-	PhysicsItemData spawnedItem;
-	Vector2Int itemCount = new Vector2Int(1, 3);
 
 	public Vector3 offset;
 	Vector3 IScanable.offset => offset;
@@ -29,24 +25,11 @@ public class CutLog : MonoBehaviour, IAttackable
 
 	public void Cut()
 	{
-		if (spawnedItem != null)
-		{
-			int spawns = Random.Range(itemCount.x, itemCount.y + 1);
-
-
-			for (int i = 0; i < spawns; i++)
-			{
-				ItemSpawner.SpawnItem(
-					spawnedItem,
-					transform.position + transform.up * Mathf.Lerp(lengthRegion.x, lengthRegion.y, (i + 0.5f) / (float)spawns),
-					Quaternion.Euler(0, Random.Range(0, 360), 0));
-			}
-		}
 
 		Destroy(gameObject);
 	}
 
-	public AttackResult Attack(AttackFlags flags, WeaponItemData weapon, GameObject controller, Vector3 hitPosition)
+	public AttackResult Attack(DamageType flags, float damage, GameObject controller, Vector3 hitPosition)
 	{
 		if (!invincible)
 		{

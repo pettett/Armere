@@ -121,8 +121,6 @@ namespace Armere.PlayerController
 
 		public SaveLoadEventChannel playerSaveLoadChannel;
 
-		public System.Action<bool> onSwingStateChanged;
-
 
 		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
 
@@ -168,10 +166,6 @@ namespace Armere.PlayerController
 		private void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
 
 
-
-		public void SwingStart() => onSwingStateChanged?.Invoke(true);
-
-		public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
 		public override void Start()
@@ -396,17 +390,12 @@ namespace Armere.PlayerController
 		public void PauseControl()
 		{
 			GameCameras.s.DisableControl();
-			Cursor.visible = true;
-			Cursor.lockState = CursorLockMode.None;
 			GameCameras.s.lockingMouse = false;
 			Pause();
 		}
 		public void ResumeControl()
 		{
 			GameCameras.s.EnableControl();
-
-			Cursor.visible = false;
-			Cursor.lockState = CursorLockMode.Locked;
 			GameCameras.s.lockingMouse = true;
 			Play();
 		}
@@ -564,6 +553,14 @@ namespace Armere.PlayerController
 			}
 		}
 
+		public void Warp(Vector3 newPosition)
+		{
+			rb.velocity = Vector3.zero;
+
+			GameCameras.s.currentCamera.OnTargetObjectWarped(transform, newPosition - transform.position);
+			transform.position = newPosition;
+
+		}
 
 		private void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
 		{
@@ -669,7 +666,7 @@ namespace Armere.PlayerController
 			if (currentBow != -1)
 			{
 				var ammo = (AmmoItemData)inventory.ItemAt(currentAmmo, ItemType.Ammo).item;
-				weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammo);
+				StartCoroutine(weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().NotchNextArrow(ammo));
 			}
 		}
 		public void RemoveNotchedArrow()
@@ -734,6 +731,8 @@ namespace Armere.PlayerController
 				gamepad.SetMotorSpeeds(low, high);
 			}
 		}
+
+
 		public MovementState ChangeToState(MovementStateTemplate t)
 		{
 			currentState?.End(); // state specific end method

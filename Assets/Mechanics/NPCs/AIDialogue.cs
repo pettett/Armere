@@ -22,6 +22,8 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 
 
 	public IDialogue target;
+
+	public Minigame[] minigames;
 	AIHumanoid ai;
 	[System.NonSerialized] public Transform[] conversationGroupOverride, walkingPoints, focusPoints;
 	public System.Action<IInteractor> onInteract;

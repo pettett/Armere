@@ -3,44 +3,26 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
 using Yarn.Unity;
-public class NPCManager : MonoBehaviour
+
+[CreateAssetMenu(fileName = "NPCManager", menuName = "Game/NPCs/Manager", order = 0)]
+public class NPCManager : SaveableSO
 {
 	public static NPCManager singleton;
-	public DialogueRunner dialogueRunner;
-	public SaveLoadEventChannel npcSaveLoadChannel;
-	private void Awake()
+	private void OnEnable()
 	{
-		if (singleton != null)
-			Destroy(gameObject);
-		else
-		{
-			singleton = this;
 
-
-
-			dialogueRunner.variableStorage = DialogueInstances.singleton.inMemoryVariableStorage;
-			dialogueRunner.dialogueUI = DialogueInstances.singleton.dialogueUI;
-
-			npcSaveLoadChannel.onLoadBinEvent += LoadBin;
-			npcSaveLoadChannel.onLoadBlankEvent += LoadBlank;
-			npcSaveLoadChannel.onSaveBinEvent += SaveBin;
-		}
+		singleton = this;
 	}
 
-	private void OnDestroy()
+	private void OnDisable()
 	{
-		if (singleton == this)
-		{
-			npcSaveLoadChannel.onLoadBinEvent -= LoadBin;
-			npcSaveLoadChannel.onLoadBlankEvent -= LoadBlank;
-			npcSaveLoadChannel.onSaveBinEvent -= SaveBin;
 
-			singleton = null;
-		}
+		singleton = null;
+
 	}
 
 
-	public void LoadBin(in GameDataReader reader)
+	public override void LoadBin(in GameDataReader reader)
 	{
 		int dataCount = reader.ReadInt();
 		data = new Dictionary<string, NPCData>(dataCount);
@@ -49,7 +31,7 @@ public class NPCManager : MonoBehaviour
 			data[reader.ReadString()] = new NPCData(reader.saveVersion, reader);
 		}
 	}
-	public void SaveBin(in GameDataWriter writer)
+	public override void SaveBin(in GameDataWriter writer)
 	{
 		//Debug.Log(writer.writer.BaseStream.Position);
 
@@ -60,81 +42,44 @@ public class NPCManager : MonoBehaviour
 			writer.Write(kvp.Value.routineIndex);
 			writer.Write(kvp.Value.spokenTo);
 			writer.Write(kvp.Value.variables.Count);
-			foreach (KeyValuePair<string, NPCVariable> kvp2 in kvp.Value.variables)
+			foreach (KeyValuePair<string, Yarn.Value> kvp2 in kvp.Value.variables)
 			{
 				writer.Write(kvp2.Key);
 				writer.Write((int)kvp2.Value.type);
 				switch (kvp2.Value.type)
 				{
 					case Yarn.Value.Type.Bool:
-						writer.Write((bool)kvp2.Value.value);
+						writer.Write(kvp2.Value.AsBool);
 						break;
 					case Yarn.Value.Type.String:
-						writer.Write((string)kvp2.Value.value);
+						writer.Write(kvp2.Value.AsString);
 						break;
 					case Yarn.Value.Type.Number:
-						writer.Write((float)kvp2.Value.value);
+						writer.Write(kvp2.Value.AsNumber);
 						break;
 				}
 			}
 		}
 	}
 
-
-	public void LoadBlank()
+	public static Yarn.Value FromLoad(Version saveVersion, GameDataReader reader)
+	{
+		return (Yarn.Value.Type)reader.ReadInt() switch
+		{
+			Yarn.Value.Type.Bool => new Yarn.Value(reader.ReadBool()),
+			Yarn.Value.Type.Number => new Yarn.Value(reader.ReadFloat()),
+			Yarn.Value.Type.String => new Yarn.Value(reader.ReadString()),
+			_ => null,
+		};
+	}
+	public override void LoadBlank()
 	{
 
 	}
-
-
-
-
-	[System.Serializable]
-	public class NPCVariable
-	{
-		public object value;
-		public Yarn.Value.Type type;
-
-		public static implicit operator Yarn.Value(NPCVariable v)
-		{
-			if (v != null) return new Yarn.Value(v.value);
-			else return null;
-		}
-		public static implicit operator NPCVariable(Yarn.Value v)
-		{
-			switch (v.type)
-			{
-				case Yarn.Value.Type.Bool: //BOOL
-					return new NPCVariable() { value = v.AsBool, type = Yarn.Value.Type.Bool };
-				case Yarn.Value.Type.Number: //FLOAT
-					return new NPCVariable() { value = v.AsNumber, type = Yarn.Value.Type.Number };
-				case Yarn.Value.Type.String: //STRING
-					return new NPCVariable() { value = v.AsString, type = Yarn.Value.Type.String };
-			}
-			return null;
-		}
-
-		public static NPCVariable FromLoad(Version saveVersion, GameDataReader reader)
-		{
-			var type = (Yarn.Value.Type)reader.ReadInt();
-			switch (type)
-			{
-				case Yarn.Value.Type.Bool: //BOOL
-					return new NPCVariable() { value = reader.ReadBool(), type = Yarn.Value.Type.Bool };
-				case Yarn.Value.Type.Number: //FLOAT
-					return new NPCVariable() { value = reader.ReadFloat(), type = Yarn.Value.Type.Number };
-				case Yarn.Value.Type.String: //STRING
-					return new NPCVariable() { value = reader.ReadString(), type = Yarn.Value.Type.String };
-			}
-			return null;
-		}
-	}
-
-
 	public class NPCData
 	{
 		public bool spokenTo = false;
-		public Dictionary<string, NPCVariable> variables;
+		public Dictionary<string, Yarn.Value> variables;
 		public int routineIndex = 0;
 		public Transform npcInstance;
 
@@ -143,16 +88,19 @@ public class NPCManager : MonoBehaviour
 			routineIndex = reader.ReadInt();
 			spokenTo = reader.ReadBool();
 			int varCount = reader.ReadInt();
-			variables = new Dictionary<string, NPCVariable>(varCount);
+			variables = new Dictionary<string, Yarn.Value>(varCount);
 			for (int i = 0; i < varCount; i++)
 			{
-				variables[reader.ReadString()] = NPCVariable.FromLoad(saveVersion, reader);
+				variables[reader.ReadString()] = FromLoad(saveVersion, reader);
 			}
 		}
-
+		public void AddVariable(string name, object value)
+		{
+			variables[name] = new Yarn.Value(value);
+		}
 		public NPCData(NPCTemplate t)
 		{
-			variables = new Dictionary<string, NPCVariable>(t.defaultValues.Length);
+			variables = new Dictionary<string, Yarn.Value>(t.defaultValues.Length);
 			foreach (var variable in t.defaultValues)
 			{
 				//Turn default variable into yarn value then into NPCVariable

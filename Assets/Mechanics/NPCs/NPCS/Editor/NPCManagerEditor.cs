@@ -31,7 +31,7 @@ public class NPCManagerEditor : Editor
 				EditorUtility.SetDirty(m);
 			}
 
-			foreach (KeyValuePair<string, NPCManager.NPCVariable> variable in m.data[npcName].variables)
+			foreach (KeyValuePair<string, Yarn.Value> variable in m.data[npcName].variables)
 			{
 
 				EditorGUILayout.BeginHorizontal();
@@ -40,10 +40,10 @@ public class NPCManagerEditor : Editor
 				{
 					case Yarn.Value.Type.Number:
 						EditorGUI.BeginChangeCheck();
-						tempFloat = EditorGUILayout.FloatField((float)variable.Value.value);
+						tempFloat = EditorGUILayout.FloatField(variable.Value.AsNumber);
 						if (EditorGUI.EndChangeCheck())
 						{
-							variable.Value.value = tempFloat;
+							m.data[npcName].AddVariable(variable.Key, tempFloat);
 							EditorUtility.SetDirty(m);
 						}
 						break;

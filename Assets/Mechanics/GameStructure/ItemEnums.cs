@@ -50,12 +50,12 @@ public enum ItemName
 	Scimitar,
 	Ulfberht
 }
-
-public enum AttackFlags
+[System.Flags]
+public enum DamageType
 {
-	Blunt,
-	Sharp,
-	Explosive
+	Blunt = 1,
+	Sharp = 2,
+	Explosive = 4
 }
 
 

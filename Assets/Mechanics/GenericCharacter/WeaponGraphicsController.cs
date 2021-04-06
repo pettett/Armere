@@ -69,6 +69,7 @@ public class WeaponGraphicsController : MonoBehaviour
 		public HumanBodyBones anchor;
 		public Vector3 posOffset;
 		public Quaternion rotOffset;
+		public BowRig overrideRig;
 		Transform anchorTrans;
 		public void Init(Animator animator)
 		{
@@ -76,10 +77,23 @@ public class WeaponGraphicsController : MonoBehaviour
 		}
 		public void Anchor(Transform t)
 		{
-			t.SetParent(anchorTrans, false);
-			t.localScale = Vector3.one * 100;
+			if (overrideRig != null)
+			{
+				overrideRig.AddToRig(t.gameObject);
+			}
+			else
+			{
+				t.SetParent(anchorTrans, false);
+			}
 			t.localPosition = posOffset;
 			t.localRotation = rotOffset;
+		}
+		public void UnAnchor(Transform t)
+		{
+			if (overrideRig != null)
+			{
+				overrideRig.ClearRig();
+			}
 		}
 	}
 
@@ -114,9 +128,15 @@ public class WeaponGraphicsController : MonoBehaviour
 		{
 			if (gameObject != null)
 				if (sheathed)
+				{
 					sheathedPoint.Anchor(gameObject.transform);
+					holdPoint.UnAnchor(gameObject.transform);
+				}
 				else
+				{
 					holdPoint.Anchor(gameObject.transform);
+					sheathedPoint.UnAnchor(gameObject.transform);
+				}
 		}
 
 		public AsyncOperationHandle<GameObject> SetHeld(HoldableItemData holdable)
@@ -167,7 +187,6 @@ public class WeaponGraphicsController : MonoBehaviour
 
 	AnimationController animationController;
 
-	public Transform bowLockingTransform;
 
 	public IEnumerator DrawItem(ItemType type, AnimationTransitionSet transitionSet)
 	{
@@ -180,23 +199,6 @@ public class WeaponGraphicsController : MonoBehaviour
 		}
 		else if (type == ItemType.Bow)
 		{
-			//IK the hand to the bow
-			animationController.holdPoints.Add(new AnimationController.HoldPoint()
-			{
-				goal = AvatarIKGoal.RightHand,
-				positionWeight = 1,
-				rotationWeight = 1,
-				gripPoint = holdables.bow.gameObject.GetComponent<Bow>().backHandAnchor
-			});
-
-			animationController.holdPoints.Add(new AnimationController.HoldPoint()
-			{
-				goal = AvatarIKGoal.LeftHand,
-				positionWeight = 1,
-				rotationWeight = 1,
-				gripPoint = bowLockingTransform
-			});
-
 			animationController.TriggerTransition(transitionSet.strafingMovement);
 		}
 
@@ -229,22 +231,21 @@ public class WeaponGraphicsController : MonoBehaviour
 
 	private void Start()
 	{
-		animationController = GetComponent<AnimationController>();
+		animationController = GetComponentInChildren<AnimationController>();
 
-		animator = GetComponentInChildren<Animator>();
+		animator = animationController.anim;
 
 		foreach (HoldableObject h in holdables)
 			h.Init(animator);
 
+
+		animationController.onFootDown += OnClank;
+		animationController.onClank += OnClank;
 	}
 	public void OnClank()
 	{
 		//Called by animator
 		foreach (HoldableObject h in holdables)
 			h.OnClank(source);
-	}
-	public void FootDown()
-	{
-		OnClank();
 	}
 }

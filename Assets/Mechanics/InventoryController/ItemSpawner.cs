@@ -17,18 +17,21 @@ namespace Armere.Inventory
 		public bool spawnedItem;
 		public PhysicsItemData item;
 
-		static void OnItemLoaded(AsyncOperationHandle<GameObject> handle, PhysicsItemData item)
-		{
-			ItemSpawnable spawnable = handle.Result.GetComponent<ItemSpawnable>();
-			spawnable.Init(item, 1);
-		}
+
+
 
 		public static AsyncOperationHandle<GameObject> SpawnItem(PhysicsItemData item, Vector3 position, Quaternion rotation)
 		{
 			Assert.IsTrue(item.gameObject.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
+			//Debug.Log($"Spawning {item.name}");
+			void OnItemLoaded(AsyncOperationHandle<GameObject> handle)
+			{
+				ItemSpawnable spawnable = handle.Result.GetComponent<ItemSpawnable>();
+				spawnable.Init(item, 1);
+			}
 
 			var handle = GameObjectSpawner.Spawn(item.gameObject, position, rotation);
-			GameObjectSpawner.OnDone(handle, (x) => OnItemLoaded(x, item));
+			GameObjectSpawner.OnDone(handle, OnItemLoaded);
 
 			return handle;
 		}

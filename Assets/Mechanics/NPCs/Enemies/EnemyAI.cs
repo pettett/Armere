@@ -82,7 +82,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	public override void Start()
 	{
 		health = GetComponent<Health>();
-		animationController = GetComponent<AnimationController>();
+
 		collider = GetComponent<Collider>();
 
 		health.onTakeDamage += OnDamageTaken;
@@ -395,8 +395,8 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 		float speed = Mathf.Sign(agent.velocity.sqrMagnitude);
 
-		anim.SetBool("Idle", speed == 0);
-		anim.SetFloat("InputVertical", agent.velocity.sqrMagnitude / (agent.speed * agent.speed), 0.01f, Time.deltaTime);
+		animationController.anim.SetBool("Idle", speed == 0);
+		animationController.anim.SetFloat("InputVertical", agent.velocity.sqrMagnitude / (agent.speed * agent.speed), 0.01f, Time.deltaTime);
 	}
 
 	private void OnAnimatorIK(int layerIndex)

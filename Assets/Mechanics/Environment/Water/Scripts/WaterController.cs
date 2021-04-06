@@ -86,12 +86,12 @@ public class WaterController : MonoBehaviour
 	public void CreateSplash(Vector3 position, float size = 1)
 	{
 		position.y += 0.03f;
-		if (template.splashEffect != null)
+		if (template.sceneInstance.splashEffect != null)
 		{
-			template.splashEffect.transform.position = position;
+			template.sceneInstance.splashEffect.transform.position = position;
 
-			template.splashEffect.SetFloat("Splash Size", size);
-			template.splashEffect.SendEvent("Splash");
+			template.sceneInstance.splashEffect.SetFloat("Splash Size", size);
+			template.sceneInstance.splashEffect.SendEvent("Splash");
 		}
 	}
 

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: a995cc5e7e10f004ebf1e3d75ce01aab
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 94073015eacc34c1d8fc6786e43d60ca, type: 3}
+  baseLanguageID: en-GB
+  stringIDs:
+  - ArcheryLeader-Start-0
+  compilationStatus: 1
+  isSuccesfullyCompiled: 1
+  compilationErrorMessage: 
+  baseLanguage: {fileID: 7128917941130120860, guid: a995cc5e7e10f004ebf1e3d75ce01aab,
+    type: 3}
+  localizations: []

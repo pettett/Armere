@@ -12,6 +12,7 @@ using UnityEngine.Assertions;
 public class NPCTemplate : AIStateTemplate
 {
 	public YarnProgram dialogue;
+	public NPCManager manager;
 
 	public Yarn.Unity.InMemoryVariableStorage.DefaultVariable[] defaultValues;
 
@@ -19,8 +20,11 @@ public class NPCTemplate : AIStateTemplate
 
 	public ClothesVariation[] clothes;
 
+	public Minigame[] minigames;
+
 	public enum RoutineActivity { None = 0, Stand, Sleep }
 	public enum RoutineAnimation { StandingIdle = 0, SittingIdle = 1, MaleSittingIdle = 2 }
+
 	[System.Serializable]
 	public class RoutineStage : IComparable<RoutineStage>
 	{
@@ -98,7 +102,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 
 	public readonly AIDialogue d;
 
-	public int RoutineIndex { get => NPCManager.singleton.data[d.npcName].routineIndex; set => NPCManager.singleton.data[d.npcName].routineIndex = value; }
+	public int RoutineIndex { get => t.manager.data[d.npcName].routineIndex; set => t.manager.data[d.npcName].routineIndex = value; }
 
 	public NPCTemplate.Routine CurrentRoutine => t.routines[RoutineIndex];
 	public string StartNode => CurrentRoutine.stages[currentRoutineStage].conversationStartNode;
@@ -111,9 +115,8 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 
 	Value IVariableAddon.this[string name]
 	{
-		//Im sure there are many reasons why this is terrible, but yarn variables are not serializeable so cannot be saved 
-		get => NPCManager.singleton.data[d.npcName].variables[name];
-		set => NPCManager.singleton.data[d.npcName].variables[name] = value;
+		get => t.manager.data[d.npcName].variables[name];
+		set => t.manager.data[d.npcName].variables[name] = value;
 	}
 	IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
 	{
@@ -175,10 +178,15 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		d.npcName = t.name;
 		thought = c.GetComponent<AIAmbientThought>();
 
-		if (!NPCManager.singleton.data.ContainsKey(d.npcName))
+		if (t.manager == null)
+		{
+			Debug.LogWarning($"{t.name} has no npc manager", t);
+		}
+
+		if (!t.manager.data.ContainsKey(d.npcName))
 		{
 			//Only add this data if the NPC has not existed in the save before
-			NPCManager.singleton.data[d.npcName] = new NPCManager.NPCData(t);
+			t.manager.data[d.npcName] = new NPCManager.NPCData(t);
 		}
 
 		for (int i = 0; i < t.clothes.Length; i++)
@@ -205,7 +213,9 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		System.Array.Copy(t.buyMenuItems, d.buyInventory, d.buyInventory.Length);
 
 
-		NPCManager.singleton.data[d.npcName].npcInstance = c.transform;
+		d.minigames = t.minigames;
+
+		t.manager.data[d.npcName].npcInstance = c.transform;
 
 		d.walkingPoints = this.c.spawn.walkingPoints;
 		d.conversationGroupOverride = this.c.spawn.conversationGroupTargetsOverride;
@@ -265,7 +275,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 
 		//Probably quicker to overrite true with true then find the value and
 		//check if it is true then find it again to set it
-		NPCManager.singleton.data[d.npcName].spokenTo = true;
+		t.manager.data[d.npcName].spokenTo = true;
 
 	}
 
@@ -301,7 +311,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		thought.ambientThoughtText.text = CurrentRoutine.stages[currentRoutineStage].activity.ToString();
 
 		//Apply routine animation
-		c.anim.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);
+		c.animationController.anim.SetInteger("idle_state", (int)CurrentRoutine.stages[currentRoutineStage].animation);
 
 		switch (CurrentRoutine.stages[currentRoutineStage].activity)
 		{

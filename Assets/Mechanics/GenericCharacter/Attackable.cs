@@ -14,5 +14,5 @@ public enum AttackResult
 
 public interface IAttackable : IScanable
 {
-	AttackResult Attack(AttackFlags flags, WeaponItemData weapon, GameObject controller, Vector3 hitPosition);
+	AttackResult Attack(DamageType flags, float damage, GameObject controller, Vector3 hitPosition);
 }

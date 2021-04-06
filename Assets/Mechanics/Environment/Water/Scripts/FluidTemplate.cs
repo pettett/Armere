@@ -15,24 +15,20 @@ public class FluidTemplate : ScriptableObject
 
 	public AssetReferenceGameObject splashEffectPrefab;
 
-	AsyncOperationHandle<GameObject> splashEffectHandle;
-
-	[System.NonSerialized] public VisualEffect splashEffect;
 	public float density = 1000;
-	private void OnEnable()
+	FluidTypeInstance _sceneInstance;
+	public FluidTypeInstance sceneInstance
 	{
-		splashEffectHandle = Addressables.InstantiateAsync(splashEffectPrefab, trackHandle: false);
-		if (splashEffectHandle.IsDone)
+		get
 		{
-			splashEffect = splashEffectHandle.Result.GetComponent<VisualEffect>();
-		}
-		else
-		{
-			splashEffectHandle.Completed += (x) => splashEffect = x.Result.GetComponent<VisualEffect>();
+			if (_sceneInstance == null)
+			{
+				_sceneInstance = new GameObject($"{name} Instance", typeof(FluidTypeInstance)).GetComponent<FluidTypeInstance>();
+				_sceneInstance.template = this;
+			}
+			return _sceneInstance;
+
 		}
 	}
-	private void OnDestroy()
-	{
-		Addressables.ReleaseInstance(splashEffectHandle);
-	}
+
 }

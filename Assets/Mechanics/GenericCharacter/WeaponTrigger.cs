@@ -11,6 +11,7 @@ public class WeaponTrigger : MonoBehaviour
 	[System.NonSerialized] public Collider trigger;
 	AsyncOperationHandle<GameObject> hitSparkEffect;
 	public event System.Action<AttackResult> onWeaponHit;
+	public TrailRenderer weaponTrail;
 	bool _enableTrigger = false;
 	public bool inited { get; private set; }
 
@@ -21,8 +22,9 @@ public class WeaponTrigger : MonoBehaviour
 		get => _enableTrigger;
 		set
 		{
-			_enableTrigger = value;
-			trigger.enabled = _enableTrigger;
+			if (weaponTrail != null)
+				weaponTrail.emitting = value;
+			trigger.enabled = _enableTrigger = value;
 		}
 	}
 
@@ -38,6 +40,8 @@ public class WeaponTrigger : MonoBehaviour
 	private void Start()
 	{
 		trigger = GetComponent<Collider>();
+		if (weaponTrail != null)
+			weaponTrail.emitting = false;
 	}
 
 	private void OnDestroy()
@@ -82,7 +86,7 @@ public class WeaponTrigger : MonoBehaviour
 			if (other.TryGetComponent<IAttackable>(out var attackable))
 			{
 				AttackResult attackResult = attackable.Attack(
-					weaponItem.attackFlags, weaponItem, controller, hitPosition);
+					weaponItem.attackFlags, weaponItem.damage, controller, hitPosition);
 				//Attack the object, sending the result of the attack to the event listeners
 				onWeaponHit?.Invoke(attackResult);
 			}

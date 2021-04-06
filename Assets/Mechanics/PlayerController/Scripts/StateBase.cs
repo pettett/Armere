@@ -21,6 +21,9 @@ namespace Armere.PlayerController
 		public GameObject gameObject => c.gameObject;
 		public Animator animator => c.animator;
 		public abstract char stateSymbol { get; }
+
+
+		protected GameCameras cameras => GameCameras.s;
 		public MovementState(PlayerController c) : base(c)
 		{
 
@@ -35,6 +38,7 @@ namespace Armere.PlayerController
 	{
 		public override char stateSymbol => t.stateSymbol;
 		protected readonly TemplateT t;
+
 
 		protected MovementState(PlayerController c, TemplateT t) : base(c)
 		{

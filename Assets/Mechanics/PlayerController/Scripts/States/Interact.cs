@@ -219,7 +219,7 @@ namespace Armere.PlayerController
 						switch (i)
 						{
 							case AIDialogue converser:
-								c.ChangeToState(t.interactNPC.Interact(converser));
+								c.ChangeToState(t.interactNPC.StartConversation(converser));
 								break;
 							case Climbable climbable:
 								c.ChangeToState(t.interactLadder.Interact(climbable));

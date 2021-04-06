@@ -4,7 +4,8 @@ using UnityEngine.Events;
 public class VoidEventChannelSO : ScriptableObject
 {
 	public event UnityAction OnEventRaised;
-	public void RaiseEvent()
+
+	public virtual void RaiseEvent()
 	{
 		OnEventRaised?.Invoke();
 	}

@@ -133,6 +133,7 @@ namespace Armere.PlayerController
 			c.inputReader.sprintEvent += OnSprint;
 			c.inputReader.crouchEvent += OnCrouch;
 			c.inputReader.attackEvent += OnAttack;
+			c.inputReader.equipBowEvent += OnAttackBow;
 			c.inputReader.actionEvent += OnInteract;
 			c.inputReader.altAttackEvent += OnAltAttack;
 			c.inputReader.jumpEvent += OnJump;
@@ -161,6 +162,7 @@ namespace Armere.PlayerController
 			c.inputReader.sprintEvent -= OnSprint;
 			c.inputReader.crouchEvent -= OnCrouch;
 			c.inputReader.attackEvent -= OnAttack;
+			c.inputReader.equipBowEvent -= OnAttackBow;
 			c.inputReader.actionEvent -= OnInteract;
 			c.inputReader.altAttackEvent -= OnAltAttack;
 			c.inputReader.jumpEvent -= OnJump;
@@ -248,7 +250,7 @@ namespace Armere.PlayerController
 				{
 					c.animationController.TriggerTransition(c.transitionSet.startSitting);
 
-					GameCameras.s.playerTrackingOffset = 0.5f;
+					cameras.playerTrackingOffset = 0.5f;
 
 					bool inDialogue = false;
 					void OnMovementCancelSit(Vector2 movement) => CancelSit();
@@ -261,7 +263,7 @@ namespace Armere.PlayerController
 						inControl = true;
 						UIKeyPromptGroup.singleton.RemovePrompts();
 
-						GameCameras.s.playerTrackingOffset = GameCameras.s.defaultTrackingOffset;
+						cameras.playerTrackingOffset = cameras.defaultTrackingOffset;
 
 						c.inputReader.actionEvent -= EnterSleepDialogue;
 						c.inputReader.movementEvent -= OnMovementCancelSit;
@@ -448,7 +450,7 @@ namespace Armere.PlayerController
 		{
 			if (forceForwardHeadingToCamera)
 			{
-				Vector3 forward = GameCameras.s.cameraTransform.forward;
+				Vector3 forward = cameras.cameraTransform.forward;
 				forward.y = 0;
 				transform.forward = forward;
 
@@ -461,9 +463,9 @@ namespace Armere.PlayerController
 			{
 				Quaternion walkingAngle;
 
-				if (GameCameras.s.m_UpdatingCameraDirection)
+				if (cameras.m_UpdatingCameraDirection)
 				{
-					Vector3 dir = GameCameras.s.FocusTarget - transform.position;
+					Vector3 dir = cameras.FocusTarget - transform.position;
 					dir.y = 0;
 					walkingAngle = Quaternion.LookRotation(dir);
 				}
@@ -482,7 +484,7 @@ namespace Armere.PlayerController
 					//Perform a 180 manuever
 
 					desiredVelocity = Vector3.zero;
-					c.StartCoroutine(Perform180());
+					//c.StartCoroutine(Perform180());
 				}
 				else if (angle > 30f)
 				{
@@ -513,28 +515,28 @@ namespace Armere.PlayerController
 				desiredVelocity = Vector3.zero;
 			}
 		}
-		IEnumerator Perform180()
-		{
-			c.animationController.TriggerTransition(c.transitionSet.sword180);
-			c.rb.velocity = Vector3.zero;
-			//c.animator.runtimeAnimatorController.animationClips
-			inControl = false;
-			c.animator.applyRootMotion = true;
-			yield return null;
+		// IEnumerator Perform180()
+		// {
+		// 	c.animationController.TriggerTransition(c.transitionSet.sword180);
+		// 	c.rb.velocity = Vector3.zero;
+		// 	//c.animator.runtimeAnimatorController.animationClips
+		// 	inControl = false;
+		// 	c.animator.applyRootMotion = true;
+		// 	yield return null;
 
-			yield return new WaitForSeconds(c.animator.GetNextAnimatorClipInfo(0)[0].clip.length / 2 - Time.deltaTime);
+		// 	yield return new WaitForSeconds(c.animator.GetNextAnimatorClipInfo(0)[0].clip.length / 2 - Time.deltaTime);
 
-			if (c.weaponGraphics.holdables.melee.sheathed)
-			{
-				c.animationController.TriggerTransition(c.transitionSet.freeMovement);
-			}
+		// 	if (c.weaponGraphics.holdables.melee.sheathed)
+		// 	{
+		// 		c.animationController.TriggerTransition(c.transitionSet.freeMovement);
+		// 	}
 
-			animator.SetFloat(c.transitionSet.vertical.id, 1);
-			//transform.forward = -transform.forward;
-			c.animator.applyRootMotion = false;
-			inControl = true;
+		// 	animator.SetFloat(c.transitionSet.vertical.id, 1);
+		// 	//transform.forward = -transform.forward;
+		// 	c.animator.applyRootMotion = false;
+		// 	inControl = true;
 
-		}
+		// }
 
 		public override void Update()
 		{
@@ -591,7 +593,7 @@ namespace Armere.PlayerController
 
 
 
-			Vector3 playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
+			Vector3 playerDirection = cameras.TransformInput(c.inputReader.horizontalMovement);
 
 			grounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
@@ -599,7 +601,7 @@ namespace Armere.PlayerController
 
 			if (holdingSprintKey)
 			{
-				if (GameCameras.s.m_UpdatingCameraDirection)
+				if (cameras.m_UpdatingCameraDirection)
 				{
 					//Do not sprint while focusing
 					walkingType = WalkingType.Walking;
@@ -814,7 +816,15 @@ namespace Armere.PlayerController
 					backSwingSword = true;
 				}
 			}
-			else if (inControl && c.weaponSet == PlayerController.WeaponSet.BowArrow && c.currentBow != -1 && c.currentAmmo != -1)
+			else if (c.weaponSet == PlayerController.WeaponSet.BowArrow)
+			{
+				OnAttackBow(phase);
+			}
+		}
+
+		public void OnAttackBow(InputActionPhase phase)
+		{
+			if (inControl && c.currentBow != -1 && c.currentAmmo != -1)
 			{
 				if (phase == InputActionPhase.Started)
 				{
@@ -828,30 +838,40 @@ namespace Armere.PlayerController
 				}
 			}
 		}
+
 		#region Bows
 		float GetArrowSpeed(float bowCharge) => Mathf.Lerp(t.arrowSpeedRange.x, t.arrowSpeedRange.y, bowCharge);
 
+		bool bowAimViewEnabled = false;
 		public void EnableBowAimView()
 		{
-			GameCameras.s.cameraTargetXOffset = t.shoulderViewXOffset;
+			if (!bowAimViewEnabled)
+			{
+				cameras.SetCameraXOffset(t.shoulderViewXOffset);
 
-			GameCameras.s.EnableFreeLookAimMode();
+				cameras.EnableFreeLookAimMode();
 
-			t.onAimModeEnable.RaiseEvent();
+				t.onAimModeEnable.RaiseEvent();
+				bowAimViewEnabled = true;
+			}
 		}
 		public void DisableBowAimView()
 		{
-			GameCameras.s.cameraTargetXOffset = 0;
+			if (bowAimViewEnabled)
+			{
+				cameras.SetCameraXOffset(0);
 
-			GameCameras.s.DisableFreeLookAimMode();
+				cameras.DisableFreeLookAimMode();
 
-			t.onAimModeDisable.RaiseEvent();
+				t.onAimModeDisable.RaiseEvent();
+				bowAimViewEnabled = false;
+			}
 		}
 		IEnumerator ChargeBow()
 		{
 			float bowCharge = 0;
 			bool chargingBow = true;
-
+			var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
 			void ReleaseBow()
 			{
 
@@ -860,13 +880,25 @@ namespace Armere.PlayerController
 
 				End();
 			}
-
+			Vector3 BowAimPos()
+			{
+				if (Physics.Raycast(cameras.cameraTransform.position, cameras.cameraTransform.forward, out RaycastHit hit))
+				{
+					//c.animationController.lookAtPosition = hit.point;
+					return hit.point;
+				}
+				else
+				{
+					//c.animationController.lookAtPosition = cameras.cameraTransform.forward * 1000 + cameras.cameraTransform.position;
+					return cameras.cameraTransform.position + cameras.cameraTransform.forward * 100;
+				}
+			}
 			void FireBow()
 			{
 				//print("Charged bow to {0}", bowCharge);
 				//Fire ammo
-				var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
-				bow.ReleaseArrow(GameCameras.s.cameraTransform.forward * GetArrowSpeed(bowCharge));
+
+				bow.ReleaseArrow((BowAimPos() - bow.arrowSpawnPosition.position).normalized * GetArrowSpeed(bowCharge));
 
 				//Initialize arrow
 				//Remove one of ammo used
@@ -886,16 +918,14 @@ namespace Armere.PlayerController
 			}
 			void End()
 			{
-
+				//Dont do this, only stop bow view if player sheaths bow
 				DisableBowAimView();
 
 				forceForwardHeadingToCamera = false;
 				c.animationController.headWeight = 0; // don't need to do others - master switch
 
-				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>().SetFloat("Charge", 0);
-
-
-
+				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = 0;
+				bowCharge = 0;
 				OnReleaseBowEvent -= ReleaseBow;
 				OnCancelBowEvent -= End;
 				chargingBow = false; //Ends the loop
@@ -905,7 +935,7 @@ namespace Armere.PlayerController
 
 			if (c.weaponGraphics.holdables.bow.sheathed)
 			{
-				c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>().InitBow(c.inventory.bow.items[c.currentBow].itemData);
+				bow.InitBow(c.inventory.bow.items[c.currentBow].itemData);
 				c.NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
 				yield return DrawItem(ItemType.Bow);
 			}
@@ -925,25 +955,18 @@ namespace Armere.PlayerController
 			// c.animationController.weights.bodyWeight = 1;
 			// c.animationController.weights.clampWeight = 0.5f; //180 degrees
 
-			var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
+			//var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
 			while (chargingBow)
 			{
 				yield return null;
-				if (Physics.Raycast(GameCameras.s.cameraTransform.position, GameCameras.s.cameraTransform.forward, out RaycastHit hit))
-				{
-					//c.animationController.lookAtPosition = hit.point;
-					c.weaponGraphics.holdables.bow.gameObject.transform.LookAt(hit.point);
-				}
-				else
-				{
-					//c.animationController.lookAtPosition = GameCameras.s.cameraTransform.forward * 1000 + GameCameras.s.cameraTransform.position;
-					c.weaponGraphics.holdables.bow.gameObject.transform.forward = GameCameras.s.cameraTransform.forward;
-				}
-
+				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.lookAtTarget.position = BowAimPos();
 
 				bowCharge += Time.deltaTime;
 				bowCharge = Mathf.Clamp01(bowCharge);
-				bowAC.SetFloat("Charge", bowCharge);
+
+				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = bowCharge;
+
+				//bowAC.SetFloat("Charge", bowCharge);
 				//Update trajectory (in local space)
 			}
 		}
@@ -1042,13 +1065,17 @@ namespace Armere.PlayerController
 					c.animationController.TriggerTransition(c.transitionSet.swingSword);
 			}
 
-
-
-			c.onSwingStateChanged = (bool on) =>
+			void End()
 			{
-				if (on) AddWeaponTrigger();
-				else RemoveWeaponTrigger(backSwing);
-			};
+				RemoveWeaponTrigger(backSwing);
+
+				c.animationController.onSwingStart -= AddWeaponTrigger;
+				c.animationController.onSwingEnd -= End;
+			}
+
+			c.animationController.onSwingStart += AddWeaponTrigger;
+			c.animationController.onSwingEnd += End;
+
 
 		}
 		void RemoveWeaponTrigger(bool wasBackSwing)
@@ -1064,7 +1091,7 @@ namespace Armere.PlayerController
 			else
 			{
 				//Transition back to normal movement
-				c.onSwingStateChanged = null;
+
 				c.StartCoroutine(SwordUseCooldown());
 			}
 

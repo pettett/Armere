@@ -16,18 +16,24 @@ namespace Armere.PlayerController
 
 	public class Conversation : Dialogue<ConversationTemplate>
 	{
-		public const string GiveQuestCommand = "quest";
-		public const string DeliverQuestCommand = "DeliverQuest";
-		public const string TalkToQuestCommand = "TalkToQuest";
-		public const string CameraPanCommand = "cameraPan";
-		public const string GiveItemsCommand = "GiveItems";
-		public const string TurnPlayerToTargetCommand = "TurnPlayerToTarget";
-		public const string TurnNPCToTargetCommand = "TurnNPCToTarget";
-		public const string TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget";
-		public const string AnimateCommand = "Animate";
-		public const string OfferToSellCommand = "OfferToSell";
-		public const string OfferToBuyCommand = "OfferToBuy";
-		public const string GoToCommand = "GoTo";
+		public const string
+			GiveQuestCommand = "quest",
+			DeliverQuestCommand = "DeliverQuest",
+			TalkToQuestCommand = "TalkToQuest",
+			CameraPanCommand = "cameraPan",
+			GiveItemsCommand = "GiveItems",
+			TurnPlayerToTargetCommand = "TurnPlayerToTarget",
+			TurnNPCToTargetCommand = "TurnNPCToTarget",
+			TurnNPCAndPlayerToTargetCommand = "TurnNPCAndPlayerToTarget",
+			AnimateCommand = "Animate",
+			OfferToSellCommand = "OfferToSell",
+			OfferToBuyCommand = "OfferToBuy",
+			GoToCommand = "GoTo",
+			StartMinigameCommand = "StartMinigame",
+			ConfirmBuy = "ConfirmBuy",
+			CancelBuy = "CancelBuy",
+			StopBuy = "StopBuy";
+
 		public override string StateName => "In Conversation";
 		public readonly AIDialogue talkingTarget;
 
@@ -39,32 +45,29 @@ namespace Armere.PlayerController
 		BuyInventoryUI buyMenu;
 		string speakingNPC = null;
 
-		public Conversation(PlayerController c, ConversationTemplate t) : base(c, t)
+
+		public Conversation(PlayerController c, ConversationTemplate t, AIDialogue d) : base(c, t)
 		{
 			c.StartCoroutine(c.UnEquipAll());
-
+			overrideStartNode = t.overrideStartingNode;
 
 			commands = new (string, DialogueRunner.CommandHandler)[]
 			{
-				(GiveQuestCommand, GiveQuest),
-				(DeliverQuestCommand, DeliverQuest),
-				(TalkToQuestCommand, TalkToQuest),
-
-
-
-				(OfferToSellCommand, OfferToSell),
-				(OfferToBuyCommand, OfferToBuy)
-
+				(GiveQuestCommand       , GiveQuest),
+				(DeliverQuestCommand    , DeliverQuest),
+				(TalkToQuestCommand     , TalkToQuest),
+				(OfferToSellCommand     , OfferToSell),
+				(OfferToBuyCommand      , OfferToBuy),
+				(StartMinigameCommand   , StartMinigame),
 			};
 			blockingCommands = new (string, DialogueRunner.BlockingCommandHandler)[]{
-			(CameraPanCommand, CameraPan),
-						(GiveItemsCommand, GiveItems),
-									(TurnPlayerToTargetCommand, TurnPlayerToTarget),
-
-				(TurnNPCToTargetCommand, TurnNPCToTarget),
-				(TurnNPCAndPlayerToTargetCommand, TurnNPCAndPlayerToTarget),
-				(AnimateCommand, Animate),
-							(GoToCommand, GoTo)
+				(CameraPanCommand,                  CameraPan),
+				(GiveItemsCommand,                  GiveItems),
+				(TurnPlayerToTargetCommand,         TurnPlayerToTarget),
+				(TurnNPCToTargetCommand,            TurnNPCToTarget),
+				(TurnNPCAndPlayerToTargetCommand,   TurnNPCAndPlayerToTarget),
+				(AnimateCommand,                    Animate),
+				(GoToCommand,                       GoTo),
 			};
 
 			talkingTarget = t.npc;
@@ -126,7 +129,7 @@ namespace Armere.PlayerController
 		{
 			//Add every command hander for dialogue usage
 
-			base.SetupRunner();
+			(runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget.dialogueAddon);
 			foreach (var pair in commands)
 			{
 				runner.AddCommandHandler(pair.Item1, pair.Item2);
@@ -135,7 +138,8 @@ namespace Armere.PlayerController
 			{
 				runner.AddCommandHandler(pair.Item1, pair.Item2);
 			}
-			(runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget.dialogueAddon);
+
+			base.SetupRunner();
 		}
 
 		public override void CleanUpRunner()
@@ -267,37 +271,59 @@ namespace Armere.PlayerController
 		public void OfferToBuy(string[] arg)
 		{
 			buyMenu = UIController.singleton.buyMenu.GetComponent<BuyInventoryUI>();
-			Debug.Log("Opening Buy Menu");
-			runner.AddCommandHandler("StopBuy", (a) =>
+			//Debug.Log("Opening Buy Menu");
+			runner.AddCommandHandler(StopBuy, (a) =>
 			{
-				runner.RemoveCommandHandler("ConfirmBuy");
-				runner.RemoveCommandHandler("CancelBuy");
-				runner.RemoveCommandHandler("StopBuy");
+				runner.RemoveCommandHandler(ConfirmBuy);
+				runner.RemoveCommandHandler(CancelBuy);
+				runner.RemoveCommandHandler(StopBuy);
 				//Apply the changes made to the buy menu to the inventory
 				buyMenu.CloseInventory();
 			});
 
-			UIController.singleton.buyMenu.SetActive(true);
+			buyMenu.gameObject.SetActive(true);
 			//Wait for a buy
 			buyMenu.ShowInventory(talkingTarget.buyInventory, c.inventory, OnBuyMenuItemSelected);
+		}
+
+		public void StartMinigame(string[] args)
+		{
+			var minigame = talkingTarget.minigames[int.Parse(args[0])];
+			minigame.StartMinigame(c);
+
+			void OnMinigameEnd(object result)
+			{
+				//Apply the value
+				t.npcManager.data[talkingTarget.npcName].AddVariable(minigame.minigameResultVariableName, new Yarn.Value(result));
+				//Use the value
+				t.TeleportToConversation(c, talkingTarget, minigame.minigameFinishedConversationNode);
+				//Forget the value
+				minigame.onMinigameEnded -= OnMinigameEnd;
+			}
+
+			minigame.onMinigameEnded += OnMinigameEnd;
+
+
+			//TODO: End conversation
+			//c.ChangeToState(c.defaultState);
 		}
 
 		void OnBuyMenuItemSelected()
 		{
 			void ResetBuyCommands()
 			{
-				runner.RemoveCommandHandler("ConfirmBuy");
-				runner.RemoveCommandHandler("CancelBuy");
+				runner.RemoveCommandHandler(ConfirmBuy);
+				runner.RemoveCommandHandler(CancelBuy);
 			}
 			//Buy the item
-			runner.AddCommandHandler("ConfirmBuy", (string[] arg) =>
+			runner.AddCommandHandler(ConfirmBuy, (string[] arg) =>
 			{
 				//Buy the item
 				buyMenu.ConfirmBuy();
 				ResetBuyCommands();
 			});
 			//Do not buy the item
-			runner.AddCommandHandler("CancelBuy", (string[] arg) =>
+			runner.AddCommandHandler(CancelBuy, (string[] arg) =>
 			{
 				//Go back to selecting
 				buyMenu.CancelBuy();

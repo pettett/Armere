@@ -13,6 +13,9 @@ namespace Yarn.Unity
 		private void Awake()
 		{
 			singleton = this;
+
+			runner.variableStorage = inMemoryVariableStorage;
+			runner.dialogueUI = dialogueUI;
 		}
 	}
 }

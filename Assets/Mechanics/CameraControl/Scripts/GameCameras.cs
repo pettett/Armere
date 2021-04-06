@@ -17,14 +17,13 @@ public class GameCameras : MonoBehaviour
 	public CinemachineVirtualCamera conversationCamera;
 
 	[Header("Settings")]
+	public LeanTweenType xTweenType = LeanTweenType.easeInOutCubic;
 
 	public float defaultTrackingOffset = 1.6f;
 	float _playerTrackingOffset = 1.6f;
 
 	public float defaultRigOffset = 0;
 	public float playerRigOffset = 0;
-
-	public float cameraTargetXOffset = 0;
 
 	public InputReader inputReader;
 
@@ -35,7 +34,15 @@ public class GameCameras : MonoBehaviour
 	Camera regularCamera;
 
 	bool controlling = true;
-	public bool lockingMouse = true;
+
+	public bool lockingMouse
+	{
+		set
+		{
+			Cursor.lockState = value ? CursorLockMode.Locked : CursorLockMode.None;
+			Cursor.visible = !value;
+		}
+	}
 	Vector2 mouseDelta;
 
 	//used to change how the height of the camera will change for a short time
@@ -102,6 +109,8 @@ public class GameCameras : MonoBehaviour
 
 	public void Start()
 	{
+		lockingMouse = true;
+
 		entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
 		freeLookTarget = cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
@@ -291,12 +300,19 @@ public class GameCameras : MonoBehaviour
 		// if (controlling)
 		// 	mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
 
-		Cursor.lockState = lockingMouse ? CursorLockMode.Locked : CursorLockMode.None;
-		Cursor.visible = !lockingMouse;
+
 
 
 		CameraVolumeController.UpdateVolumeEffect(transform.position);
 
+	}
+	private void Update()
+	{
+
+		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset, 0), cameraTransform.parent.position, currentCameraLerp);
+
+		//Stop jittering from desync between high fps and low physics updates
+		currentCameraLerp += cameraLerpSpeed * Time.deltaTime * 0.25f;
 	}
 	private void OnDrawGizmos()
 	{
@@ -324,16 +340,11 @@ public class GameCameras : MonoBehaviour
 		}
 	}
 
-	private void Update()
+	public void SetCameraXOffset(float offset)
 	{
-
-		cameraTrackingTarget.localPosition = Vector3.SmoothDamp(cameraTrackingTarget.localPosition, Vector3.right * cameraTargetXOffset, ref targetVel, 0.1f);
-
-		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset, 0), cameraTransform.parent.position, currentCameraLerp);
-
-		//Stop jittering from desync between high fps and low physics updates
-		currentCameraLerp += cameraLerpSpeed * Time.deltaTime * 0.25f;
+		LeanTween.moveLocalX(cameraTrackingTarget.gameObject, offset, 0.1f).setEase(xTweenType);
 	}
+
 
 
 	private void FixedUpdate()
@@ -449,11 +460,11 @@ public class GameCameras : MonoBehaviour
 		// freeLookAim.m_XAxis.Value = freeLook.m_XAxis.Value;
 
 		// //freeLookAim.m_YAxis.Value = freeLook.m_YAxis.Value;
-		currentCameraLerp = 0.5f;
+		//currentCameraLerp = 0.5f;
 	}
 	public void DisableFreeLookAimMode()
 	{
-		currentCameraLerp = 1f;
+		//currentCameraLerp = 1f;
 	}
 
 	public void DisableCutsceneCamera() => SwitchToCamera(freeLook);

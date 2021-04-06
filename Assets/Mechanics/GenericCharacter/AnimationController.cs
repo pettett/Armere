@@ -84,9 +84,9 @@ public struct AnimatorVariable
 public class AnimationController : MonoBehaviour
 {
 	#region Private Variables
-	private Vector3 rightFootPosition, leftFootPosition, leftFootIKPosition, rightFootIKPosition = default(Vector3);
+	private Vector3 rightFootPosition, leftFootPosition, leftFootIKPosition, rightFootIKPosition;
 	private Quaternion rightFootIKRotation, leftFootIKRotation;
-	private float lastPelvisPositionY, lastRightFootPositionY, lastLeftFootPositionY = default(float);
+	private float lastPelvisPositionY, lastRightFootPositionY, lastLeftFootPositionY;
 	#endregion
 
 	#region Public Variables
@@ -98,12 +98,11 @@ public class AnimationController : MonoBehaviour
 	[SerializeField] private LayerMask groundLayer;
 	public float pelvisOffset = 0f;
 	[SerializeField] private float crouchOffset = 0f;
-	[Range(0, 1)] [SerializeField] private float pelvisVerticalSpeed = 0.28f, feetToIKPositionSpeed = 0.5f;
-	public string leftFootAnimVariableName = "LeftFootCurve";
-	public string rightFootAnimVariableName = "RightFootCurve";
+	public float footOffset = -0.19f;
+	[Range(0, 20)] [SerializeField] private float pelvisVerticalSpeed = 0.28f, feetToIKPositionSpeed = 0.5f;
 
 	public bool useFootCurvesForRotationGrounding;
-	public bool showSolver;
+	public float maxFootHeightForIK = 0.2f;
 
 	public Transform localHeadLookTarget;
 
@@ -113,11 +112,10 @@ public class AnimationController : MonoBehaviour
 
 	public TwoBoneIKConstraint rightHandConstraint;
 	public TwoBoneIKConstraint leftHandConstraint;
-	public TwoBoneIKConstraint rightFootConstraint;
-	public TwoBoneIKConstraint leftFootConstraint;
 	public MultiAimConstraint headLook;
 
-
+	Transform leftFootBone;
+	Transform rightFootBone;
 	[System.Serializable]
 	public struct HoldPoint
 	{
@@ -135,7 +133,7 @@ public class AnimationController : MonoBehaviour
 	public List<HoldPoint> holdPoints;
 
 
-	Animator anim;
+	public Animator anim { get; private set; }
 
 	[System.NonSerialized] public float headWeight;
 	[Range(0, 1)] public float lookAtHeadWeight = 1;
@@ -159,14 +157,12 @@ public class AnimationController : MonoBehaviour
 
 	public void SetLookAtTarget(Transform target)
 	{
-		headLook.weight = lookAtHeadWeight;
-		headLook.data.sourceObjects.Add(new WeightedTransform(target, 1));
+		headLook.weight = 1;
 		lookAtTarget = target.transform;
 	}
 	public void ClearLookAtTargets()
 	{
-		headLook.data.sourceObjects.Clear();
-		SetLookAtTarget(localHeadLookTarget);
+		headLook.weight = 0;
 		lookAtTarget = null;
 	}
 
@@ -182,14 +178,19 @@ public class AnimationController : MonoBehaviour
 		if (transition.layers.HasFlag(Layers.UpperBody))
 			TriggerTransition(transition, 1);
 	}
-
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+	}
 	void Start()
 	{
 
-		anim = GetComponent<Animator>();
 
 		head = anim.GetBoneTransform(HumanBodyBones.Head);
 		rb = GetComponent<Rigidbody>();
+
+		leftFootBone = anim.GetBoneTransform(HumanBodyBones.LeftFoot);
+		rightFootBone = anim.GetBoneTransform(HumanBodyBones.RightFoot);
 
 		if (useAnimationHook)
 		{
@@ -217,6 +218,11 @@ public class AnimationController : MonoBehaviour
 	}
 	private void Update()
 	{
+		if (lookAtTarget != null)
+		{
+			localHeadLookTarget.position = lookAtTarget.position;
+		}
+
 		if (lookToVelocity && Time.deltaTime > 0)
 		{
 			//record current rotation for graphics controller
@@ -231,25 +237,6 @@ public class AnimationController : MonoBehaviour
 			lastDirection = transform.forward;
 		}
 
-		if (enableFeetIK)
-		{
-			//MovePelvisHeight();
-			//Right foot ik position and rotation
-
-			if (useFootCurvesForRotationGrounding)
-				leftFootConstraint.weight = anim.GetFloat(leftFootAnimVariableName);
-			else
-				leftFootConstraint.weight = 1;
-
-			MoveFeetToIKPoint(rightFootConstraint, rightFootIKPosition, rightFootIKRotation, ref lastRightFootPositionY);
-
-			if (useFootCurvesForRotationGrounding)
-				leftFootConstraint.weight = anim.GetFloat(leftFootAnimVariableName);
-			else
-				leftFootConstraint.weight = 1;
-
-			MoveFeetToIKPoint(leftFootConstraint, leftFootIKPosition, leftFootIKRotation, ref lastLeftFootPositionY);
-		}
 
 		if (useIK)
 		{
@@ -283,26 +270,60 @@ public class AnimationController : MonoBehaviour
 			}
 		}
 	}
+	private void OnAnimatorIK(int layerIndex)
+	{
+		if (enableFeetIK)
+		{
+			MovePelvisHeight();
+			//Right foot ik position and rotation
+			float left = 1;
+			float right = 1;
+			if (useFootCurvesForRotationGrounding)
+			{
+				float baseHeight = anim.GetFloat("FootBaseHeight");
+				float leftHeight = transform.InverseTransformPoint(leftFootBone.transform.position).y + footOffset - baseHeight;
+				float rightHeight = transform.InverseTransformPoint(rightFootBone.transform.position).y + footOffset - baseHeight;
 
+				left = 1 - Mathf.Clamp01(leftHeight / maxFootHeightForIK);
+
+				right = 1 - Mathf.Clamp01(rightHeight / maxFootHeightForIK);
+				//print($"{right},{rightHeight}");
+			}
+
+			anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, left);
+			anim.SetIKPositionWeight(AvatarIKGoal.RightFoot, right);
+
+			anim.SetIKRotationWeight(AvatarIKGoal.LeftFoot, left);
+			anim.SetIKRotationWeight(AvatarIKGoal.RightFoot, right);
+
+			MoveFeetToIKPoint(AvatarIKGoal.RightFoot, rightFootIKPosition, rightFootIKRotation, ref lastRightFootPositionY);
+			MoveFeetToIKPoint(AvatarIKGoal.LeftFoot, leftFootIKPosition, leftFootIKRotation, ref lastLeftFootPositionY);
+		}
+
+	}
 
 
 	#region Solver Methods
 
-	void MoveFeetToIKPoint(TwoBoneIKConstraint foot, Vector3 positionIKHolder, Quaternion rotationIKHolder, ref float lastFootPositionY)
+	void MoveFeetToIKPoint(AvatarIKGoal foot, Vector3 positionIKHolder, Quaternion rotationIKHolder, ref float lastFootPositionY)
 	{
-		Vector3 targetIKPosition = foot.data.target.position;
+
+		//foot.data.target.position = positionIKHolder;
+
+		Vector3 targetIKPosition = anim.GetIKPosition(foot);// foot.data.target.position;
+
 		if (positionIKHolder != default(Vector3))
 		{
 			targetIKPosition = transform.InverseTransformPoint(targetIKPosition);
 			positionIKHolder = transform.InverseTransformPoint(positionIKHolder);
-			float y = Mathf.Lerp(lastFootPositionY, positionIKHolder.y, feetToIKPositionSpeed);
+			float y = Mathf.Lerp(lastFootPositionY, positionIKHolder.y, feetToIKPositionSpeed * Time.deltaTime);
 			targetIKPosition.y += y;
 			lastFootPositionY = y;
 			targetIKPosition = transform.TransformPoint(targetIKPosition);
 
-			foot.data.target.rotation = rotationIKHolder;
+			anim.SetIKRotation(foot, rotationIKHolder);
 		}
-		foot.data.target.position = targetIKPosition;
+		anim.SetIKPosition(foot, targetIKPosition);
 	}
 	void MovePelvisHeight()
 	{
@@ -317,7 +338,7 @@ public class AnimationController : MonoBehaviour
 		float totalOffset = Mathf.Min(lOffsetPosition, rOffsetPosition) - crouchOffset;
 
 		Vector3 newPelvisPos = anim.bodyPosition + Vector3.up * totalOffset;
-		newPelvisPos.y = Mathf.Lerp(lastPelvisPositionY, newPelvisPos.y, pelvisVerticalSpeed);
+		newPelvisPos.y = Mathf.Lerp(lastPelvisPositionY, newPelvisPos.y, pelvisVerticalSpeed * Time.deltaTime);
 		anim.bodyPosition = newPelvisPos;
 		lastPelvisPositionY = newPelvisPos.y;
 	}
@@ -326,8 +347,6 @@ public class AnimationController : MonoBehaviour
 		//Highwayyy tooooo theeeee raycastzone!
 		//Locate this foot's position with raycast
 		RaycastHit feetOutHit;
-		if (showSolver)
-			Debug.DrawLine(fromSkyPosition, fromSkyPosition + Vector3.down * (raycastDownDistance + heightFromGroundRaycast), Color.yellow);
 
 		if (Physics.Raycast(fromSkyPosition, Vector3.down, out feetOutHit, raycastDownDistance + heightFromGroundRaycast, groundLayer, QueryTriggerInteraction.Ignore))
 		{
@@ -341,6 +360,25 @@ public class AnimationController : MonoBehaviour
 		}
 
 	}
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.color = Color.yellow;
+		if (leftFootIKPosition != default)
+		{
+			Gizmos.DrawWireSphere(leftFootIKPosition, 0.05f);
+			Gizmos.DrawWireSphere(leftFootPosition, 0.05f);
+			Gizmos.DrawLine(leftFootPosition, leftFootIKPosition + Vector3.down * (raycastDownDistance + heightFromGroundRaycast));
+		}
+		if (rightFootIKPosition != default)
+		{
+			Gizmos.DrawWireSphere(rightFootIKPosition, 0.05f);
+			Gizmos.DrawWireSphere(rightFootPosition, 0.05f);
+			Gizmos.DrawLine(rightFootPosition, rightFootIKPosition + Vector3.down * (raycastDownDistance + heightFromGroundRaycast));
+		}
+
+	}
+
 	void AdjustFeetTarget(ref Vector3 feetPosition, HumanBodyBones foot)
 	{
 		Transform f = anim.GetBoneTransform(foot);
@@ -351,5 +389,17 @@ public class AnimationController : MonoBehaviour
 		}
 	}
 	#endregion
+
+
+	//Animation events
+
+	public event System.Action onFootDown;
+	public void FootDown() => onFootDown?.Invoke();
+	public event System.Action onClank;
+	public void OnClank() => onClank?.Invoke();
+	public event System.Action onSwingStart;
+	public void SwingStart() => onSwingStart?.Invoke();
+	public event System.Action onSwingEnd;
+	public void SwingEnd() => onSwingEnd?.Invoke();
 
 }

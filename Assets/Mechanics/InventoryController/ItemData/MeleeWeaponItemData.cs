@@ -14,7 +14,7 @@ namespace Armere.Inventory
 	public class MeleeWeaponItemData : WeaponItemData
 	{
 		[Header("Melee weapon")]
-		public AttackFlags attackFlags;
+		public DamageType attackFlags;
 
 		public bool isDoubleHanded;
 		public AssetReferenceGameObject hitSparkEffect;

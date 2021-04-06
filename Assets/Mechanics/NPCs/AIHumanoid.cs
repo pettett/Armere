@@ -15,7 +15,6 @@ public abstract class AIHumanoid : Character
 	public TMPro.TMP_Text debugText;
 
 	[System.NonSerialized] public NavMeshAgent agent;
-	[System.NonSerialized] public Animator anim;
 	[System.NonSerialized] public Transform lookingAtTarget;
 	[System.NonSerialized] public Ragdoller ragdoller;
 	[System.NonSerialized] public CharacterMeshController meshController;
@@ -40,14 +39,12 @@ public abstract class AIHumanoid : Character
 	// Start is called before the first frame update
 	public override void Start()
 	{
+		base.Start();
 		agent = GetComponent<NavMeshAgent>();
-		anim = GetComponentInChildren<Animator>();
 		ragdoller = GetComponent<Ragdoller>();
 
 		ragdoller.RagdollEnabled = false;
 		ChangeToState(defaultState);
-
-		base.Start();
 
 	}
 	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
@@ -167,7 +164,12 @@ public abstract class AIHumanoid : Character
 		animationController.TriggerTransition(transitionSet.swingSword);
 
 		WeaponTrigger trigger = null;
+		void ClearUp()
+		{
+			animationController.onSwingStart -= AddTrigger;
+			animationController.onSwingEnd -= RemoveTrigger;
 
+		}
 
 		void AddTrigger()
 		{
@@ -182,7 +184,6 @@ public abstract class AIHumanoid : Character
 				trigger.weaponItem = meleeWeapon;
 				trigger.controller = gameObject;
 			}
-
 		}
 
 		void RemoveTrigger()
@@ -190,21 +191,16 @@ public abstract class AIHumanoid : Character
 			//Clean up the trigger detection of the sword
 
 			trigger.enableTrigger = false;
-			onSwingStateChanged = null;
+			ClearUp();
+
 		}
 
-		onSwingStateChanged = (bool on) =>
-		{
-			if (on) AddTrigger();
-			else RemoveTrigger();
-		};
+		//Triggered by animations
+		animationController.onSwingStart += AddTrigger;
+		animationController.onSwingEnd += RemoveTrigger;
 
 		yield return new WaitForSeconds(1);
 	}
-	//Triggered by animations
-	public System.Action<bool> onSwingStateChanged;
-	public void SwingStart() => onSwingStateChanged?.Invoke(true);
-	public void SwingEnd() => onSwingStateChanged?.Invoke(false);
 
 
 	public static IEnumerator WaitForAgent(NavMeshAgent agent, System.Action onComplete)
@@ -223,8 +219,8 @@ public abstract class AIHumanoid : Character
 
 	public void LookAtPlayer(Vector3 playerPos)
 	{
-		anim.SetLookAtPosition(playerPos);
-		anim.SetLookAtWeight(1, 0, 1, 1, 0.2f);
+		animationController.anim.SetLookAtPosition(playerPos);
+		animationController.anim.SetLookAtWeight(1, 0, 1, 1, 0.2f);
 
 
 		Vector3 flatDir = Vector3.Scale(transform.position, new Vector3(1, 0, 1)) - Vector3.Scale(playerPos, new Vector3(1, 0, 1));
@@ -238,7 +234,7 @@ public abstract class AIHumanoid : Character
 	}
 	public void LookAway()
 	{
-		anim.SetLookAtWeight(0);
+		animationController.anim.SetLookAtWeight(0);
 	}
 
 

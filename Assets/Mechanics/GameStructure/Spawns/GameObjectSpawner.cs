@@ -15,13 +15,18 @@ public class GameObjectSpawner : Spawner
 		body.prefabHandle = handle;
 		body.Init();
 	}
-
+	static void WorldSpawn(AsyncOperationHandle<GameObject> handle)
+	{
+		handle.Result.transform.SetParent(GameObjectSpawnGroup.singleton.transform);
+	}
 
 
 	public static AsyncOperationHandle<GameObject> Spawn(AssetReferenceGameObject gameObject, Transform parent = null, bool instantiateInWorldSpace = false)
 	{
 		AsyncOperationHandle<GameObject> handle = Addressables.InstantiateAsync(gameObject, parent, instantiateInWorldSpace, false);
 		OnDone(handle, OnOperationComplete);
+		if (parent == null)
+			OnDone(handle, WorldSpawn);
 		return handle;
 	}
 
@@ -30,6 +35,8 @@ public class GameObjectSpawner : Spawner
 		var handle = Addressables.InstantiateAsync(gameObject, position, rotation, parent, false);
 
 		OnDone(handle, OnOperationComplete);
+		if (parent == null)
+			OnDone(handle, WorldSpawn);
 
 		return handle;
 	}

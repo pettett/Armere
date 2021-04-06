@@ -18,6 +18,8 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	const float cameraAngleOffset = 15f;
 
+	protected string overrideStartNode = null;
+
 	public Dialogue(PlayerController c, TemplateT t) : base(c, t)
 	{
 		dialogue = t.dialogue;
@@ -57,8 +59,9 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		//Get an angle that looks from the player to the target, at a slight offset
 		GameCameras.s.conversationGroup.Transform.rotation = Quaternion.Euler(0, GetCameraAngle(target), 0);
 		//Setup the transposer to recenter
-		GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.CancelRecentering();
-		GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>().m_RecenterToTargetHeading.m_enabled = true;
+		var t = GameCameras.s.conversationCamera.GetCinemachineComponent<CinemachineOrbitalTransposer>();
+		t.m_RecenterToTargetHeading.CancelRecentering();
+		t.m_RecenterToTargetHeading.m_enabled = true;
 	}
 
 	public void StartDialogue(IDialogue d)
@@ -89,7 +92,8 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		runner.Add(dialogue.Dialogue);
 		DialogueUI.singleton.onLineStart.AddListener(OnLineStart);
 		DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
-		runner.StartDialogue(dialogue.StartNode);
+		//If the override is null the null coldisatingsada operator will select the other one
+		runner.StartDialogue(overrideStartNode ?? dialogue.StartNode);
 
 		dialogue.SetupCommands(runner);
 	}

@@ -9,7 +9,6 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
 using Unity.Mathematics;
-using Armere.Inventory;
 
 [System.Serializable]
 public struct Triangle
@@ -70,9 +69,9 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		UpdateMeshFilter(TriangleCutMode.Full);
 	}
 
-	public AttackResult Attack(AttackFlags flags, WeaponItemData weapon, GameObject controller, Vector3 hitPosition)
+	public AttackResult Attack(DamageType flags, float damage, GameObject controller, Vector3 hitPosition)
 	{
-		if (flags == AttackFlags.Blunt) return AttackResult.None;
+		if (flags == DamageType.Blunt) return AttackResult.None;
 		else return CutTree(hitPosition, controller.transform.position);
 	}
 

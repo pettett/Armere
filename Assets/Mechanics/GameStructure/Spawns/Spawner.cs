@@ -37,7 +37,7 @@ public abstract class Spawner : MonoBehaviour
 			handle.Completed += onDone;
 		else
 		{
-			Debug.Log($"Immediately done {handle.Result.name}");
+			//Debug.Log($"Immediately done {handle.Result.name}");
 			onDone(handle);
 		}
 	}

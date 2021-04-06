@@ -3,32 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Armere.PlayerController
 {
-    [RequireComponent(typeof(AudioSource))]
+	[RequireComponent(typeof(AudioSource))]
 
-    public class CharacterAudioController : MonoBehaviour
-    {
-        AudioSource source;
-        PlayerController c;
-        public float stepVolume = 20;
-        public AudioClipSet footStepsSet;
-        private void Start()
-        {
-            source = GetComponent<AudioSource>();
-            c = GetComponent<PlayerController>();
-        }
-        public void FootDown(string a)
-        {
+	public class CharacterAudioController : MonoBehaviour
+	{
+		AudioSource source;
+		PlayerController c;
+		public float stepVolume = 20;
+		public AudioClipSet footStepsSet;
+		private void Start()
+		{
+			source = GetComponent<AudioSource>();
+			c = GetComponent<PlayerController>();
 
-            source.PlayOneShot(footStepsSet.SelectClip());
+			GetComponentInChildren<AnimationController>().onFootDown += FootDown;
+		}
+		public void FootDown()
+		{
 
-            VirtualAudioController.singleton.MakeNoise(transform.position, stepVolume);
+			source.PlayOneShot(footStepsSet.SelectClip());
 
-            if (c != null && c.currentWater != null)
-            {
-                //Make foot splash
-                c.currentWater.CreateSplash(c.currentWater.GetSurfacePosition(transform.position), 0.5f);
-            }
-        }
+			VirtualAudioController.singleton.MakeNoise(transform.position, stepVolume);
 
-    }
+			if (c != null && c.currentWater != null)
+			{
+				//Make foot splash
+				c.currentWater.CreateSplash(c.currentWater.GetSurfacePosition(transform.position), 0.5f);
+			}
+		}
+
+	}
 }

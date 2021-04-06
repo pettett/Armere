@@ -58,12 +58,13 @@ public class AutoBow : AIState<AutoBowRoutine>
 			float t = 0;
 
 
-			bow.NotchNextArrow(this.t.ammoItem);
+			yield return bow.NotchNextArrow(this.t.ammoItem);
 
 			while (t < 1)
 			{
 				t += Time.deltaTime;
-				bowAC.SetFloat("Charge", t);
+				if (bowAC != null)
+					bowAC.SetFloat("Charge", t);
 
 				bow.transform.forward = c.transform.forward;
 				c.animationController.localHeadLookTarget.transform.position = bow.arrowSpawnPosition.position + c.transform.forward * this.t.arrowSpeed;

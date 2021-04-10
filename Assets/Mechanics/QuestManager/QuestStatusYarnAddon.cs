@@ -1,32 +1,32 @@
-using UnityEngine;
-using Yarn;
-using Yarn.Unity;
+// using UnityEngine;
+// using Yarn;
+// using Yarn.Unity;
 
-public class QuestStatusYarnAddon : IVariableAddon
-{
-	const string questStatusPrefix = "$Quest_";
+// public class QuestStatusYarnAddon : IVariableAddon
+// {
+// 	const string questStatusPrefix = "$Quest_";
 
-	public string prefix => questStatusPrefix;
+// 	public string prefix => questStatusPrefix;
 
-	public Value this[string name]
-	{
-		get
-		{
-			//it is a quest
+// 	public Value this[string name]
+// 	{
+// 		get
+// 		{
+// 			//it is a quest
 
-			if (QuestManager.singleton.TryGetQuest(name, out var q))
+// 			if (QuestManager.singleton.TryGetQuest(name, out var q))
 
-				//there is a quest with this name, return it's current state
-				return new Value("Active");
-			else if (QuestManager.singleton.TryGetCompletedQuest(name, out var qw))
+// 				//there is a quest with this name, return it's current state
+// 				return new Value("Active");
+// 			else if (QuestManager.singleton.TryGetCompletedQuest(name, out var qw))
 
-				//there is a quest with this name, return it's current state
-				return new Value("Completed");
-			else
-				return new Value("Inactive");
-		}
+// 				//there is a quest with this name, return it's current state
+// 				return new Value("Completed");
+// 			else
+// 				return new Value("Inactive");
+// 		}
 
-		set => throw new System.NotImplementedException("Cannot set status of quest");
-	}
+// 		set => throw new System.NotImplementedException("Cannot set status of quest");
+// 	}
 
-}
+// }

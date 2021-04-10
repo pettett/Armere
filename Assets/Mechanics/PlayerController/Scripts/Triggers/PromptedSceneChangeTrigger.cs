@@ -5,7 +5,7 @@ using Armere.PlayerController;
 using Yarn;
 using Yarn.Unity;
 
-public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, Yarn.Unity.IVariableAddon
+public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, IVariableAddon
 {
 	public YarnProgram dialogue;
 
@@ -66,5 +66,15 @@ public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, Yarn.Unity.
 	{
 		runner.RemoveCommandHandler("ConfirmLoad");
 		runner.RemoveCommandHandler("CancelLoad");
+	}
+
+	public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()
+	{
+		yield return new KeyValuePair<string, Value>("ToLevel", new Value(changeToLevel.ToString()));
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		return GetEnumerator();
 	}
 }

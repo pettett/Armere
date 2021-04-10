@@ -4,6 +4,7 @@ using Armere.PlayerController;
 using UnityEngine;
 using Yarn.Unity;
 using Cinemachine;
+using UnityEngine.Assertions;
 
 
 //Base class for basic functionality related to yarn
@@ -22,6 +23,8 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	public Dialogue(PlayerController c, TemplateT t) : base(c, t)
 	{
+		Assert.IsNotNull(runner, "Dialogue needs runner to exist");
+
 		dialogue = t.dialogue;
 		if (dialogue != null)
 		{
@@ -33,7 +36,7 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 			if (dialogue is IVariableAddon a)
 			{
-				(runner.variableStorage as InMemoryVariableStorage).addons.Add(a);
+				DialogueInstances.singleton.variableStorage.addons.Add(a);
 			}
 		}
 		else
@@ -90,8 +93,8 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 	{
 		Debug.Log("Starting runner", c);
 		runner.Add(dialogue.Dialogue);
-		DialogueUI.singleton.onLineStart.AddListener(OnLineStart);
-		DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+		DialogueInstances.singleton.ui.onLineStart.AddListener(OnLineStart);
+		DialogueInstances.singleton.ui.onDialogueEnd.AddListener(OnDialogueComplete);
 		//If the override is null the null coldisatingsada operator will select the other one
 		runner.StartDialogue(overrideStartNode ?? dialogue.StartNode);
 
@@ -103,11 +106,10 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		//Remove all commands from the runner as well as removing dialogue
 		runner.Stop();
 		runner.Clear();
-		runner.ClearStringTable();
 
 
-		DialogueUI.singleton.onLineStart.RemoveListener(OnLineStart);
-		DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+		DialogueInstances.singleton.ui.onLineStart.RemoveListener(OnLineStart);
+		DialogueInstances.singleton.ui.onDialogueEnd.RemoveListener(OnDialogueComplete);
 
 		dialogue.RemoveCommands(runner);
 	}

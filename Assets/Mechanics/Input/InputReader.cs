@@ -180,4 +180,36 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	{
 		return asset.FindAction(action).controls[0].displayName;
 	}
+
+	public void OnTrackedDeviceOrientation(CallbackContext context)
+	{
+	}
+
+	public void OnTrackedDevicePosition(CallbackContext context)
+	{
+	}
+
+	public void OnRightClick(CallbackContext context)
+	{
+	}
+
+	public void OnMiddleClick(CallbackContext context)
+	{
+	}
+
+	public void OnScrollWheel(CallbackContext context)
+	{
+	}
+
+	public void OnClick(CallbackContext context)
+	{
+	}
+
+	public void OnPoint(CallbackContext context)
+	{
+	}
+
+	public void OnSubmit(CallbackContext context)
+	{
+	}
 }

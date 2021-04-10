@@ -37,7 +37,7 @@ namespace Armere.PlayerController
 	public abstract class MovementState<TemplateT> : MovementState where TemplateT : MovementStateTemplate
 	{
 		public override char stateSymbol => t.stateSymbol;
-		protected readonly TemplateT t;
+		public readonly TemplateT t;
 
 
 		protected MovementState(PlayerController c, TemplateT t) : base(c)

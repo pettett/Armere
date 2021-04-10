@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
-using Yarn.Unity;
+//using Yarn.Unity;
 using UnityEngine.Events;
 
 [System.Serializable]
@@ -194,8 +194,8 @@ public class QuestManager : SaveableSO
 		//Add listener for new item event
 		onPlayerInventoryItemAdded.onItemAddedEvent += OnInventoryItemAdded;
 
-		DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStageYarnAddon());
-		DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStatusYarnAddon());
+		// DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStageYarnAddon());
+		// DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(new QuestStatusYarnAddon());
 	}
 
 

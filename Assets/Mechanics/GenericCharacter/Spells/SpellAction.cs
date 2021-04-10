@@ -4,13 +4,21 @@ using Armere.UI;
 using UnityEngine;
 using UnityEngine.AI;
 using XNode;
+
+public enum CastType
+{
+	PrimaryFire,
+	ReleaseCharge
+}
 public abstract class Spell
 {
 	public readonly Character caster;
+	public readonly CastType castType;
 
-	protected Spell(Character caster)
+	protected Spell(Character caster, CastType castType = CastType.PrimaryFire)
 	{
 		this.caster = caster;
+		this.castType = castType;
 	}
 
 	public abstract void Cast();

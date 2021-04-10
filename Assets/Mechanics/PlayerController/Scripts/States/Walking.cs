@@ -32,7 +32,7 @@ namespace Armere.PlayerController
 		//shooting variables for gizmos
 		DebugMenu.DebugEntry entry;
 
-		bool forceForwardHeadingToCamera = false;
+		public bool forceForwardHeadingToCamera = false;
 		bool grounded;
 		bool holdingCrouchKey;
 		bool holdingSprintKey;
@@ -60,8 +60,6 @@ namespace Armere.PlayerController
 		public HoldableBody holding;
 
 		//WEAPONS
-		Coroutine bowChargingRoutine;
-
 
 
 		EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
@@ -167,7 +165,6 @@ namespace Armere.PlayerController
 			c.inputReader.altAttackEvent -= OnAltAttack;
 			c.inputReader.jumpEvent -= OnJump;
 			c.inputReader.selectSpellEvent -= OnSelectSpell;
-			OnCancelBowEvent?.Invoke();
 
 		}
 
@@ -323,16 +320,15 @@ namespace Armere.PlayerController
 									Debug.Log("None");
 								});
 
-								DialogueUI.singleton.onDialogueEnd.AddListener(() =>
-							   {
-								   inDialogue = false;
-								   runner.Clear();
-								   runner.ClearStringTable();
-								   runner.RemoveCommandHandler("Morning");
-								   runner.RemoveCommandHandler("Noon");
-								   runner.RemoveCommandHandler("Night");
-								   runner.RemoveCommandHandler("None");
-							   });
+								DialogueInstances.singleton.ui.onDialogueEnd.AddListener(() =>
+							  {
+								  inDialogue = false;
+								  runner.Clear();
+								  runner.RemoveCommandHandler("Morning");
+								  runner.RemoveCommandHandler("Noon");
+								  runner.RemoveCommandHandler("Night");
+								  runner.RemoveCommandHandler("None");
+							  });
 								inDialogue = true;
 							}
 						}
@@ -640,7 +636,6 @@ namespace Armere.PlayerController
 						if (!c.weaponGraphics.holdables.bow.sheathed)
 						{
 							//Will only operate if bow exists
-							OnCancelBowEvent?.Invoke();
 							c.StartCoroutine(c.SheathItem(ItemType.Bow));
 							//Reset to default weapon set
 							c.weaponSet = (PlayerController.WeaponSet)0;
@@ -763,21 +758,21 @@ namespace Armere.PlayerController
 		{
 			if (phase != InputActionPhase.Performed) return;
 			//Create a spell casting instance
-			if (spell < c.spellTree.selectedNodes.Length && spell >= 0)
-				if (c.spellTree.selectedNodes[spell] != null)
-				{
-					currentCastingSpell = c.spellTree.selectedNodes[spell].BeginCast(c);
-					forceForwardHeadingToCamera = true;
-
-				}
-
+			if (spell < c.spellTree.selectedNodes.Length && spell >= 0 && c.spellTree.selectedNodes[spell] != null)
+				StartSpell(c.spellTree.selectedNodes[spell].BeginCast(c));
 		}
-
-		public void CastSpell()
+		public void StartSpell(Spell spell)
+		{
+			currentCastingSpell = spell;
+			forceForwardHeadingToCamera = true;
+		}
+		public void CastSpell(CastType castType)
 		{
 			currentCastingSpell.Cast();
 			currentCastingSpell = null;
 			forceForwardHeadingToCamera = false;
+
+
 		}
 		public void CancelSpellCast(bool manual)
 		{
@@ -786,19 +781,23 @@ namespace Armere.PlayerController
 			forceForwardHeadingToCamera = false;
 		}
 
-
-
-
-		event System.Action OnReleaseBowEvent;
-		event System.Action OnCancelBowEvent;
+		public void SheathBow()
+		{
+			c.StartCoroutine(c.UnEquipAll());
+			c.weaponSet = PlayerController.WeaponSet.MeleeSidearm;
+		}
 
 		public void OnAttack(InputActionPhase phase)
 		{
-
 			if (holdingBody) PlaceHoldable();
-			else if (currentCastingSpell != null) CastSpell();
-			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm && phase == InputActionPhase.Started && c.currentMelee != -1)
+			else if (currentCastingSpell != null && currentCastingSpell.castType == CastType.PrimaryFire) CastSpell(CastType.PrimaryFire);
+			else if (phase == InputActionPhase.Started && c.currentMelee != -1)
 			{
+				if (c.weaponSet != PlayerController.WeaponSet.MeleeSidearm)
+				{
+					SheathBow();
+				}
+
 				if (inControl)
 				{
 					if (c.weaponGraphics.holdables.melee.sheathed == true)
@@ -816,164 +815,58 @@ namespace Armere.PlayerController
 					backSwingSword = true;
 				}
 			}
-			else if (c.weaponSet == PlayerController.WeaponSet.BowArrow)
-			{
-				OnAttackBow(phase);
-			}
 		}
 
 		public void OnAttackBow(InputActionPhase phase)
 		{
 			if (inControl && c.currentBow != -1 && c.currentAmmo != -1)
 			{
-				if (phase == InputActionPhase.Started)
+				if (phase == InputActionPhase.Performed)
 				{
 					//Button down - start charge
-					bowChargingRoutine = c.StartCoroutine(ChargeBow());
+					//Player bow is kinda spell
+					//Start the spell at this point so that it can be canceled while items are sheathing
+					StartSpell(new PlayerBowAttack(c, this));
+
+					Debug.Log("Performed");
+
+					if (c.weaponSet != PlayerController.WeaponSet.BowArrow)
+					{
+						c.StartCoroutine(c.UnEquipAll(() =>
+						{
+							c.weaponSet = PlayerController.WeaponSet.BowArrow;
+							if (currentCastingSpell != null) //Change the bow is already cancelled
+								(currentCastingSpell as PlayerBowAttack).BeginCharge();
+
+						}));
+					}
+					else
+					{
+						(currentCastingSpell as PlayerBowAttack).BeginCharge();
+					}
+
+
+
 				}
 				else if (phase == InputActionPhase.Canceled)
 				{
 					//button up - end charge
-					OnReleaseBowEvent?.Invoke();
+					if (currentCastingSpell.castType == CastType.ReleaseCharge)
+						CastSpell(CastType.ReleaseCharge);
+
+					Debug.Log("Released");
 				}
 			}
 		}
 
 		#region Bows
-		float GetArrowSpeed(float bowCharge) => Mathf.Lerp(t.arrowSpeedRange.x, t.arrowSpeedRange.y, bowCharge);
-
-		bool bowAimViewEnabled = false;
-		public void EnableBowAimView()
-		{
-			if (!bowAimViewEnabled)
-			{
-				cameras.SetCameraXOffset(t.shoulderViewXOffset);
-
-				cameras.EnableFreeLookAimMode();
-
-				t.onAimModeEnable.RaiseEvent();
-				bowAimViewEnabled = true;
-			}
-		}
-		public void DisableBowAimView()
-		{
-			if (bowAimViewEnabled)
-			{
-				cameras.SetCameraXOffset(0);
-
-				cameras.DisableFreeLookAimMode();
-
-				t.onAimModeDisable.RaiseEvent();
-				bowAimViewEnabled = false;
-			}
-		}
-		IEnumerator ChargeBow()
-		{
-			float bowCharge = 0;
-			bool chargingBow = true;
-			var bow = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Bow>();
-			void ReleaseBow()
-			{
-
-				if (bowCharge > 0.2f)
-					FireBow();
-
-				End();
-			}
-			Vector3 BowAimPos()
-			{
-				if (Physics.Raycast(cameras.cameraTransform.position, cameras.cameraTransform.forward, out RaycastHit hit))
-				{
-					//c.animationController.lookAtPosition = hit.point;
-					return hit.point;
-				}
-				else
-				{
-					//c.animationController.lookAtPosition = cameras.cameraTransform.forward * 1000 + cameras.cameraTransform.position;
-					return cameras.cameraTransform.position + cameras.cameraTransform.forward * 100;
-				}
-			}
-			void FireBow()
-			{
-				//print("Charged bow to {0}", bowCharge);
-				//Fire ammo
-
-				bow.ReleaseArrow((BowAimPos() - bow.arrowSpawnPosition.position).normalized * GetArrowSpeed(bowCharge));
-
-				//Initialize arrow
-				//Remove one of ammo used
-				c.inventory.TakeItem(c.currentAmmo, ItemType.Ammo);
-
-				//Test if ammo left for shooting
-				if (c.inventory.ItemCount(c.currentAmmo, ItemType.Ammo) == 0)
-				{
-					Debug.Log($"Run out of arrow type {c.currentAmmo}");
-					//Keep current ammo within range of avalibles
-					c.SelectAmmo(c.currentAmmo);
-				}
-				else
-				{
-					c.NotchArrow();
-				}
-			}
-			void End()
-			{
-				//Dont do this, only stop bow view if player sheaths bow
-				DisableBowAimView();
-
-				forceForwardHeadingToCamera = false;
-				c.animationController.headWeight = 0; // don't need to do others - master switch
-
-				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = 0;
-				bowCharge = 0;
-				OnReleaseBowEvent -= ReleaseBow;
-				OnCancelBowEvent -= End;
-				chargingBow = false; //Ends the loop
-			}
 
 
 
-			if (c.weaponGraphics.holdables.bow.sheathed)
-			{
-				bow.InitBow(c.inventory.bow.items[c.currentBow].itemData);
-				c.NotchArrow(); //TODO: Notch arrow should play animation, along with drawing bow
-				yield return DrawItem(ItemType.Bow);
-			}
-
-			OnReleaseBowEvent += ReleaseBow;
-			OnCancelBowEvent += End;
-
-			forceForwardHeadingToCamera = true;
-
-
-			EnableBowAimView();
-
-
-			// c.animationController.weights.weight = 1;
-			// c.animationController.weights.headWeight = 1;
-			// c.animationController.weights.eyesWeight = 1;
-			// c.animationController.weights.bodyWeight = 1;
-			// c.animationController.weights.clampWeight = 0.5f; //180 degrees
-
-			//var bowAC = c.weaponGraphics.holdables.bow.gameObject.GetComponent<Animator>();
-			while (chargingBow)
-			{
-				yield return null;
-				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.lookAtTarget.position = BowAimPos();
-
-				bowCharge += Time.deltaTime;
-				bowCharge = Mathf.Clamp01(bowCharge);
-
-				c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = bowCharge;
-
-				//bowAC.SetFloat("Charge", bowCharge);
-				//Update trajectory (in local space)
-			}
-		}
 		#endregion
 		#region Equipping
 
-		IEnumerator DrawItem(ItemType type, System.Action onComplete = null)
+		public IEnumerator DrawItem(ItemType type, System.Action onComplete = null)
 		{
 
 			equipping[type] = true;
@@ -1161,7 +1054,8 @@ namespace Armere.PlayerController
 			{
 				if (phase == InputActionPhase.Performed)
 				{
-					OnCancelBowEvent?.Invoke();
+					//TODO: Better bow cancel
+					currentCastingSpell.CancelCast(true);
 				}
 			}
 		}

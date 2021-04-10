@@ -19,6 +19,7 @@
     "com.unity.timeline": "1.5.2",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "11.0.0",
+    "dev.yarnspinner.unity": "https://github.com/YarnSpinnerTool/YarnSpinner-Unity.git",
     "me.ameye.prefab-painter": "https://github.com/alexanderameye/prefab-painter.git",
     "scriptablecrosshairs": "https://github.com/StolenCheese/ScriptableCrosshairs.git?path=/Packages/scriptablecrosshairs#Packaged",
     "com.unity.modules.ai": "1.0.0",

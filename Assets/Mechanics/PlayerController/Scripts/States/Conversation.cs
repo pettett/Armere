@@ -121,7 +121,7 @@ namespace Armere.PlayerController
 			//Make head look at npc
 		}
 
-		void SetDialogBoxActive(bool active) => DialogueInstances.singleton.dialogueUI.dialogueContainer.SetActive(active);
+		void SetDialogBoxActive(bool active) => DialogueInstances.singleton.ui.dialogueContainer.SetActive(active);
 		void EnableDialogBox() => SetDialogBoxActive(true);
 		void DisableDialogBox() => SetDialogBoxActive(false);
 
@@ -129,7 +129,7 @@ namespace Armere.PlayerController
 		{
 			//Add every command hander for dialogue usage
 
-			(runner.variableStorage as InMemoryVariableStorage).addons.Add(talkingTarget.dialogueAddon);
+			DialogueInstances.singleton.variableStorage.addons.Add(talkingTarget.dialogueAddon);
 			foreach (var pair in commands)
 			{
 				runner.AddCommandHandler(pair.Item1, pair.Item2);
@@ -157,7 +157,7 @@ namespace Armere.PlayerController
 				runner.RemoveCommandHandler(pair.Item1);
 			}
 
-			(runner.variableStorage as InMemoryVariableStorage).addons.Remove(talkingTarget.dialogueAddon);
+			DialogueInstances.singleton.variableStorage.addons.Remove(talkingTarget.dialogueAddon);
 		}
 
 
@@ -333,10 +333,10 @@ namespace Armere.PlayerController
 			//update the buy menu with revised amounts
 
 			//Restart the dialog
-			DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+			DialogueInstances.singleton.ui.onDialogueEnd.RemoveListener(OnDialogueComplete);
 			runner.Stop();
 			HideAllDialogueButtons();
-			DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+			DialogueInstances.singleton.ui.onDialogueEnd.AddListener(OnDialogueComplete);
 			runner.StartDialogue("Buy");
 		}
 
@@ -350,21 +350,21 @@ namespace Armere.PlayerController
 		public async void RunSellMenu()
 		{
 
-			DialogueUI.singleton.onDialogueEnd.RemoveListener(OnDialogueComplete);
+			DialogueInstances.singleton.ui.onDialogueEnd.RemoveListener(OnDialogueComplete);
 			(ItemType type, int index) = await ItemSelectionMenuUI.singleton.SelectItem(x => x.item.sellable);
 
 			if (index != -1)
 			{
-				DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+				DialogueInstances.singleton.ui.onDialogueEnd.AddListener(OnDialogueComplete);
 				OnSellMenuItemSelected(type, index);
 			}//else the dialogue will handle it
-			else if (!DialogueRunner.singleton.IsDialogueRunning)
+			else if (!DialogueInstances.singleton.runner.IsDialogueRunning)
 			{
 				OnDialogueComplete();
 			}
 			else
 			{
-				DialogueUI.singleton.onDialogueEnd.AddListener(OnDialogueComplete);
+				DialogueInstances.singleton.ui.onDialogueEnd.AddListener(OnDialogueComplete);
 			}
 
 		}
@@ -382,7 +382,7 @@ namespace Armere.PlayerController
 
 		void HideAllDialogueButtons()
 		{
-			foreach (var button in DialogueUI.singleton.optionButtons)
+			foreach (var button in DialogueInstances.singleton.ui.optionButtons)
 			{
 				button.gameObject.SetActive(false);
 			}

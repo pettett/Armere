@@ -4,9 +4,11 @@ using System;
 using UnityEngine;
 using RotaryHeart;
 using Armere.Inventory;
+//using Yarn.Unity;
+//using Yarn;
+using UnityEngine.Assertions;
 using Yarn.Unity;
 using Yarn;
-using UnityEngine.Assertions;
 
 [CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPC Template", order = 0)]
 public class NPCTemplate : AIStateTemplate
@@ -14,7 +16,7 @@ public class NPCTemplate : AIStateTemplate
 	public YarnProgram dialogue;
 	public NPCManager manager;
 
-	public Yarn.Unity.InMemoryVariableStorage.DefaultVariable[] defaultValues;
+	public VariableStorage.DefaultVariable[] defaultValues;
 
 	public BuyMenuItem[] buyMenuItems;
 
@@ -94,7 +96,7 @@ public class NPCTemplate : AIStateTemplate
 	public Routine[] routines = new Routine[1];
 }
 
-public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
+public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 {
 	string IVariableAddon.prefix => "$NPC_";
 	public int currentRoutineStage;
@@ -113,7 +115,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 	//Conversation currentConv; 
 	public static readonly Dictionary<string, NPCRoutine> activeNPCs = new Dictionary<string, NPCRoutine>();
 
-	Value IVariableAddon.this[string name]
+	Yarn.Value IVariableAddon.this[string name]
 	{
 		get => t.manager.data[d.npcName].variables[name];
 		set => t.manager.data[d.npcName].variables[name] = value;
@@ -321,4 +323,13 @@ public class NPCRoutine : AIState<NPCTemplate>, IVariableAddon, IDialogue
 		}
 	}
 
+	public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()
+	{
+		return t.manager.data[d.npcName].variables.GetEnumerator();
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		return GetEnumerator();
+	}
 }

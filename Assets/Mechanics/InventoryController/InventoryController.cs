@@ -102,7 +102,7 @@ namespace Armere.Inventory
 				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name);
 				return new Value(ItemCount(item));
 			}
-			set => throw new System.NotImplementedException("Cannot set stage of quest");
+			set => throw new System.NotImplementedException("Cannot set inventory values");
 		}
 
 
@@ -234,7 +234,7 @@ namespace Armere.Inventory
 
 		private void Start()
 		{
-			DialogueInstances.singleton.inMemoryVariableStorage.addons.Add(this);
+			DialogueInstances.singleton.variableStorage.addons.Add(this);
 		}
 
 
@@ -357,6 +357,14 @@ namespace Armere.Inventory
 		public uint ItemCount(int index, ItemType type) => GetPanelFor(type).ItemCount(index);
 		public ItemStackBase ItemAt(int index, ItemType type) => GetPanelFor(type)[index];
 
+		public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()
+		{
+			yield break;
+		}
 
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 	}
 }

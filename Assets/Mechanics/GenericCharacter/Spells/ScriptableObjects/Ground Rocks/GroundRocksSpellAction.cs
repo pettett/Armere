@@ -30,6 +30,7 @@ public class GroundRocksSpell : Spell
 	{
 
 
+
 		Vector3 start = caster.transform.position;
 		Vector3 dir = caster.transform.forward;
 		Vector3 right = caster.transform.right;

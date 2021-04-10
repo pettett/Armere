@@ -4,6 +4,7 @@ using UnityEngine;
 using Armere.Inventory;
 using Armere.Inventory.UI;
 using Yarn.Unity;
+
 namespace Armere.Inventory
 {
 
@@ -25,16 +26,16 @@ namespace Armere.Inventory
 		{
 			interactor.PauseControl();
 
-			DialogueRunner.singleton.Add(selectionDialogue);
+			DialogueInstances.singleton.runner.Add(selectionDialogue);
 
 			// Reuse sell menu to select potion ingredient
 			var selection = await ItemSelectionMenuUI.singleton.SelectItem(x => x.item.potionIngredient);
 
-			DialogueRunner.singleton.Stop();
-			DialogueRunner.singleton.Clear();
-			DialogueRunner.singleton.ClearStringTable();
+			DialogueInstances.singleton.runner.Stop();
+			DialogueInstances.singleton.runner.Clear();
+
 			GameCameras.s.lockingMouse = true;
-			DialogueInstances.singleton.dialogueUI.FinishDialogue();
+			DialogueInstances.singleton.ui.DialogueComplete();
 
 			if (selection.index != -1)
 			{

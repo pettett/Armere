@@ -34,6 +34,9 @@ public class Arrow : Projectile
 
 	public override void OnProjectileHit(Collision collision, out bool goodHit)
 	{
+		trailRenderer.autodestruct = true;
+		trailRenderer.transform.SetParent(null, true);
+
 		base.OnProjectileHit(collision, out goodHit);
 
 		if (!destroyOnHit && !goodHit)

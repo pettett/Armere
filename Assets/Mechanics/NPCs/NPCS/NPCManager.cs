@@ -104,7 +104,7 @@ public class NPCManager : SaveableSO
 			foreach (var variable in t.defaultValues)
 			{
 				//Turn default variable into yarn value then into NPCVariable
-				variables[variable.name] = Yarn.Unity.InMemoryVariableStorage.AddDefault(variable);
+				variables[variable.name] = VariableStorage.AddDefault(variable);
 			}
 
 			//Set the default index from active quests

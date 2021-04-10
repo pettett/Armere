@@ -211,12 +211,10 @@ namespace Armere.PlayerController
 
 		public override void OnEnable()
 		{
-			inputReader.equipBowEvent += OnEquipBow;
 			inputReader.changeSelection += OnChangeSelection;
 		}
 		public override void OnDisable()
 		{
-			inputReader.equipBowEvent -= OnEquipBow;
 			inputReader.changeSelection -= OnChangeSelection;
 		}
 
@@ -496,20 +494,6 @@ namespace Armere.PlayerController
 
 
 		private ItemType[] selectingSlot = null;
-
-		private void OnEquipBow(InputActionPhase phase)
-		{
-			if (phase == InputActionPhase.Performed)
-			{
-				if (weaponSet != WeaponSet.BowArrow)
-				{
-					StartCoroutine(UnEquipAll());
-					weaponSet = WeaponSet.BowArrow;
-				}
-
-			}
-
-		}
 
 
 

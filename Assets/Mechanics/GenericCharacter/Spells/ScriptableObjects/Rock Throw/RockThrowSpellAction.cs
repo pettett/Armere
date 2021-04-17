@@ -42,6 +42,10 @@ public class RockThrowSpell : Spell
 		createdRock.LaunchProjectile(caster.transform.forward * 10);
 
 	}
+
+	public override void Begin()
+	{
+	}
 }
 
 [CreateAssetMenu(menuName = "Game/Spells/Rock Throw")]

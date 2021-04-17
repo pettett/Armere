@@ -67,6 +67,7 @@ public abstract class Character : SpawnableBody
 
 	[System.NonSerialized] public WeaponGraphicsController weaponGraphics;
 	[System.NonSerialized] public AnimationController animationController;
+	public Animator animator => animationController.anim;
 
 	public abstract void Knockout(float time);
 

@@ -271,17 +271,49 @@ public class ArmereDialogueUI : Yarn.Unity.DialogueUIBehaviour
 		StartCoroutine(DoRunLine(line, localisationProvider, onLineComplete));
 		return Dialogue.HandlerExecutionType.PauseExecution;
 	}
+	public static readonly char[] speakerDeliminator = new char[] { ':' };
+	public static readonly char[] speakerMetaDeliminator = new char[] { ',' };
+	public static readonly char[] trimCharacters = new char[] { ' ' };
 
 	/// Show a line of dialogue, gradually        
 	private IEnumerator DoRunLine(Yarn.Line line, ILineLocalisationProvider localisationProvider, System.Action onComplete)
 	{
 
 		userRequestedNextLine = false;
+		bool skipWait = false;
 
 		// The final text we'll be showing for this line.
-		string text = localisationProvider.GetLocalisedTextForLine(line);
+		string text;
 
-		onLineStart?.Invoke(text);
+
+		var segments = localisationProvider.GetLocalisedTextForLine(line).Split(speakerDeliminator, 2);
+		string speakerName = null;
+		if (segments.Length >= 2)
+		{
+			var lineMeta = segments[0].Split(speakerMetaDeliminator);
+
+			speakerName = lineMeta[lineMeta.Length - 1].Trim(trimCharacters);
+
+			for (int i = 0; i < lineMeta.Length - 1; i++)
+			{
+				//These are line metadata
+				switch (lineMeta[i].ToLower())
+				{
+					case "options":
+						skipWait = true;
+						break;
+				}
+
+			}
+
+			text = segments[1];
+		}
+		else
+		{
+			text = segments[0];
+		}
+
+		onLineStart?.Invoke(speakerName);
 
 		if (text == null)
 		{
@@ -319,14 +351,15 @@ public class ArmereDialogueUI : Yarn.Unity.DialogueUIBehaviour
 
 		// Indicate to the rest of the game that the line has finished being delivered
 		onLineFinishDisplaying?.Invoke();
-
-		while (userRequestedNextLine == false)
-		{
-			yield return null;
-		}
+		if (!skipWait)
+			while (userRequestedNextLine == false)
+			{
+				yield return null;
+			}
 
 		// Avoid skipping lines if textSpeed == 0
-		yield return new WaitForEndOfFrame();
+		if (textSpeed == 0)
+			yield return new WaitForEndOfFrame();
 
 		// Hide the text and prompt
 		onLineEnd?.Invoke();

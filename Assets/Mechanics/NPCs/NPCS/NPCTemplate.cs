@@ -9,11 +9,12 @@ using Armere.Inventory;
 using UnityEngine.Assertions;
 using Yarn.Unity;
 using Yarn;
+using UnityEngine.AddressableAssets;
 
 [CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPC Template", order = 0)]
 public class NPCTemplate : AIStateTemplate
 {
-	public YarnProgram dialogue;
+	public AssetReferenceT<YarnProgram> dialogue;
 	public NPCManager manager;
 
 	public VariableStorage.DefaultVariable[] defaultValues;
@@ -109,7 +110,8 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 	public NPCTemplate.Routine CurrentRoutine => t.routines[RoutineIndex];
 	public string StartNode => CurrentRoutine.stages[currentRoutineStage].conversationStartNode;
 	public Transform transform => c.transform;
-	public YarnProgram Dialogue => t.dialogue;
+	AssetReferenceT<YarnProgram> IDialogue.Dialogue => t.dialogue;
+
 	readonly AIAmbientThought thought;
 
 	//Conversation currentConv; 
@@ -117,7 +119,13 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 
 	Yarn.Value IVariableAddon.this[string name]
 	{
-		get => t.manager.data[d.npcName].variables[name];
+		get
+		{
+			if (t.manager.data[d.npcName].variables.TryGetValue(name, out Value value))
+				return value;
+			else
+				throw new System.ArgumentException($"NPC {d.npcName} does not have variable {value}");
+		}
 		set => t.manager.data[d.npcName].variables[name] = value;
 	}
 	IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)

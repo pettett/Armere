@@ -41,7 +41,6 @@ namespace Armere.PlayerController
 		public readonly (string, DialogueRunner.CommandHandler)[] commands;
 		public readonly (string, DialogueRunner.BlockingCommandHandler)[] blockingCommands;
 
-
 		BuyInventoryUI buyMenu;
 		string speakingNPC = null;
 
@@ -285,18 +284,21 @@ namespace Armere.PlayerController
 			//Wait for a buy
 			buyMenu.ShowInventory(talkingTarget.buyInventory, c.inventory, OnBuyMenuItemSelected);
 		}
-
 		public void StartMinigame(string[] args)
 		{
+
 			var minigame = talkingTarget.minigames[int.Parse(args[0])];
+			string finishedConversationNode = args[1];
+
 			minigame.StartMinigame(c);
 
 			void OnMinigameEnd(object result)
 			{
 				//Apply the value
-				t.npcManager.data[talkingTarget.npcName].AddVariable(minigame.minigameResultVariableName, new Yarn.Value(result));
+				//t.npcManager.data[talkingTarget.npcName].AddVariable(minigame.minigameResultVariableName, new Yarn.Value(result));
 				//Use the value
-				t.TeleportToConversation(c, talkingTarget, minigame.minigameFinishedConversationNode);
+				t.TeleportToConversation(c, talkingTarget, finishedConversationNode);
+
 				//Forget the value
 				minigame.onMinigameEnded -= OnMinigameEnd;
 			}
@@ -304,8 +306,18 @@ namespace Armere.PlayerController
 			minigame.onMinigameEnded += OnMinigameEnd;
 
 
+			DialogueInstances.singleton.variableStorage.addons.Add(minigame);
+
 			//TODO: End conversation
 			//c.ChangeToState(c.defaultState);
+		}
+
+
+		public void EndMinigame(string[] args)
+		{
+
+			var minigame = talkingTarget.minigames[int.Parse(args[0])];
+			DialogueInstances.singleton.variableStorage.addons.Remove(minigame);
 		}
 
 		void OnBuyMenuItemSelected()

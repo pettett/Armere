@@ -6,10 +6,13 @@ using Armere.PlayerController;
 [RequireComponent(typeof(Rigidbody))]
 public class HoldableBody : MonoBehaviour, IInteractable
 {
+	public enum HoldableShape { Cylinder, Sphere }
+	public HoldableShape shape;
 	public Rigidbody rb;
+	new public Collider collider;
 	public float heightOffset = 0.26f;
 	public bool interactable = true;
-	public bool canInteract { get => interactable && ((!(((PlayerController)Character.playerCharacter).currentState as Walking)?.holdingBody) ?? false); set { } }
+	public bool canInteract { get => interactable; set { interactable = value; } }
 
 	public float requiredLookDot => 0;
 	public string holdableTriggerTag = "Default";
@@ -24,7 +27,7 @@ public class HoldableBody : MonoBehaviour, IInteractable
 	private void Start()
 	{
 		rb = GetComponent<Rigidbody>();
-		rb.velocity = Vector3.zero;
+		collider = GetComponent<Collider>();
 	}
 	public void Interact(IInteractor interactor)
 	{

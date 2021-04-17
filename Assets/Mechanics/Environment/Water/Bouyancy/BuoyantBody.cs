@@ -4,17 +4,17 @@ using UnityEngine;
 
 public abstract class BuoyantBody : MonoBehaviour, IWaterObject
 {
-    public float density = 700f;
-    public float waterDrag = 0.9f;
-    protected Rigidbody rb;
-    protected WaterController volume;
-    public void OnWaterEnter(WaterController waterController)
-    {
-        volume = waterController;
-    }
+	public float density = 700f;
+	public float waterDrag = 0.9f;
+	protected Rigidbody rb;
+	protected WaterController volume;
+	public virtual void OnWaterEnter(WaterController waterController)
+	{
+		volume = waterController;
+	}
 
-    public void OnWaterExit(WaterController waterController)
-    {
-        volume = null;
-    }
+	public virtual void OnWaterExit(WaterController waterController)
+	{
+		volume = null;
+	}
 }

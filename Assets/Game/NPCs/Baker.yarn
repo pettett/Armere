@@ -10,7 +10,6 @@ Jimbo: Otherwise I will never open this bakery again
 Jimbo: We still are not fixed
 <<elseif $QuestStage_FixingBakery is 1>>
 Jimbo: Thank you for fixing the bakery
-Jimbo: <skip>
 <<TalkToQuest FixingBakery>>
 
 <<else>>

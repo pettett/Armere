@@ -8,4 +8,4 @@ Mayor: Go and get a sword from the blacksmith, then you may leave the town
 Mayor: There are dangers beyond
 <<TalkToQuest Tutorial>>
 <<endif>>
-===
+=== 

@@ -17,7 +17,7 @@ namespace Armere.PlayerController
 		public override string StateName => "Walking";
 
 
-		enum WalkingType { Walking, Sprinting, Crouching }
+		public enum WalkingType { Walking, Sprinting, Crouching }
 
 		protected DialogueRunner runner => DialogueInstances.singleton.runner;
 
@@ -30,7 +30,7 @@ namespace Armere.PlayerController
 
 
 		//shooting variables for gizmos
-		DebugMenu.DebugEntry entry;
+		System.Text.StringBuilder entry;
 
 		public bool forceForwardHeadingToCamera = false;
 		bool grounded;
@@ -40,11 +40,11 @@ namespace Armere.PlayerController
 
 		bool crouching { get => walkingType == WalkingType.Crouching; }
 		bool sprinting { get => walkingType == WalkingType.Sprinting; }
-
+		public float walkingHeight => c.walkingHeight;
 
 		WalkingType walkingType = WalkingType.Walking;
 		Dictionary<WalkingType, float> walkingSpeeds;
-		bool inControl = true;
+		public bool inControl = true;
 		Collider[] crouchTestColliders = new Collider[2];
 
 
@@ -52,8 +52,6 @@ namespace Armere.PlayerController
 
 
 
-		public bool movingHoldable;
-		public bool holdingBody;
 
 		//Save system does not work with game references, yet.
 		//This should be done but is not super important
@@ -101,7 +99,7 @@ namespace Armere.PlayerController
 
 		public override void Start()
 		{
-			entry = DebugMenu.CreateEntry("Player", "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false);
+			entry = DebugMenu.CreateEntry("Player"/* , "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false */);
 
 			walkingSpeeds = new Dictionary<WalkingType, float>(){
 				{WalkingType.Walking , t.walkingSpeed},
@@ -132,7 +130,6 @@ namespace Armere.PlayerController
 			c.inputReader.crouchEvent += OnCrouch;
 			c.inputReader.attackEvent += OnAttack;
 			c.inputReader.equipBowEvent += OnAttackBow;
-			c.inputReader.actionEvent += OnInteract;
 			c.inputReader.altAttackEvent += OnAltAttack;
 			c.inputReader.jumpEvent += OnJump;
 			c.inputReader.selectSpellEvent += OnSelectSpell;
@@ -141,6 +138,11 @@ namespace Armere.PlayerController
 
 		public override void End()
 		{
+			if (currentCastingSpell != null)
+			{
+				CancelSpellCast(false);
+			}
+
 			transform.SetParent(null, true);
 			DebugMenu.RemoveEntry(entry);
 
@@ -149,7 +151,7 @@ namespace Armere.PlayerController
 
 
 			//make sure the collider is left correctly
-			c.collider.height = c.walkingHeight;
+			c.collider.height = walkingHeight;
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
@@ -161,7 +163,6 @@ namespace Armere.PlayerController
 			c.inputReader.crouchEvent -= OnCrouch;
 			c.inputReader.attackEvent -= OnAttack;
 			c.inputReader.equipBowEvent -= OnAttackBow;
-			c.inputReader.actionEvent -= OnInteract;
 			c.inputReader.altAttackEvent -= OnAltAttack;
 			c.inputReader.jumpEvent -= OnJump;
 			c.inputReader.selectSpellEvent -= OnSelectSpell;
@@ -178,50 +179,7 @@ namespace Armere.PlayerController
 			holdingSprintKey = InputReader.PhaseMeansPressed(phase);
 		}
 
-		#region Holdables
-		public void PlaceHoldable()
-		{
-			RemoveHoldable(Vector3.zero);
-		}
-		public void DropHoldable()
-		{
-			RemoveHoldable(Vector3.zero);
-		}
-		public void ThrowHoldable()
-		{
-			RemoveHoldable((transform.forward + Vector3.up).normalized * t.throwForce);
-		}
 
-		public void HoldHoldable(HoldableBody body)
-		{
-			c.StartCoroutine(c.UnEquipAll());
-
-			holding = body;
-			//Keep body attached to top of player;
-			holding.transform.position = (transform.position + Vector3.up * (c.walkingHeight + holding.heightOffset));
-
-			holding.joint.connectedBody = c.rb;
-
-			holdingBody = true;
-
-			UIKeyPromptGroup.singleton.ShowPrompts(
-				c.inputReader,
-				InputReader.groundActionMap,
-				("Drop", InputReader.attackAction),
-				("Throw", InputReader.altAttackAction));
-
-			(c.GetParallelState(typeof(Interact)) as Interact).End();
-
-			c.StartCoroutine(PickupHoldable());
-		}
-
-		IEnumerator PickupHoldable()
-		{
-			movingHoldable = true;
-			yield return new WaitForSeconds(0.1f);
-			movingHoldable = false;
-		}
-		#endregion
 		#region Rest Points
 		public void OnInteract(IInteractable interactable)
 		{
@@ -267,30 +225,14 @@ namespace Armere.PlayerController
 						s?.Start();
 					}
 
-					IEnumerator TriggerTimeChange(float newTime)
+					void TriggerTimeChange(float newTime)
 					{
-
-						float time = 1f;
-						float fadeTime = 0.25f;
-
-						fadeTime = Mathf.Clamp(fadeTime, 0, time / 2);
-
-						// fadeoutImage.color = Color.clear; //Black with full transparency
-						UIController.singleton.fadeoutImage.gameObject.SetActive(true);
-
-						yield return UIController.singleton.Fade(0, 1, fadeTime, false);
-
-
-						float fullyBlackTime = time - fadeTime * 2;
-
-						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
-						t.changeTimeEventChannel.RaiseEvent(newTime);
-						yield return new WaitForSeconds(fullyBlackTime * 0.5f);
-
-						yield return UIController.singleton.Fade(1, 0, fadeTime, false);
-
-						UIController.singleton.DisableFadeout();
-
+						c.StartCoroutine(c.FadeToActions(
+							onFullFade: () =>
+							{
+								t.changeTimeEventChannel.RaiseEvent(newTime);
+							}
+						));
 					}
 
 					void EnterSleepDialogue(InputActionPhase phase)
@@ -305,15 +247,15 @@ namespace Armere.PlayerController
 
 								runner.AddCommandHandler("Morning", _ =>
 								{
-									c.StartCoroutine(TriggerTimeChange(6));
+									TriggerTimeChange(6);
 								});
 								runner.AddCommandHandler("Noon", _ =>
 								{
-									c.StartCoroutine(TriggerTimeChange(12));
+									TriggerTimeChange(12);
 								});
 								runner.AddCommandHandler("Night", _ =>
 								{
-									c.StartCoroutine(TriggerTimeChange(24));
+									TriggerTimeChange(24);
 								});
 								runner.AddCommandHandler("None", _ =>
 								{
@@ -375,22 +317,10 @@ namespace Armere.PlayerController
 			}
 
 		}
-
-		void RemoveHoldable(Vector3 acceleration)
+		public void HoldHoldable(HoldableBody body)
 		{
-			holding.OnDropped();
-			holding.rb.AddForce(acceleration, ForceMode.Acceleration);
-
-
-			holdingBody = false;
-			UIKeyPromptGroup.singleton.RemovePrompts();
-
-			(c.GetParallelState(typeof(Interact)) as Interact).Start();
-
-
-			holding = null;
+			StartSpell(new PlayerHoldableInteraction(c, this, body));
 		}
-
 
 		#region Movement
 		public void MoveThroughWater(ref float speedScalar)
@@ -699,8 +629,8 @@ namespace Armere.PlayerController
 			else if (crouching)
 			{
 				//crouch button not pressed but still crouching
-				Vector3 p1 = transform.position + Vector3.up * c.walkingHeight * 0.05F;
-				Vector3 p2 = transform.position + Vector3.up * c.walkingHeight;
+				Vector3 p1 = transform.position + Vector3.up * walkingHeight * 0.05F;
+				Vector3 p2 = transform.position + Vector3.up * walkingHeight;
 				Physics.OverlapCapsuleNonAlloc(p1, p2, c.collider.radius, crouchTestColliders, c.m_groundLayerMask, QueryTriggerInteraction.Ignore);
 				if (crouchTestColliders[1] == null)
 					//There is no collider intersecting other then the player
@@ -709,7 +639,7 @@ namespace Armere.PlayerController
 			}
 
 			if (!crouching)
-				c.collider.height = c.walkingHeight;
+				c.collider.height = walkingHeight;
 
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
@@ -729,16 +659,13 @@ namespace Armere.PlayerController
 
 			lastVelocity = velocity;
 
-			entry.values[0] = c.rb.velocity.magnitude;
-			entry.values[1] = c.allCPs.Count;
-			entry.values[3] = grounded;
+			if (DebugMenu.menuEnabled)
+			{
+				entry.Clear();
+				entry.AppendFormat("Velocity: {0:0.0}, Contact Point Count {1}, On Ground {2}", c.rb.velocity.magnitude, c.allCPs.Count, grounded);
+			}
 		}
 		#endregion
-		public void OnInteract(InputActionPhase phase)
-		{
-			if (phase == InputActionPhase.Started)
-				if (holdingBody && !movingHoldable) PlaceHoldable();
-		}
 
 		public void OnItemAdded(ItemStackBase stack, ItemType type, int index, bool hiddenAddition)
 		{
@@ -763,8 +690,11 @@ namespace Armere.PlayerController
 		}
 		public void StartSpell(Spell spell)
 		{
+			if (currentCastingSpell != null) CancelSpellCast(true);
 			currentCastingSpell = spell;
+
 			forceForwardHeadingToCamera = true;
+			currentCastingSpell.Begin();
 		}
 		public void CastSpell(CastType castType)
 		{
@@ -789,8 +719,7 @@ namespace Armere.PlayerController
 
 		public void OnAttack(InputActionPhase phase)
 		{
-			if (holdingBody) PlaceHoldable();
-			else if (currentCastingSpell != null && currentCastingSpell.castType == CastType.PrimaryFire) CastSpell(CastType.PrimaryFire);
+			if (currentCastingSpell != null && currentCastingSpell.castType == CastType.PrimaryFire) CastSpell(CastType.PrimaryFire);
 			else if (phase == InputActionPhase.Started && c.currentMelee != -1)
 			{
 				if (c.weaponSet != PlayerController.WeaponSet.MeleeSidearm)
@@ -1014,10 +943,7 @@ namespace Armere.PlayerController
 		{
 			if (!inControl) return;
 
-			if (holdingBody)
-			{
-				ThrowHoldable();
-			}
+
 			else if (currentCastingSpell != null) CancelSpellCast(true);
 
 			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
@@ -1048,14 +974,6 @@ namespace Armere.PlayerController
 					holdingAltAttack = false;
 
 					LowerShield();
-				}
-			}
-			else
-			{
-				if (phase == InputActionPhase.Performed)
-				{
-					//TODO: Better bow cancel
-					currentCastingSpell.CancelCast(true);
 				}
 			}
 		}
@@ -1218,7 +1136,7 @@ namespace Armere.PlayerController
 			while (t < 1)
 			{
 				t += Time.deltaTime / this.t.steppingTime;
-				entry.values[2] = t;
+				//entry.values[2] = t;
 				t = Mathf.Clamp01(t);
 				//lerp y values
 				//first quarter of sin graph is quick at first but slower later
@@ -1230,7 +1148,7 @@ namespace Armere.PlayerController
 				transform.position = pos;
 				yield return null;
 			}
-			entry.values[2] = 0;
+			//entry.values[2] = 0;
 			c.rb.isKinematic = false;
 			c.rb.velocity = lastVelocity;
 			inControl = true;
@@ -1247,7 +1165,16 @@ namespace Armere.PlayerController
 				// Vector3 v = c.rb.velocity;
 				// v.y = c.jumpForce;
 				// c.rb.velocity = v;
-				c.rb.AddForce(Vector3.up * t.jumpForce, ForceMode.VelocityChange);
+
+				Vector2 jump = t.GetSpeeds(walkingType).twoDJumpForce;
+				var vel = c.rb.velocity;
+				vel.y = 0;
+				vel.Normalize();
+				vel *= jump.x;
+				vel.y = jump.y;
+				c.rb.velocity = vel;
+
+				GetDesiredVelocity(transform.forward, walkingSpeeds[walkingType], 1, out Vector3 direction);
 
 				c.ChangeToState(t.freefalling);
 			}

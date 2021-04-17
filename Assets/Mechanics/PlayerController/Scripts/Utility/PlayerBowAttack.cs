@@ -154,5 +154,9 @@ namespace Armere.PlayerController
 		{
 			End();
 		}
+
+		public override void Begin()
+		{
+		}
 	}
 }

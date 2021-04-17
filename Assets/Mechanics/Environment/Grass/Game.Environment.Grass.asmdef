@@ -2,10 +2,9 @@
     "name": "Game.Environment.Grass",
     "rootNamespace": "",
     "references": [
-        "MyBox",
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime",
-        "EventChannels"
+        "GUID:48c9f6afdac61634db0e0f241c7d4d51",
+        "GUID:98522ad6e33d1f847b30f036e1a50009",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

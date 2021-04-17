@@ -12,10 +12,8 @@ title: MainLoop
 Jeff: What can I do you for?
 <<if $Quest_JeffSticks is "Inactive">>
 [[Whats up?|AskSticks]]
-<<else>>
-    <<if $Quest_JeffSticks is "Active">>
-    [[I've got the sticks|GiveSticks]]
-    <<endif>>
+<<elseif $Quest_JeffSticks is "Active">>
+[[I've got the sticks|GiveSticks]]
 <<endif>>
 [[Talk for a bit|Talk]]
 [[Free stuff?|Give]]
@@ -24,7 +22,6 @@ Jeff: What can I do you for?
 title: Give
 ---
 Jeff: Take this item lol
-Jeff: <skip>
 <<GiveItems Stick 3>>
 ===
 

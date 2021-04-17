@@ -2,7 +2,7 @@
 public abstract class State<CharacterT>
 	where CharacterT : Character
 {
-	protected readonly CharacterT c;
+	public readonly CharacterT c;
 
 
 

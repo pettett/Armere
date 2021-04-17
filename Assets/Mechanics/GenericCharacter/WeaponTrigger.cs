@@ -97,37 +97,35 @@ public class WeaponTrigger : MonoBehaviour
 	{
 		if (enableTrigger)
 		{
-			Bounds grassBounds;
-			if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
-			{
-				filter = GetComponentInChildren<MeshFilter>();
-			}
 
-			grassBounds = filter.sharedMesh.bounds;
-			grassBounds.center = transform.position + transform.forward * 0.5f;
-			grassBounds.size = new Vector3(grassBounds.size.x, 5, grassBounds.size.z);
-			float yRot = transform.eulerAngles.y * Mathf.Deg2Rad;
+			(var grassBounds, var yRot) = GetDestructionBounds();
 
 			GrassController.singleton?.DestroyBladesInBounds(grassBounds, yRot);
 		}
 	}
+	public System.ValueTuple<Bounds, float> GetDestructionBounds()
+	{
+		if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
+		{
+			filter = GetComponentInChildren<MeshFilter>();
+		}
 
-	// private void OnDrawGizmos()
-	// {
-	// 	if (!TryGetComponent<MeshFilter>(out MeshFilter filter))
-	// 	{
-	// 		filter = GetComponentInChildren<MeshFilter>();
-	// 	}
+		var grassBounds = filter.sharedMesh.bounds;
+		grassBounds.center = transform.position + transform.forward * 0.5f;
+		grassBounds.size = new Vector3(grassBounds.size.x * 2, 5, grassBounds.size.z * 3);
+		float yRot = transform.eulerAngles.y * Mathf.Deg2Rad;
 
-	// 	Bounds grassBounds = filter.sharedMesh.bounds;
-	// 	grassBounds.center = transform.position + transform.forward * 0.5f;
-	// 	grassBounds.size = new Vector3(grassBounds.size.x, 1, grassBounds.size.z);
-	// 	float yRot = transform.eulerAngles.y;
+		return (grassBounds, yRot);
+	}
 
+	private void OnDrawGizmos()
+	{
 
-	// 	Matrix4x4 mat = Matrix4x4.TRS(grassBounds.center, Quaternion.Euler(0, yRot, 0), grassBounds.size);
-	// 	Gizmos.matrix = mat;
-	// 	Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+		(var grassBounds, var yRot) = GetDestructionBounds();
 
-	// }
+		Matrix4x4 mat = Matrix4x4.TRS(grassBounds.center, Quaternion.Euler(0, yRot, 0), grassBounds.size);
+		Gizmos.matrix = mat;
+		Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+
+	}
 }

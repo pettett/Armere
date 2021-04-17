@@ -71,22 +71,21 @@ namespace Armere.PlayerController
 		public LayerMask m_waterLayerMask;
 		[NonSerialized] public Rigidbody rb;
 		[NonSerialized] new public CapsuleCollider collider;
-		[NonSerialized] public Animator animator;
 		[NonSerialized] public Health health;
 
 
 		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
 		[NonSerialized] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
 
-		private DebugMenu.DebugEntry<string> _entry;
+		private System.Text.StringBuilder _entry;
 
-		private DebugMenu.DebugEntry<string> entry
+		private System.Text.StringBuilder entry
 		{
 			get
 			{
 				if (_entry != null)
 				{
-					_entry = DebugMenu.CreateEntry("Player", "State(s): {0}", "");
+					_entry = DebugMenu.CreateEntry("Player");
 				}
 				return _entry;
 			}
@@ -175,7 +174,6 @@ namespace Armere.PlayerController
 			Debug.Log("Starting player controller");
 
 			rb = GetComponent<Rigidbody>();
-			animator = GetComponentInChildren<Animator>();
 			collider = GetComponent<CapsuleCollider>();
 			if (TryGetComponent<Health>(out health))
 				health.onDeathEvent.AddListener(OnDeath);
@@ -546,6 +544,32 @@ namespace Armere.PlayerController
 
 		}
 
+		public IEnumerator FadeToActions(System.Action onFullFade = null, System.Action onFadeEnd = null)
+		{
+			float time = 1f;
+			float fadeTime = 0.25f;
+
+			fadeTime = Mathf.Clamp(fadeTime, 0, time / 2);
+
+			// fadeoutImage.color = Color.clear; //Black with full transparency
+			UIController.singleton.fadeoutImage.gameObject.SetActive(true);
+
+			yield return UIController.singleton.Fade(0, 1, fadeTime, false);
+
+			float fullyBlackTime = time - fadeTime * 2;
+			var wait = new WaitForSecondsRealtime(fullyBlackTime * 0.5f);
+
+			yield return wait;
+			onFullFade?.Invoke();
+			yield return wait;
+
+			yield return UIController.singleton.Fade(1, 0, fadeTime, false);
+
+			UIController.singleton.DisableFadeout();
+			onFadeEnd?.Invoke();
+
+		}
+
 		private void OnEquipableItemRemoved(Inventory.InventoryPanel panel, int index)
 		{
 			if (itemSelections[panel.type] == index)
@@ -758,19 +782,21 @@ namespace Armere.PlayerController
 			if (DebugMenu.menuEnabled && entry != null)
 			{
 				//Show all the currentley active states
-				System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder(currentState.StateName);
+
+				//update f3 information
+				entry.Clear();
+				entry.Append("Current State: ");
+				entry.Append(currentState.StateName);
 				if (parallelStates.Length != 0)
 				{
-					stringBuilder.Append('{');
+					entry.Append('{');
 					foreach (var s in parallelStates)
 					{
-						stringBuilder.Append(s.StateName);
-						stringBuilder.Append(',');
+						entry.Append(s.StateName);
+						entry.Append(',');
 					}
-					stringBuilder.Append('}');
+					entry.Append('}');
 				}
-				//update f3 information
-				entry.value0 = stringBuilder.ToString();
 			}
 			FillAllStates();
 

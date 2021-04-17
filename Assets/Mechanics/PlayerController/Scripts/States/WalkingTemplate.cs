@@ -5,12 +5,53 @@ using UnityEngine;
 
 namespace Armere.PlayerController
 {
+	[System.Serializable]
+	public struct Speeds
+	{
+
+		public float movementSpeed;
+		public float verticalJumpHeight;
+		public float horizontalJumpDistance;
+
+		public Vector2 twoDJumpForce
+		{
+			get
+			{
+				float grav = Physics.gravity.y;
+				float invTime = 1 / Mathf.Sqrt(Mathf.Abs(2 * verticalJumpHeight / grav));
+
+				float vertical = 2 * verticalJumpHeight * invTime;
+				float horizontal = horizontalJumpDistance * invTime;
+				return new Vector2(horizontal, vertical);
+			}
+		}
+	}
+
 	[CreateAssetMenu(menuName = "Game/PlayerController/Walking")]
 	public class WalkingTemplate : MovementStateTemplate
 	{
 		public MovementStateTemplate freefalling;
 
 		[Header("Movement")]
+		public Speeds crouching;
+		public Speeds walking;
+		public Speeds sprinting;
+
+		public ref Speeds GetSpeeds(Walking.WalkingType type)
+		{
+			switch (type)
+			{
+				case Walking.WalkingType.Walking:
+					return ref walking;
+				case Walking.WalkingType.Crouching:
+					return ref crouching;
+				case Walking.WalkingType.Sprinting:
+					return ref sprinting;
+				default:
+					throw new System.ArgumentException("Type not known");
+			}
+		}
+
 		public float walkingSpeed = 2f;
 		public float sprintingSpeed = 5f;
 		public float crouchingSpeed = 1f;

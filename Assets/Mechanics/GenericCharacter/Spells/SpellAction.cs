@@ -20,7 +20,7 @@ public abstract class Spell
 		this.caster = caster;
 		this.castType = castType;
 	}
-
+	public abstract void Begin();
 	public abstract void Cast();
 	public abstract void Update();
 	public abstract void CancelCast(bool manualCancel);

@@ -22,6 +22,8 @@ public class IndicatorUI : MonoBehaviour
 	// Update is called once per frame
 	void LateUpdate()
 	{
+		if (target == null) return;
+
 		//position self on target
 		Vector3 screenPos = Camera.main.WorldToScreenPoint(target.position + worldOffset);
 		//Sort by distance

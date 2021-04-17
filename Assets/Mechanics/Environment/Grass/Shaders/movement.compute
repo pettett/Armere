@@ -1,11 +1,10 @@
 ﻿#pragma kernel CSMain
+#pragma kernel CSMain
 
 
 
 
 cbuffer CB{
-    float4 _PusherPositions[10];
-
     float3 cameraPosition;
     float deltatime;
 
@@ -14,7 +13,7 @@ cbuffer CB{
 
     float2 viewRadiusMinMax;
 
-    int pushers;
+    //int pushers;
     int2 dispatchSize;
 
 
@@ -32,6 +31,10 @@ RWStructuredBuffer<MatrixStruct> _Output;
 RWStructuredBuffer<uint> _IndirectArgs;
 
 StructuredBuffer<uint> _PrefixScanData;
+
+
+//StructuredBuffer<float4> _PusherPositions;
+
 
 float4x4 Rotation(float z, float y, float x){
     return float4x4 (
@@ -136,20 +139,22 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	// In a transform matrix, the position (translation) vector is the last column.
 
-	float damp = 0;
-	float3 dampDir = float3(0.01,0,0);
+	//float damp = 0;
+	//float3 dampDir = float3(0.01,0,0);
 
-	// for (int i = 0; i < pushers; i++){
-	// 	float effect =  distance(properties.position, _PusherPositions[i].xyz);
-	// 	float radius = _PusherPositions[i].w;
+	// #ifdef GRASS_PUSHERS
+	// 	for (int i = 0; i < pushers; i++){
+	// 		float effect =  distance(properties.position, _PusherPositions[i].xyz);
+	// 		float radius = _PusherPositions[i].w;
 
-	// 	effect = (radius- clamp(0.0, radius, effect))/radius;
+	// 		effect = (radius- clamp(0.0, radius, effect))/radius;
 
-	// 	damp = max(damp,effect);
-	// 	dampDir += (properties.position - _PusherPositions[i].xyz) * effect;
-	// }
+	// 		damp = max(damp,effect);
+	// 		dampDir += (properties.position - _PusherPositions[i].xyz) * effect;
+	// 	}
+	// #endif
 
-	float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
+	//float3 dampAxis = cross(normalize(dampDir),float3(0,1,0));
 
 	// Scale and reverse distance so that we get a value which fades as it gets further away.
 	// Max distance is 5.0.

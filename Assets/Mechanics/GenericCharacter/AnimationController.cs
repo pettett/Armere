@@ -113,6 +113,7 @@ public class AnimationController : MonoBehaviour
 	public TwoBoneIKConstraint rightHandConstraint;
 	public TwoBoneIKConstraint leftHandConstraint;
 	public MultiAimConstraint headLook;
+	public BarrelHoldRigController holdBarrelRig;
 
 	Transform leftFootBone;
 	Transform rightFootBone;

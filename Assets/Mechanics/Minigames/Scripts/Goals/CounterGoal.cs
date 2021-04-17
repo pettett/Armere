@@ -15,6 +15,7 @@ public class CounterGoal : MinigameConstraint
 	[System.NonSerialized] TMPro.TextMeshProUGUI counter;
 	public override void StartConstraint()
 	{
+		count = 0;
 		onCounterIncrement.OnEventRaised += Increment;
 	}
 

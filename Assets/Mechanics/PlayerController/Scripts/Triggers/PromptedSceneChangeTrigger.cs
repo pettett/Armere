@@ -4,10 +4,11 @@ using UnityEngine;
 using Armere.PlayerController;
 using Yarn;
 using Yarn.Unity;
+using UnityEngine.AddressableAssets;
 
 public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, IVariableAddon
 {
-	public YarnProgram dialogue;
+	public AssetReferenceT<YarnProgram> dialogue;
 
 	public string startNode;
 
@@ -29,7 +30,7 @@ public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, IVariableAd
 
 	public string prefix => "$Scene_";
 
-	YarnProgram IDialogue.Dialogue => dialogue;
+	AssetReferenceT<YarnProgram> IDialogue.Dialogue => dialogue;
 
 	string IDialogue.StartNode => startNode;
 

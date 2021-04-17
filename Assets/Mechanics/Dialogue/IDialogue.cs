@@ -1,10 +1,10 @@
 
 using UnityEngine;
 using Yarn.Unity;
-
+using UnityEngine.AddressableAssets;
 public interface IDialogue
 {
-	YarnProgram Dialogue { get; }
+	AssetReferenceT<YarnProgram> Dialogue { get; }
 	string StartNode { get; }
 	Transform transform { get; }
 

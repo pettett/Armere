@@ -27,8 +27,15 @@ namespace Armere.PlayerController
 
 		public void TeleportToConversation(PlayerController controller, AIDialogue target, string overrideStartingNode = null)
 		{
-			controller.Warp(target.transform.position + target.transform.forward * 1.5f);
-			controller.ChangeToState(StartConversation(target, overrideStartingNode));
+			controller.Pause();
+			controller.StartCoroutine(controller.FadeToActions(
+				onFullFade: () => controller.Warp(target.transform.position + target.transform.forward * 1.5f),
+				onFadeEnd: () =>
+				{
+					controller.Play();
+					controller.ChangeToState(StartConversation(target, overrideStartingNode));
+				}
+			));
 		}
 	}
 }

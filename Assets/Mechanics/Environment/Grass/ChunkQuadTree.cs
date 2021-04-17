@@ -11,12 +11,12 @@ public abstract class QuadTreeLeaf
 	public int id;
 	public int endID;
 
-	public abstract void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true);
+	public abstract void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, Dictionary<int, QuadTreeEnd> loaded, bool setColor = true);
 
 	public abstract IEnumerable<QuadTreeEnd> GetLeavesInRect(Rect rect);
 	public abstract void GetLeaves(System.Action<QuadTreeEnd> forEach);
 	public abstract void GetLeavesInRange(Vector2 uv, float radius, System.Action<QuadTreeEnd> forEach);
-	public abstract void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach);
+	public abstract void GetLeavesInSingleRange(Vector2 uv, Vector2 oldUV, float radius, System.Action<QuadTreeEnd> forEach);
 
 	public bool RectCircleOverlap(Vector2 uv, float radius)
 	{
@@ -54,12 +54,12 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 	}
 
 
-	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true)
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, Dictionary<int, QuadTreeEnd> loaded, bool setColor = true)
 	{
 
 		if (setColor)
 		{
-			if (loaded.Contains(this))
+			if (loaded.ContainsKey(id))
 			{
 				Gizmos.color = Color.yellow;
 			}
@@ -115,16 +115,11 @@ public class QuadTreeEnd : QuadTreeLeaf, IEquatable<QuadTreeEnd>
 		if (enabled)
 			forEach(this);
 	}
-
-	public override void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach)
+	public override void GetLeavesInSingleRange(Vector2 uv, Vector2 oldUV, float radius, System.Action<QuadTreeEnd> forEach)
 	{
-		//If inside circle one and not inside circle 2
-		if (enabled && SingleRectCircleOverlap(uv1, radius1, uv2, radius2))
-		{
+		if (enabled && !RectCircleOverlap(oldUV, radius))
 			forEach(this);
-		}
 	}
-
 
 	public override void GetLeaves(Action<QuadTreeEnd> forEach)
 	{
@@ -255,7 +250,7 @@ public class QuadTree : QuadTreeLeaf
 	}
 
 
-	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, HashSet<QuadTreeEnd> loaded, bool setColor = true)
+	public override void DrawGizmos(Terrain terrain, Vector2 uv, float uvRadius, Dictionary<int, QuadTreeEnd> loaded, bool setColor = true)
 	{
 		Gizmos.color = Color.white;
 		Gizmos.DrawWireCube(new Vector3(rect.center.x, 0, rect.center.y), new Vector3(rect.size.x, 0, rect.size.y));
@@ -280,13 +275,13 @@ public class QuadTree : QuadTreeLeaf
 		if (bottomLeft.RectCircleOverlap(uv, radius)) bottomLeft.GetLeavesInRange(uv, radius, forEach);
 	}
 
-	public override void GetLeavesInSingleRange(Vector2 uv1, float radius1, Vector2 uv2, float radius2, System.Action<QuadTreeEnd> forEach)
+	//Get things that are inside "uv" and outside "oldUV"
+	public override void GetLeavesInSingleRange(Vector2 uv, Vector2 oldUV, float radius, System.Action<QuadTreeEnd> forEach)
 	{
-		//If inside circle one at all - need to add small amount to stop it just breaking
-		if (topRight.RectCircleOverlap(uv1, radius1)) topRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (topLeft.RectCircleOverlap(uv1, radius1)) topLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (bottomRight.RectCircleOverlap(uv1, radius1)) bottomRight.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
-		if (bottomLeft.RectCircleOverlap(uv1, radius1)) bottomLeft.GetLeavesInSingleRange(uv1, radius1, uv2, radius2, forEach);
+		if (topRight.RectCircleOverlap(uv, radius)) topRight.GetLeavesInSingleRange(uv, oldUV, radius, forEach);
+		if (topLeft.RectCircleOverlap(uv, radius)) topLeft.GetLeavesInSingleRange(uv, oldUV, radius, forEach);
+		if (bottomRight.RectCircleOverlap(uv, radius)) bottomRight.GetLeavesInSingleRange(uv, oldUV, radius, forEach);
+		if (bottomLeft.RectCircleOverlap(uv, radius)) bottomLeft.GetLeavesInSingleRange(uv, oldUV, radius, forEach);
 	}
 
 

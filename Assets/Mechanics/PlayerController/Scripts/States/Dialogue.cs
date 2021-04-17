@@ -5,6 +5,8 @@ using UnityEngine;
 using Yarn.Unity;
 using Cinemachine;
 using UnityEngine.Assertions;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 
 //Base class for basic functionality related to yarn
@@ -89,16 +91,25 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		return new CinemachineTargetGroup.Target() { target = transform, weight = weight, radius = radius };
 	}
 
+	AsyncOperationHandle<YarnProgram> programHandle;
 	public virtual void SetupRunner()
 	{
 		Debug.Log("Starting runner", c);
-		runner.Add(dialogue.Dialogue);
+
+		programHandle = Addressables.LoadAssetAsync<YarnProgram>(dialogue.Dialogue);
+
+
 		DialogueInstances.singleton.ui.onLineStart.AddListener(OnLineStart);
 		DialogueInstances.singleton.ui.onDialogueEnd.AddListener(OnDialogueComplete);
-		//If the override is null the null coldisatingsada operator will select the other one
-		runner.StartDialogue(overrideStartNode ?? dialogue.StartNode);
 
 		dialogue.SetupCommands(runner);
+
+		Spawner.OnDone(programHandle, (x) =>
+		{
+			runner.Add(x.Result);
+			//If the override is null the null coldisatingsada operator will select the other one
+			runner.StartDialogue(overrideStartNode ?? dialogue.StartNode);
+		});
 	}
 
 	public virtual void CleanUpRunner()
@@ -112,6 +123,9 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		DialogueInstances.singleton.ui.onDialogueEnd.RemoveListener(OnDialogueComplete);
 
 		dialogue.RemoveCommands(runner);
+
+
+		Addressables.Release(programHandle);
 	}
 
 	public virtual void OnLineStart(string line)

@@ -7,6 +7,8 @@ using Armere.UI;
 using TMPro;
 using System.Linq;
 using Armere.Inventory;
+using UnityEngine.AddressableAssets;
+
 [RequireComponent(typeof(AIHumanoid))]
 public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 {
@@ -30,12 +32,13 @@ public class AIDialogue : MonoBehaviour, IDialogue, IInteractable
 
 	public BuyMenuItem[] buyInventory;
 
-	public YarnProgram Dialogue => target.Dialogue;
 	public string StartNode => target.StartNode;
 
 	public string interactionName => NPCManager.singleton.data[npcName].spokenTo ? npcName : "";
 
 	public Vector3 worldOffset => headPosition.localPosition;
+
+	public AssetReferenceT<YarnProgram> Dialogue => target.Dialogue;
 
 	[System.NonSerialized] public IVariableAddon dialogueAddon;
 

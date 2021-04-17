@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using Yarn.Unity;
 
 
 
 public class InteractableDialogue : MonoBehaviour, IInteractable, IDialogue
 {
-	YarnProgram IDialogue.Dialogue => dialogue;
 	string IDialogue.StartNode => startNode;
 
 
@@ -23,7 +23,9 @@ public class InteractableDialogue : MonoBehaviour, IInteractable, IDialogue
 
 	public Vector3 worldOffset => default;
 
-	public YarnProgram dialogue;
+	public AssetReferenceT<YarnProgram> Dialogue => dialogue;
+
+	public AssetReferenceT<YarnProgram> dialogue;
 	public string startNode = "Start";
 	public void Interact(IInteractor interactor)
 	{

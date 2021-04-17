@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Float Channel", menuName = "Channels/Float Channel")]
-public class FloatEventChannelSO : EventChannelSO<float>
+[CreateAssetMenu(fileName = "String Channel", menuName = "Channels/String Channel")]
+public class StringEventChannelSO : EventChannelSO<string>
 {
 }

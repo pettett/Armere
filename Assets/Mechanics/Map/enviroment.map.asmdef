@@ -9,7 +9,8 @@
         "Armere.SaveLoadSystem",
         "Game.Quests",
         "Game.NPCs",
-        "Armere.LevelManager"
+        "Armere.LevelManager",
+        "EventChannels"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

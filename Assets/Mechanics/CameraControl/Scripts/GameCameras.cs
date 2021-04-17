@@ -46,7 +46,7 @@ public class GameCameras : MonoBehaviour
 	Vector2 mouseDelta;
 
 	//used to change how the height of the camera will change for a short time
-	[System.NonSerialized] DebugMenu.DebugEntry<float, float> entry;
+	[System.NonSerialized] System.Text.StringBuilder entry;
 
 	Focusable focused = null;
 	public Transform cameraTrackingTarget { get; private set; }
@@ -111,7 +111,8 @@ public class GameCameras : MonoBehaviour
 	{
 		lockingMouse = true;
 
-		entry = DebugMenu.CreateEntry("Player", "Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
+		entry = DebugMenu.CreateEntry("Player");
+		entry.AppendFormat("Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
 		freeLookTarget = cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
 		regularCamera = cameraTransform.GetComponent<Camera>();

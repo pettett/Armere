@@ -12,7 +12,6 @@ public class GroundRocksSpell : Spell
 	{
 		a = action;
 
-		UIKeyPromptGroup.singleton.ShowPrompts(a.input, InputReader.groundActionMap, ("Raise Rocks", InputReader.attackAction));
 
 	}
 
@@ -136,6 +135,11 @@ public class GroundRocksSpell : Spell
 
 			lastPos = pos;
 		}
+	}
+
+	public override void Begin()
+	{
+		UIKeyPromptGroup.singleton.ShowPrompts(a.input, InputReader.groundActionMap, ("Raise Rocks", InputReader.attackAction));
 	}
 }
 

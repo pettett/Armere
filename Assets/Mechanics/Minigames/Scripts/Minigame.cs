@@ -2,18 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using Yarn;
 
 [CreateAssetMenu(menuName = "Game/Minigames/Minigame")]
-public class Minigame : ScriptableObject
+public class Minigame : ScriptableObject, IVariableAddon
 {
-	public string minigameFinishedConversationNode = "Finished";
-	public string minigameResultVariableName = "HighScore";
 
 	public MinigameConstraint goal;
 	public MinigameConstraint[] constraints;
 	public VoidEventChannelSO setupMinigame;
 	public OnMinigameEventChannel onMinigameStarted;
 	public System.Action<object> onMinigameEnded;
+
+	public string prefix => "$Minigame_";
+	bool running = false;
+	public Value this[string name]
+	{
+		get => name.ToLower() switch
+		{
+			"running" => new Value(running),
+			"result" => new Value(goal.result),
+			_ => Value.NULL
+		}; set => throw new System.NotImplementedException();
+	}
+
 	public void StartMinigame(MonoBehaviour source)
 	{
 		Assert.IsNotNull(onMinigameStarted);
@@ -29,7 +41,7 @@ public class Minigame : ScriptableObject
 		Assert.IsNotNull(goal);
 		Assert.IsNotNull(constraints);
 
-		bool running = true;
+		running = true;
 
 		setupMinigame.RaiseEvent();
 		void EndMinigame()
@@ -65,4 +77,13 @@ public class Minigame : ScriptableObject
 		onMinigameEnded?.Invoke(goal.result);
 	}
 
+	public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()
+	{
+		throw new System.NotImplementedException();
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		throw new System.NotImplementedException();
+	}
 }

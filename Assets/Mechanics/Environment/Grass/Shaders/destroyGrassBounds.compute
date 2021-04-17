@@ -26,15 +26,17 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     //Transform the point into bounds local space
     float3 p = _Grass[index].position - boundsTransform.xyz;
     //Rotate the point around the y axis
-    float s = sin(boundsTransform.w);
-    float c = cos(boundsTransform.w);
+	float s;
+	float c;
+    sincos(boundsTransform.w,s, c);
+
     p = float3(
         p.x * c - p.z * s,
         p.y,
         p.x * s + p.z * c
     );
 
-    if (!(all( p < boundsExtents) && all( p > -boundsExtents)) ){
+    if (all( abs(p) < boundsExtents)){
         _Grass[index].chunkID = 0;
     }
 }

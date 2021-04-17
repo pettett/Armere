@@ -14,7 +14,6 @@ public class RaiseBarrierSpell : Spell
 	{
 		a = action;
 
-		UIKeyPromptGroup.singleton.ShowPrompts(a.input, InputReader.groundActionMap, ("Raise Barrier", InputReader.attackAction));
 
 		preview = Instantiate(a.previewBarrierRock, Vector3.zero, Quaternion.identity);
 	}
@@ -91,6 +90,11 @@ public class RaiseBarrierSpell : Spell
 	{
 		if (GetWorldTargetPos(a.groundLayerMask, out Vector3 target, a.minRange, a.maxRange))
 			Gizmos.DrawWireSphere(target, 0.2f);
+	}
+
+	public override void Begin()
+	{
+		UIKeyPromptGroup.singleton.ShowPrompts(a.input, InputReader.groundActionMap, ("Raise Barrier", InputReader.attackAction));
 	}
 }
 

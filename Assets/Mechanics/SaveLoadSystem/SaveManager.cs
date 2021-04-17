@@ -1,16 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine.Profiling;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
-using UnityEngine.AddressableAssets;
 
 public readonly struct Version
 {
@@ -180,7 +173,8 @@ public class SaveManager : MonoBehaviour
 	public const string saveRecordFileName = "save.binsave";
 	public const string metaSaveRecordFileName = "save.metasave";
 	public const int maxSaves = 10;
-	public static string NewSaveDirectory() => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName, System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"));
+	public static string SaveRootDirectory => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName);
+	public static string NewSaveDirectory => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName, System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"));
 
 	public static SaveManager singleton;
 	public string lastSaveDir;
@@ -222,7 +216,7 @@ public class SaveManager : MonoBehaviour
 	[MyBox.ButtonMethod]
 	public void ResetSave()
 	{
-		string rootDir = Application.persistentDataPath + "/saves/save1";
+		string rootDir = SaveRootDirectory;
 
 		if (Directory.Exists(rootDir))
 		{
@@ -376,7 +370,7 @@ public class SaveManager : MonoBehaviour
 		else
 		{
 			//No save at index
-			return null;
+			throw new System.IndexOutOfRangeException($"No save {save} to load");
 		}
 	}
 	public static IEnumerable<string> SaveFileSaveDirectories()
@@ -548,7 +542,7 @@ public class SaveManager : MonoBehaviour
 		lastSave = Time.realtimeSinceStartup;
 
 		//setup directory
-		string dir = NewSaveDirectory();
+		string dir = NewSaveDirectory;
 		Directory.CreateDirectory(dir);
 		//Debug.LogFormat("Quick saving to {0}", dir);
 

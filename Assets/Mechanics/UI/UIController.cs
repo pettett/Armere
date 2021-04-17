@@ -70,7 +70,7 @@ namespace Armere.UI
 
 			float fullyBlackTime = time - fadeTime * 2;
 
-			yield return new WaitForSeconds(fullyBlackTime);
+			yield return new WaitForSecondsRealtime(fullyBlackTime);
 
 			yield return Fade(1, 0, fadeTime, useText);
 
@@ -105,7 +105,7 @@ namespace Armere.UI
 		public IEnumerator Fade(float startAlpha, float endAlpha, float fadeTime, bool useText, System.Action onComplete = null)
 		{
 			StartFade(startAlpha, endAlpha, fadeTime, useText);
-			yield return new WaitForSeconds(fadeTime);
+			yield return new WaitForSecondsRealtime(fadeTime);
 			onComplete?.Invoke();
 		}
 		public void StartFade(float startAlpha, float endAlpha, float fadeTime, bool useText)

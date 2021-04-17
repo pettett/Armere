@@ -20,7 +20,7 @@ BlackSmith: You want an iron sword? Or something more specialized?
     BlackSmith: Take a look at this
     <<OfferToBuy>>
     [[WaitForBuy]]
-->Bye
+->Bye 
     BlackSmith: Bye
 <<else>>
 BlackSmith: Talk to the mayor before more

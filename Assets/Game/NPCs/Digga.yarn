@@ -14,7 +14,7 @@ title: Start
     Digga: Only problem is, no-one wants to do it or knows where it is.<wait 1>\nSo here we are.
     -> I'll Do it!
         Digga: Nice!
-        <<quest OpenTheMines>>
+        <<quest OpenTheMines>> 
         <<Exit>>
     -> <Exit>Have fun with that!
         <<Exit>>

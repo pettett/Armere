@@ -11,7 +11,7 @@ public class Map : ScriptableObject
 	public class Region
 	{
 		public string name = "New Region";
-		[HideInInspector] public Vector2[] shape;
+		[HideInInspector] public Vector2[] shape = new Vector2[3];
 		public float priority = 0;
 		public float blendDistance = 1;
 		[HideInInspector] public int[] triangles;

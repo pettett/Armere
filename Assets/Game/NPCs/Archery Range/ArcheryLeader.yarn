@@ -1,0 +1,43 @@
+title: Start
+---
+<<if $Minigame_running is true >> 
+
+ArcheryLeader: Back to the games!
+<<else>>
+ArcheryLeader: Hello!
+
+options,ArcheryLeader: Shoot most targets within 10 seconds? or Shoot 5 targets in shortest time
+[[Most Targets|MostTargets]]
+[[Shortest Time|ShortestTime]]
+[[<exit>No Thanks|Exit]]
+<<endif>>
+
+===
+
+title: MostTargets
+---
+<<StartMinigame 0 FinishedMostTargets>>
+===
+
+title: ShortestTime
+---
+<<StartMinigame 1 FinishedShortestTime>>
+===
+
+title: Exit
+---
+ArcheryLeader: Maybe later
+===
+
+title: FinishedMostTargets
+---
+ArcheryLeader: You shot {$Minigame_result} [plural {$Minigame_result} one="target" other="targets"]!
+<<EndMinigame 0>>
+===
+
+
+title: FinishedShortestTime
+---
+ArcheryLeader: You took {$Minigame_result} seconds!
+<<EndMinigame 1>>
+===

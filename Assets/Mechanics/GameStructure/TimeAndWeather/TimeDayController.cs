@@ -93,7 +93,7 @@ public class TimeDayController : MonoBehaviour
 
 	Transform sun => RenderSettings.sun.transform;
 	[Header("Sun")]
-	DebugMenu.DebugEntry<float, float> entry;
+	System.Text.StringBuilder entry;
 	public float hour = 12;
 
 	public float azimuth = 20;
@@ -202,7 +202,7 @@ public class TimeDayController : MonoBehaviour
 		if (Application.isPlaying)
 		{
 			changeTime.OnEventRaised += ChangeTime;
-			entry = DebugMenu.CreateEntry("Game", "Time: {0:00}:{1:00}", 0f, 0f);
+			entry = DebugMenu.CreateEntry("Game");
 
 			MakeWeatherMap();
 		}
@@ -272,8 +272,8 @@ public class TimeDayController : MonoBehaviour
 		{
 			if (DebugMenu.menuEnabled)
 			{
-				entry.value0 = Mathf.Floor(hour);
-				entry.value1 = 60f * (hour - Mathf.Floor(hour));
+				entry.Clear();
+				entry.AppendFormat("Time: {0:00}:{1:00}", Mathf.Floor(hour), 60f * (hour - Mathf.Floor(hour)));
 			}
 
 			hour += Time.deltaTime * hoursPerSecond;

@@ -17,7 +17,7 @@ namespace Armere.PlayerController
 		const string animatorVariable = "IsSwimming";
 		bool holdingCrouchKey;
 
-		DebugMenu.DebugEntry<int, float> entry;
+		System.Text.StringBuilder entry;
 
 		public Swimming(PlayerController c, SwimmingTemplate t) : base(c, t)
 		{
@@ -33,7 +33,7 @@ namespace Armere.PlayerController
 
 			waterTrailController = waterTrail.GetComponent<WaterTrailController>();
 
-			entry = DebugMenu.CreateEntry("Player", "Hits: {0} Current Depth: {1}", 0, 0f);
+			entry = DebugMenu.CreateEntry("Player");
 
 			c.inputReader.crouchEvent += OnCrouch;
 
@@ -131,8 +131,8 @@ namespace Armere.PlayerController
 
 			if (DebugMenu.menuEnabled)
 			{
-				entry.value0 = hits;
-				entry.value1 = currentDepth;
+				entry.Clear();
+				entry.AppendFormat("Hits: {0} Current Depth: {1}", hits, currentDepth);
 
 			}
 

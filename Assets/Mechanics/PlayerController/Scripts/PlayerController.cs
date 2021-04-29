@@ -413,6 +413,7 @@ namespace Armere.PlayerController
 			{
 				//Consume the potion
 				PotionItemUnique pot = inventory.potions.items[itemIndex];
+
 				if (pot.item.itemName == ItemName.HealingPotion)
 				{
 					health.SetHealth(health.health + pot.potency);
@@ -421,7 +422,6 @@ namespace Armere.PlayerController
 
 			}
 		}
-
 
 		private float sqrMagTemp;
 		// Update is called once per frame

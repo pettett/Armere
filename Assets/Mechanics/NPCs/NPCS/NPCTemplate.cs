@@ -4,14 +4,12 @@ using System;
 using UnityEngine;
 using RotaryHeart;
 using Armere.Inventory;
-//using Yarn.Unity;
-//using Yarn;
 using UnityEngine.Assertions;
 using Yarn.Unity;
 using Yarn;
 using UnityEngine.AddressableAssets;
 
-[CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPC Template", order = 0)]
+[CreateAssetMenu(fileName = "NPC Template", menuName = "Game/NPCs/NPC Template", order = 0)]
 public class NPCTemplate : AIStateTemplate
 {
 	public AssetReferenceT<YarnProgram> dialogue;
@@ -311,7 +309,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 		}
 		else
 		{
-			throw new System.Exception(string.Format("Desired routine location {0} not within walking points array", CurrentRoutine.stages[currentRoutineStage].location));
+			throw new System.Exception($"Desired routine location {CurrentRoutine.stages[currentRoutineStage].location} not within walking points array");
 		}
 	}
 

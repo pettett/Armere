@@ -7,8 +7,14 @@ public class Rope : MonoBehaviour
 	public Transform start;
 	public Transform end;
 
+	public float lengthDivisionsPerMetre = 0.5f;
+
+	public int angleDivisions = 6;
+
 	public float c;
 	public float radius;
+
+
 
 	public float cosh(float x)
 	{
@@ -22,13 +28,22 @@ public class Rope : MonoBehaviour
 
 
 
-	(float x, float y) SampleRope(float x)
+	Vector2 SampleRope(float x)
 	{
 		//float dydx = sinh(x / c);
 
 		//Vector2 gradientDirection = new Vector2(dydx, 1).normalized * radius ;
 
-		return (x, c * cosh(x / c));
+		return new Vector2(x, c * cosh(x / c));
+	}
+
+	float RopeLength(float startX, float endX)
+	{
+
+		float invC = 1 / c;
+
+		return c * (sinh(endX * invC) - sinh(startX * invC));
+
 	}
 
 
@@ -70,31 +85,41 @@ public class Rope : MonoBehaviour
 
 		Gizmos.matrix = Matrix4x4.TRS(start.position, Quaternion.Euler(0, yRot, 0), Vector3.one);
 
+		float ropeLength = RopeLength(startX, endX);
+		int divisions = Mathf.CeilToInt(lengthDivisionsPerMetre * ropeLength);
+
 		void Draw(float angle)
 		{
-			for (int i = 0; i < 10; i++)
+			Vector2 o = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+
+
+
+			for (int i = 0; i < divisions; i++)
 			{
-				float t1 = i / 10f;
-				float t2 = (i + 1) / 10f;
+				float t1 = i / (float)divisions;
+				float t2 = (i + 1) / (float)divisions;
 
 
 
-				(float x1, float y1) = SampleRope(Mathf.Lerp(startX, endX, t1));
-				(float x2, float y2) = SampleRope(Mathf.Lerp(startX, endX, t2));
-				y1 += offset;
-				y2 += offset;
+				Vector2 p1 = SampleRope(Mathf.Lerp(startX, endX, t1));
+				Vector2 p2 = SampleRope(Mathf.Lerp(startX, endX, t2));
+				p1.y += offset;
+				p2.y += offset;
 
 				//Debug.Log(y1);
-				float h1 = length * Mathf.InverseLerp(startX, endX, x1);
-				float h2 = length * Mathf.InverseLerp(startX, endX, x2);
+				float h1 = length * Mathf.InverseLerp(startX, endX, p1.x);
+				float h2 = length * Mathf.InverseLerp(startX, endX, p2.x);
 
 				Gizmos.DrawLine(
-					new Vector3(h1, y1, 0),
-					new Vector3(h2, y2, 0));
+					new Vector3(h1, p1.y + o.y, o.x),
+					new Vector3(h2, p2.y + o.y, o.x));
 			}
 		}
+		for (int i = 0; i < angleDivisions; i++)
+		{
+			Draw(2 * Mathf.PI * i / 10f);
+		}
 		//Draw(1);
-		Draw(0);
 		//Draw(-1);
 	}
 }

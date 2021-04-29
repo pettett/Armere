@@ -8,7 +8,8 @@ using XNode;
 public enum CastType
 {
 	PrimaryFire,
-	ReleaseCharge
+	ReleaseCharge,
+	None
 }
 public abstract class Spell
 {

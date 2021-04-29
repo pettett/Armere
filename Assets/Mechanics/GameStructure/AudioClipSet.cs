@@ -6,6 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Audio Clip Set", menuName = "Game/Audio Clip Set", order = 0)]
 public class AudioClipSet : ScriptableObject
 {
+	public AudioProfile profile;
 	public AudioClip[] clips;
 	public bool Valid()
 	{

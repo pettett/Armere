@@ -9,8 +9,7 @@ namespace Armere.PlayerController
 	{
 		AudioSource source;
 		PlayerController c;
-		public float stepVolume = 20;
-		public AudioClipSet footStepsSet;
+
 		private void Start()
 		{
 			source = GetComponent<AudioSource>();
@@ -18,12 +17,10 @@ namespace Armere.PlayerController
 
 			GetComponentInChildren<AnimationController>().onFootDown += FootDown;
 		}
-		public void FootDown()
+		public void FootDown(int foot)
 		{
 
-			source.PlayOneShot(footStepsSet.SelectClip());
 
-			VirtualAudioController.singleton.MakeNoise(transform.position, stepVolume);
 
 			if (c != null && c.currentWater != null)
 			{

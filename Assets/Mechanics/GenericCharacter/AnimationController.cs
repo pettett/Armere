@@ -394,8 +394,8 @@ public class AnimationController : MonoBehaviour
 
 	//Animation events
 
-	public event System.Action onFootDown;
-	public void FootDown() => onFootDown?.Invoke();
+	public event System.Action<int> onFootDown;
+	public void FootDown(int foot) => onFootDown?.Invoke(foot);
 	public event System.Action onClank;
 	public void OnClank() => onClank?.Invoke();
 	public event System.Action onSwingStart;

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using Yarn.Unity;
 
-[CreateAssetMenu(fileName = "NPCManager", menuName = "Game/NPCs/Manager", order = 0)]
+[CreateAssetMenu(fileName = "NPC Manager", menuName = "Game/NPCs/Manager", order = 0)]
 public class NPCManager : SaveableSO
 {
 	public static NPCManager singleton;

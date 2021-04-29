@@ -239,7 +239,7 @@ public class WeaponGraphicsController : MonoBehaviour
 			h.Init(animator);
 
 
-		animationController.onFootDown += OnClank;
+		animationController.onFootDown += x => OnClank();
 		animationController.onClank += OnClank;
 	}
 	public void OnClank()

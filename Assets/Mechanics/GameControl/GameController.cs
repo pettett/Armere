@@ -45,5 +45,7 @@ public class GameController : SceneSaveData
 		yield return new WaitForSecondsRealtime(deathScreenTime);
 
 		SaveManager.singleton.LoadMostRecentSave(true);
+
+		UIController.singleton.deathScreen.SetActive(false);
 	}
 }

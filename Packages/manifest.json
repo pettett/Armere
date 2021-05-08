@@ -22,6 +22,7 @@
     "dev.yarnspinner.unity": "https://github.com/YarnSpinnerTool/YarnSpinner-Unity.git",
     "me.ameye.prefab-painter": "https://github.com/alexanderameye/prefab-painter.git",
     "scriptablecrosshairs": "https://github.com/StolenCheese/ScriptableCrosshairs.git?path=/Packages/scriptablecrosshairs#Packaged",
+    "stolencheese.urp.volumetric": "file:A:/Documents/Unity Projects/Submodules/URPVolumetrics",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

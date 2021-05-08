@@ -261,6 +261,12 @@
       "dependencies": {},
       "hash": "2be95265b969183dba7e7271107b4c4564cb1963"
     },
+    "stolencheese.urp.volumetric": {
+      "version": "file:A:/Documents/Unity Projects/Submodules/URPVolumetrics",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

@@ -14,6 +14,7 @@ public class WeaponTrigger : MonoBehaviour
 	public TrailRenderer weaponTrail;
 	bool _enableTrigger = false;
 	public bool inited { get; private set; }
+	public BoundsFloatEventChannelSO destroyGrassInBounds;
 
 	public float scale = 1;
 
@@ -99,8 +100,7 @@ public class WeaponTrigger : MonoBehaviour
 		{
 
 			(var grassBounds, var yRot) = GetDestructionBounds();
-
-			GrassController.singleton?.DestroyBladesInBounds(grassBounds, yRot);
+			destroyGrassInBounds.RaiseEvent(grassBounds, yRot);
 		}
 	}
 	public System.ValueTuple<Bounds, float> GetDestructionBounds()

@@ -287,6 +287,10 @@ public class GrassLayer : ScriptableObject
 		block = new MaterialPropertyBlock();
 		block.SetBuffer("_Properties", matrixesBuffer);
 		block.SetTexture("_BaseMap", texture);
+
+
+
+
 	}
 
 	public void SetDispatchSize(GrassController c, ComputeShader shader, CommandBuffer cmd)
@@ -339,6 +343,13 @@ public class GrassLayer : ScriptableObject
 		}
 
 		inited = true;
+		//Add grass around current point
+		Vector2 playerUV = new Vector2(c.mainCam.transform.position.x - c.transform.position.x,
+							c.mainCam.transform.position.z - c.transform.position.z) / (c.range * 2);
+
+		float uvViewRadius = (c.viewRadius * viewRadiusScalar * 0.5f) / c.range;
+		//Use existing action to save GC
+		chunkTree.GetLeavesInRange(playerUV, uvViewRadius, createGrassDelegate);
 	}
 
 

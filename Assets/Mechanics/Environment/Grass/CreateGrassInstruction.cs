@@ -22,7 +22,7 @@ public class DestroyGrassInBoundsInstruction : GrassInstruction
 			return;
 		}
 
-		Debug.Log("Removing");
+		// Debug.Log("Removing");
 
 		layer.SetDispatchSize(c, c.destroyGrassInBounds, cmd);
 

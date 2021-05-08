@@ -13,12 +13,14 @@ namespace Armere.PlayerController
 
 		Vector3 desiredVelocity;
 
-		int airJumps;
 		float currentHeight;
 
 		public Freefalling(PlayerController c, FreefallingTemplate t) : base(c, t)
 		{
+
 		}
+
+
 
 		public override void FixedUpdate()
 		{
@@ -40,6 +42,7 @@ namespace Armere.PlayerController
 			//only change back when the body is actually touching the ground
 
 		}
+
 		public override void Update()
 		{
 			//animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
@@ -57,14 +60,6 @@ namespace Armere.PlayerController
 			}
 		}
 
-		public void OnJump(InputActionPhase phase)
-		{
-			if (airJumps > 0 && phase == InputActionPhase.Started)
-			{
-				airJumps--;
-				c.rb.AddForce(Vector3.up * (10 - c.rb.velocity.y), ForceMode.VelocityChange);
-			}
-		}
 		// public override void OnCollideCliff(RaycastHit hit)
 		// {
 		//     if (c.input.inputWalk.sqrMagnitude > 0.5f)
@@ -77,17 +72,14 @@ namespace Armere.PlayerController
 		public override void Start()
 		{
 			c.StartCoroutine(c.UnEquipAll());
-			airJumps = 0;
 			c.animationController.enableFeetIK = false;
 			c.allCPs.Clear();
-			c.inputReader.jumpEvent += OnJump;
 			c.inputReader.actionEvent += OnInteract;
 		}
 		public override void End()
 		{
 			base.End();
 
-			c.inputReader.jumpEvent -= OnJump;
 			c.inputReader.actionEvent -= OnInteract;
 		}
 

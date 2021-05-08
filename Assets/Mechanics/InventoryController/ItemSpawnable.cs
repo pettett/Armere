@@ -17,22 +17,21 @@ namespace Armere.Inventory
 			this.count = count;
 		}
 
-		public void AddItemsToInventory(System.Action onItemAdded)
+		public void AddItemsToInventory(System.Action onItemAdded, InventoryController inventory)
 		{
 			if (item == null)
 			{
 				throw new System.ArgumentException("Item Cannot be null");
 			}
-			if (InventoryController.singleton.TryAddItem(item, count, false))
+			if (inventory.TryAddItem(item, count, false))
 			{
 				onItemAdded?.Invoke();
 			}
 			else
 			{
 				//Open ui to see if the player wants to replace an item
-				InventoryController.singleton.ReplaceItemDialogue(item, onItemAdded);
+				inventory.ReplaceItemDialogue(item, onItemAdded);
 			}
 		}
-
 	}
 }

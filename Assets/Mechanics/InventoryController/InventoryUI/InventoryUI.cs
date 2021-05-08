@@ -52,6 +52,7 @@ namespace Armere.Inventory.UI
 			item.type = panel.type;
 
 			item.inventoryUI = this;
+			item.inventory = inventory;
 			// if (!sellMenu)
 			//     item.optionDelegates = panel.options;
 			// else

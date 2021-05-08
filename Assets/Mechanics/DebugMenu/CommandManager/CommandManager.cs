@@ -8,6 +8,7 @@ public class CommandManager : ConsoleReceiver
 	public string[] startingCommands;
 
 	public string entry;
+	public InventoryController inventory;
 
 	const string tp = "tp";
 	const string time = "time";
@@ -87,7 +88,7 @@ public class CommandManager : ConsoleReceiver
 				DesiredInputs(command, 2);
 				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
 				uint count = uint.Parse(command.values[1]);
-				InventoryController.singleton.TryAddItem(InventoryController.singleton.db[item], count, false);
+				inventory.TryAddItem(inventory.db[item], count, false);
 				break;
 			case level:
 				DesiredInputs(command, 1);

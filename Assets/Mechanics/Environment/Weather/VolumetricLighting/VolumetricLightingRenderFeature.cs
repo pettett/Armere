@@ -122,6 +122,9 @@ public class VolumetricLightingRenderFeature : ScriptableRendererFeature
 				m_VolumetricPostProcess.SetVector("_DirLightDir", -RenderSettings.sun.transform.forward);
 			}
 
+			m_VolumetricPostProcess.SetInt("samples", (int)settings.pixelSamples);
+			m_VolumetricPostProcess.SetFloat("inverseSamples", 1f / settings.pixelSamples);
+
 			m_VolumetricPostProcess.SetVector("dithering", new Vector2(settings.ditherScale, settings.ditherStrength));
 			m_VolumetricPostProcess.SetTexture("_BlueNoise", settings.ditherTexture);
 
@@ -168,6 +171,7 @@ public class VolumetricLightingRenderFeature : ScriptableRendererFeature
 		// we're free to put whatever we want here, public fields will be exposed in the inspector
 		public bool IsEnabled = true;
 		public RenderPassEvent WhenToInsert = RenderPassEvent.AfterRendering;
+		public uint pixelSamples = 32;
 		public Vector3 noiseOffset;
 		public float noiseScale;
 		[Range(0, 1)]
@@ -200,7 +204,7 @@ public class VolumetricLightingRenderFeature : ScriptableRendererFeature
 	// called every frame once per camera
 	public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
 	{
-		if (!settings.IsEnabled)
+		if (!settings.IsEnabled || !RenderSettings.sun.enabled || !RenderSettings.sun.gameObject.activeSelf)
 		{
 			// we can do nothing this frame if we want
 			return;

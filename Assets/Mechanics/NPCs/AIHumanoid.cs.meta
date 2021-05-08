@@ -3,7 +3,22 @@ guid: 71a277fc663d17747833bfab50b7f049
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - onBuffAdded: {instanceID: 0}
+  - weaponGraphics: {instanceID: 0}
+  - animationController: {instanceID: 0}
+  - debugText: {instanceID: 0}
+  - agent: {instanceID: 0}
+  - lookingAtTarget: {instanceID: 0}
+  - ragdoller: {instanceID: 0}
+  - meshController: {instanceID: 0}
+  - defaultState: {instanceID: 0}
+  - meleeWeapon: {instanceID: 0}
+  - eye: {instanceID: 0}
+  - destroyGrassInBoundsEventChannel: {fileID: 11400000, guid: df016e3a4fcf3084887b2eefcaf9cad2,
+      type: 2}
+  - transitionSet: {fileID: 11400000, guid: 09849a1b142b98b409153e7f0bd5aee3, type: 2}
+  - waypointGroup: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

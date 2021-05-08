@@ -52,9 +52,7 @@ namespace Armere.PlayerController
 			}
 		}
 
-		public float walkingSpeed = 2f;
-		public float sprintingSpeed = 5f;
-		public float crouchingSpeed = 1f;
+
 		public float crouchingHeight = 0.9f;
 		public float groundClamp = 1f;
 		public float maxAcceleration = 20f;
@@ -63,6 +61,7 @@ namespace Armere.PlayerController
 		public float stepSearchOvershoot = 0.3f;
 		public float steppingTime = 0.1f;
 		public float jumpForce = 4f;
+		public float coyoteTime = 0.05f;
 		[Header("Holding")]
 
 		public float throwForce = 100;
@@ -70,6 +69,7 @@ namespace Armere.PlayerController
 		[Header("Weapons")]
 		public float swordUseDelay = 0.4f;
 		public Vector2 arrowSpeedRange = new Vector2(70, 100);
+		public BoundsFloatEventChannelSO destroyGrassInBoundsEventChannel;
 		[Header("Camera")]
 
 		public float shoulderViewXOffset = 0.6f;

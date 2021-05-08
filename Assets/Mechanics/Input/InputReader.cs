@@ -133,6 +133,11 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnEquipBow(CallbackContext context) => equipBowEvent?.Invoke(context.phase);
 	public void OnShield(CallbackContext context) => shieldEvent?.Invoke(context.phase);
 	public void OnSprint(CallbackContext context) => sprintEvent?.Invoke(context.phase);
+
+	public bool IsSprintPressed() => gameInput.GroundActionMap.Sprint.ReadValue<float>() == 1;
+	public bool IsCrouchPressed() => gameInput.GroundActionMap.Crouch.ReadValue<float>() == 1;
+
+
 	public void OnTabMenu(CallbackContext context) => tabMenuEvent?.Invoke(context.phase);
 	public void OnOpenInventory(CallbackContext context) => openInventoryEvent?.Invoke(context.phase);
 	public void OnOpenQuests(CallbackContext context) => openQuestsEvent?.Invoke(context.phase);

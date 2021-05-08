@@ -224,12 +224,7 @@ namespace Armere.Inventory
 
 		private void OnEnable()
 		{
-			singleton = this;
 			CreatePanels();
-		}
-		private void OnDisable()
-		{
-			singleton = null;
 		}
 
 		private void Start()
@@ -249,14 +244,18 @@ namespace Armere.Inventory
 
 		public ValuePanel currency;
 
-
-
-		//[System.Obsolete("Please dont use singletons lol")] 
-		public static InventoryController singleton;
 		public event InventoryOptionDelegate OnSelectItemEvent;
 		public event InventoryOptionDelegate OnDropItemEvent;
 		public event InventoryOptionDelegate OnConsumeItemEvent;
 
+
+		public int selectedHelmet;
+		public int selectedChest;
+		public int selectedBoots;
+		public int selectedMelee;
+		public int selectedBow;
+		public int selectedSidearm;
+		public int selectedArrow;
 
 
 		public bool TryAddItem(ItemData item, uint count, bool hiddenAddition, int desiredPosition = -1)

@@ -20,13 +20,13 @@ namespace Armere.Inventory
 
 		public Vector3 worldOffset => default;
 
-		public void Interact(IInteractor c)
-		{
-			AddItemsToInventory(() =>
-			{
-				Destroy();
-			});
-		}
+		public void Interact(IInteractor c) =>
+			AddItemsToInventory(
+				() =>
+				{
+					Destroy();
+				}, c.transform.GetComponent<GameObjectInventory>().inventory);
+
 
 
 

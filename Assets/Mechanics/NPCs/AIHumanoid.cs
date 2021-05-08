@@ -27,6 +27,7 @@ public abstract class AIHumanoid : Character
 	public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
 
 	public event System.Action<AIHumanoid> onPlayerDetected;
+
 	public void OnPlayerDetected()
 	{
 		onPlayerDetected?.Invoke(this);
@@ -35,6 +36,11 @@ public abstract class AIHumanoid : Character
 	[MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
 	public Transform eye; //Used for vision frustum calculations
 	public LayerMask visionBlockingMask;
+
+
+	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
+	[Header("Weapons")]
+	public BoundsFloatEventChannelSO destroyGrassInBoundsEventChannel;
 
 	// Start is called before the first frame update
 	public override void Start()
@@ -47,7 +53,7 @@ public abstract class AIHumanoid : Character
 		ChangeToState(defaultState);
 
 	}
-	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
+
 	public float ProportionBoundsVisible(Bounds b)
 	{
 		if (sightMode == SightMode.View)
@@ -177,6 +183,7 @@ public abstract class AIHumanoid : Character
 			trigger = weaponGraphics.holdables.melee.gameObject.GetComponent<WeaponTrigger>();
 
 			trigger.enableTrigger = true;
+			trigger.destroyGrassInBounds = destroyGrassInBoundsEventChannel;
 
 			if (!trigger.inited)
 			{

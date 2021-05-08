@@ -16,7 +16,6 @@ namespace Armere.PlayerController
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
-		public InventoryController inventory;
 		public SpellUnlockTree spellTree;
 
 		[NonSerialized] public MovementState currentState;
@@ -72,6 +71,8 @@ namespace Armere.PlayerController
 		[NonSerialized] public Rigidbody rb;
 		[NonSerialized] new public CapsuleCollider collider;
 		[NonSerialized] public Health health;
+		[NonSerialized] public GameObjectInventory inventoryHolder;
+		public InventoryController inventory => inventoryHolder.inventory;
 
 
 		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
@@ -161,9 +162,22 @@ namespace Armere.PlayerController
 		}
 
 
-		private void OnCollisionEnter(Collision col) => allCPs.AddRange(col.contacts);
-		private void OnCollisionStay(Collision col) => allCPs.AddRange(col.contacts);
-
+		private void OnCollisionEnter(Collision col)
+		{
+			allCPs.Capacity += col.contactCount;
+			for (int i = 0; i < col.contactCount; i++)
+			{
+				allCPs.Add(col.GetContact(i));
+			}
+		}
+		private void OnCollisionStay(Collision col)
+		{
+			allCPs.Capacity += col.contactCount;
+			for (int i = 0; i < col.contactCount; i++)
+			{
+				allCPs.Add(col.GetContact(i));
+			}
+		}
 
 
 
@@ -171,12 +185,14 @@ namespace Armere.PlayerController
 		{
 			base.Start();
 
-			Debug.Log("Starting player controller");
+			print("Starting player controller");
 
 			rb = GetComponent<Rigidbody>();
 			collider = GetComponent<CapsuleCollider>();
 			if (TryGetComponent<Health>(out health))
 				health.onDeathEvent.AddListener(OnDeath);
+
+			inventoryHolder = GetComponent<GameObjectInventory>();
 
 			weaponGraphics = GetComponent<WeaponGraphicsController>();
 
@@ -192,6 +208,7 @@ namespace Armere.PlayerController
 			inventory.OnDropItemEvent += OnDropItem;
 			inventory.OnConsumeItemEvent += OnConsumeItem;
 			inventory.OnSelectItemEvent += OnSelectItem;
+			
 			inventory.melee.onItemRemoved += OnEquipableItemRemoved;
 			inventory.bow.onItemRemoved += OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
@@ -738,6 +755,17 @@ namespace Armere.PlayerController
 			{
 				gamepad.SetMotorSpeeds(low, high);
 			}
+		}
+
+		public void ChangeToStateTimed(MovementStateTemplate timedState, float time, MovementStateTemplate returnedState = null) =>
+			StartCoroutine(ChangeToStateTimedRoutine(timedState, time, returnedState));
+
+		IEnumerator ChangeToStateTimedRoutine(MovementStateTemplate timedState, float time, MovementStateTemplate returnedState = null)
+		{
+			ChangeToState(timedState);
+			yield return new WaitForSeconds(time);
+			//Returned state or default state if it is null
+			ChangeToState(returnedState ?? defaultState);
 		}
 
 

@@ -21,6 +21,7 @@ namespace Armere.Inventory.UI
 		AsyncOperationHandle<Sprite> asyncOperation;
 
 		public IntEventChannelSO changeItemIndexEventChannel;
+		public InventoryController inventory;
 		protected override void Start()
 		{
 			if (changeItemIndexEventChannel != null)
@@ -33,7 +34,7 @@ namespace Armere.Inventory.UI
 
 			itemIndex = newIndex;
 			if (itemIndex != -1)
-				SetupItemDisplayAsync(InventoryController.singleton.ItemAt(itemIndex, type));
+				SetupItemDisplayAsync(inventory.ItemAt(itemIndex, type));
 		}
 
 		public void SetupItemDisplayAsync(ItemStackBase item)

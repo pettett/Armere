@@ -8,7 +8,8 @@ namespace Armere.Inventory
 
 		public void Interact(IInteractor interactor)
 		{
-			AddItemsToInventory(() => Destroy());
+			if (interactor.transform.GetComponent<GameObjectInventory>() is GameObjectInventory i)
+				AddItemsToInventory(() => Destroy(), i.inventory);
 		}
 	}
 }

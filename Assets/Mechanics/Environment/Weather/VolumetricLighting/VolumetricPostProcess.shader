@@ -40,35 +40,6 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 		//X = ditherScale, y = ditherStrength
 		uniform float2 dithering;
 
-
-        // struct AttributesDefault
-        // {
-        //     float3 vertex : POSITION;
-        // };
-
-        // struct VaryingsDefault
-        // {
-        //     float4 vertex : SV_POSITION;
-        //     float2 texcoord : TEXCOORD0;
-        //     float2 texcoordStereo : TEXCOORD1;
-        // #if STEREO_INSTANCING_ENABLED
-        //     uint stereoTargetEyeIndex : SV_RenderTargetArrayIndex;
-        // #endif
-
-        //     float3 direction : TEXCOORD2;
-
-        // };
-
-
-
-
-        // Vertex manipulation
-        // float2 TransformTriangleVertexToUV(float2 vertex)
-        // {
-        //     float2 uv = (vertex + 1.0) * 0.5;
-        //     return uv;
-        // }
-
 		//https://github.com/Unity-Technologies/VolumetricLighting/blob/master/Assets/VolumetricFog/Shaders/InjectLightingAndDensity.compute
 		#ifdef ANISOTROPY
 		float anisotropy(float costheta)
@@ -84,8 +55,8 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 		//Dithering with blue noise
 		//https://github.com/SebLague/Solar-System/blob/0c60882be69b8e96d6660c28405b9d19caee76d5/Assets/Scripts/Celestial/Shaders/PostProcessing/Atmosphere.shader
 
-
-      	#define PIXEL_SAMPLES 32 
+		uniform uint samples = 32; //X : Samples
+      	uniform float inverseSamples = 1/32; //Y : recripical samples
 
 		float MieScattering(float cosAngle, float4 g)
 		{
@@ -137,10 +108,8 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
   
 
-            const float recipricleSamples = rcp(PIXEL_SAMPLES); //Used for adding distance along ray
-
-            [loop] for (uint index = 0; index < PIXEL_SAMPLES; index++){
-                float distance = saturate(index * recipricleSamples) * rayLength;
+            for (uint index = 0; index < samples; index++){
+                float distance = saturate(index * inverseSamples) * rayLength;
 
                 float3 samplePosWS = rayOrigin + rayDir * distance;
 
@@ -150,8 +119,8 @@ Shader "Hidden/Custom/VolumetricPostProcess"
 
                 float density =  GetDensity(samplePosWS);
 
-                float scattering = _VolumetricLight.x * recipricleSamples * density;
-				extinction += _VolumetricLight.y * recipricleSamples * density;
+                float scattering = _VolumetricLight.x * inverseSamples * density;
+				extinction += _VolumetricLight.y * inverseSamples * density;
 
                 totalAtt += atten * scattering * exp(-extinction);
             }

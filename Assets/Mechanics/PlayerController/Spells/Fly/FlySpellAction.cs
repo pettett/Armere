@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Armere.PlayerController;
 
 [CreateAssetMenu(fileName = "Fly Spell Action", menuName = "Game/Spells/Fly Spell Action", order = 0)]
 public class FlySpellAction : SpellAction
 {
 	[Header("Fly")]
 	public float time;
+	public MovementStateTemplate flying;
 
 	[Header("Timer")]
 	public BoolEventChannelSO enableTimer;
@@ -27,14 +29,18 @@ public class FlySpell : Spell
 
 	public override void Begin()
 	{
-		Debug.Log("Starting fly");
 		caster.StartCoroutine(Fly());
 	}
 	public IEnumerator Fly()
 	{
+		Debug.Log("Starting fly");
 		float remaining = action.time;
 
 		action.enableTimer.RaiseEvent(true);
+
+
+		((PlayerController)caster).ChangeToStateTimed(action.flying, action.time);
+
 		while (remaining > 0)
 		{
 			action.setTimerValue.RaiseEvent(remaining, action.time);
@@ -44,7 +50,6 @@ public class FlySpell : Spell
 
 		action.enableTimer.RaiseEvent(false);
 
-		((Armere.PlayerController.Walking)((Armere.PlayerController.PlayerController)caster).currentState).CancelSpellCast(true);
 
 
 		Debug.Log("Ending fly");

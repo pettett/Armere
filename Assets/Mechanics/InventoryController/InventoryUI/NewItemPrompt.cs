@@ -18,8 +18,7 @@ namespace Armere.Inventory.UI
 		public Image thumbnail;
 		public TextMeshProUGUI title;
 		public TextMeshProUGUI description;
-
-		public InputReader reader;
+		public InventoryController inventory;
 		public float entryTime = 1;
 		public float readingTime = 0.1f;
 
@@ -53,7 +52,7 @@ namespace Armere.Inventory.UI
 
 
 			if (addItemsToInventory)
-				InventoryController.singleton.TryAddItem(item, count, true);
+				inventory.TryAddItem(item, count, true);
 
 			AsyncOperationHandle<Sprite> handle = item.thumbnail.LoadAssetAsync();
 

@@ -48,7 +48,6 @@ public class GrassController : MonoBehaviour
 
 	private const string k_RenderGrassTag = "Render Grass";
 	private ProfilingSampler m_Grass_Profile;
-	public static GrassController singleton;
 
 
 	public Matrix4x4 GenerateFrustum(Camera cam)
@@ -194,7 +193,6 @@ public class GrassController : MonoBehaviour
 		m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
 		terrainHeight = terrain.terrainData.heightmapTexture;
 		Setup();
-		singleton = this;
 
 		RenderPipelineManager.beginFrameRendering += OnBeginCameraRendering;
 		//Enable event channels
@@ -372,8 +370,6 @@ public class GrassController : MonoBehaviour
 	private void OnDestroy()
 	{
 		DisposeBuffers();
-		Debug.Log("Disposed grass buffers");
-		singleton = null;
 		inited = false;
 
 		RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;

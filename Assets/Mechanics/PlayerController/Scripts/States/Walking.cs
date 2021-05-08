@@ -22,7 +22,7 @@ namespace Armere.PlayerController
 		protected DialogueRunner runner => DialogueInstances.singleton.runner;
 
 
-		Vector3 currentGroundNormal = new Vector3();
+		Vector3 currentGroundNormal = default(Vector3);
 
 
 		//used to continue momentum when the controller hits a stair
@@ -33,19 +33,21 @@ namespace Armere.PlayerController
 		System.Text.StringBuilder entry;
 
 		public bool forceForwardHeadingToCamera = false;
-		bool grounded;
-		bool holdingCrouchKey;
-		bool holdingSprintKey;
+		bool isGrounded;
+		bool isHoldingCrouchKey;
+		bool isHoldingSprintKey;
 
 
-		bool crouching { get => walkingType == WalkingType.Crouching; }
-		bool sprinting { get => walkingType == WalkingType.Sprinting; }
+		//WalkingType walkingType => 
+
+		bool isCrouching { get => walkingType == WalkingType.Crouching; }
+		bool isSprinting { get => walkingType == WalkingType.Sprinting; }
+
 		public float walkingHeight => c.walkingHeight;
 
 		WalkingType walkingType = WalkingType.Walking;
-		Dictionary<WalkingType, float> walkingSpeeds;
 		public bool inControl = true;
-		Collider[] crouchTestColliders = new Collider[2];
+		readonly Collider[] crouchTestColliders = new Collider[2];
 
 
 		MeleeWeaponItemData meleeWeapon => (MeleeWeaponItemData)c.inventory.melee.items[c.currentMelee].item;
@@ -65,7 +67,7 @@ namespace Armere.PlayerController
 
 		bool backSwingSword = false;
 		ShieldItemData SidearmAsShield => (ShieldItemData)c.inventory.sideArm[c.currentSidearm].item;
-		bool SidearmIsShield => SidearmAsShield is ShieldItemData;
+		bool SidearmIsShield => c.inventory.sideArm[c.currentSidearm].item is ShieldItemData;
 
 
 		bool holdingAltAttack = false;
@@ -73,6 +75,16 @@ namespace Armere.PlayerController
 		ScanForNearT<IAttackable> nearAttackables;
 
 		public Spell currentCastingSpell;
+
+		bool debugStep = false;
+		bool coyote = false;
+
+		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
+		{
+			//Init sprint and crouch with correct values
+			isHoldingCrouchKey = c.inputReader.IsCrouchPressed();
+			isHoldingSprintKey = c.inputReader.IsSprintPressed();
+		}
 
 		public bool Usable(ItemType t) => t switch
 		{
@@ -84,28 +96,21 @@ namespace Armere.PlayerController
 		};
 
 
-		public bool Using(ItemType t)
+		public bool Using(ItemType t) => t switch
 		{
-			switch (t)
-			{
-				case ItemType.SideArm: return !c.sheathing.sidearm && !equipping.sidearm && activated.sidearm && c.currentSidearm != -1;
-				case ItemType.Melee: return !c.sheathing.melee && !equipping.melee && activated.melee && c.currentMelee != -1;
-				//Bow requires ammo and bow selection
-				case ItemType.Bow: return !c.sheathing.bow && !equipping.bow && activated.bow && c.currentBow != -1 && c.currentAmmo != -1;
-				default: return false;
-			}
-		}
+			ItemType.SideArm => !c.sheathing.sidearm && !equipping.sidearm && activated.sidearm && c.currentSidearm != -1,
+			ItemType.Melee => !c.sheathing.melee && !equipping.melee && activated.melee && c.currentMelee != -1,
+			//Bow requires ammo and bow selection
+			ItemType.Bow => !c.sheathing.bow && !equipping.bow && activated.bow && c.currentBow != -1 && c.currentAmmo != -1,
+			_ => false,
+		};
 
 
 		public override void Start()
 		{
 			entry = DebugMenu.CreateEntry("Player"/* , "Velocity: {0:0.0} Contact Point Count {1} Stepping Progress {2} On Ground {3}", 0, 0, 0, false */);
 
-			walkingSpeeds = new Dictionary<WalkingType, float>(){
-				{WalkingType.Walking , t.walkingSpeed},
-				{WalkingType.Crouching , t.crouchingSpeed},
-				{WalkingType.Sprinting , t.sprintingSpeed},
-			};
+
 
 			//c.controllingCamera = false; // debug for camera parallel state
 
@@ -172,11 +177,11 @@ namespace Armere.PlayerController
 
 		public void OnCrouch(InputActionPhase phase)
 		{
-			holdingCrouchKey = InputReader.PhaseMeansPressed(phase);
+			isHoldingCrouchKey = InputReader.PhaseMeansPressed(phase);
 		}
 		public void OnSprint(InputActionPhase phase)
 		{
-			holdingSprintKey = InputReader.PhaseMeansPressed(phase);
+			isHoldingSprintKey = InputReader.PhaseMeansPressed(phase);
 		}
 
 
@@ -372,6 +377,7 @@ namespace Armere.PlayerController
 			}
 		}
 
+
 		public void GetDesiredVelocity(Vector3 playerDirection, float movementSpeed, float speedScalar, out Vector3 desiredVelocity)
 		{
 			if (forceForwardHeadingToCamera)
@@ -470,7 +476,7 @@ namespace Armere.PlayerController
 
 
 
-			float speed = c.inputReader.horizontalMovement.magnitude * (sprinting ? 1.5f : 1);
+			float speed = c.inputReader.horizontalMovement.magnitude * (isSprinting ? 1.5f : 1);
 			if (!inControl) speed = 0;
 
 			animator.SetBool("Idle", speed == 0);
@@ -490,7 +496,7 @@ namespace Armere.PlayerController
 
 			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
 			//animator.SetFloat(vars.groundDistance.id, c.currentHeight);
-			animator.SetBool("Crouching", crouching);
+			animator.SetBool("Crouching", isCrouching);
 			animator.SetBool("IsStrafing", true);
 
 		}
@@ -519,13 +525,20 @@ namespace Armere.PlayerController
 
 
 
-			Vector3 playerDirection = cameras.TransformInput(c.inputReader.horizontalMovement);
+			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
+			bool wasGrounded = isGrounded;
 
-			grounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
+			isGrounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
-			c.animationController.enableFeetIK = grounded;
+			if (!isGrounded && !wasGrounded)
+			{
+				coyote = true;
+				c.StartCoroutine(Coyote(t.coyoteTime));
+			}
 
-			if (holdingSprintKey)
+			c.animationController.enableFeetIK = isGrounded;
+
+			if (isHoldingSprintKey)
 			{
 				if (cameras.m_UpdatingCameraDirection)
 				{
@@ -581,7 +594,7 @@ namespace Armere.PlayerController
 
 
 			//If no longer pressing the button return to normal movement
-			else if (sprinting) walkingType = WalkingType.Walking;
+			else if (isSprinting) walkingType = WalkingType.Walking;
 
 			//List<ContactPoint> groundCPs = new List<ContactPoint>();
 
@@ -595,12 +608,12 @@ namespace Armere.PlayerController
 			}
 
 
-			float currentMovementSpeed = walkingSpeeds[walkingType];
+			float currentMovementSpeed = t.GetSpeeds(walkingType).movementSpeed;
 
 			GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
 
 
-			if (grounded)
+			if (isGrounded)
 			{
 				//step up onto the stair, reseting the velocity to what it was
 				if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, desiredVelocity))
@@ -621,12 +634,11 @@ namespace Armere.PlayerController
 
 
 			//c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
-			if (holdingCrouchKey)
+			if (isHoldingCrouchKey)
 			{
 				c.collider.height = t.crouchingHeight;
-				walkingType = WalkingType.Crouching;
 			}
-			else if (crouching)
+			else if (isCrouching)
 			{
 				//crouch button not pressed but still crouching
 				Vector3 p1 = transform.position + Vector3.up * walkingHeight * 0.05F;
@@ -638,7 +650,7 @@ namespace Armere.PlayerController
 				else crouchTestColliders[1] = null;
 			}
 
-			if (!crouching)
+			if (!isCrouching)
 				c.collider.height = walkingHeight;
 
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
@@ -652,7 +664,7 @@ namespace Armere.PlayerController
 			//rotate the target based on the ground the player is standing on
 
 
-			if (grounded)
+			if (isGrounded)
 				requiredForce -= currentGroundNormal * t.groundClamp;
 
 			c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
@@ -662,7 +674,7 @@ namespace Armere.PlayerController
 			if (DebugMenu.menuEnabled)
 			{
 				entry.Clear();
-				entry.AppendFormat("Velocity: {0:0.0}, Contact Point Count {1}, On Ground {2}", c.rb.velocity.magnitude, c.allCPs.Count, grounded);
+				entry.AppendFormat("Velocity: {0:0.0}, Contact Point Count {1}, On Ground {2}", c.rb.velocity.magnitude, c.allCPs.Count, isGrounded);
 			}
 		}
 		#endregion
@@ -800,10 +812,10 @@ namespace Armere.PlayerController
 
 			equipping[type] = true;
 
-			if (sprinting)
+			if (isSprinting)
 			{
 				walkingType = WalkingType.Walking;
-				holdingSprintKey = false; //Stop the player from immediately sprinting again
+				isHoldingSprintKey = false; //Stop the player from immediately sprinting again
 			}
 
 			yield return c.weaponGraphics.DrawItem(type, c.transitionSet);
@@ -819,6 +831,7 @@ namespace Armere.PlayerController
 			// collider.convex = true;
 			// collider.isTrigger = true;
 			var trigger = c.weaponGraphics.holdables.melee.gameObject.gameObject.GetComponent<WeaponTrigger>();
+			trigger.destroyGrassInBounds = t.destroyGrassInBoundsEventChannel;
 			trigger.enableTrigger = true;
 
 			if (!trigger.inited)
@@ -872,20 +885,15 @@ namespace Armere.PlayerController
 
 			}
 			//This is easier. Animation graphs suck
-			if (backSwing)
+
+
+			c.animationController.TriggerTransition((backSwing, meleeWeapon.isDoubleHanded) switch
 			{
-				if (meleeWeapon.isDoubleHanded)
-					c.animationController.TriggerTransition(c.transitionSet.backSwingDoubleSword);
-				else
-					c.animationController.TriggerTransition(c.transitionSet.backSwingSword);
-			}
-			else
-			{
-				if (meleeWeapon.isDoubleHanded)
-					c.animationController.TriggerTransition(c.transitionSet.swingDoubleSword);
-				else
-					c.animationController.TriggerTransition(c.transitionSet.swingSword);
-			}
+				(true, true) => c.transitionSet.backSwingDoubleSword,
+				(true, false) => c.transitionSet.backSwingSword,
+				(false, true) => c.transitionSet.swingDoubleSword,
+				(false, false) => c.transitionSet.swingSword,
+			});
 
 			void End()
 			{
@@ -934,7 +942,7 @@ namespace Armere.PlayerController
 			// 	).setOnUpdate(x => c.animationController.weights.weight = x);
 			// LeanTween.value(
 			// 	c.gameObject, c.animationController.weights.bodyWeight, 0, time
-			// 	).setOnUpdate(x => c.animationController.weights.bodyWeight = x);
+			// 	).setOnUpdate(x =>c.animationController.weights.bodyWeight = x);
 		}
 		#endregion
 		#region Sidearms
@@ -1040,19 +1048,12 @@ namespace Armere.PlayerController
 		{
 			stepUpOffset = default(Vector3);
 			//No chance to step if the player is not moving
-			Vector2 velocityXZ = new Vector2(currVelocity.x, currVelocity.z);
-			if (velocityXZ.sqrMagnitude < 0.0001f)
+			if (new Vector2(currVelocity.x, currVelocity.z).sqrMagnitude < 0.0001f)
 				return false;
 			for (int i = 0; i < allCPs.Count; i++)// test if every point is suitable for a step up
 				if (ResolveStepUp(out stepUpOffset, allCPs[i], groundCP, currVelocity))
 					return true;
 			return false;
-		}
-
-		bool debugStep = false;
-
-		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
-		{
 		}
 
 
@@ -1076,7 +1077,7 @@ namespace Armere.PlayerController
 			//if the step and the ground are too close, do not count
 			if (Vector3.Dot(stepTestCP.normal, Vector3.up) > c.m_maxGroundDot)
 			{
-				if (debugStep) Debug.Log($"Contact too close to ground normal { Vector3.Dot(stepTestCP.normal, Vector3.up)}");
+				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, Vector3.up)}");
 				return false;
 			}
 
@@ -1156,10 +1157,15 @@ namespace Armere.PlayerController
 
 		#endregion
 
+		IEnumerator Coyote(float time)
+		{
+			yield return new WaitForSeconds(time);
+			coyote = false;
+		}
 
 		public void OnJump(InputActionPhase phase)
 		{
-			if (inControl && phase == InputActionPhase.Started && grounded)
+			if (inControl && phase == InputActionPhase.Started && (isGrounded || coyote))
 			{
 				//use acceleration to give constant upwards force regardless of mass
 				// Vector3 v = c.rb.velocity;
@@ -1174,7 +1180,7 @@ namespace Armere.PlayerController
 				vel.y = jump.y;
 				c.rb.velocity = vel;
 
-				GetDesiredVelocity(transform.forward, walkingSpeeds[walkingType], 1, out Vector3 direction);
+				GetDesiredVelocity(transform.forward, t.GetSpeeds(walkingType).movementSpeed, 1, out Vector3 direction);
 
 				c.ChangeToState(t.freefalling);
 			}

@@ -10,7 +10,6 @@ public class EnemyAISpawner : Spawner
 	public AssetReferenceGameObject ai;
 	public AIWaypointGroup optionalWaypoints;
 	public bool autoEngage;
-	public MeleeWeaponItemData meleeWeapon;
 	public UnityEngine.Events.UnityEvent<AIHumanoid> onPlayerDetected;
 
 	[System.NonSerialized] public EnemyAI body;
@@ -23,7 +22,6 @@ public class EnemyAISpawner : Spawner
 
 		body.waypointGroup = optionalWaypoints;
 		body.onPlayerDetected += onPlayerDetected.Invoke;
-		body.meleeWeapon = meleeWeapon;
 		if (startingState != null)
 			body.defaultState = startingState;
 		body.InitEnemy();

@@ -96,7 +96,7 @@ public class WeaponTrigger : MonoBehaviour
 
 	private void Update()
 	{
-		if (enableTrigger)
+		if (enableTrigger && destroyGrassInBounds != null)
 		{
 
 			(var grassBounds, var yRot) = GetDestructionBounds();

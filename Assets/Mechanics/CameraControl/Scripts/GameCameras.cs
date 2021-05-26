@@ -228,7 +228,13 @@ public class GameCameras : MonoBehaviour
 	public Vector3 TransformInput(Vector2 input)
 	{
 		//Rotate input around camera's rotation
-		return Quaternion.Euler(0, GameCameras.s.cameraTransform.eulerAngles.y, 0) * new Vector3(input.x, 0, input.y);
+		return Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0) * new Vector3(input.x, 0, input.y);
+	}
+	public Vector3 TransformInput(Vector2 input, Vector3 up)
+	{
+		Vector3 camForward = Vector3.ProjectOnPlane(cameraTransform.forward, up).normalized;
+		//Rotate input around camera's rotation
+		return Quaternion.LookRotation(camForward, up) * new Vector3(input.x, 0, input.y);
 	}
 
 	public void DisableControl()
@@ -302,8 +308,6 @@ public class GameCameras : MonoBehaviour
 		// 	mouseDelta = Mouse.current.delta.ReadValue() * SettingsManager.settings.sensitivity * 0.01f;
 
 
-
-
 		CameraVolumeController.UpdateVolumeEffect(transform.position);
 
 	}
@@ -311,6 +315,7 @@ public class GameCameras : MonoBehaviour
 	{
 
 		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset, 0), cameraTransform.parent.position, currentCameraLerp);
+
 
 		//Stop jittering from desync between high fps and low physics updates
 		currentCameraLerp += cameraLerpSpeed * Time.deltaTime * 0.25f;

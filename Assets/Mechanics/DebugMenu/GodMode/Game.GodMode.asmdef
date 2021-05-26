@@ -1,0 +1,22 @@
+{
+    "name": "Game.GodMode",
+    "rootNamespace": "",
+    "references": [
+        "GUID:bd2932073ef3c67499fc424f2892e1c8",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:6583da777ddb692409ab0ff3ed793504",
+        "GUID:513f96722d30c6d40b534a1f94eccbae",
+        "GUID:6bf7ec95c2c3ad2439a9b968432e123a",
+        "GUID:18e2c4afd12b64540bb7404d66a34371"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

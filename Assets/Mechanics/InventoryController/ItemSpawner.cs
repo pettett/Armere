@@ -36,7 +36,7 @@ namespace Armere.Inventory
 			return handle;
 		}
 
-
+		[MyBox.ButtonMethod]
 		public void Spawn()
 		{
 			spawnedItem = true;

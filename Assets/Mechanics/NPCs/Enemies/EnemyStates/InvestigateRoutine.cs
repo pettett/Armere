@@ -5,6 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Investigate Routine", menuName = "Game/NPCs/Investigate Routine", order = 0)]
 public class InvestigateRoutine : AIStateTemplate
 {
+	public AlertRoutine alertRoutine;
 	public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 	[System.NonSerialized] public Character investigating;
 	public override AIState StartState(AIHumanoid c)
@@ -26,9 +27,11 @@ public class Investigate : AIState<InvestigateRoutine>
 	public override bool searchOnEvent => false;
 
 	public override bool investigateOnSight => false;
+	readonly Character investigating;
 	Coroutine r;
 	public Investigate(AIHumanoid c, InvestigateRoutine t) : base(c, t)
 	{
+		investigating = t.investigating;
 		r = c.StartCoroutine(Routine());
 	}
 	public override void End()
@@ -50,13 +53,13 @@ public class Investigate : AIState<InvestigateRoutine>
 		{
 			//c.alert.SetInvestigation(investProgress);
 
-			float visibility = c.ProportionBoundsVisible(t.investigating.bounds);
+			float visibility = c.ProportionBoundsVisible(investigating.bounds);
 
 			if (visibility != 0)
 			{
 				//can see player
 				//Distance is the 0-1 scale where 0 is closestest visiable and 1 is furthest video
-				float playerDistance = Mathf.InverseLerp(c.clippingPlanes.x, c.clippingPlanes.y, Vector3.Distance(c.eye.position, t.investigating.transform.position));
+				float playerDistance = Mathf.InverseLerp(c.clippingPlanes.x, c.clippingPlanes.y, Vector3.Distance(c.eye.position, investigating.transform.position));
 				//Invest the player slower if they are further away
 				investProgress += Time.deltaTime * t.investigateRateOverDistance.Evaluate(playerDistance) * visibility;
 			}
@@ -76,7 +79,7 @@ public class Investigate : AIState<InvestigateRoutine>
 			else if (investProgress >= 1)
 			{
 				//Seen player
-				c.ChangeToState(new EnemyAI.AlertRoutine(c, 1, t.investigating));
+				c.ChangeToState(t.alertRoutine.EngageWith(investigating));
 				break;
 			}
 

@@ -370,7 +370,7 @@ public class SaveManager : MonoBehaviour
 		else
 		{
 			//No save at index
-			throw new System.IndexOutOfRangeException($"No save {save} to load");
+			return null;
 		}
 	}
 	public static IEnumerable<string> SaveFileSaveDirectories()

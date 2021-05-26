@@ -31,6 +31,10 @@ public class MapTracker : MonoBehaviour
 	void Start()
 	{
 		entry = DebugMenu.CreateEntry("Player");
+		if (map == null)
+		{
+			enabled = false;
+		}
 	}
 	int inRegion = -1;
 	MusicTrack highestMusicTrack;

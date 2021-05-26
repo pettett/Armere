@@ -22,6 +22,14 @@ public class CharacterMeshController : MonoBehaviour
 
 	readonly AsyncOperationHandle<GameObject>[] clothingHandles = new AsyncOperationHandle<GameObject>[3];
 
+	public void SetMeshColor(Color color)
+	{
+		MaterialPropertyBlock p = new MaterialPropertyBlock();
+		p.SetColor("_BaseColor", color);
+		foreach (var r in GetComponentsInChildren<Renderer>())
+			r.SetPropertyBlock(p);
+	}
+
 	public void Start()
 	{
 		bodyParts[2] = legsObject;

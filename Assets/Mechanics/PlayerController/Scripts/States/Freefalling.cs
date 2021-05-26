@@ -26,15 +26,19 @@ namespace Armere.PlayerController
 		{
 			//desiredVelocity = GameCameras.s.TransformInput(c.input.horizontal);
 
-			//c.rb.AddForce(desiredVelocity);
 
-			if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, float.PositiveInfinity, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
+			if (Physics.Raycast(transform.position, c.WorldDown, out RaycastHit hit, float.PositiveInfinity, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
 			{
 				currentHeight = hit.distance;
 			}
 
+			Vector3 fallingVel = Vector3.Scale(c.rb.velocity, c.WorldUp);
 
-			if (c.allCPs.Count > 0 && Math.Sign(c.rb.velocity.y) != 1)
+			Vector3 u = new Vector3(Mathf.Abs(c.WorldDown.x), Mathf.Abs(c.WorldDown.y), Mathf.Abs(c.WorldDown.z));
+
+			float d = Vector3.Dot(fallingVel, u);
+
+			if (c.allCPs.Count > 0 && d < 0)
 			{
 				c.ChangeToState(c.defaultState);
 			}

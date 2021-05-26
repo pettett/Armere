@@ -28,7 +28,7 @@ namespace Armere.Inventory
 				Debug.Log($"Inserting {desiredPosition}");
 				if (desiredPosition < 0 || desiredPosition >= items.Count)
 				{
-					addedIndex = items.Count - 1;
+					addedIndex = items.Count;
 					items.Add(data);
 				}
 				else

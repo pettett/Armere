@@ -56,11 +56,13 @@ namespace Armere.PlayerController
 		public float crouchingHeight = 0.9f;
 		public float groundClamp = 1f;
 		public float maxAcceleration = 20f;
+		public float minStepHeight = 0.1f;
 		public float maxStepHeight = 1f;
 		public float maxStepDown = 0.25f;
 		public float stepSearchOvershoot = 0.3f;
-		public float steppingTime = 0.1f;
+		public float steppingSpeed = 0.1f;
 		public float jumpForce = 4f;
+		public float slopeForce = 1f;
 		public float coyoteTime = 0.05f;
 		[Header("Holding")]
 

@@ -337,7 +337,7 @@ namespace Armere.PlayerController
 
 			int hits = Physics.RaycastNonAlloc(
 				transform.position + new Vector3(0, heightOffset, 0),
-				Vector3.down, waterHits,
+				c.WorldDown, waterHits,
 				c.maxWaterStrideDepth + heightOffset,
 				c.m_groundLayerMask | c.m_waterLayerMask,
 				QueryTriggerInteraction.Collide);
@@ -382,7 +382,7 @@ namespace Armere.PlayerController
 		{
 			if (forceForwardHeadingToCamera)
 			{
-				Vector3 forward = cameras.cameraTransform.forward;
+				Vector3 forward = Vector3.ProjectOnPlane(cameras.cameraTransform.forward, c.WorldUp);
 				forward.y = 0;
 				transform.forward = forward;
 
@@ -399,11 +399,11 @@ namespace Armere.PlayerController
 				{
 					Vector3 dir = cameras.FocusTarget - transform.position;
 					dir.y = 0;
-					walkingAngle = Quaternion.LookRotation(dir);
+					walkingAngle = Quaternion.LookRotation(dir, c.WorldUp);
 				}
 				else
 				{
-					walkingAngle = Quaternion.LookRotation(playerDirection);
+					walkingAngle = Quaternion.LookRotation(playerDirection, c.WorldUp);
 				}
 
 
@@ -501,7 +501,24 @@ namespace Armere.PlayerController
 
 		}
 
+		public Vector3 GetSlopeForce(Vector3 movement, Vector3 normal)
+		{
+			float slope = Mathf.Clamp01(1 - Vector3.Dot(c.WorldUp, normal));
 
+			Vector3 floorDirection = normal;
+			floorDirection.y = 0;
+
+			float direction = Vector3.Dot(movement, floorDirection);
+
+			//Debug.Log($"{slope}, {direction}");
+
+			//negative direction, going up slope
+			//positive direction, going down slope
+
+
+
+			return c.WorldUp * t.slopeForce * -direction * slope;
+		}
 		public override void FixedUpdate()
 		{
 			// if (c.onGround == false)
@@ -523,9 +540,8 @@ namespace Armere.PlayerController
 
 			//Debug.Log($"Average turning {averageTurning}");
 
+			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c, c.WorldUp);
 
-
-			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
 			bool wasGrounded = isGrounded;
 
 			isGrounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
@@ -641,8 +657,8 @@ namespace Armere.PlayerController
 			else if (isCrouching)
 			{
 				//crouch button not pressed but still crouching
-				Vector3 p1 = transform.position + Vector3.up * walkingHeight * 0.05F;
-				Vector3 p2 = transform.position + Vector3.up * walkingHeight;
+				Vector3 p1 = transform.position + c.WorldUp * walkingHeight * 0.05F;
+				Vector3 p2 = transform.position + c.WorldUp * walkingHeight;
 				Physics.OverlapCapsuleNonAlloc(p1, p2, c.collider.radius, crouchTestColliders, c.m_groundLayerMask, QueryTriggerInteraction.Ignore);
 				if (crouchTestColliders[1] == null)
 					//There is no collider intersecting other then the player
@@ -656,10 +672,14 @@ namespace Armere.PlayerController
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
-			Vector3 requiredForce = desiredVelocity - c.rb.velocity;
-			requiredForce.y = 0;
+			Vector3 requiredForce = Vector3.ProjectOnPlane(desiredVelocity - c.rb.velocity, c.WorldUp);
+
+			//Add slope boost or reduction
+			requiredForce += GetSlopeForce(requiredForce, groundCP.normal);
 
 			requiredForce = Vector3.ClampMagnitude(requiredForce, t.maxAcceleration * Time.fixedDeltaTime);
+
+
 
 			//rotate the target based on the ground the player is standing on
 
@@ -1024,7 +1044,7 @@ namespace Armere.PlayerController
 			foreach (ContactPoint cp in allCPs)
 			{
 				//Pointing with some up direction
-				if (Vector3.Dot(Vector3.up, cp.normal) > c.m_maxGroundDot)
+				if (Vector3.Dot(c.WorldUp, cp.normal) > c.m_maxGroundDot)
 				{
 					//Get the most upwards pointing contact point
 					//Also get the point that points most in the current direction the player desires to move
@@ -1068,6 +1088,8 @@ namespace Armere.PlayerController
 			stepUpOffset = default;
 			Collider stepCol = stepTestCP.otherCollider;
 
+			//FIXME: Only works in normal gravity
+
 			//( 1 ) Check if the contact point normal matches that of a step (y close to 0)
 			// if (Mathf.Abs(stepTestCP.normal.y) >= 0.01f)
 			// {
@@ -1075,14 +1097,14 @@ namespace Armere.PlayerController
 			// }
 
 			//if the step and the ground are too close, do not count
-			if (Vector3.Dot(stepTestCP.normal, Vector3.up) > c.m_maxGroundDot)
+			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.m_maxGroundDot)
 			{
-				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, Vector3.up)}");
+				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, c.WorldUp)}");
 				return false;
 			}
-
+			float height = stepTestCP.point.y - groundCP.point.y;
 			//( 2 ) Make sure the contact point is low enough to be a step
-			if (!(stepTestCP.point.y - groundCP.point.y < t.maxStepHeight))
+			if (height < t.minStepHeight || height >= t.maxStepHeight)
 			{
 				if (debugStep) Debug.Log("Contact to high");
 				return false;
@@ -1107,7 +1129,7 @@ namespace Armere.PlayerController
 			//check forward based off the direction the player is walking
 
 			Vector3 origin = new Vector3(stepTestCP.point.x, stepHeight, stepTestCP.point.z) + (stepTestInvDir * t.stepSearchOvershoot);
-			Vector3 direction = Vector3.down;
+			Vector3 direction = c.WorldDown;
 			if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, t.maxStepHeight + t.maxStepDown))
 			{
 				if (debugStep) Debug.Log("Nothing to step to");
@@ -1133,10 +1155,11 @@ namespace Armere.PlayerController
 			Vector2 xzEnd = new Vector2(point.x, point.z);
 			Vector2 xz;
 			float t = 0;
+			float dist = Vector3.Distance(point, start);
 
 			while (t < 1)
 			{
-				t += Time.deltaTime / this.t.steppingTime;
+				t += Time.deltaTime * this.t.steppingSpeed / dist;
 				//entry.values[2] = t;
 				t = Mathf.Clamp01(t);
 				//lerp y values
@@ -1173,11 +1196,10 @@ namespace Armere.PlayerController
 				// c.rb.velocity = v;
 
 				Vector2 jump = t.GetSpeeds(walkingType).twoDJumpForce;
-				var vel = c.rb.velocity;
-				vel.y = 0;
-				vel.Normalize();
+				var vel = Vector3.ProjectOnPlane(c.rb.velocity, c.WorldUp).normalized;
 				vel *= jump.x;
-				vel.y = jump.y;
+				vel += c.WorldUp * jump.y;
+
 				c.rb.velocity = vel;
 
 				GetDesiredVelocity(transform.forward, t.GetSpeeds(walkingType).movementSpeed, 1, out Vector3 direction);

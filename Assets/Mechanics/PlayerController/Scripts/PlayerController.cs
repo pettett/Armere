@@ -36,6 +36,7 @@ namespace Armere.PlayerController
 		[Header("Cameras")]
 
 		[NonSerialized] public Room currentRoom;
+		public Transform cameraTrackingTransform;
 
 
 		[Header("Ground detection")]
@@ -48,6 +49,14 @@ namespace Armere.PlayerController
 
 		[Range(0, 1)]
 		public float dynamicFriction = 0.2f;
+
+
+
+		public Vector3 m_gravityDirection { get; private set; } = Vector3.down;
+
+
+		public Vector3 WorldUp => -m_gravityDirection;
+		public Vector3 WorldDown => m_gravityDirection;
 
 
 		[Header("Water")]
@@ -124,6 +133,7 @@ namespace Armere.PlayerController
 
 		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
 
+
 		// Start is called before the first frame update
 		/// <summary>
 		/// Awake is called when the script instance is being loaded.
@@ -185,6 +195,8 @@ namespace Armere.PlayerController
 		{
 			base.Start();
 
+
+
 			print("Starting player controller");
 
 			rb = GetComponent<Rigidbody>();
@@ -204,11 +216,14 @@ namespace Armere.PlayerController
 
 			GetComponent<Ragdoller>().RagdollEnabled = false;
 
+			//Allow for custom gravity
+			rb.useGravity = false;
+
 			inventory.armour.onItemRemoved += OnArmourRemoved;
 			inventory.OnDropItemEvent += OnDropItem;
 			inventory.OnConsumeItemEvent += OnConsumeItem;
 			inventory.OnSelectItemEvent += OnSelectItem;
-			
+
 			inventory.melee.onItemRemoved += OnEquipableItemRemoved;
 			inventory.bow.onItemRemoved += OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
@@ -216,6 +231,13 @@ namespace Armere.PlayerController
 			enabled = false;
 
 
+		}
+
+		public void SetGravityDirection(Vector3 direction)
+		{
+			m_gravityDirection = direction;
+
+			transform.up = WorldUp;
 		}
 
 		public void AfterLoaded()
@@ -450,6 +472,8 @@ namespace Armere.PlayerController
 				if (StateActive(i))
 					allStates[i].Update();
 
+			cameraTrackingTransform.rotation = Quaternion.identity;
+			cameraTrackingTransform.up = WorldUp;
 
 			for (int i = 0; i < PlayerRelativeObject.relativeObjects.Count; i++)
 			{
@@ -494,6 +518,9 @@ namespace Armere.PlayerController
 
 		private void FixedUpdate()
 		{
+			rb.AddForce(m_gravityDirection * Physics.gravity.magnitude);
+
+
 			for (int i = 0; i < allStates.Length; i++)
 				if (StateActive(i))
 					allStates[i].FixedUpdate();

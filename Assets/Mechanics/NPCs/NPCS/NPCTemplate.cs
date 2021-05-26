@@ -14,6 +14,7 @@ public class NPCTemplate : AIStateTemplate
 {
 	public AssetReferenceT<YarnProgram> dialogue;
 	public NPCManager manager;
+	public QuestManager questManager;
 
 	public VariableStorage.DefaultVariable[] defaultValues;
 
@@ -42,20 +43,26 @@ public class NPCTemplate : AIStateTemplate
 
 	public int GetRoutineIndex()
 	{
+		int d = routines.Length - 1;//Default routine is the last one
 
 		for (int r = 0; r < routines.Length - 1; r++)
 		{
-			for (int i = 0; i < QuestManager.completedQuestsSingleton.Count; i++)
+			for (int i = 0; i < questManager.completedQuests.Count; i++)
 			{
-				if (QuestManager.completedQuestsSingleton[i].quest.name == routines[r].activateOnQuestComplete)
+				if (questManager.completedQuests[i].quest == routines[r].activateOnQuestComplete)
 				{
 					//Return the first routine that fits the current situation
 					return r;
 				}
+				else if (routines[r].activateOnQuestComplete == null)
+				{
+					//blank routine quests closer to end are better
+					d = r;
+				}
 			}
 		}
 
-		return routines.Length - 1; //Default routine is the last one
+		return d; //Default routine is the last one
 
 	}
 
@@ -67,7 +74,7 @@ public class NPCTemplate : AIStateTemplate
 	[System.Serializable]
 	public class Routine
 	{
-		public string activateOnQuestComplete = string.Empty;
+		public Quest activateOnQuestComplete = null;
 		public RoutineStage[] stages = new RoutineStage[1];
 
 
@@ -99,7 +106,6 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 {
 	string IVariableAddon.prefix => "$NPC_";
 	public int currentRoutineStage;
-	new NPC c => (NPC)base.c;
 
 	public readonly AIDialogue d;
 
@@ -174,13 +180,18 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 		c.StopAllCoroutines();
 	}
 
-	public void EndConversation()
-	{
-
-	}
+	readonly NPCSpawn spawn;
 
 	public NPCRoutine(AIHumanoid c, NPCTemplate t) : base(c, t)
 	{
+		Assert.IsNotNull(t);
+		Assert.IsNotNull(t.routines);
+		Assert.IsNotNull(TimeDayController.singleton);
+
+		spawn = c.spawner as NPCSpawn;
+
+		Assert.IsNotNull(spawn);
+
 		d = c.GetComponent<AIDialogue>();
 
 		d.npcName = t.name;
@@ -201,10 +212,11 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 		{
 			Assert.IsNotNull(t.clothes[i].clothes, $"Clothes on {t.name} null");
 			//Apply all the clothes in the template
-			c.weaponGraphics.characterMesh.SetClothing(t.clothes[i]);
+			c.meshController.SetClothing(t.clothes[i]);
 		}
 
 		//Setup starting point for routine - instant so they start in the proper place
+
 		ChangeRoutineStage(t.routines[RoutineIndex].GetRoutineStageIndex(TimeDayController.singleton.hour), true);
 
 
@@ -214,7 +226,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 
 		activeNPCs[d.npcName] = this;
 
-		QuestManager.singleton.onQuestComplete += OnQuestComplete;
+		t.questManager.onQuestComplete += OnQuestComplete;
 
 		//Copy the buy inventory
 		d.buyInventory = new BuyMenuItem[t.buyMenuItems.Length];
@@ -225,9 +237,9 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 
 		t.manager.data[d.npcName].npcInstance = c.transform;
 
-		d.walkingPoints = this.c.spawn.walkingPoints;
-		d.conversationGroupOverride = this.c.spawn.conversationGroupTargetsOverride;
-		d.focusPoints = this.c.spawn.focusPoints;
+		d.walkingPoints = spawn.walkingPoints;
+		d.conversationGroupOverride = spawn.conversationGroupTargetsOverride;
+		d.focusPoints = spawn.focusPoints;
 
 		d.onInteract += Interact;
 	}
@@ -237,7 +249,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 	{
 
 		d.onInteract -= Interact;
-		QuestManager.singleton.onQuestComplete -= OnQuestComplete;
+		t.questManager.onQuestComplete -= OnQuestComplete;
 	}
 
 	public void OnQuestComplete(Quest quest)
@@ -290,7 +302,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 
 	public void ActivateStandRoutine(bool instant)
 	{
-		Transform target = d.GetTransform(c.spawn.walkingPoints, CurrentRoutine.stages[currentRoutineStage].location);
+		Transform target = d.GetTransform(spawn.walkingPoints, CurrentRoutine.stages[currentRoutineStage].location);
 		if (target != null)
 		{
 			if (instant)

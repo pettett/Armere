@@ -1,6 +1,8 @@
 using UnityEngine;
+using UnityEngine.Events;
 public abstract class GlobalSO<T0> : ScriptableObject
 {
+	public UnityEvent<T0> onValueChanged;
 	public T0 value;
 }
 

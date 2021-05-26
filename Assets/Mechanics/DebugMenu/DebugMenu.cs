@@ -76,6 +76,7 @@ public class DebugMenu : MonoBehaviour
 
 	public static int GroupFromName(string groupName)
 	{
+
 		for (int i = 0; i < singleton.groups.Length; i++)
 		{
 			if (singleton.groups[i].name == groupName)

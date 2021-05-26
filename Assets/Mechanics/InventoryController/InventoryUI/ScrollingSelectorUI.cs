@@ -63,6 +63,7 @@ namespace Armere.Inventory.UI
 
 					InventoryItemUI itemDisplay = child.GetComponent<InventoryItemUI>();
 					itemDisplay.type = layers[i].panel[ii].item.type;
+					itemDisplay.inventory = selectingInventory;
 					itemDisplay.ChangeItemIndex(ii);
 				}
 

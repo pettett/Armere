@@ -53,6 +53,7 @@ public class VirtualAudioController : MonoBehaviour
 					relitiveVolume = volume - Mathf.Log(distance, 2) * 6;
 					if (relitiveVolume > listeners[i].noiseThreshold)
 					{
+
 						//The virtual listener can hear this
 						listeners[i].OnHearNoise(position);
 					}

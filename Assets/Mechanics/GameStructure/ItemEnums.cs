@@ -48,7 +48,8 @@ public enum ItemName
 	Rapier,
 	Sabre,
 	Scimitar,
-	Ulfberht
+	Ulfberht,
+	Firefly,
 }
 [System.Flags]
 public enum DamageType

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Armere.Inventory;
@@ -12,19 +11,17 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	[Header("Player Engagement")]
 
 	public InvestigateRoutine investigate;
+	public AlertRoutine alert;
 
 	public float knockoutTime = 4f;
 	public float maxExplosionKnockoutTime = 4f;
 	[Header("Indicators")]
 	public float height = 1.8f;
-	AlertIndicatorUI alert;
 
 
 
 	Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
-	new Collider collider;
-	public override Bounds bounds => collider.bounds;
 
 
 
@@ -33,7 +30,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	{
 		//Push the ai back
 		if (currentState.alertOnAttack && attacker.TryGetComponent(out Character c))
-			ChangeToState(new AlertRoutine(this, 1, c));
+			ChangeToState(alert.EngageWith(c));
 	}
 
 	public void OnExplosion(Vector3 source, float radius, float force)
@@ -89,11 +86,16 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		health.onDeathEvent.AddListener(Die);
 
 		base.Start();
+		//TODO: remove
+		meshController.SetMeshColor(Color.red);
 
 		GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
 
-		if (meleeWeapon != null)
-			SetHeldMelee(meleeWeapon);
+		if (inventory.HasMeleeWeapon)
+		{
+			inventory.inventory.selectedMelee = inventory.BestMeleeWeapon;
+			SetHeldMelee(inventory.SelectedMeleeWeapon);
+		}
 	}
 
 
@@ -105,241 +107,18 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		}
 	}
 
-
-
-
 	public virtual void InitEnemy()
 	{
 		//gameObject.SetActive(true);
 	}
 
-	public class DieRoutine : AIState
-	{
-		public override bool alertOnAttack => false;
-
-		public override bool searchOnEvent => false;
-
-		public override bool investigateOnSight => false;
-		Coroutine r;
-		public DieRoutine(AIHumanoid c) : base(c)
-		{
-
-			r = c.StartCoroutine(Routine());
-		}
-		public override void End()
-		{
-			c.StopCoroutine(r);
-		}
-		IEnumerator Routine()
-		{
-
-			foreach (var x in c.weaponGraphics.holdables)
-				x.RemoveHeld();
-
-			c.ragdoller.RagdollEnabled = true;
-			yield return new WaitForSeconds(4);
-			Destroy(c.gameObject);
-		}
-	}
 
 
 
 
-
-
-	public class KnockoutRoutine : AIState
-	{
-		public override bool alertOnAttack => false;
-
-		public override bool searchOnEvent => false;
-
-		public override bool investigateOnSight => false;
-
-		readonly float knockoutTime;
-
-
-		Coroutine r;
-		public KnockoutRoutine(AIHumanoid c, float knockoutTime) : base(c)
-		{
-			this.knockoutTime = knockoutTime;
-			r = c.StartCoroutine(Routine());
-		}
-		public override void End()
-		{
-			c.StopCoroutine(r);
-		}
-
-		IEnumerator Routine()
-		{
-			c.ragdoller.RagdollEnabled = true;
-			c.GetComponent<Focusable>().enabled = false;
-			yield return new WaitForSeconds(knockoutTime);
-			c.GetComponent<Focusable>().enabled = true;
-			c.ragdoller.RagdollEnabled = false;
-		}
-	}
-
-
-	public class AlertRoutine : AIState
-	{
-		public override bool alertOnAttack => false;
-
-		public override bool searchOnEvent => false;
-
-		public override bool investigateOnSight => false;
-
-		public float waitTime;
-
-		Coroutine r;
-		Character playerCollider;
-		public AlertRoutine(AIHumanoid c, float waitTime, Character playerCollider) : base(c)
-		{
-			this.waitTime = waitTime;
-			this.playerCollider = playerCollider;
-			r = c.StartCoroutine(Routine());
-		}
-		public override void End()
-		{
-			c.StopCoroutine(r);
-		}
-
-		IEnumerator Routine()
-		{
-
-			c.lookingAtTarget = playerCollider.transform;
-
-			c.OnPlayerDetected();
-
-
-			c.animationController.TriggerTransition(c.transitionSet.surprised);
-			yield return new WaitForSeconds(1);
-
-			if (c.weaponGraphics.holdables.melee.sheathed)
-				yield return c.DrawItem(ItemType.Melee);
-
-
-			//If alert is null create one
-			//c.alert = c.alert ?? IndicatorsUIController.singleton.CreateAlertIndicator(c.transform, Vector3.up * c.height);
-
-			//c.alert.EnableInvestigate(false);
-			//c.alert.EnableAlert(true);
-			yield return new WaitForSeconds(1);
-			//print("Alerted");
-			//Destroy(c.alert.gameObject);
-			c.ChangeToState(new EngagePlayerRoutine(c, playerCollider));
-		}
-	}
 	public void ForceEngage(Character c)
 	{
-		ChangeToState(new AlertRoutine(this, 0, c));
-	}
-
-	public class SearchForEventRoutine : AIState
-	{
-		public override bool alertOnAttack => true;
-
-		public override bool searchOnEvent => true;
-
-		public override bool investigateOnSight => true;
-		readonly Vector3 eventPos;
-		Coroutine r;
-		public SearchForEventRoutine(AIHumanoid c, Vector3 eventPos) : base(c)
-		{
-			this.eventPos = eventPos;
-			r = c.StartCoroutine(Routine());
-		}
-		public override void End()
-		{
-			c.StopCoroutine(r);
-		}
-		IEnumerator Routine()
-		{
-
-			/*
-            Investigate routine:
-                Go to close enough distance to event
-                Rotate to event
-                Wait there, looking around a bit
-                go back to what we were doing before
-            */
-
-			c.debugText.SetText("Searching");
-			yield return c.RotateTo(Quaternion.LookRotation(eventPos - c.transform.position), c.agent.angularSpeed);
-			c.debugText.SetText("Searching - looking");
-			yield return new WaitForSeconds(3);
-		}
-	}
-	public class EngagePlayerRoutine : AIState
-	{
-		public override bool alertOnAttack => false;
-
-		public override bool searchOnEvent => false;
-
-		public override bool investigateOnSight => false;
-		public float approachDistance = 1;
-		float sqrApproachDistance => approachDistance * approachDistance;
-		public bool approachPlayer = true;
-		Coroutine r;
-		Character target;
-		public EngagePlayerRoutine(AIHumanoid c, Character target) : base(c)
-		{
-			this.target = target;
-			r = c.StartCoroutine(Routine());
-
-		}
-		public override void End()
-		{
-			c.StopCoroutine(r);
-		}
-
-		IEnumerator Routine()
-		{
-			//Once they player has attacked or been seen, do not stop engageing until circumstances change
-			c.agent.isStopped = true;
-
-			Vector3 directionToPlayer;
-			Health playerHealth = target.GetComponent<Health>();
-			bool movingToCatchPlayer = false;
-			c.lookingAtTarget = target.transform;
-			//Stop attacking the player after it has died
-			while (!playerHealth.dead)
-			{
-				directionToPlayer = target.transform.position - c.transform.position;
-				if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
-				{
-					if (!movingToCatchPlayer)
-					{
-						movingToCatchPlayer = true;
-						yield return new WaitForSeconds(0.1f);
-					}
-
-					c.agent.Move(directionToPlayer.normalized * Time.deltaTime * c.agent.speed);
-				}
-				else if (movingToCatchPlayer)
-				{
-					movingToCatchPlayer = false;
-					//Small delay to adjust to stopped movement
-					yield return new WaitForSeconds(0.1f);
-				}
-				else
-				{
-					//Within sword range of player
-					//Swing sword
-					yield return c.SwingSword();
-				}
-
-				directionToPlayer.y = 0;
-				c.transform.forward = directionToPlayer;
-
-				//TODO: Test to see if the player is still in view
-
-
-				yield return null;
-			}
-			//Once the player has died, return to normal routine to stop end looking janky
-			c.ChangeToState(c.defaultState);
-		}
-
+		ChangeToState(alert.EngageWith(c));
 	}
 
 

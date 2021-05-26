@@ -73,7 +73,7 @@ public class TimeDayController : MonoBehaviour
 				{
 					float t = weatherMap.GetPixel(x, y).r;
 					Vector2 cov = Vector2.Lerp(clear.octavesCoverage, rain.octavesCoverage, t);
-					float scale = Mathf.Lerp(clear.scale, rain.scale, t);
+					float scale = 1;// Mathf.Lerp(clear.scale, rain.scale, t);
 					weatherMap.SetPixel(x, y, new Color(t, cov.x, cov.y, scale));
 				}
 			}
@@ -109,12 +109,19 @@ public class TimeDayController : MonoBehaviour
 	public float cloudWindSpeedMultiplier = 200f;
 	Vector2 cloudPosition;
 	public Vector3 Wind { get; private set; }
-
 	public GlobalVector3SO windDirection;
 
+	[System.Flags]
+	public enum WeatherTypes
+	{
+		None = 0,
+		Rain = 1,
+		Thunder = 2,
+	}
 
 	[Header("Weather")]
 
+	public WeatherTypes enabledWeather;
 	public Gradient fogOverDay;
 	public Vector2 fogDensityRange;
 	[Range(0, 1)] public float rainIntensity;
@@ -123,7 +130,7 @@ public class TimeDayController : MonoBehaviour
 	public float weatherSimulationTileSize = 50;
 	public float weatherSimulationTileOffset = -500;
 	public int weatherSimulationResolution = 16;
-	Texture2D weatherMap;
+	public Texture2D weatherMap;
 
 	[Header("Skybox Colours")]
 	public ColorSet day;
@@ -167,10 +174,12 @@ public class TimeDayController : MonoBehaviour
 		singleton = this;
 	}
 	public static float Square(float a) => a * a;
+
 	[MyBox.ButtonMethod]
 	public void MakeWeatherMap()
 	{
-		weatherMap = new Texture2D(weatherSimulationResolution, weatherSimulationResolution, TextureFormat.RGBAHalf, false, true);
+		weatherMap = new Texture2D(weatherSimulationResolution, weatherSimulationResolution, TextureFormat.RGBA32, false, true);
+		weatherMap.filterMode = FilterMode.Point;
 		weatherMap.wrapMode = TextureWrapMode.Clamp;
 
 
@@ -179,13 +188,13 @@ public class TimeDayController : MonoBehaviour
 		{
 			for (int y = 0; y < weatherMap.height; y++)
 			{
-				float val = 1 - Mathf.Sqrt(Square(y - weatherMap.height / 2f) + Square(x - weatherMap.width / 2f)) * 0.1f;
+				float val = Mathf.Clamp01(1 - Mathf.Sqrt(Square(y - weatherMap.height / 2f) + Square(x - weatherMap.width / 2f)) * 0.1f);
 				val *= x == 0 ? 0f : 1f;
 				val *= y == 0 ? 0f : 1f;
 				val *= x == weatherMap.width - 1 ? 0f : 1f;
 				val *= y == weatherMap.width - 1 ? 0f : 1f;
 
-				weatherMap.SetPixel(x, y, new Color(val, 0, 0));
+				weatherMap.SetPixel(x, y, new Color(val, 0, 0, 1));
 			}
 		}
 
@@ -194,6 +203,12 @@ public class TimeDayController : MonoBehaviour
 
 		RenderSettings.skybox.SetTexture("_WeatherMap", weatherMap);
 	}
+
+	// private void OnGUI()
+	// {
+	// 	GUILayout.Label("Weather Map");
+	// 	GUI.DrawTexture(GUILayoutUtility.GetAspectRect(1), weatherMap);
+	// }
 	// Start is called before the first frame update
 	void Start()
 	{
@@ -311,21 +326,23 @@ public class TimeDayController : MonoBehaviour
 		   );
 		}
 
-		if (rainIntensity != 0)
+		if (enabledWeather.HasFlag(WeatherTypes.Rain))
 		{
-			rain.gameObject.SetActive(true);
-			rain.SetFloat("Drops Per Second Per Area", rainIntensity * maxRainPerSecondPerArea);
+			if (rainIntensity != 0)
+			{
+				rain.gameObject.SetActive(true);
+				rain.SetFloat("Drops Per Second Per Area", rainIntensity * maxRainPerSecondPerArea);
 
-			if (Application.isPlaying)
-
-				if (Time.time > timeForNextLightning)
-				{
-					StartCoroutine(Lightning());
-				}
-		}
-		else
-		{
-			rain.gameObject.SetActive(false);
+				if (Application.isPlaying && enabledWeather.HasFlag(WeatherTypes.Thunder))
+					if (Time.time > timeForNextLightning)
+					{
+						StartCoroutine(Lightning());
+					}
+			}
+			else
+			{
+				rain.gameObject.SetActive(false);
+			}
 		}
 
 
@@ -357,6 +374,7 @@ public class TimeDayController : MonoBehaviour
 		Wind = new Vector3(w.x, 0, w.y);
 		windDirection.value = Wind;
 
+		windDirection.onValueChanged.Invoke(windDirection.value);
 	}
 	[MyBox.ButtonMethod]
 	public void UpdateSunPosition()

@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using Armere.Inventory;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Assertions;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public abstract class AIHumanoid : Character
+public class AIHumanoid : Character
 {
 
 	public enum SightMode { View, Range }
@@ -18,8 +19,9 @@ public abstract class AIHumanoid : Character
 	[System.NonSerialized] public Transform lookingAtTarget;
 	[System.NonSerialized] public Ragdoller ragdoller;
 	[System.NonSerialized] public CharacterMeshController meshController;
+	[System.NonSerialized] public GameObjectInventory inventory;
+
 	public AIStateTemplate defaultState;
-	public MeleeWeaponItemData meleeWeapon;
 
 
 	[Header("Vision")]
@@ -36,7 +38,10 @@ public abstract class AIHumanoid : Character
 	[MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
 	public Transform eye; //Used for vision frustum calculations
 	public LayerMask visionBlockingMask;
+	[System.NonSerialized] public Spawner spawner;
 
+	[System.NonSerialized] new public Collider collider;
+	public override Bounds bounds => collider.bounds;
 
 	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
 	[Header("Weapons")]
@@ -48,10 +53,22 @@ public abstract class AIHumanoid : Character
 		base.Start();
 		agent = GetComponent<NavMeshAgent>();
 		ragdoller = GetComponent<Ragdoller>();
+		inventory = GetComponent<GameObjectInventory>();
+		meshController = GetComponent<CharacterMeshController>();
+		collider = GetComponent<Collider>();
+
+		Assert.IsNotNull(agent);
+		Assert.IsNotNull(ragdoller);
+		Assert.IsNotNull(inventory);
+		Assert.IsNotNull(collider);
 
 		ragdoller.RagdollEnabled = false;
 		ChangeToState(defaultState);
+	}
 
+	public void Spawn(Spawner spawner)
+	{
+		this.spawner = spawner;
 	}
 
 	public float ProportionBoundsVisible(Bounds b)
@@ -107,7 +124,7 @@ public abstract class AIHumanoid : Character
 	}
 
 
-	public IEnumerator GoToPosition(Vector3 position)
+	public IEnumerator GoToPositionRoutine(Vector3 position)
 	{
 		agent.SetDestination(position);
 		yield return new WaitUntil(() => gameObject == null || !agent.pathPending && agent.remainingDistance < agent.stoppingDistance * 2 + 0.01f);
@@ -116,6 +133,37 @@ public abstract class AIHumanoid : Character
 	{
 		agent.SetDestination(position);
 		StartCoroutine(WaitForAgent(onComplete));
+	}
+	public void GoToPosition(Vector3 position)
+	{
+		agent.SetDestination(position);
+	}
+
+
+	public IEnumerator PickupItemRoutine(InteractableItem item, System.Action<bool> onItemPickupEnd = null)
+	{
+		//Put world space item into inventory
+		GoToPosition(item.transform.position);
+		while (agent.pathPending || agent.remainingDistance > agent.stoppingDistance * 2 + 0.01f)
+		{
+			yield return null;
+			if (item == null)
+			{
+				//item destroyed or taken
+				onItemPickupEnd?.Invoke(false); // Fail
+				yield break;
+			}
+		}
+		Debug.Log("reached dest");
+
+		//now here
+		if (inventory.inventory.TryAddItem(item.item, item.count, true))
+		{
+			Destroy(item.gameObject);
+			onItemPickupEnd?.Invoke(true); // success
+		}
+
+		onItemPickupEnd?.Invoke(false); // Fail
 	}
 
 	public AnimationTransitionSet transitionSet;
@@ -136,7 +184,7 @@ public abstract class AIHumanoid : Character
 
 	protected IEnumerator GoToTransform(Transform t)
 	{
-		yield return GoToPosition(t.position);
+		yield return GoToPositionRoutine(t.position);
 		yield return RotateTo(t.rotation, agent.angularSpeed);
 	}
 
@@ -163,6 +211,8 @@ public abstract class AIHumanoid : Character
 
 	public IEnumerator SwingSword()
 	{
+		MeleeWeaponItemData heldWeapon = inventory.SelectedMeleeWeapon;
+
 		agent.isStopped = true; //Stop the player moving
 								//swing the sword
 
@@ -187,8 +237,8 @@ public abstract class AIHumanoid : Character
 
 			if (!trigger.inited)
 			{
-				trigger.Init(meleeWeapon.hitSparkEffect);
-				trigger.weaponItem = meleeWeapon;
+				trigger.Init(heldWeapon.hitSparkEffect);
+				trigger.weaponItem = heldWeapon;
 				trigger.controller = gameObject;
 			}
 		}
@@ -254,7 +304,13 @@ public abstract class AIHumanoid : Character
 		return weaponGraphics.holdables.bow.SetHeld(weapon);
 	}
 
-	public void ChangeToState(AIStateTemplate newState) => ChangeToState(newState.StartState(this));
+	public void ChangeToState(AIStateTemplate newState)
+	{
+		if (newState == null)
+			ChangeToState(defaultState);
+		else
+			ChangeToState(newState.StartState(this));
+	}
 	public void ChangeToState(AIState newState)
 	{
 		currentState?.End();

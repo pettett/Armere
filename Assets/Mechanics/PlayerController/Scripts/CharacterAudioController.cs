@@ -8,12 +8,12 @@ namespace Armere.PlayerController
 	public class CharacterAudioController : MonoBehaviour
 	{
 		AudioSource source;
-		PlayerController c;
+		PlayerWaterObject c;
 
 		private void Start()
 		{
 			source = GetComponent<AudioSource>();
-			c = GetComponent<PlayerController>();
+			c = GetComponent<PlayerWaterObject>();
 
 			GetComponentInChildren<AnimationController>().onFootDown += FootDown;
 		}
@@ -22,10 +22,10 @@ namespace Armere.PlayerController
 
 
 
-			if (c != null && c.currentWater != null)
+			if (c != null && c.currentFluid != null)
 			{
 				//Make foot splash
-				c.currentWater.CreateSplash(c.currentWater.GetSurfacePosition(transform.position), 0.5f);
+				c.currentFluid.CreateSplash(c.currentFluid.GetSurfacePosition(transform.position), 0.5f);
 			}
 		}
 

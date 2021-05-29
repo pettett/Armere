@@ -35,7 +35,7 @@ public class BuoyantSphere : BuoyantBody
 
 			Vector3 volumeWeight = Physics.gravity * volume.density * v;
 
-			rb.drag = Mathf.Lerp(drag, waterDrag, hDiff / (collider.radius * 2));
+			rb.drag = Mathf.Lerp(drag, objectDrag, hDiff / (collider.radius * 2));
 			rb.AddForce(-volumeWeight);
 
 		}

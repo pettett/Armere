@@ -219,6 +219,13 @@ public class AnimationController : MonoBehaviour
 	}
 	private void Update()
 	{
+		if (anim.applyRootMotion)
+		{
+			//Apply to parent
+			transform.parent.position = transform.position;
+			transform.localPosition = Vector3.zero;
+		}
+
 		if (lookAtTarget != null)
 		{
 			localHeadLookTarget.position = lookAtTarget.position;

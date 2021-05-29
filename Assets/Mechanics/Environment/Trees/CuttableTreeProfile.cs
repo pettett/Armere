@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 public class CuttableTreeProfile : ScriptableObject
 {
 	[System.Serializable]
-	public class CuttableCylinderMesh
+	public struct CuttableCylinderMesh
 	{
 		public Mesh mesh;
 		public Triangle[] cutCylinder;
@@ -50,8 +50,19 @@ public class CuttableTreeProfile : ScriptableObject
 	[Header("Texturing")]
 	[Range(0, 1)]
 	public float crossSectionScale = 0.9f;
-	public Material logMaterial;
+	public Material[] logMaterials;
 	public Material crosssectionMaterial;
+
+	public Material[] GetCutTreeMaterials()
+	{
+
+		Material[] cutTreeMaterials = new Material[logMaterials.Length + 1];
+		System.Array.Copy(logMaterials, cutTreeMaterials, logMaterials.Length);
+		cutTreeMaterials[logMaterials.Length] = crosssectionMaterial;
+
+		return cutTreeMaterials;
+	}
+	public int CrosssectionMaterialIndex => logMaterials.Length;
 
 	public float LogMass => Mathf.PI * logEstimateRadius * logEstimateRadius * logEstimateHeight * logDensity;
 
@@ -63,6 +74,21 @@ public class CuttableTreeProfile : ScriptableObject
 		FindCylinderTriangles(logMesh);
 	}
 
+	public ref CuttableCylinderMesh GetMeshForCut(TriangleCutMode cutMode)
+	{
+		switch (cutMode)
+		{
+			case TriangleCutMode.Full:
+				return ref treeMesh;
+			case TriangleCutMode.Top:
+				return ref logMesh;
+			case TriangleCutMode.Base:
+				return ref stumpMesh;
+			default:
+				throw new System.ArgumentException("Invalid cut mode selected");
+		}
+
+	}
 
 	static void SortTrianglesCounterClockwise(ref List<Triangle> triangles, List<Vector3> verts)
 	{

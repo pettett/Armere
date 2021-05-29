@@ -52,11 +52,11 @@ public class WaterController : MonoBehaviour
 	public NativeArray<PathNode> pathPositions;
 	public WaterFlowSource[] sources = new WaterFlowSource[0];
 	public FluidTemplate template;
-	public Collider waterVolume;
+	public Collider fluidVolume;
 
 	public float flowRate = 1f;
 
-	public Bounds bounds => waterVolume.bounds;
+	public Bounds bounds => fluidVolume.bounds;
 	public float density => template.density;
 
 
@@ -103,11 +103,11 @@ public class WaterController : MonoBehaviour
 
 	public Vector3 GetSurfacePosition(Vector3 inWaterPosition)
 	{
-		return waterVolume.ClosestPoint(inWaterPosition + Vector3.up * 10);
+		return fluidVolume.ClosestPoint(inWaterPosition + Vector3.up * 10);
 	}
 	public Vector3 GetCollisionPosition(Vector3 otherCenter)
 	{
-		Vector3 collisionEstimate = waterVolume.ClosestPoint(otherCenter + Vector3.up);
+		Vector3 collisionEstimate = fluidVolume.ClosestPoint(otherCenter + Vector3.up);
 		// collisionEstimate = other.ClosestPoint(collisionEstimate);
 		//  collisionEstimate = waterVolume.ClosestPoint(collisionEstimate);
 		DrawCross(collisionEstimate, 0.1f);

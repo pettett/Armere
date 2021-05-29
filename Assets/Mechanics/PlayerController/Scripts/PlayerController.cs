@@ -12,7 +12,7 @@ using Armere.UI;
 namespace Armere.PlayerController
 {
 	[RequireComponent(typeof(Rigidbody))]
-	public class PlayerController : Character, IWaterObject, IInteractor
+	public class PlayerController : Character, IInteractor
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
@@ -40,8 +40,8 @@ namespace Armere.PlayerController
 
 
 		[Header("Ground detection")]
-		[Range(0, 90)] public float m_maxGroundAngle = 70;
-		[NonSerialized] public float m_maxGroundDot = 0.3f;
+		[Range(0, 90)] public float m_maxGroundSlopeAngle = 70;
+		[NonSerialized] public float m_maxGroundSlopeDot = 0.3f;
 		public bool onGround;
 		[Header("Movement")]
 
@@ -50,7 +50,7 @@ namespace Armere.PlayerController
 		[Range(0, 1)]
 		public float dynamicFriction = 0.2f;
 
-
+		public bool useGravity = true;
 
 		public Vector3 m_gravityDirection { get; private set; } = Vector3.down;
 
@@ -100,8 +100,6 @@ namespace Armere.PlayerController
 				return _entry;
 			}
 		}
-		[NonSerialized] public WaterController currentWater;
-
 
 		[Header("Animations")]
 		public AnimationTransitionSet transitionSet;
@@ -125,9 +123,7 @@ namespace Armere.PlayerController
 		public IntEventChannelSO onChangeSelectedSidearm;
 		public IntEventChannelSO onChangeSelectedBow;
 		public IntEventChannelSO onChangeSelectedAmmo;
-
 		public InputReader inputReader;
-
 		public SaveLoadEventChannel playerSaveLoadChannel;
 
 
@@ -189,8 +185,6 @@ namespace Armere.PlayerController
 			}
 		}
 
-
-
 		public override void Start()
 		{
 			base.Start();
@@ -208,7 +202,7 @@ namespace Armere.PlayerController
 
 			weaponGraphics = GetComponent<WeaponGraphicsController>();
 
-			m_maxGroundDot = Mathf.Cos(m_maxGroundAngle * Mathf.Deg2Rad);
+			m_maxGroundSlopeDot = Mathf.Cos(m_maxGroundSlopeAngle * Mathf.Deg2Rad);
 
 
 
@@ -233,6 +227,15 @@ namespace Armere.PlayerController
 
 		}
 
+
+		public override void OnEnable()
+		{
+			inputReader.changeSelection += OnChangeSelection;
+		}
+		public override void OnDisable()
+		{
+			inputReader.changeSelection -= OnChangeSelection;
+		}
 		public void SetGravityDirection(Vector3 direction)
 		{
 			m_gravityDirection = direction;
@@ -246,15 +249,11 @@ namespace Armere.PlayerController
 			enabled = true;
 		}
 
-		public override void OnEnable()
-		{
-			inputReader.changeSelection += OnChangeSelection;
-		}
-		public override void OnDisable()
-		{
-			inputReader.changeSelection -= OnChangeSelection;
-		}
 
+		public void TriggerFallingDeath()
+		{
+			health.Die();
+		}
 
 
 		public static MovementStateTemplate SymbolToType(char symbol)
@@ -518,7 +517,8 @@ namespace Armere.PlayerController
 
 		private void FixedUpdate()
 		{
-			rb.AddForce(m_gravityDirection * Physics.gravity.magnitude);
+			if (useGravity)
+				rb.AddForce(m_gravityDirection * Physics.gravity.magnitude);
 
 
 			for (int i = 0; i < allStates.Length; i++)
@@ -913,15 +913,7 @@ namespace Armere.PlayerController
 		}
 
 		//show the sound on the minimap?
-		public void OnWaterEnter(WaterController waterController)
-		{
-			currentWater = waterController;
-		}
 
-		public void OnWaterExit(WaterController waterController)
-		{
-			currentWater = null;
-		}
 
 		public override void Knockout(float time)
 		{

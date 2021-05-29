@@ -9,7 +9,18 @@ namespace Armere.PlayerController
 	public class PlayerMover : MonoBehaviour
 	{
 		public float colliderRadius = 1f;
+		public float colliderHeight = 2f;
+		public float colliderCenter = 1f;
 		[MyBox.PositiveValueOnly] public int sensorArrayCount = 5;
+
+		public Vector3 velocity;
+		public Vector3 up = Vector3.up;
+
+		new Rigidbody rigidbody;
+		private void Start()
+		{
+			rigidbody = GetComponent<Rigidbody>();
+		}
 
 		private void FixedUpdate()
 		{
@@ -57,7 +68,10 @@ namespace Armere.PlayerController
 
 			avg /= results.Length;
 
-			transform.position = avg;
+			transform.position = avg + up * colliderCenter;
+
+			rigidbody.velocity = velocity;
+
 
 			// Dispose the buffers
 			results.Dispose();

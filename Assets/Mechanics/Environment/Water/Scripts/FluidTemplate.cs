@@ -14,8 +14,10 @@ public class FluidTemplate : ScriptableObject
 
 
 	public AssetReferenceGameObject splashEffectPrefab;
+	//Default values of water
+	public float density = 1000, viscosity = 1;
 
-	public float density = 1000;
+
 	FluidTypeInstance _sceneInstance;
 	public FluidTypeInstance sceneInstance
 	{

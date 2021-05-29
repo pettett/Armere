@@ -5,20 +5,24 @@ namespace Armere.PlayerController
 {
 
 	/// <summary> Transition to another state
-	public class TransitionState : MovementState<TransitionStateTemplate>
+	public class TransitionState : MovementState
 	{
-		public TransitionState(PlayerController c, TransitionStateTemplate t) : base(c, t)
+		readonly MovementStateTemplate next;
+		public TransitionState(PlayerController c, TransitionStateTemplate t) : base(c)
 		{
+			next = t.nextState;
 			c.StartCoroutine(MoveToNext(t.time));
 			c.rb.velocity = Vector3.zero;
 		}
 
 		public override string StateName => "Transitioning";
 
+		public override char stateSymbol => 'T';
+
 		IEnumerator MoveToNext(float time)
 		{
 			yield return new WaitForSeconds(time);
-			c.ChangeToState(t.nextState);
+			c.ChangeToState(next);
 		}
 	}
 }

@@ -215,26 +215,28 @@ namespace Armere.PlayerController
 
 					if (i.canInteract)
 					{
-						//Somehow this needs to be improved
+						//TODO: This should be done in the Interact(c) phase
 						switch (i)
 						{
 							case AIDialogue converser:
 								c.ChangeToState(t.interactNPC.StartConversation(converser));
 								break;
 							case Climbable climbable:
-								c.ChangeToState(t.interactLadder.Interact(climbable));
+								if (c.WorldUp == climbable.upDirection)
+									c.ChangeToState(t.interactLadder.Interact(climbable));
 								break;
 							case IDialogue dialogue:
 								c.ChangeToState(t.interactDialogue.Interact(dialogue));
 								break;
+							default:
+								if (i.canInteract)
+									(c.currentState as IInteractReceiver)?.OnInteract(i);
+								else
+									ExitInteractable(interactablesInRange[currentLookAt]);
+								break;
 						}
 
-						if (i.canInteract)
-						{
-							(c.currentState as IInteractReceiver)?.OnInteract(i);
-						}
-						else
-							ExitInteractable(interactablesInRange[currentLookAt]);
+
 					}
 					else if (interactablesInRange != null)
 						ExitInteractable(interactablesInRange[currentLookAt]);

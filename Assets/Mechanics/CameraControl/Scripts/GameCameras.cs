@@ -314,7 +314,7 @@ public class GameCameras : MonoBehaviour
 	private void Update()
 	{
 
-		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset, 0), cameraTransform.parent.position, currentCameraLerp);
+		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + cameraCollisionTarget.up * _playerTrackingOffset, cameraTransform.parent.position, currentCameraLerp);
 
 
 		//Stop jittering from desync between high fps and low physics updates
@@ -326,7 +326,7 @@ public class GameCameras : MonoBehaviour
 		Gizmos.color = Color.blue;
 
 		if (cameraCollisionTarget != null)
-			Gizmos.DrawLine(cameraTransform.position, cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset, 0));
+			Gizmos.DrawLine(cameraTransform.position, cameraCollisionTarget.position + cameraCollisionTarget.up * _playerTrackingOffset);
 
 	}
 

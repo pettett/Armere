@@ -5,7 +5,7 @@ using UnityEngine;
 public abstract class BuoyantBody : MonoBehaviour, IWaterObject
 {
 	public float density = 700f;
-	public float waterDrag = 0.9f;
+	public float objectDrag = 0.9f;
 	protected Rigidbody rb;
 	protected WaterController volume;
 	public virtual void OnWaterEnter(WaterController waterController)

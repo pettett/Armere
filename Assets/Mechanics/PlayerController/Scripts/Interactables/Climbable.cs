@@ -33,7 +33,7 @@ public class Climbable : MonoBehaviour, IInteractable
 	public string interactionName => null;
 
 	public Vector3 worldOffset => default;
-
+	public Vector3 upDirection = Vector3.up;
 	public void SyncMesh(MeshFilter mesh)
 	{
 		var vertices = mesh.sharedMesh.vertices.ToList();

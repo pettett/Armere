@@ -138,13 +138,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 	public void UpdateMeshRendererMaterials(MeshRenderer renderer)
 	{
-		if (renderer.materials.Length != 2)
-			renderer.materials = new Material[] { profile.logMaterial, profile.crosssectionMaterial };
-		else
-		{
-			renderer.materials[0] = profile.logMaterial;
-			renderer.materials[1] = profile.crosssectionMaterial;
-		}
+		renderer.materials = profile.GetCutTreeMaterials();
 	}
 
 	public void SplitTree(Vector3 hitterPosition)
@@ -170,7 +164,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		cutLog.trunk = gameObject;
 		GameObject canopy = new GameObject("Canopy", typeof(MeshFilter), typeof(MeshRenderer));
 		canopy.GetComponent<MeshFilter>().sharedMesh = profile.canopyMesh;
-		canopy.GetComponent<MeshRenderer>().material = profile.logMaterial;
+		canopy.GetComponent<MeshRenderer>().materials = profile.logMaterials;
 		canopy.transform.SetParent(log.transform, false);
 		cutLog.canopy = canopy;
 		cutLog.lengthRegion = new Vector2(profile.cutHeight, profile.cutHeight + profile.logEstimateHeight);
@@ -178,7 +172,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		logCollider.convex = true;
 		logCollider.sharedMesh = trunkMesh;
 		logFilter.sharedMesh = trunkMesh;
-		logRenderer.materials = new Material[] { profile.logMaterial, profile.crosssectionMaterial };
+		logRenderer.materials = profile.GetCutTreeMaterials();
 
 		//Calculate the direction the log should fall in
 		Vector3 playerDirection = transform.position - hitterPosition;
@@ -222,7 +216,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		else //Do not cut into the mesh
 		{
 			meshFilter.sharedMesh = profile.treeMesh.mesh;
-			meshRenderer.materials = new Material[] { profile.logMaterial };
+			meshRenderer.materials = profile.logMaterials;
 		}
 		meshCollider.sharedMesh = profile.treeMesh.mesh;
 		Profiler.EndSample();
@@ -324,20 +318,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 	{
 		Profiler.BeginSample("Create Cut Mesh");
 
-		CuttableTreeProfile.CuttableCylinderMesh m = null;
-		switch (cutMode)
-		{
-			case TriangleCutMode.Full:
-				m = profile.treeMesh;
-				break;
-			case TriangleCutMode.Top:
-				m = profile.logMesh;
-				break;
-			case TriangleCutMode.Base:
-				m = profile.stumpMesh;
-				break;
-		}
-
+		ref CuttableTreeProfile.CuttableCylinderMesh m = ref profile.GetMeshForCut(cutMode);
 
 
 		Profiler.BeginSample("Load Mesh");
@@ -487,8 +468,8 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 
 		List<int> cutTriangles = new List<int>();
-		if (m.mesh.subMeshCount > 1)//Some parts of the mesh will be pre - cut
-			m.mesh.GetTriangles(cutTriangles, 1);
+		// if (m.mesh.subMeshCount > 1)//Some parts of the mesh will be pre - cut
+		// 	m.mesh.GetTriangles(cutTriangles, 1);
 
 
 
@@ -588,10 +569,13 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 		//  print($"{meshTriangles.Count} : {triangleCount}");
 
-		cutMesh.subMeshCount = 2;
+		cutMesh.subMeshCount = profile.CrosssectionMaterialIndex + 1;
 
 		cutMesh.SetIndices(newMeshTriangles, MeshTopology.Triangles, 0);
-		cutMesh.SetTriangles(cutTriangles, 1);
+		for (int i = 1; i < m.mesh.subMeshCount; i++)
+			cutMesh.SetTriangles(m.mesh.GetTriangles(i), i);
+
+		cutMesh.SetTriangles(cutTriangles, profile.CrosssectionMaterialIndex);
 
 		newMeshTriangles.Dispose();
 

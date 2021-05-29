@@ -9,6 +9,7 @@ namespace Armere.PlayerController
 		[Header("Climbing")]
 		public float climbingColliderHeight = 1.6f;
 		public float climbingSpeed = 4f;
+		public float meshAnimationSpeed = 40f;
 		public float transitionTime = 4f;
 		[Range(0, 180)] public float maxHeadBodyRotationDifference = 5f;
 		public override MovementState StartState(PlayerController c)

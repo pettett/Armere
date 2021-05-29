@@ -49,18 +49,12 @@ namespace Armere.PlayerController
 		public bool inControl = true;
 		readonly Collider[] crouchTestColliders = new Collider[2];
 
+		readonly PlayerWaterObject playerWaterObject;
 
 		MeleeWeaponItemData meleeWeapon => (MeleeWeaponItemData)c.inventory.melee.items[c.currentMelee].item;
 
 
-
-
-		//Save system does not work with game references, yet.
-		//This should be done but is not super important
-		public HoldableBody holding;
-
 		//WEAPONS
-
 
 		EquipmentSet<bool> equipping = new EquipmentSet<bool>(false, false, false);
 		EquipmentSet<bool> activated = new EquipmentSet<bool>(false, false, false);
@@ -84,6 +78,8 @@ namespace Armere.PlayerController
 			//Init sprint and crouch with correct values
 			isHoldingCrouchKey = c.inputReader.IsCrouchPressed();
 			isHoldingSprintKey = c.inputReader.IsSprintPressed();
+
+			playerWaterObject = c.GetComponent<PlayerWaterObject>();
 		}
 
 		public bool Usable(ItemType t) => t switch
@@ -300,8 +296,7 @@ namespace Armere.PlayerController
 
 		void OnTakeDamage(GameObject attacker, GameObject victim)
 		{
-			Vector3 direction = transform.position - attacker.transform.position;
-			direction.y = 0;
+			Vector3 direction = Vector3.ProjectOnPlane(transform.position - attacker.transform.position, c.WorldDown);
 			float dot = Vector3.Dot(direction, transform.forward);
 
 			if (dot < 0)
@@ -382,8 +377,7 @@ namespace Armere.PlayerController
 		{
 			if (forceForwardHeadingToCamera)
 			{
-				Vector3 forward = Vector3.ProjectOnPlane(cameras.cameraTransform.forward, c.WorldUp);
-				forward.y = 0;
+				Vector3 forward = Vector3.ProjectOnPlane(cameras.cameraTransform.forward, c.WorldDown);
 				transform.forward = forward;
 
 				//Include speed scalar from water
@@ -397,8 +391,7 @@ namespace Armere.PlayerController
 
 				if (cameras.m_UpdatingCameraDirection)
 				{
-					Vector3 dir = cameras.FocusTarget - transform.position;
-					dir.y = 0;
+					Vector3 dir = Vector3.ProjectOnPlane(cameras.FocusTarget - transform.position, c.WorldDown);
 					walkingAngle = Quaternion.LookRotation(dir, c.WorldUp);
 				}
 				else
@@ -503,21 +496,26 @@ namespace Armere.PlayerController
 
 		public Vector3 GetSlopeForce(Vector3 movement, Vector3 normal)
 		{
-			float slope = Mathf.Clamp01(1 - Vector3.Dot(c.WorldUp, normal));
+			float dot = Vector3.Dot(c.WorldUp, normal);
+			if (dot > c.m_maxGroundSlopeDot)
+			{
+				float slope = Mathf.Clamp01(1 - dot);
 
-			Vector3 floorDirection = normal;
-			floorDirection.y = 0;
-
-			float direction = Vector3.Dot(movement, floorDirection);
-
-			//Debug.Log($"{slope}, {direction}");
-
-			//negative direction, going up slope
-			//positive direction, going down slope
+				Vector3 floorDirection = Vector3.ProjectOnPlane(normal, c.WorldDown);
 
 
+				float direction = Vector3.Dot(floorDirection, movement);
 
-			return c.WorldUp * t.slopeForce * -direction * slope;
+				//Debug.Log($"{slope}, {direction}");
+
+				//negative direction, going up slope
+				//positive direction, going down slope
+
+				return c.WorldUp * t.slopeForce * -direction * slope;
+			}
+
+			return Vector3.zero;
+
 		}
 		public override void FixedUpdate()
 		{
@@ -551,6 +549,10 @@ namespace Armere.PlayerController
 				coyote = true;
 				c.StartCoroutine(Coyote(t.coyoteTime));
 			}
+
+
+
+
 
 			c.animationController.enableFeetIK = isGrounded;
 
@@ -618,7 +620,7 @@ namespace Armere.PlayerController
 
 			//Test for water
 
-			if (c.currentWater != null)
+			if (playerWaterObject?.currentFluid != null)
 			{
 				MoveThroughWater(ref speedScalar);
 			}
@@ -672,13 +674,13 @@ namespace Armere.PlayerController
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
-			Vector3 requiredForce = Vector3.ProjectOnPlane(desiredVelocity - c.rb.velocity, c.WorldUp);
+			Vector3 requiredForce = Vector3.ProjectOnPlane(desiredVelocity - c.rb.velocity, c.WorldDown);
 
-			//Add slope boost or reduction
-			requiredForce += GetSlopeForce(requiredForce, groundCP.normal);
 
 			requiredForce = Vector3.ClampMagnitude(requiredForce, t.maxAcceleration * Time.fixedDeltaTime);
 
+			//Add slope boost or reduction
+			requiredForce += GetSlopeForce(requiredForce, groundCP.normal);
 
 
 			//rotate the target based on the ground the player is standing on
@@ -879,7 +881,7 @@ namespace Armere.PlayerController
 			for (int i = 0; i < nearAttackables.nearObjects.Count; i++)
 			{
 				Vector3 direction = nearAttackables.nearObjects[i].transform.TransformPoint(nearAttackables.nearObjects[i].offset) - transform.position - nearAttackables.scanCenterOffset;
-				direction.y = 0;
+				direction = Vector3.ProjectOnPlane(direction, c.WorldDown);
 				direction.Normalize();
 				float dot = Vector3.Dot(transform.forward, direction);
 				if (dot > bestDot)
@@ -1044,7 +1046,7 @@ namespace Armere.PlayerController
 			foreach (ContactPoint cp in allCPs)
 			{
 				//Pointing with some up direction
-				if (Vector3.Dot(c.WorldUp, cp.normal) > c.m_maxGroundDot)
+				if (Vector3.Dot(c.WorldUp, cp.normal) > c.m_maxGroundSlopeDot)
 				{
 					//Get the most upwards pointing contact point
 					//Also get the point that points most in the current direction the player desires to move
@@ -1097,7 +1099,7 @@ namespace Armere.PlayerController
 			// }
 
 			//if the step and the ground are too close, do not count
-			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.m_maxGroundDot)
+			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.m_maxGroundSlopeDot)
 			{
 				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, c.WorldUp)}");
 				return false;

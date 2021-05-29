@@ -13,10 +13,6 @@ namespace Armere.PlayerController
 		Climbable ladder;
 		float height;
 
-
-		const float footLadderHeight = 0.1f;
-		const float handLadderHeight = 1.4f;
-
 		Vector3 currentNormal;
 		Vector3 currentPosition;
 		bool reachedLadderTop = false;
@@ -43,7 +39,7 @@ namespace Armere.PlayerController
 					break;
 				case Climbable.ClimbableSurface.Mesh:
 					//Place player below climb-up threshold
-					var point = ladder.GetClosestPointOnMesh(transform.position + Vector3.down * c.collider.height * 1.1f);
+					var point = ladder.GetClosestPointOnMesh(transform.position + c.WorldDown * c.collider.height * 1.1f);
 					//Debug.Log(point.point);
 					currentPosition = point.point;
 					currentNormal = point.normal;
@@ -140,12 +136,10 @@ namespace Armere.PlayerController
 			transform.position = pos + normal * c.collider.radius;
 			transform.forward = -normal;
 		}
-
+		float Dot(Vector3 a, Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
 		public override void Update()
 		{
 
-			animator.SetFloat(c.transitionSet.vertical.id, inputHorizontal.y * t.climbingSpeed);
-			animator.SetFloat(c.transitionSet.horizontal.id, 0f);
 
 			switch (ladder.surfaceType)
 			{
@@ -163,10 +157,12 @@ namespace Armere.PlayerController
 						c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
 					}
 
+					animator.SetFloat(c.transitionSet.vertical.id, inputHorizontal.y * t.climbingSpeed);
+					animator.SetFloat(c.transitionSet.horizontal.id, 0f);
 					break;
 				case Climbable.ClimbableSurface.Mesh:
 					//Move with input on the mesh
-					Vector3 leftTangent = -Vector3.Cross(Vector3.up, currentNormal).normalized;
+					Vector3 leftTangent = -Vector3.Cross(c.WorldUp, currentNormal).normalized;
 					Vector3 upTangent = Vector3.Cross(leftTangent, currentNormal);
 
 
@@ -175,7 +171,9 @@ namespace Armere.PlayerController
 
 					var point = ladder.GetClosestPointOnMesh(currentPosition);
 
-					bool hittingBase = deltaPos.y < 0 && currentPosition.y - point.point.y <= deltaPos.y * 0.5f;
+					float downwardsMovement = Dot(deltaPos, upTangent);
+					float downwardsDelta = Dot(currentPosition - point.point, upTangent);
+					bool hittingBase = downwardsMovement < 0 && downwardsDelta <= downwardsMovement * 0.5f;
 
 					//print("delta {0}:real {1}: hitting {2}", deltaPos.y, currentPosition.y - point.point.y, hittingBase);
 
@@ -185,11 +183,11 @@ namespace Armere.PlayerController
 						//Not able to go down further, test if we are standing on ground
 						const float upOffset = 0.5f;
 						const float minGroundDistance = 0.2f;
-						Vector3 origin = currentPosition + Vector3.up * upOffset + currentNormal * c.collider.radius;
-						//Debug.DrawLine(origin, origin + Vector3.down * (upOffset + minGroundDistance), Color.blue, Time.deltaTime);
-						if (Physics.Raycast(origin, Vector3.down, upOffset + minGroundDistance, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
+						Vector3 origin = currentPosition + c.WorldUp * upOffset + currentNormal * c.collider.radius;
+						//Debug.DrawLine(origin, origin + c.WorldDown * (upOffset + minGroundDistance), Color.red, 1);
+						if (Physics.Raycast(origin, c.WorldDown, upOffset + minGroundDistance, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
 						{
-							//What we hit is not important as we know it is in range and on ground layer
+							//Hit the ground layer, stand up from climbing
 							c.ChangeToState(c.defaultState);
 						}
 					}
@@ -208,13 +206,10 @@ namespace Armere.PlayerController
 					var headPos = headPoint.point;
 					Vector3 localHeadPos = rotation * (headPos - currentPosition);
 
-					Vector3 flatHeadNormal = headPoint.normal;
-					flatHeadNormal.y = 0;
+					Vector3 flatHeadNormal = Vector3.ProjectOnPlane(headPoint.normal, c.WorldDown);
+					Vector3 flatBodyNormal = Vector3.ProjectOnPlane(point.normal, c.WorldDown);
 
-					Vector3 flatBodyNormal = point.normal;
-					flatBodyNormal.y = 0;
-
-					float bodyHeadRotationDifference = Vector3.SignedAngle(flatHeadNormal, flatBodyNormal, Vector3.up);
+					float bodyHeadRotationDifference = Vector3.SignedAngle(flatHeadNormal, flatBodyNormal, c.WorldUp);
 					if (Mathf.Abs(bodyHeadRotationDifference) > t.maxHeadBodyRotationDifference)
 					{
 						//go back left / right
@@ -231,10 +226,10 @@ namespace Armere.PlayerController
 						//print("Local head pos : {0} distance: {1}", localHeadPos.ToString("F3"), headDistance);
 						//Cannot go this way, go back down or jump up to top surface
 
-						Vector3 origin = currentPosition + Vector3.up * (oldColliderHeight + c.collider.height) - currentNormal * c.collider.radius * 2;
+						Vector3 origin = currentPosition + c.WorldUp * (oldColliderHeight + c.collider.height) - currentNormal * c.collider.radius * 2;
 
-						if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, oldColliderHeight * 1.05f, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
-							hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(Vector3.up, hit.normal) > c.m_maxGroundDot)
+						if (Physics.Raycast(origin, c.WorldDown, out RaycastHit hit, oldColliderHeight * 1.05f, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
+							hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(c.WorldUp, hit.normal) > c.m_maxGroundSlopeDot)
 						{
 							//go to tops
 							reachedLadderTop = true;
@@ -243,7 +238,7 @@ namespace Armere.PlayerController
 						}
 						else
 						{
-							//Go back down
+							//Go back down - no way to stand up on a top surface from here
 							var offset = upTangent * (c.collider.height - headDistance);
 
 							currentPosition -= offset;
@@ -269,7 +264,20 @@ namespace Armere.PlayerController
 						currentNormal = point.normal;
 					}
 
+					Vector3 oldPos = transform.position;
+
 					MovePlayerToMesh(currentPosition, currentNormal);
+
+					deltaPos = transform.position - oldPos;
+
+					//do normal dot product
+					float up = upTangent.x * deltaPos.x + upTangent.y * deltaPos.y + upTangent.z * deltaPos.z;
+					float left = leftTangent.x * deltaPos.x + leftTangent.y * deltaPos.y + leftTangent.z * deltaPos.z;
+
+					//Get movement in the up and left tangent directions
+
+					animator.SetFloat(c.transitionSet.vertical.id, (up + left) * t.meshAnimationSpeed);
+					animator.SetFloat(c.transitionSet.horizontal.id, 0f);
 
 					break;
 			}

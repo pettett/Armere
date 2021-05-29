@@ -7,22 +7,23 @@ using UnityEditor;
 [CustomEditor(typeof(Climbable))]
 public class ClimbableEditor : Editor
 {
-    public override void OnInspectorGUI()
-    {
-        Climbable c = target as Climbable;
-        if (GUILayout.Button("Sync Mesh"))
-        {
-            c.SyncMesh(c.mesh);
-        }
-        base.OnInspectorGUI();
+	public override void OnInspectorGUI()
+	{
+		Climbable c = target as Climbable;
+		if (GUILayout.Button("Sync Mesh"))
+		{
+			c.SyncMesh(c.mesh);
+		}
+		EditorUtility.SetDirty(target);
+		base.OnInspectorGUI();
 
-    }
+	}
 
-    private void OnSceneGUI()
-    {
-        Climbable c = target as Climbable;
-        c.localTestPos = Handles.PositionHandle(c.localTestPos, Quaternion.identity);
-    }
+	private void OnSceneGUI()
+	{
+		Climbable c = target as Climbable;
+		c.localTestPos = Handles.PositionHandle(c.localTestPos, Quaternion.identity);
+	}
 
 
 }

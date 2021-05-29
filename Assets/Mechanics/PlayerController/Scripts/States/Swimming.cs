@@ -11,6 +11,7 @@ namespace Armere.PlayerController
 		readonly GameObject waterTrail;
 		readonly WaterTrailController waterTrailController;
 		readonly RaycastHit[] waterHits = new RaycastHit[2];
+		readonly WaterController fluidController;
 
 		bool onSurface = true;
 		bool stopped = true;
@@ -21,28 +22,27 @@ namespace Armere.PlayerController
 
 		public Swimming(PlayerController c, SwimmingTemplate t) : base(c, t)
 		{
-
-			c.rb.useGravity = false;
+			c.useGravity = false;
 			c.rb.drag = t.waterDrag;
 			c.animationController.enableFeetIK = false;
 			c.animator.SetBool(animatorVariable, true);
 
+			fluidController = c.GetComponent<PlayerWaterObject>().currentFluid;
+
 			waterTrail = MonoBehaviour.Instantiate(t.waterTrailPrefab, transform);
 			//Place slightley above water to avoid z buffer clashing
-			waterTrail.transform.localPosition = Vector3.up * (t.waterSittingDepth + 0.03f);
+			waterTrail.transform.localPosition = c.WorldUp * (t.waterSittingDepth + 0.03f);
 
 			waterTrailController = waterTrail.GetComponent<WaterTrailController>();
 
 			entry = DebugMenu.CreateEntry("Player");
 
 			c.inputReader.crouchEvent += OnCrouch;
-
-
 		}
 
 		public override void End()
 		{
-			c.rb.useGravity = true;
+			c.useGravity = true;
 			c.animator.SetBool(animatorVariable, false);
 
 			DebugMenu.RemoveEntry(entry);
@@ -77,8 +77,6 @@ namespace Armere.PlayerController
 			if (hits == 2)
 			{
 				WaterController w = waterHits[0].collider.GetComponentInParent<WaterController>();
-				Debug.Log(waterHits[0].collider.name);
-
 				if (w != null)
 				{
 					//Hit water and ground
@@ -105,18 +103,18 @@ namespace Armere.PlayerController
 				for (int i = 0; i < c.allCPs.Count; i++)
 				{
 					//If about perpendicular to wall and facing towards the normal
-					if (Mathf.Abs(Vector3.Dot(Vector3.up, c.allCPs[i].normal)) < 0.01f && Vector3.Dot(c.allCPs[i].normal, transform.forward) < -0.8f)
+					if (Mathf.Abs(Vector3.Dot(c.WorldUp, c.allCPs[i].normal)) < 0.01f && Vector3.Dot(c.allCPs[i].normal, transform.forward) < -0.8f)
 					{
 
 						//Colliding against wall
 						//Test to see if we can vault up it into walking
-						Vector3 origin = transform.position + Vector3.up * (t.waterSittingDepth + c.collider.height) - c.allCPs[i].normal * c.collider.radius * 2;
+						Vector3 origin = transform.position + c.WorldUp * (t.waterSittingDepth + c.collider.height) - c.allCPs[i].normal * c.collider.radius * 2;
 
 
 						Debug.DrawLine(origin, origin + Vector3.down * c.collider.height * 1.05f, Color.blue, Time.deltaTime);
 						//Also allow vault into shallow water
 						if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, c.collider.height + c.maxWaterStrideDepth, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
-						 Vector3.Dot(Vector3.up, hit.normal) > c.m_maxGroundDot)
+						 Vector3.Dot(c.WorldUp, hit.normal) > c.m_maxGroundSlopeDot)
 						{
 							//Can move to hit spot
 							transform.position = hit.point;
@@ -178,16 +176,16 @@ namespace Armere.PlayerController
 
 			//Add effects of water flow sources
 
-			for (int i = 0; i < c.currentWater.sources.Length; i++)
+			for (int i = 0; i < fluidController.sources.Length; i++)
 			{
-				Vector3 dir = transform.position - c.currentWater.sources[i].transform.position;
+				Vector3 dir = transform.position - fluidController.sources[i].transform.position;
 				float sqrDist = Vector3.SqrMagnitude(dir);
-				float r = c.currentWater.sources[i].radius;
+				float r = fluidController.sources[i].radius;
 				if (sqrDist < r * r)
 				{
 					float dist = Mathf.Sqrt(sqrDist);
 					dir /= dist;
-					force += dir * c.currentWater.sources[i].strength / dist;
+					force += dir * fluidController.sources[i].strength / dist;
 				}
 			}
 
@@ -195,15 +193,15 @@ namespace Armere.PlayerController
 
 			if (onSurface)
 				//Always force player to be on water surface while simming
-				transform.position = c.currentWater.waterVolume.ClosestPoint(transform.position + Vector3.up * 1000) - Vector3.up * t.waterSittingDepth;
+				transform.position = fluidController.fluidVolume.ClosestPoint(transform.position + c.WorldUp * 1000) + c.WorldDown * t.waterSittingDepth;
 			else
-				transform.position = c.currentWater.waterVolume.ClosestPoint(transform.position);
+				transform.position = fluidController.fluidVolume.ClosestPoint(transform.position);
 
 			//Transition to dive if space pressed
 			if (onSurface && holdingCrouchKey)
 			{
 				ChangeDive(true);
-				transform.position -= Vector3.up * c.maxWaterStrideDepth;
+				transform.position += c.WorldDown * c.maxWaterStrideDepth;
 			}
 		}
 

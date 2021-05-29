@@ -89,7 +89,7 @@ public struct VoxelFlowDragForce : IJobParallelFor
 	[ReadOnly] public NativeArray<float4> voxels;
 	[NativeDisableParallelForRestriction] [ReadOnly] public NativeArray<WaterController.PathNode> riverPath;
 
-	public float waterDrag, voxelMass, flowRate;
+	public float drag, voxelMass, flowRate;
 	public static float InverseLerp(float3 a, float3 b, float3 value)
 	{
 		float3 AB = b - a;
@@ -134,10 +134,12 @@ public struct VoxelFlowDragForce : IJobParallelFor
 		if (submersion > 0)
 		{
 			float3 flow = GetFlowAtPoint(voxels[index].xyz);
-			//Normal damping damps to 0, but we damp to the flow which is desired velocity
-			float3 localDamping = (flow - velocities[index]) * waterDrag * voxelMass * submersion;
 
-			forces[index] += localDamping;
+			float3 relativeVelocity = (flow - velocities[index]);
+			//Normal damping damps to 0, but we damp to the flow which is desired velocity
+			float3 dragForce = relativeVelocity * drag * voxelMass * submersion;
+
+			forces[index] += dragForce;
 		}
 
 	}
@@ -149,14 +151,14 @@ public struct VoxelDragForce : IJobParallelFor
 	[ReadOnly] public NativeArray<float3> velocities;
 	[ReadOnly] public NativeArray<float4> voxels;
 
-	public float waterDrag, voxelMass;
+	public float drag, voxelMass;
 
 	public void Execute(int index)
 	{
 		float submersion = voxels[index].w;
 
 		//Normal damping damps to 0, but we damp to the flow which is desired velocity
-		float3 localDamping = -velocities[index].xyz * waterDrag * voxelMass * submersion;
+		float3 localDamping = -velocities[index].xyz * drag * voxelMass * submersion;
 
 		forces[index] += localDamping;
 
@@ -293,7 +295,7 @@ public class BuoyantBox : BuoyantBody
 				forces = forces,
 				velocities = velocities,
 				voxelMass = voxelMass,
-				waterDrag = waterDrag,
+				drag = objectDrag * volume.template.viscosity,
 				riverPath = volume.pathPositions,
 				flowRate = volume.flowRate
 
@@ -310,7 +312,7 @@ public class BuoyantBox : BuoyantBody
 				forces = forces,
 				velocities = velocities,
 				voxelMass = voxelMass,
-				waterDrag = waterDrag,
+				drag = objectDrag * volume.template.viscosity,
 
 			}.Schedule(voxels.Length, voxelCount.x, dependsOnVelocityFlowVoxels);
 		}

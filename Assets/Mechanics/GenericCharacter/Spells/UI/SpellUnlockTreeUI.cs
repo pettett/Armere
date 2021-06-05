@@ -6,76 +6,65 @@ using UnityEngine.EventSystems;
 public class SpellUnlockTreeUI : MonoBehaviour
 {
 	public SpellUnlockTree tree;
+	public Transform unlockNodesTree;
+	public Transform selectionsBar;
 	public GameObject nodePrefab;
+	public GameObject selectionPrefab;
 
-	public SpellSelectionUI[] selections;
+	public Vector2 positionScale = new Vector2(1, 0.2f);
 
-	public class UINode
-	{
-		public float x;
-		public float y;
-		public SpellAction action;
-
-		public UINode parent;
-
-		public List<UINode> children;
-		public List<UINode> siblings;
-
-	}
-
-	public UINode[] nodes;
+	[System.NonSerialized] public SpellSelectionUI[] selections;
 
 	public void SetSelection(int index, SpellUnlockNodeUI node)
 	{
-		selections[index].SetSelection(node.node);
-		tree.selectedNodes[index] = node.node;
-
+		if (tree.selectedNodes[index].canBeReplaced)
+		{
+			tree.selectedNodes[index].ReplaceActionWith(node.node.action);
+			selections[index].SetSelection(node.node.action);
+		}
 	}
 
 	// Start is called before the first frame update
 	void Start()
 	{
-		nodes = new UINode[tree.nodes.Count];
+		Vector2 topRight = Vector2.negativeInfinity;
+
+		Vector2 bottomLeft = Vector2.positiveInfinity;
+
+		//Instantiate copies of spell nodes and selection boxes to the ui canvas
 		for (int i = 0; i < tree.nodes.Count; i++)
 		{
-			nodes[i] = new UINode();
-			nodes[i].action = (SpellAction)tree.nodes[i];
-			nodes[i].siblings = new List<UINode>();
-			nodes[i].children = new List<UINode>();
+			Vector2 pos = Vector2.Scale(tree.nodes[i].position, positionScale);
 
+			var node = Instantiate(nodePrefab, unlockNodesTree, false);
+			((RectTransform)node.transform).anchorMin = Vector2.zero;
+			((RectTransform)node.transform).anchorMax = Vector2.zero;
+			((RectTransform)node.transform).anchoredPosition = pos;
+
+			topRight = Vector2.Max(topRight, pos);
+			bottomLeft = Vector2.Min(bottomLeft, pos);
+
+			node.GetComponent<SpellUnlockNodeUI>().node.SetAction((SpellAction)tree.nodes[i]);
 		}
-		for (int i = 0; i < nodes.Length; i++)
+
+		bottomLeft -= new Vector2(100, 200);
+		topRight += new Vector2(100, 200);
+
+		foreach (RectTransform child in unlockNodesTree)
 		{
-			if (nodes[i].action.dependency != null)
-			{
-				for (int ii = 0; ii < nodes.Length; ii++)
-				{
-					if (nodes[ii].action == nodes[i].action.dependency)
-					{
-						nodes[ii].children.Add(nodes[i]);
-						nodes[i].parent = nodes[ii];
-						break;
-					}
-				}
-			}
+			child.anchoredPosition -= bottomLeft;
 		}
-		for (int i = 0; i < nodes.Length; i++)
+
+		((RectTransform)unlockNodesTree).sizeDelta = topRight - bottomLeft;
+
+
+		selections = new SpellSelectionUI[tree.selectedNodes.Length];
+		for (int i = 0; i < tree.selectedNodes.Length; i++)
 		{
-			for (int j = 0; j < nodes[i].children.Count; j++)
-			{
-				for (int jj = 0; jj < nodes[i].children.Count; jj++)
-				{
-					if (j != jj)
-					{
-						nodes[i].children[j].siblings.Add(nodes[i].children[jj]);
-					}
-				}
-			}
-		}
-		for (int i = 0; i < selections.Length; i++)
-		{
+			selections[i] = Instantiate(selectionPrefab, selectionsBar).GetComponent<SpellSelectionUI>();
+			selections[i].action.SetAction(tree.selectedNodes[i].spell);
 			selections[i].index = i;
-			selections[i].SetSelection(tree.selectedNodes[i]);
+			selections[i].SetSelection(tree.selectedNodes[i].spell);
 		}
 	}
 

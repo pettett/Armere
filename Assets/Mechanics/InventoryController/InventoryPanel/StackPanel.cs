@@ -39,11 +39,11 @@ namespace Armere.Inventory
 			items = new List<StackT>(limit > 20 ? 20 : (int)limit);
 		}
 
-		public override uint ItemCount(ItemName item)
+		public override uint ItemCount(ItemData item)
 		{
 			for (int i = 0; i < items.Count; i++)
 			{
-				if (items[i].item.itemName == item)
+				if (items[i].item == item)
 					return items[i].count;
 
 			}
@@ -97,12 +97,11 @@ namespace Armere.Inventory
 			else return false;
 		}
 
-		public override bool TakeItem(ItemName item, uint count)
+		public override bool TakeItem(ItemData item, uint count)
 		{
-
 			for (int i = 0; i < items.Count; i++)
 			{
-				if (items[i].item.itemName == item && items[i].count >= count)
+				if (items[i].item == item && items[i].count >= count)
 				{
 					items[i].count -= count;
 					if (items[i].count == 0)

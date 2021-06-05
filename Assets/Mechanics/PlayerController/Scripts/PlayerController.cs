@@ -452,10 +452,11 @@ namespace Armere.PlayerController
 				//Consume the potion
 				PotionItemUnique pot = inventory.potions.items[itemIndex];
 
-				if (pot.item.itemName == ItemName.HealingPotion)
+				if (((PotionItemData)pot.item).effect == PotionEffect.Health)
 				{
 					health.SetHealth(health.health + pot.potency);
 				}
+
 				inventory.potions.TakeItem(itemIndex, 1);
 
 			}

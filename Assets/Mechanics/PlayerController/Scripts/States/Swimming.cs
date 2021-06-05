@@ -17,13 +17,16 @@ namespace Armere.PlayerController
 		bool stopped = true;
 		const string animatorVariable = "IsSwimming";
 		bool holdingCrouchKey;
-
+		float oldDrag;
 		System.Text.StringBuilder entry;
 
 		public Swimming(PlayerController c, SwimmingTemplate t) : base(c, t)
 		{
 			c.useGravity = false;
-			c.rb.drag = t.waterDrag;
+			(oldDrag, c.rb.drag) = (c.rb.drag, t.waterDrag);
+
+			c.rb.velocity = Vector3.ProjectOnPlane(c.rb.velocity, c.WorldDown);
+
 			c.animationController.enableFeetIK = false;
 			c.animator.SetBool(animatorVariable, true);
 
@@ -51,6 +54,8 @@ namespace Armere.PlayerController
 			waterTrailController.DestroyOnFinish();
 
 			c.inputReader.crouchEvent -= OnCrouch;
+
+			c.rb.drag = oldDrag;
 
 		}
 
@@ -139,17 +144,13 @@ namespace Armere.PlayerController
 
 			if (onSurface)
 			{
-				playerDirection = GameCameras.s.TransformInput(c.inputReader.horizontalMovement);
-				playerDirection.y = 0;
+				playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
 				playerDirection *= t.waterMovementForce * Time.fixedDeltaTime;
 			}
 			else
 			{
-				playerDirection = GameCameras.s.cameraTransform.TransformDirection(
-					new Vector3(c.inputReader.horizontalMovement.x, 0, c.inputReader.horizontalMovement.y));
+				playerDirection = PlayerInputUtility.WorldSpaceFullInput(c);
 				//Move up seperatley to camera
-				playerDirection.y += c.inputReader.verticalMovement;
-				playerDirection.Normalize();
 
 				playerDirection *= t.waterMovementForce * Time.fixedDeltaTime;
 			}

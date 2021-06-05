@@ -42,6 +42,7 @@ public abstract class Spawner : MonoBehaviour
 		}
 	}
 
+
 #if UNITY_EDITOR
 	protected void DrawSpawnedItem(AssetReferenceGameObject go)
 	{

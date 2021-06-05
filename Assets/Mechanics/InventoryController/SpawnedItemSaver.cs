@@ -72,7 +72,7 @@ namespace Armere.Inventory
 
 				if (db[item] is PhysicsItemData data)
 				{
-					ItemSpawner.SpawnItem(data, pos, rot);
+					//ItemSpawner.SpawnItem(data, pos, rot);
 				}
 			}
 

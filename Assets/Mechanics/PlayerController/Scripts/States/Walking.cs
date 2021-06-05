@@ -322,16 +322,16 @@ namespace Armere.PlayerController
 			StartSpell(new PlayerHoldableInteraction(c, this, body));
 		}
 
+		readonly RaycastHit[] waterHits = new RaycastHit[2];
 		#region Movement
 		public void MoveThroughWater(ref float speedScalar)
 		{
 			//Find depth of water
 			//Buffer of two: One for water surface, one for water base
-			RaycastHit[] waterHits = new RaycastHit[2];
 			float heightOffset = 2;
-
+			//Cannot raycast up as raycasts do not hit back surface of shapes
 			int hits = Physics.RaycastNonAlloc(
-				transform.position + new Vector3(0, heightOffset, 0),
+				transform.position + c.WorldUp * heightOffset,
 				c.WorldDown, waterHits,
 				c.maxWaterStrideDepth + heightOffset,
 				c.m_groundLayerMask | c.m_waterLayerMask,
@@ -339,8 +339,8 @@ namespace Armere.PlayerController
 
 			if (hits == 2)
 			{
-				WaterController w = waterHits[1].collider.GetComponentInParent<WaterController>();
-				if (w != null)
+				Debug.Log("two hits");
+				if (waterHits[1].collider.GetComponentInParent<WaterController>() != null)
 				{
 					//Hit water and ground
 					float depth = waterHits[0].distance - waterHits[1].distance;
@@ -349,7 +349,7 @@ namespace Armere.PlayerController
 					if (scaledDepth > 1)
 					{
 						//Start swimming
-						Debug.Log("Too deep to walk");
+						Debug.Log("over max depth, swimming");
 						c.ChangeToState(t.swimming);
 					}
 					else if (scaledDepth >= 0)
@@ -361,13 +361,18 @@ namespace Armere.PlayerController
 					}
 
 				}
+				else
+				{
+
+					c.ChangeToState(t.swimming);
+				}
 
 			}
-			else if (hits == 1)
+			else if (hits == 1 && waterHits[0].collider.GetComponentInParent<WaterController>() != null)
 			{
 
 				//Start swimming
-				Debug.Log("Too deep to walk");
+				Debug.Log("only one hit, swimming");
 				c.ChangeToState(t.swimming);
 			}
 		}
@@ -538,7 +543,7 @@ namespace Armere.PlayerController
 
 			//Debug.Log($"Average turning {averageTurning}");
 
-			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c, c.WorldUp);
+			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
 
 			bool wasGrounded = isGrounded;
 
@@ -696,7 +701,7 @@ namespace Armere.PlayerController
 			if (DebugMenu.menuEnabled)
 			{
 				entry.Clear();
-				entry.AppendFormat("Velocity: {0:0.0}, Contact Point Count {1}, On Ground {2}", c.rb.velocity.magnitude, c.allCPs.Count, isGrounded);
+				entry.AppendLine($"Velocity: {c.rb.velocity.magnitude:0.0}, Contact Point Count: {c.allCPs.Count}, On Ground: {isGrounded}, Sprinting: {isSprinting}, Crouching: {isCrouching}");
 			}
 		}
 		#endregion
@@ -712,15 +717,14 @@ namespace Armere.PlayerController
 		}
 
 
-
-
-
 		public void OnSelectSpell(InputActionPhase phase, int spell)
 		{
 			if (phase != InputActionPhase.Performed) return;
 			//Create a spell casting instance
-			if (spell < c.spellTree.selectedNodes.Length && spell >= 0 && c.spellTree.selectedNodes[spell] != null)
-				StartSpell(c.spellTree.selectedNodes[spell].BeginCast(c));
+			if (spell < c.spellTree.selectedNodes.Length && spell >= 0 && c.spellTree.selectedNodes[spell].canBeUsed)
+			{
+				StartSpell(c.spellTree.selectedNodes[spell].Use().BeginCast(c));
+			}
 		}
 		public void StartSpell(Spell spell)
 		{

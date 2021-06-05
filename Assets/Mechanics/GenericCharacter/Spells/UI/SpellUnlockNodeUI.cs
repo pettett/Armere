@@ -6,21 +6,25 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using Armere.UI;
+[RequireComponent(typeof(SpellActionUI))]
 public class SpellUnlockNodeUI : Selectable, IDragHandler, IEndDragHandler
 {
-	public SpellAction node;
+	[HideInInspector] public SpellActionUI node;
 	public TextMeshProUGUI textMesh;
-	public Image thumbnail;
 	SpellUnlockTreeUI controller;
 	public static SpellUnlockNodeUI dragging;
 
 	public static bool isDragging => dragging != null;
 
-
+	public void Init(SpellAction action)
+	{
+		node.action = action;
+		textMesh.SetText(node.action.name);
+		node.thumbnail.sprite = node.action.sprite;
+	}
 	protected override void Start()
 	{
-		textMesh.SetText(node.name);
-		thumbnail.sprite = node.sprite;
+		node = GetComponent<SpellActionUI>();
 		controller = GetComponentInParent<SpellUnlockTreeUI>();
 	}
 	public override void OnPointerDown(PointerEventData eventData)
@@ -86,10 +90,10 @@ public class SpellUnlockNodeUI : Selectable, IDragHandler, IEndDragHandler
 	public void AssignValue(InputActionPhase phase, int index)
 	{
 
-		if (phase == InputActionPhase.Performed && controller.selections[index].selected != node)
+		if (phase == InputActionPhase.Performed && controller.selections[index].selected != node.action)
 		{
 			UIController.singleton.autoDragger.AutoDrag(
-				node.sprite, transform.position, controller.selections[index].transform.position, 1000);
+				node.action.sprite, transform.position, controller.selections[index].transform.position, 1000);
 			controller.SetSelection(index, this);
 		}
 	}
@@ -98,11 +102,11 @@ public class SpellUnlockNodeUI : Selectable, IDragHandler, IEndDragHandler
 	void BeginDragging()
 	{
 		dragging = this;
-		Armere.UI.TooltipUI.current.OnCursorEnterItemUI(node.sprite);
+		Armere.UI.TooltipUI.current.OnCursorEnterItemUI(node.action.sprite);
 	}
 	void ActivateNormalTooptip()
 	{
-		TooltipUI.current.BeginCursorTooltip(node.title, node.description);
+		TooltipUI.current.BeginCursorTooltip(node.action.title, node.action.description);
 	}
 	public void EndDrag(PointerEventData eventData)
 	{

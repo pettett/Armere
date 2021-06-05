@@ -10,7 +10,10 @@ namespace Armere.Inventory
 	[AllowItemTypes(ItemType.Common, ItemType.Quest, ItemType.Currency, ItemType.Potion)]
 	public class ItemData : ScriptableObject
 	{
-		public ItemName itemName;
+		[Header("Item Data")]
+		[System.Obsolete] public ItemName itemName;
+
+		[MyBox.ReadOnly, Tooltip("To update itemID, use itemDatabase window")] public string itemID = "";
 		public ItemType type;
 		[UnityEngine.Serialization.FormerlySerializedAs("displaySprite")] public AssetReferenceSprite thumbnail;
 		public string displayName = "New Item";
@@ -22,11 +25,11 @@ namespace Armere.Inventory
 		[Header("Potions")]
 		public bool potionIngredient;
 		[MyBox.ConditionalField("potionIngredient")]
-		public PotionItemName potionWorksFrom;
+		public ItemData potionWorksFrom;
 		[MyBox.ConditionalField("potionIngredient")]
 		public bool changePotionType;
 		[MyBox.ConditionalField("potionIngredient")]
-		public PotionItemName newPotionType;
+		public PotionItemData newPotionType;
 
 		[Tooltip("If changing potion type, this will be the base duraction"), MyBox.ConditionalField("potionIngredient")]
 		public float increasedDuration;
@@ -36,7 +39,5 @@ namespace Armere.Inventory
 		[Header("Interaction")]
 		[Tooltip("Should be none for most normal items")]
 		public ItemInteractionCommands disabledCommands;
-
-
 	}
 }

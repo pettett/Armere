@@ -336,7 +336,7 @@ namespace Armere.Inventory
 		}
 
 
-		public bool TakeItem(ItemName n, uint count = 1) => GetPanelFor(db[n].type).TakeItem(n, count);
+		public bool TakeItem(ItemData item, uint count = 1) => GetPanelFor(item.type).TakeItem(item, count);
 
 
 		public void ReplaceItem(int index, ItemData item)

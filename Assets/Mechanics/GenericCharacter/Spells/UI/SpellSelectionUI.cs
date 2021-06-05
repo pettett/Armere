@@ -4,16 +4,17 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+[RequireComponent(typeof(SpellActionUI))]
 public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
-	Image image;
 	[System.NonSerialized] public int index;
 
 	[System.NonSerialized] public SpellAction selected;
+	[System.NonSerialized] public SpellActionUI action;
 
 	private void Awake()
 	{
-		image = GetComponentInChildren<Image>();
+		action = GetComponent<SpellActionUI>();
 	}
 
 	public void OnDrop(PointerEventData eventData)
@@ -22,7 +23,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 		GetComponentInParent<SpellUnlockTreeUI>().SetSelection(index, SpellUnlockNodeUI.dragging);
 
 		Armere.UI.TooltipUI.current.EndCursorTooltip();
-		LeanTween.scale(image.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
+		LeanTween.scale(action.thumbnail.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
 
 		SpellUnlockNodeUI.dragging = null;
 	}
@@ -33,7 +34,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 		{
 
 			//TODO: Check if unlocked
-			image.sprite = selection.sprite;
+			action.thumbnail.sprite = selection.sprite;
 
 			selected = selection;
 
@@ -44,7 +45,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 	{
 		if (SpellUnlockNodeUI.dragging != null && selected != SpellUnlockNodeUI.dragging.node)
 		{
-			LeanTween.scale(image.gameObject, Vector3.one * 1.1f, 0.05f).setIgnoreTimeScale(true);
+			LeanTween.scale(action.thumbnail.gameObject, Vector3.one * 1.1f, 0.05f).setIgnoreTimeScale(true);
 		}
 	}
 
@@ -53,7 +54,7 @@ public class SpellSelectionUI : MonoBehaviour, IDropHandler, IPointerEnterHandle
 		if (SpellUnlockNodeUI.dragging != null && selected != SpellUnlockNodeUI.dragging.node)
 		{
 
-			LeanTween.scale(image.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
+			LeanTween.scale(action.thumbnail.gameObject, Vector3.one, 0.05f).setIgnoreTimeScale(true);
 		}
 	}
 }

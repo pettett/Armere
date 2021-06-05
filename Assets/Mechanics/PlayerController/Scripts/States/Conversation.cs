@@ -439,15 +439,16 @@ namespace Armere.PlayerController
 
 		void GiveItems(string[] arg, System.Action onComplete)
 		{
-			ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), arg[0]);
-			uint count;
-			if (arg.Length == 1)
-				count = 1;
-			else
-				count = uint.Parse(arg[1]);
+			// ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), arg[0]);
+			// uint count;
+			// if (arg.Length == 1)
+			// 	count = 1;
+			// else
+			// 	count = uint.Parse(arg[1]);
 
 			//give [count] items of type [item]
-			NewItemPrompt.singleton.ShowPrompt(c.inventory.db[item], count, onComplete);
+			//TODO: fix
+			//NewItemPrompt.singleton.ShowPrompt(c.inventory.db[item], count, onComplete);
 		}
 
 

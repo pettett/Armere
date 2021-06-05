@@ -84,12 +84,12 @@ namespace Armere.Inventory
 
 
 
-		public override uint ItemCount(ItemName item)
+		public override uint ItemCount(ItemData item)
 		{
 			uint count = 0;
 			for (int i = 0; i < stackCount; i++)
 			{
-				if (items[i].item.itemName == item)
+				if (items[i].item == item)
 					count++;
 			}
 			return count;
@@ -102,11 +102,11 @@ namespace Armere.Inventory
 				return 0u;
 
 		}
-		public override bool TakeItem(ItemName name, uint count)
+		public override bool TakeItem(ItemData item, uint count)
 		{
 			for (int i = 0; i < stackCount; i++)
 			{
-				if (items[i].item.itemName == name)
+				if (items[i].item == item)
 				{
 					items.RemoveAt(i);
 					OnPanelUpdated();

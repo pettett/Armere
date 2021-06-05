@@ -73,6 +73,7 @@ public abstract class Spell
 
 public abstract class SpellAction : Node
 {
+	public float rechargeTime = 1f;
 	[Header("Prompts")]
 	public InputReader input;
 	[Header("Info")]

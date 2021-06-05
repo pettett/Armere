@@ -34,10 +34,10 @@ namespace Armere.Inventory
 		{
 			throw new NotImplementedException();
 		}
-		public override uint ItemCount(ItemName item)
+		public override uint ItemCount(ItemData data)
 		{
-			if (db[item].sellable)
-				return currency % db[item].sellValue;
+			if (data.sellable)
+				return currency % data.sellValue;
 			else
 				return 0;
 		}
@@ -45,9 +45,9 @@ namespace Armere.Inventory
 		{
 			return currency;
 		}
-		public override bool TakeItem(ItemName name, uint count)
+		public override bool TakeItem(ItemData data, uint count)
 		{
-			return TakeValue(db[name].sellValue * count);
+			return TakeValue(data.sellValue * count);
 		}
 		public bool TakeValue(uint value)
 		{

@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using System.IO;
 using System.Linq;
 using UnityEngine.Profiling;
+using UnityEngine.AddressableAssets;
 
 public readonly struct Version
 {
@@ -73,6 +74,9 @@ public readonly struct GameDataReader
 	public readonly string ReadString() => reader.ReadString();
 	public readonly char ReadChar() => reader.ReadChar();
 	public readonly long ReadLong() => reader.ReadInt64();
+	public readonly ulong ReadULong() => reader.ReadUInt64();
+	//Asset reference is based of 32 digit hex guid string
+	public readonly AssetReference ReadAssetReference() => new AssetReference($"{ReadULong():X16}{ReadULong():X16}");
 
 	public readonly System.Guid ReadGuid() => new System.Guid(ReadBytes(16));
 	public readonly byte[] ReadBytes(int count) => reader.ReadBytes(count);
@@ -132,6 +136,11 @@ public readonly struct GameDataWriter
 		writer.Write(value.y);
 	}
 
+	public readonly void WriteAssetRef(AssetReference value)
+	{
+		writer.Write(ulong.Parse(value.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber));
+		writer.Write(ulong.Parse(value.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber));
+	}
 
 
 	public readonly void Write(string value) => writer.Write(value);

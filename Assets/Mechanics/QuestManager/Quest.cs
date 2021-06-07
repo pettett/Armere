@@ -1,4 +1,6 @@
+using Armere.Inventory;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 
 [CreateAssetMenu(fileName = "Quest", menuName = "Game/Quests/Quest", order = 0)]
@@ -39,7 +41,7 @@ public class Quest : ScriptableObject
 		[SerializeField] public string description;
 		public QuestType type;
 		[MyBox.ConditionalField("type", false, QuestType.Deliver, QuestType.TalkTo)] public string receiver;
-		[MyBox.ConditionalField("type", false, QuestType.Deliver, QuestType.Acquire)] public ItemName item;
+		[MyBox.ConditionalField("type", false, QuestType.Deliver, QuestType.Acquire)] public AssetReferenceT<ItemData> item;
 		[MyBox.ConditionalField("type", false, QuestType.Deliver, QuestType.Acquire)] public uint count = 1; //Cannot take negative amount of items
 		[MyBox.ConditionalField("type", false, QuestType.Deliver, QuestType.Damage)] public float damage = 20;
 		[MyBox.ConditionalField("type", false, QuestType.Complete)] public string quest;

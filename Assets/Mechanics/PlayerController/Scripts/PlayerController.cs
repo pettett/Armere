@@ -328,24 +328,24 @@ namespace Armere.PlayerController
 		}
 		public void SaveBin(in GameDataWriter writer)
 		{
-			writer.Write(transform.position);
-			writer.Write(transform.rotation);
+			writer.WritePrimitive(transform.position);
+			writer.WritePrimitive(transform.rotation);
 
-			writer.Write(armourSelections[0]);
-			writer.Write(armourSelections[1]);
-			writer.Write(armourSelections[2]);
+			writer.WritePrimitive(armourSelections[0]);
+			writer.WritePrimitive(armourSelections[1]);
+			writer.WritePrimitive(armourSelections[2]);
 
-			writer.Write(itemSelections[ItemType.Melee]);
-			writer.Write(itemSelections[ItemType.SideArm]);
-			writer.Write(itemSelections[ItemType.Bow]);
-			writer.Write(itemSelections[ItemType.Ammo]);
+			writer.WritePrimitive(itemSelections[ItemType.Melee]);
+			writer.WritePrimitive(itemSelections[ItemType.SideArm]);
+			writer.WritePrimitive(itemSelections[ItemType.Bow]);
+			writer.WritePrimitive(itemSelections[ItemType.Ammo]);
 
-			writer.Write(weaponGraphics.holdables.melee.sheathed);
-			writer.Write(weaponGraphics.holdables.sidearm.sheathed);
-			writer.Write(weaponGraphics.holdables.bow.sheathed);
+			writer.WritePrimitive(weaponGraphics.holdables.melee.sheathed);
+			writer.WritePrimitive(weaponGraphics.holdables.sidearm.sheathed);
+			writer.WritePrimitive(weaponGraphics.holdables.bow.sheathed);
 
 			//Save the current state
-			writer.Write(currentState.stateSymbol);
+			writer.WritePrimitive(currentState.stateSymbol);
 			//currentState.SaveBin(writer);
 		}
 

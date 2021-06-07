@@ -5,8 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Yarn.Unity;
 using Yarn;
-
-
+using UnityEngine.Assertions;
 
 namespace Armere.Inventory
 {
@@ -23,9 +22,15 @@ namespace Armere.Inventory
 	}
 
 
-	public class ItemStackBase : IWriteableToBinary
+	public class ItemStackBase : IBinaryVariableAsyncSerializer<ItemStackBase>
 	{
 		public readonly ItemData item;
+
+		public ItemStackBase()
+		{
+			item = null;//Bad
+		}
+
 		public ItemStackBase(ItemData item)
 		{
 			if (item == null)
@@ -38,44 +43,67 @@ namespace Armere.Inventory
 
 		public string description => this switch
 		{
-			PotionItemUnique pot => pot.item.itemName switch
+			PotionItemUnique pot => ((PotionItemData)pot.item).effect switch
 			{
-				ItemName.HealingPotion => string.Concat(Enumerable.Repeat('♥', Mathf.RoundToInt(pot.potency))),
+				PotionEffect.Health => string.Concat(Enumerable.Repeat('♥', Mathf.RoundToInt(pot.potency))),
 				_ => string.Empty
 			},
 			_ => string.Empty
 		};
 
-
-		public virtual void Write(in GameDataWriter writer)
+		public void Read(in GameDataReader reader, System.Action<ItemStackBase> onDone)
 		{
-			writer.Write((int)item.itemName);
+			reader.ReadAsync<ItemDataAsyncSerializer>(item =>
+			{
+				onDone?.Invoke(new ItemStackBase(item));
+			});
 		}
 
-
+		public void Write(in GameDataWriter writer)
+		{
+			writer.Write(item);
+		}
 	}
-	public class ItemStackT<ItemDataT> : ItemStackBase where ItemDataT : ItemData
+	public class ItemStackT<ItemDataT> : ItemStackBase, IBinaryVariableAsyncSerializer<ItemStackT<ItemDataT>> where ItemDataT : ItemData
 	{
+		public ItemStackT()
+		{
+		}
+
 		public ItemStackT(ItemDataT item) : base(item) { }
 		public ItemDataT itemData
 		{
 			get => (ItemDataT)item;
 		}
+
+		public void Read(in GameDataReader reader, System.Action<ItemStackT<ItemDataT>> onDone)
+		{
+			ItemDatabase.ReadItemData(reader, item =>
+			{
+				onDone?.Invoke(new ItemStackT<ItemDataT>((ItemDataT)item));
+			});
+		}
+
 	}
 	[CreateAssetMenu(menuName = "Game/Inventory")]
-	public class InventoryController : SaveableSO, IVariableAddon
+	public class InventoryController : LoadableAsyncSO, IVariableAddon
 	{
 
-		public struct ItemHistroy : IWriteableToBinary
+		public struct ItemHistroy : IBinaryVariableSerializer<ItemHistroy>
 		{
 			public bool hasPickedUp;
 
+			public ItemHistroy Read(in GameDataReader reader)
+			{
+				hasPickedUp = reader.ReadBool();
+				return this;
+			}
 			public void Write(in GameDataWriter writer)
 			{
-				writer.Write(hasPickedUp);
+				writer.WritePrimitive(hasPickedUp);
 			}
 		}
-		ItemHistroy[] itemsHistroy;
+		Dictionary<(ulong, ulong), ItemHistroy> itemsHistroy;
 
 		public ItemAddedEventChannelSO onItemAdded;
 
@@ -99,66 +127,27 @@ namespace Armere.Inventory
 		{
 			get
 			{
-				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), name);
-				return new Value(ItemCount(item));
+				return new Value(ItemCount(name));
 			}
 			set => throw new System.NotImplementedException("Cannot set inventory values");
 		}
 
 
-		public InventoryPanel GetPanelFor(ItemType t)
-		{
-			switch (t)
-			{
-				case ItemType.Common: return common;
-				case ItemType.Quest: return quest;
-				case ItemType.Melee: return melee;
-				case ItemType.SideArm: return sideArm;
-				case ItemType.Ammo: return ammo;
-				case ItemType.Bow: return bow;
-				case ItemType.Currency: return currency;
-				case ItemType.Armour: return armour;
-				case ItemType.Potion: return potions;
-				default: return null;
-			}
-		}
-
-		public delegate T ReaderGenerator<T>(GameDataReader reader);
-
-
-		public List<T> ReadList<T>(GameDataReader reader, ReaderGenerator<T> generator)
-		{
-			int count = reader.ReadInt();
-			var list = new List<T>(count);
-			for (int i = 0; i < count; i++)
-			{
-				list.Add(generator(reader));
-			}
-			return list;
-		}
-
-
-
-		public ItemStack ItemStackReader(GameDataReader reader) => new ItemStack(db[(ItemName)reader.ReadInt()], reader.ReadUInt());
-		public ItemStackBase ItemStackBaseReader(GameDataReader reader) => new ItemStackBase(db[(ItemName)reader.ReadInt()]);
-		public ItemStackT<ItemT> ItemStackTReader<ItemT>(GameDataReader reader) where ItemT : ItemData => new ItemStackT<ItemT>((ItemT)db[(ItemName)reader.ReadInt()]);
-
-		public PotionItemUnique PotionItemUniqueReader(GameDataReader reader) =>
-			new PotionItemUnique(db[(ItemName)reader.ReadInt()], reader.ReadFloat(), reader.ReadFloat());
+		public InventoryPanel GetPanelFor(ItemType t) => panels[(int)t];
 
 		//Save Order:
 		/*
-        common - List
-        quest - List
-        melee - List
-        sideArm - List
-        bow - List
-        armour - List
-        potions - List
-        ammo - List
+		common - List
+		quest - List
+		melee - List
+		sideArm - List
+		bow - List
+		armour - List
+		potions - List
+		ammo - List
 
-        currency - Uint
-        */
+		currency - Uint
+		*/
 
 		public void CreatePanels()
 		{
@@ -170,56 +159,63 @@ namespace Armere.Inventory
 			armour = new UniquesPanel<ItemStackBase>("Armour", int.MaxValue, ItemType.Armour, ItemInteractionCommands.Equip);
 			potions = new UniquesPanel<PotionItemUnique>("Potions", int.MaxValue, ItemType.Potion, ItemInteractionCommands.Consume);
 			ammo = new StackPanel<ItemStack>("Ammo", int.MaxValue, ItemType.Ammo, ItemInteractionCommands.Equip);
-			currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency, db);
+			currency = new ValuePanel("Currency", int.MaxValue, ItemType.Currency);
+
+			panels[(int)ItemType.Common] = common;
+			panels[(int)ItemType.Quest] = quest;
+			panels[(int)ItemType.Melee] = melee;
+			panels[(int)ItemType.SideArm] = sideArm;
+			panels[(int)ItemType.Bow] = bow;
+			panels[(int)ItemType.Armour] = armour;
+			panels[(int)ItemType.Potion] = potions;
+			panels[(int)ItemType.Ammo] = ammo;
+			panels[(int)ItemType.Currency] = currency;
 		}
 		public override void LoadBlank()
 		{
-			itemsHistroy = new ItemHistroy[db.itemData.Length];
+			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
 		}
 		public override void LoadBin(in GameDataReader reader)
 		{
-			//Debug.Log("Loading inventory...");
-
-
-			common.items = ReadList<ItemStack>(reader, ItemStackReader);
-			quest.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
-			melee.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
-			sideArm.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
-			bow.items = ReadList<ItemStackT<BowItemData>>(reader, ItemStackTReader<BowItemData>);
-			armour.items = ReadList<ItemStackBase>(reader, ItemStackBaseReader);
-
-			potions.items = ReadList<PotionItemUnique>(reader, PotionItemUniqueReader);
-			ammo.items = ReadList<ItemStack>(reader, ItemStackReader);
-
-			currency.currency = reader.ReadUInt();
-
-			itemsHistroy = new ItemHistroy[db.itemData.Length];
-
-			if (reader.saveVersion > new Version(0, 0, 2))
-			{
-				int saved = reader.ReadInt();
-				for (int i = 0; i < saved; i++)
-				{
-					itemsHistroy[i].hasPickedUp = reader.ReadBool();
-				}
-			}
-
-			//Debug.Log($"Loaded inventory: {currency.currency}");
+			//Nothing to load in sync
 		}
+
+		public override IEnumerator LoadBinAsync(GameDataReader reader)
+		{
+			uint loaded = 0;
+			void OnLoaded<T>(T inp) where T : InventoryPanel
+			{
+				loaded++;
+			}
+			Debug.Log("Loading inv");
+
+			reader.ReadAsyncInto(common, OnLoaded);
+			reader.ReadAsyncInto(quest, OnLoaded);
+			reader.ReadAsyncInto(melee, OnLoaded);
+			reader.ReadAsyncInto(sideArm, OnLoaded);
+			reader.ReadAsyncInto(bow, OnLoaded);
+			reader.ReadAsyncInto(armour, OnLoaded);
+			reader.ReadAsyncInto(potions, OnLoaded);
+			reader.ReadAsyncInto(ammo, OnLoaded);
+
+			reader.ReadInto(currency);
+			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
+
+			yield return new WaitUntil(() => loaded == panels.Length - 1);
+		}
+
 		public override void SaveBin(in GameDataWriter writer)
 		{
-			writer.WriteList(common.items);
-			writer.WriteList(quest.items);
-			writer.WriteList(melee.items);
-			writer.WriteList(sideArm.items);
-			writer.WriteList(bow.items);
-			writer.WriteList(armour.items);
-			writer.WriteList(potions.items);
-			writer.WriteList(ammo.items);
-			writer.Write(currency.currency);
-
-
-			writer.WriteList(itemsHistroy);
+			writer.Write(common);
+			writer.Write(quest);
+			writer.Write(melee);
+			writer.Write(sideArm);
+			writer.Write(bow);
+			writer.Write(armour);
+			writer.Write(potions);
+			writer.Write(ammo);
+			writer.Write(currency);
+			//writer.WriteList(itemsHistroy);
 		}
 
 		private void OnEnable()
@@ -244,6 +240,10 @@ namespace Armere.Inventory
 
 		public ValuePanel currency;
 
+
+
+		public readonly InventoryPanel[] panels = new InventoryPanel[9];
+
 		public event InventoryOptionDelegate OnSelectItemEvent;
 		public event InventoryOptionDelegate OnDropItemEvent;
 		public event InventoryOptionDelegate OnConsumeItemEvent;
@@ -260,13 +260,15 @@ namespace Armere.Inventory
 
 		public bool TryAddItem(ItemData item, uint count, bool hiddenAddition, int desiredPosition = -1)
 		{
+			Assert.IsNotNull(item, "Item cannot be none");
+
 			InventoryPanel p = GetPanelFor(item.type);
 			var addedIndex = p.AddItem(item, count, desiredPosition);
 
 			if (!hiddenAddition && addedIndex != -1 && p.type != ItemType.Currency)
 			{
 				onItemAdded.OnItemAdded(p[addedIndex], item.type, addedIndex, hiddenAddition);
-				IncreaseItemHistroy(item.itemName);
+				IncreaseItemHistroy(item);
 			}
 
 			return addedIndex != -1;
@@ -277,7 +279,7 @@ namespace Armere.Inventory
 			if (b) //Use itemat command to find the type of item that was added
 			{
 				onItemAdded.OnItemAdded(ItemAt(index, type), type, index, hiddenAddition);
-				IncreaseItemHistroy(ItemAt(index, type).item.itemName);
+				IncreaseItemHistroy(ItemAt(index, type).item);
 			}
 			return b;
 		}
@@ -289,17 +291,23 @@ namespace Armere.Inventory
 			if (b) //Use itemat command to find the type of item that was added
 			{
 				onItemAdded.OnItemAdded(stack, type, GetPanelFor(type).stackCount - 1, hiddenAddition);
-				IncreaseItemHistroy(stack.item.itemName);
+				IncreaseItemHistroy(stack.item);
 			}
 			return b;
 		}
 
-		void IncreaseItemHistroy(ItemName name)
+		void IncreaseItemHistroy(ItemData name)
 		{
-			if (!itemsHistroy[(int)name].hasPickedUp)
+			ItemHistroy hist;
+			if (!itemsHistroy.TryGetValue(ItemDatabase.itemDataPrimaryKeys[name], out hist))
+				hist = new ItemHistroy();
+
+
+			if (!hist.hasPickedUp)
 			{
-				UI.NewItemPrompt.singleton.ShowPrompt(db[name], 1, null, addItemsToInventory: false);
-				itemsHistroy[(int)name].hasPickedUp = true;
+				UI.NewItemPrompt.singleton.ShowPrompt(name, 1, null, addItemsToInventory: false);
+				hist.hasPickedUp = true;
+				itemsHistroy[ItemDatabase.itemDataPrimaryKeys[name]] = hist;
 			}
 		}
 
@@ -352,7 +360,7 @@ namespace Armere.Inventory
 
 
 		public bool TakeItem(int index, ItemType type, uint count = 1) => GetPanelFor(type).TakeItem(index, count);
-		public uint ItemCount(ItemName n) => GetPanelFor(db[n].type).ItemCount(n);
+		public uint ItemCount(ItemData item) => GetPanelFor(item.type).ItemCount(item);
 		public uint ItemCount(int index, ItemType type) => GetPanelFor(type).ItemCount(index);
 		public ItemStackBase ItemAt(int index, ItemType type) => GetPanelFor(type)[index];
 
@@ -365,5 +373,6 @@ namespace Armere.Inventory
 		{
 			return GetEnumerator();
 		}
+
 	}
 }

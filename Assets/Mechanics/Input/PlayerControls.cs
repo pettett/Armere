@@ -107,14 +107,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": ""Press(behavior=2)""
                 },
                 {
-                    ""name"": ""TabMenu"",
-                    ""type"": ""Button"",
-                    ""id"": ""def74620-7e63-4933-90ec-bee1e21aaf93"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """"
-                },
-                {
                     ""name"": ""Console"",
                     ""type"": ""Button"",
                     ""id"": ""87c30319-f012-45cd-8a4e-26b53291af39"",
@@ -466,17 +458,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""CameraMove"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""5af1578b-9d4f-4bc2-94ea-c87424f35a3e"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""KeyboardMouse"",
-                    ""action"": ""TabMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -1264,6 +1245,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""TabMenu"",
+                    ""type"": ""Button"",
+                    ""id"": ""8f47f8be-4fbe-4556-8a27-494d2244738a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -1387,6 +1376,17 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a9cc0a1c-21fb-4483-896a-57cf029f820f"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""TabMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1439,7 +1439,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_GroundActionMap_Action = m_GroundActionMap.FindAction("Action", throwIfNotFound: true);
         m_GroundActionMap_Shield = m_GroundActionMap.FindAction("Shield", throwIfNotFound: true);
         m_GroundActionMap_Aim = m_GroundActionMap.FindAction("Aim", throwIfNotFound: true);
-        m_GroundActionMap_TabMenu = m_GroundActionMap.FindAction("TabMenu", throwIfNotFound: true);
         m_GroundActionMap_Console = m_GroundActionMap.FindAction("Console", throwIfNotFound: true);
         m_GroundActionMap_KO = m_GroundActionMap.FindAction("KO", throwIfNotFound: true);
         m_GroundActionMap_ChangeFocus = m_GroundActionMap.FindAction("ChangeFocus", throwIfNotFound: true);
@@ -1470,6 +1469,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_AlwaysActive = asset.FindActionMap("AlwaysActive", throwIfNotFound: true);
         m_AlwaysActive_ChangeSelection = m_AlwaysActive.FindAction("ChangeSelection", throwIfNotFound: true);
         m_AlwaysActive_SelectSpell = m_AlwaysActive.FindAction("SelectSpell", throwIfNotFound: true);
+        m_AlwaysActive_TabMenu = m_AlwaysActive.FindAction("TabMenu", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -1530,7 +1530,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundActionMap_Action;
     private readonly InputAction m_GroundActionMap_Shield;
     private readonly InputAction m_GroundActionMap_Aim;
-    private readonly InputAction m_GroundActionMap_TabMenu;
     private readonly InputAction m_GroundActionMap_Console;
     private readonly InputAction m_GroundActionMap_KO;
     private readonly InputAction m_GroundActionMap_ChangeFocus;
@@ -1553,7 +1552,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @Action => m_Wrapper.m_GroundActionMap_Action;
         public InputAction @Shield => m_Wrapper.m_GroundActionMap_Shield;
         public InputAction @Aim => m_Wrapper.m_GroundActionMap_Aim;
-        public InputAction @TabMenu => m_Wrapper.m_GroundActionMap_TabMenu;
         public InputAction @Console => m_Wrapper.m_GroundActionMap_Console;
         public InputAction @KO => m_Wrapper.m_GroundActionMap_KO;
         public InputAction @ChangeFocus => m_Wrapper.m_GroundActionMap_ChangeFocus;
@@ -1603,9 +1601,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Aim.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAim;
                 @Aim.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAim;
                 @Aim.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnAim;
-                @TabMenu.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnTabMenu;
-                @TabMenu.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnTabMenu;
-                @TabMenu.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnTabMenu;
                 @Console.started -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.performed -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
                 @Console.canceled -= m_Wrapper.m_GroundActionMapActionsCallbackInterface.OnConsole;
@@ -1664,9 +1659,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Aim.started += instance.OnAim;
                 @Aim.performed += instance.OnAim;
                 @Aim.canceled += instance.OnAim;
-                @TabMenu.started += instance.OnTabMenu;
-                @TabMenu.performed += instance.OnTabMenu;
-                @TabMenu.canceled += instance.OnTabMenu;
                 @Console.started += instance.OnConsole;
                 @Console.performed += instance.OnConsole;
                 @Console.canceled += instance.OnConsole;
@@ -1868,12 +1860,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private IAlwaysActiveActions m_AlwaysActiveActionsCallbackInterface;
     private readonly InputAction m_AlwaysActive_ChangeSelection;
     private readonly InputAction m_AlwaysActive_SelectSpell;
+    private readonly InputAction m_AlwaysActive_TabMenu;
     public struct AlwaysActiveActions
     {
         private @PlayerControls m_Wrapper;
         public AlwaysActiveActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @ChangeSelection => m_Wrapper.m_AlwaysActive_ChangeSelection;
         public InputAction @SelectSpell => m_Wrapper.m_AlwaysActive_SelectSpell;
+        public InputAction @TabMenu => m_Wrapper.m_AlwaysActive_TabMenu;
         public InputActionMap Get() { return m_Wrapper.m_AlwaysActive; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1889,6 +1883,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @SelectSpell.started -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
                 @SelectSpell.performed -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
                 @SelectSpell.canceled -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnSelectSpell;
+                @TabMenu.started -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnTabMenu;
+                @TabMenu.performed -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnTabMenu;
+                @TabMenu.canceled -= m_Wrapper.m_AlwaysActiveActionsCallbackInterface.OnTabMenu;
             }
             m_Wrapper.m_AlwaysActiveActionsCallbackInterface = instance;
             if (instance != null)
@@ -1899,6 +1896,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @SelectSpell.started += instance.OnSelectSpell;
                 @SelectSpell.performed += instance.OnSelectSpell;
                 @SelectSpell.canceled += instance.OnSelectSpell;
+                @TabMenu.started += instance.OnTabMenu;
+                @TabMenu.performed += instance.OnTabMenu;
+                @TabMenu.canceled += instance.OnTabMenu;
             }
         }
     }
@@ -1934,7 +1934,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnAction(InputAction.CallbackContext context);
         void OnShield(InputAction.CallbackContext context);
         void OnAim(InputAction.CallbackContext context);
-        void OnTabMenu(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
         void OnKO(InputAction.CallbackContext context);
         void OnChangeFocus(InputAction.CallbackContext context);
@@ -1968,5 +1967,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     {
         void OnChangeSelection(InputAction.CallbackContext context);
         void OnSelectSpell(InputAction.CallbackContext context);
+        void OnTabMenu(InputAction.CallbackContext context);
     }
 }

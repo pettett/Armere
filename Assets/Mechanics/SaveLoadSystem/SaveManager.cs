@@ -5,8 +5,9 @@ using System.IO;
 using System.Linq;
 using UnityEngine.Profiling;
 using UnityEngine.AddressableAssets;
+using System.Collections;
 
-public readonly struct Version
+public readonly struct Version : IBinaryVariableSerializer<Version>
 {
 	//Takes up 4 bytes - same as an integer
 	public readonly byte major;
@@ -46,14 +47,33 @@ public readonly struct Version
 	{
 		return string.Join(".", major, minor, patch);
 	}
+
+	public Version Read(in GameDataReader reader) => new Version(reader.ReadByte(), reader.ReadByte(), reader.ReadUShort());
+
+	public void Write(in GameDataWriter writer)
+	{
+		writer.WritePrimitive(major);
+		writer.WritePrimitive(minor);
+		writer.WritePrimitive(patch);
+	}
 }
 
-public interface IWriteableToBinary
+public interface IBinaryVariableWritableSerializer<T>
 {
 	void Write(in GameDataWriter writer);
-
-	//T Read(in GameDataReader reader);
 }
+
+public interface IBinaryVariableSerializer<T> : IBinaryVariableWritableSerializer<T>
+{
+	T Read(in GameDataReader reader);
+}
+
+public interface IBinaryVariableAsyncSerializer<T> : IBinaryVariableWritableSerializer<T>
+{
+	void Read(in GameDataReader reader, System.Action<T> data);
+}
+
+
 
 
 public readonly struct GameDataReader
@@ -64,7 +84,8 @@ public readonly struct GameDataReader
 	public GameDataReader(BinaryReader reader)
 	{
 		this.reader = reader;
-		saveVersion = new Version(reader.ReadByte(), reader.ReadByte(), reader.ReadUInt16());
+		saveVersion = default;
+		saveVersion = Read<Version>();
 	}
 
 	public readonly int ReadInt() => reader.ReadInt32();
@@ -75,20 +96,30 @@ public readonly struct GameDataReader
 	public readonly char ReadChar() => reader.ReadChar();
 	public readonly long ReadLong() => reader.ReadInt64();
 	public readonly ulong ReadULong() => reader.ReadUInt64();
+	public readonly byte ReadByte() => reader.ReadByte();
+	public readonly ushort ReadUShort() => reader.ReadUInt16();
 	//Asset reference is based of 32 digit hex guid string
-	public readonly AssetReference ReadAssetReference() => new AssetReference($"{ReadULong():X16}{ReadULong():X16}");
 
 	public readonly System.Guid ReadGuid() => new System.Guid(ReadBytes(16));
 	public readonly byte[] ReadBytes(int count) => reader.ReadBytes(count);
 
-	public readonly Version ReadVersion() => new Version(reader.ReadByte(), reader.ReadByte(), reader.ReadUInt16());
 	public readonly Vector3 ReadVector3() => new Vector3(ReadFloat(), ReadFloat(), ReadFloat());
 	public readonly Vector2 ReadVector2() => new Vector2(ReadFloat(), ReadFloat());
-	public readonly Quaternion ReadQuaternion() => new Quaternion(ReadFloat(), ReadFloat(), ReadFloat(), ReadFloat());
+	public readonly Quaternion ReadQuaternion()
+	{
+		var x = new Quaternion(ReadFloat(), ReadFloat(), ReadFloat(), 0);
+		//Quaterions are normalized
+		x.w = 1 - Mathf.Sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
+		return x;
+	}
 
 	//Read List functions read a list using metadata also stored
 	public readonly byte[] ReadListByte() => ReadBytes(ReadInt());
 
+	public readonly T Read<T>() where T : IBinaryVariableSerializer<T>, new() => (new T()).Read(this);
+	public readonly T ReadInto<T>(T data) where T : IBinaryVariableSerializer<T> => data.Read(this);
+	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IBinaryVariableAsyncSerializer<T>, new() => (new T()).Read(this, onDone);
+	public readonly void ReadAsyncInto<T>(T data, System.Action<T> onDone = null) where T : IBinaryVariableAsyncSerializer<T> => data.Read(this, onDone);
 
 }
 public readonly struct GameDataWriter
@@ -98,39 +129,35 @@ public readonly struct GameDataWriter
 	public GameDataWriter(BinaryWriter writer)
 	{
 		this.writer = writer;
-
 		//Save the version of the game saved
 		Write(SaveManager.version);
 	}
 
-	public readonly void Write(int value) => writer.Write(value);
-	public readonly void Write(long value) => writer.Write(value);
-	public readonly void Write(bool value) => writer.Write(value);
-	public readonly void Write(float value) => writer.Write(value);
-	public readonly void Write(uint value) => writer.Write(value);
-	public readonly void Write(char value) => writer.Write(value);
-	public readonly void Write(byte[] value) => writer.Write(value);
-	public readonly void Write(System.Guid value) => writer.Write(value.ToByteArray());
-	public readonly void Write(Version value)
-	{
-		writer.Write(value.major);
-		writer.Write(value.minor);
-		writer.Write(value.patch);
-	}
-	public readonly void Write(Quaternion value)
+	public readonly void WritePrimitive(int value) => writer.Write(value);
+	public readonly void WritePrimitive(long value) => writer.Write(value);
+	public readonly void WritePrimitive(ushort value) => writer.Write(value);
+	public readonly void WritePrimitive(ulong value) => writer.Write(value);
+	public readonly void WritePrimitive(bool value) => writer.Write(value);
+	public readonly void WritePrimitive(float value) => writer.Write(value);
+	public readonly void WritePrimitive(uint value) => writer.Write(value);
+	public readonly void WritePrimitive(char value) => writer.Write(value);
+	public readonly void WritePrimitive(byte value) => writer.Write(value);
+	public readonly void WritePrimitive(byte[] value) => writer.Write(value);
+	public readonly void WritePrimitive(System.Guid value) => writer.Write(value.ToByteArray());
+	public readonly void WritePrimitive(Quaternion value)
 	{
 		writer.Write(value.x);
 		writer.Write(value.y);
 		writer.Write(value.z);
-		writer.Write(value.w);
+		//writer.Write(value.w);
 	}
-	public readonly void Write(Vector3 value)
+	public readonly void WritePrimitive(Vector3 value)
 	{
 		writer.Write(value.x);
 		writer.Write(value.y);
 		writer.Write(value.z);
 	}
-	public readonly void Write(Vector2 value)
+	public readonly void WritePrimitive(Vector2 value)
 	{
 		writer.Write(value.x);
 		writer.Write(value.y);
@@ -143,33 +170,19 @@ public readonly struct GameDataWriter
 	}
 
 
-	public readonly void Write(string value) => writer.Write(value);
+	public readonly void WritePrimitive(string value) => writer.Write(value);
 
 
 	//Write list functions store some metadata about the list so it can be easily loaded
 	public readonly void WriteList(byte[] byteList)
 	{
-		Write(byteList.Length);
-		Write(byteList);
-	}
-	public readonly void WriteList<T>(T[] items) where T : IWriteableToBinary
-	{
-		Write(items.Length);
-		for (int i = 0; i < items.Length; i++)
-		{
-			items[i].Write(this);
-		}
+		WritePrimitive(byteList.Length);
+		WritePrimitive(byteList);
 	}
 
-	public readonly void WriteList<T>(List<T> items) where T : IWriteableToBinary
-	{
-		Write(items.Count);
+	public readonly void Write<T>(T value) where T : IBinaryVariableWritableSerializer<T> => value.Write(this);
 
-		for (int i = 0; i < items.Count; i++)
-		{
-			items[i].Write(this);
-		}
-	}
+
 
 }
 public class SaveManager : MonoBehaviour
@@ -202,17 +215,17 @@ public class SaveManager : MonoBehaviour
 	public static bool gameLoadingCompleted;
 
 	/*
-    Save Structure:
-    Saves
-        -Save1
-            -27-06-2020-11-41-40
-                -save.save
-                -save.metasave
-            etc up to limit
-        -Save2
-            same structure
-        etc.
-    */
+	Save Structure:
+	Saves
+		-Save1
+			-27-06-2020-11-41-40
+				-save.save
+				-save.metasave
+			etc up to limit
+		-Save2
+			same structure
+		etc.
+	*/
 	[Header("Event Channels")]
 	public InputReader input;
 	public VoidEventChannelSO onSavingBegin;
@@ -283,9 +296,9 @@ public class SaveManager : MonoBehaviour
 			writer.WriteList(thumb);
 
 
-			writer.Write(saveTime.ToFileTime());
+			writer.WritePrimitive(saveTime.ToFileTime());
 
-			writer.Write(regionName);
+			writer.WritePrimitive(regionName);
 		}
 
 		public string AdaptiveTime()
@@ -442,13 +455,12 @@ public class SaveManager : MonoBehaviour
 		}
 		else
 		{
-			SoftLoadSave(dir);
+			StartCoroutine(SoftLoadSave(dir));
 		}
 	}
 
 	public void LoadBlankSave(bool hardLoad)
 	{
-		Debug.Log("Loading blank save...");
 		if (hardLoad)
 			HardLoadBlankSave();
 		else
@@ -458,6 +470,8 @@ public class SaveManager : MonoBehaviour
 	public void HardLoadBlankSave()
 	{
 		//Reload current Scene
+
+		Debug.Log("Hard loading blank save...");
 		HardSceneLoad(LevelManager.singleton.currentLevel, () =>
 		{
 			SoftLoadBlankSave();
@@ -466,14 +480,15 @@ public class SaveManager : MonoBehaviour
 	}
 	public void SoftLoadBlankSave()
 	{
+		Debug.Log("Soft loading blank save...");
 		for (int i = 0; i < saveLoadEventChannels.Length; i++)
 		{
 			saveLoadEventChannels[i].LoadBlank();
 		}
 		OnBlankSaveLoaded?.Invoke();
 
-		OnGameLoadingCompleted?.Invoke();
-		gameLoadingCompleted = true;
+
+		OnAfterLoad();
 	}
 
 	public void HardLoadSave(string dir)
@@ -491,7 +506,7 @@ public class SaveManager : MonoBehaviour
 
 		HardSceneLoad(levelName, () =>
 		{
-			SoftLoadSave(dir);
+			StartCoroutine(SoftLoadSave(dir));
 		});
 	}
 	public void HardSceneLoad(string sceneName, System.Action OnCompleted)
@@ -502,7 +517,7 @@ public class SaveManager : MonoBehaviour
 
 	}
 
-	public void SoftLoadSave(string dir)
+	public IEnumerator SoftLoadSave(string dir)
 	{
 		Profiler.BeginSample("Loading Game");
 		Debug.Log("Loading Game…");
@@ -521,22 +536,29 @@ public class SaveManager : MonoBehaviour
 			{
 				//Debug.Log($"Loading {i} from position {gameDataReader.reader.BaseStream.Position}");
 				saveLoadEventChannels[i].LoadBin(gameDataReader);
+				if (saveLoadEventChannels[i] is LoadableAsyncSO async)
+				{
+					yield return async.LoadBinAsync(gameDataReader);
+				}
 			}
 		}
 
+		OnAfterLoad();
+
+		Profiler.EndSample();
+	}
+	public void OnAfterLoad()
+	{
 		OnGameLoadingCompleted?.Invoke();
 		gameLoadingCompleted = true;
-
-		GameObject[] gos = (GameObject[])GameObject.FindObjectsOfType(typeof(GameObject));
-		foreach (GameObject go in gos)
+		foreach (GameObject go in GameObject.FindObjectsOfType(typeof(GameObject)))
 		{
 			if (go && go.transform.parent == null)
 			{
 				go.gameObject.BroadcastMessage("OnAfterGameLoaded", SendMessageOptions.DontRequireReceiver);
 			}
 		}
-
-		Profiler.EndSample();
+		Debug.Log("Finished load");
 	}
 
 
@@ -561,7 +583,7 @@ public class SaveManager : MonoBehaviour
 
 		WriteFile(savePath, gameWriter =>
 		{
-			gameWriter.Write(LevelManager.singleton.currentLevel);
+			gameWriter.WritePrimitive(LevelManager.singleton.currentLevel);
 			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
 				//Debug.Log($"Saving {i} from position {gameWriter.writer.BaseStream.Position}");

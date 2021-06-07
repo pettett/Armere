@@ -4,6 +4,7 @@ using UnityEngine.Assertions;
 using Armere.Inventory;
 using System.Collections;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.AddressableAssets;
 
 namespace Armere.Inventory
 {
@@ -15,14 +16,16 @@ namespace Armere.Inventory
 
 
 		public bool spawnedItem;
-		public PhysicsItemData item;
+		public AssetReferenceT<PhysicsItemData> item;
 
 
 
 
 		public static AsyncOperationHandle<GameObject> SpawnItem(PhysicsItemData item, Vector3 position, Quaternion rotation)
 		{
+			Assert.IsNotNull(item, "Item cannot be null");
 			Assert.IsTrue(item.gameObject.RuntimeKeyIsValid(), $"No gameobject reference for {item}");
+
 			//Debug.Log($"Spawning {item.name}");
 			void OnItemLoaded(AsyncOperationHandle<GameObject> handle)
 			{
@@ -40,7 +43,10 @@ namespace Armere.Inventory
 		public void Spawn()
 		{
 			spawnedItem = true;
-			SpawnItem(item, transform.position, transform.rotation);
+			if (item.RuntimeKeyIsValid())
+				ItemDatabase.LoadItemDataAsync(item, data => SpawnItem(data, transform.position, transform.rotation));
+			else
+				Debug.LogWarning("Attemping to spawn invalid item");
 		}
 
 		//Broadcast by spawned item saver
@@ -63,17 +69,17 @@ namespace Armere.Inventory
 		private void Update()
 		{
 			if (Application.isPlaying) return;
-			DrawSpawnedItem(item.gameObject);
+			DrawSpawnedItem(item.editorAsset.gameObject);
 		}
 
 		private void OnDrawGizmos()
 		{
 			if (Application.isPlaying) return;
-			if (item.gameObject.editorAsset.TryGetComponent<MeshFilter>(out MeshFilter mf))
+			if (item.editorAsset.gameObject.editorAsset.TryGetComponent<MeshFilter>(out MeshFilter mf))
 			{
 				Mesh m = mf.sharedMesh;
 				Gizmos.color = new Color(0, 1, 0, 0.02f);
-				Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, item.gameObject.editorAsset.transform.lossyScale);
+				Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, item.editorAsset.gameObject.editorAsset.transform.lossyScale);
 				Gizmos.DrawCube(m.bounds.center, m.bounds.size);
 				Gizmos.color = new Color(0, 1, 0, 0.2f);
 

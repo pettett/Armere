@@ -1,11 +1,13 @@
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Armere.Inventory
 {
 
-	public class UniquesPanel<UniqueT> : InventoryPanel where UniqueT : ItemStackBase
+	public class UniquesPanel<UniqueT> : InventoryPanel, IBinaryVariableAsyncSerializer<UniquesPanel<UniqueT>> where UniqueT : ItemStackBase, IBinaryVariableAsyncSerializer<UniqueT>, new()
+
 	{
 
 		public List<UniqueT> items;
@@ -128,5 +130,21 @@ namespace Armere.Inventory
 			}
 			return false;
 		}
+
+		public void Read(in GameDataReader reader, Action<UniquesPanel<UniqueT>> onDone)
+		{
+			var t = this;
+			reader.ReadAsync<BinaryListAsyncSerializer<UniqueT>>(data =>
+			{
+				t.items = data;
+				onDone?.Invoke(t);
+			});
+		}
+
+		public void Write(in GameDataWriter writer)
+		{
+			writer.Write<BinaryListAsyncSerializer<UniqueT>>(items);
+		}
+
 	}
 }

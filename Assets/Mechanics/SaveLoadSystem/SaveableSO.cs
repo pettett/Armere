@@ -9,3 +9,8 @@ public abstract class SaveableSO : ScriptableObject
 	public abstract void LoadBin(in GameDataReader reader);
 	public abstract void LoadBlank();
 }
+
+public abstract class LoadableAsyncSO : SaveableSO
+{
+	public abstract IEnumerator LoadBinAsync(GameDataReader reader);
+}

@@ -3,15 +3,21 @@ namespace Armere.Inventory
 {
 
 
-	public class PotionItemUnique : ItemStackBase
+	public class PotionItemUnique : ItemStackBase, IBinaryVariableAsyncSerializer<PotionItemUnique>
 	{
 
 		public float potency;
 		public float duration;
 
 
-		public PotionItemUnique(ItemData item) : base(item)
+		public PotionItemUnique()
 		{
+		}
+
+		public PotionItemUnique(float potency, float duration)
+		{
+			this.potency = potency;
+			this.duration = duration;
 		}
 
 		public PotionItemUnique(ItemData item, float potency, float duration) : base(item)
@@ -21,12 +27,23 @@ namespace Armere.Inventory
 		}
 
 
-		public override void Write(in GameDataWriter writer)
+		public void Read(in GameDataReader reader, System.Action<PotionItemUnique> onDone)
 		{
-			writer.Write((int)item.itemName);
-			writer.Write(potency);
-			writer.Write(duration);
+			float potency = reader.ReadFloat();
+			float duration = reader.ReadFloat();
+			reader.ReadAsync<ItemDataAsyncSerializer>(item =>
+			{
+				onDone?.Invoke(new PotionItemUnique(item, potency, duration));
+			});
 		}
+
+		public void Write(in GameDataWriter writer, PotionItemUnique data)
+		{
+			writer.WritePrimitive(potency);
+			writer.WritePrimitive(duration);
+			writer.WritePrimitive(data.item);
+		}
+
 
 	}
 }

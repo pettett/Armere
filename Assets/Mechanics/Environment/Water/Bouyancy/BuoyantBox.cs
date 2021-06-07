@@ -346,8 +346,8 @@ public class BuoyantBox : BuoyantBody
 
 
 			f.Schedule(calculateDrag).Complete();
-
-			rb.AddForceAtPosition(output[0], output[1]);
+			if (math.all(math.isfinite(output[1])))
+				rb.AddForceAtPosition(output[0], output[1]);
 
 			output.Dispose();
 		}

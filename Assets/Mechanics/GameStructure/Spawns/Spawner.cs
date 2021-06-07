@@ -6,7 +6,6 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public abstract class Spawner : MonoBehaviour
 {
-
 	static uint handles = 0;
 
 	public static void LoadAsset<T>(AssetReferenceT<T> reference, System.Action<AsyncOperationHandle<T>> onDone) where T : UnityEngine.Object
@@ -35,7 +34,7 @@ public abstract class Spawner : MonoBehaviour
 	{
 		if (!handle.IsDone)
 			handle.Completed += onDone;
-		else
+		else if (handle.Status == AsyncOperationStatus.Succeeded)
 		{
 			//Debug.Log($"Immediately done {handle.Result.name}");
 			onDone(handle);

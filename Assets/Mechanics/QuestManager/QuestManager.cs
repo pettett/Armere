@@ -29,8 +29,8 @@ public class QuestStatus
 
 	public void WriteQuestStatus(in GameDataWriter writer)
 	{
-		writer.Write(questIndex);
-		writer.Write(stage);
+		writer.WritePrimitive(questIndex);
+		writer.WritePrimitive(stage);
 	}
 
 	public void UpdateTriggerCount(int newAmount)
@@ -139,14 +139,14 @@ public class QuestManager : SaveableSO
 	{
 		if (selectedQuest == null)
 		{
-			writer.Write(-1);
+			writer.WritePrimitive(-1);
 		}
 		else
 		{
-			writer.Write(selectedQuest.questIndex);
+			writer.WritePrimitive(selectedQuest.questIndex);
 		}
-		writer.Write(quests.Count);
-		writer.Write(completedQuests.Count);
+		writer.WritePrimitive(quests.Count);
+		writer.WritePrimitive(completedQuests.Count);
 		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
 		for (int i = 0; i < quests.Count; i++)
 		{
@@ -253,8 +253,8 @@ public class QuestManager : SaveableSO
 		for (int i = 0; i < quests.Count; i++)
 		{
 			if (quests[i].quest.stages[quests[i].stage].type == Quest.QuestType.Acquire && //if is listening for any item
-				quests[i].quest.stages[quests[i].stage].item == stack.item.itemName &&  //and is listening for this item
-				inventory.ItemCount(stack.item.itemName) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
+				ItemDatabase.GetPrimaryKey(quests[i].quest.stages[quests[i].stage].item) == ItemDatabase.itemDataPrimaryKeys[stack.item] &&  //and is listening for this item
+				inventory.ItemCount(stack.item) >= quests[i].quest.stages[quests[i].stage].count //And the player now has at least this many items
 			)
 			{
 				ProgressQuest(quests[i]);
@@ -270,7 +270,7 @@ public class QuestManager : SaveableSO
 				if (quests[i].quest.stages[quests[i].stage].type != Quest.QuestType.Deliver)
 					throw new System.ArgumentException("Quest is not in delivory stage");
 				inventory.TakeItem(
-					quests[i].quest.stages[quests[i].stage].item,
+					ItemDatabase.LoadItemData(quests[i].quest.stages[quests[i].stage].item),
 					quests[i].quest.stages[quests[i].stage].count);
 				ProgressQuest(quests[i]);
 				return;

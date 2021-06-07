@@ -80,14 +80,14 @@
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
@@ -130,7 +130,7 @@
 #endif
 
                 half4 fogFactorAndVertexLight   : TEXCOORD6;
-#ifdef _MAIN_LIGHT_SHADOWS
+#ifdef MAIN_LIGHT_CALCULATE_SHADOWS
                 float4 shadowCoord              : TEXCOORD7;
 #endif
                 float4 pos                      : SV_POSITION;
@@ -168,7 +168,7 @@
             #endif
                 output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
-            #ifdef _MAIN_LIGHT_SHADOWS
+            #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
                 output.shadowCoord = GetShadowCoord(vertexInput);
             #endif
                 output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
@@ -197,8 +197,9 @@
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            #ifdef _MAIN_LIGHT_SHADOWS
+            #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
                 Light light = GetMainLight(input.shadowCoord);
+				//return input.shadowCoord;
             #else
                 Light light = GetMainLight();
             #endif
@@ -215,7 +216,6 @@
                 half3 attenuatedLightColor = light.color;
 
                 half ndotl = dot(normalWS,light.direction);
-
                 half lightIntensity = smoothstep(_ShadowCutoff,_ShadowCutoff+0.005, ndotl * light.distanceAttenuation * light.shadowAttenuation);
 
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);

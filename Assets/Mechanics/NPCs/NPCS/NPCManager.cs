@@ -35,27 +35,27 @@ public class NPCManager : SaveableSO
 	{
 		//Debug.Log(writer.writer.BaseStream.Position);
 
-		writer.Write(data.Count);
+		writer.WritePrimitive(data.Count);
 		foreach (KeyValuePair<string, NPCData> kvp in data)
 		{
-			writer.Write(kvp.Key);
-			writer.Write(kvp.Value.routineIndex);
-			writer.Write(kvp.Value.spokenTo);
-			writer.Write(kvp.Value.variables.Count);
+			writer.WritePrimitive(kvp.Key);
+			writer.WritePrimitive(kvp.Value.routineIndex);
+			writer.WritePrimitive(kvp.Value.spokenTo);
+			writer.WritePrimitive(kvp.Value.variables.Count);
 			foreach (KeyValuePair<string, Yarn.Value> kvp2 in kvp.Value.variables)
 			{
-				writer.Write(kvp2.Key);
-				writer.Write((int)kvp2.Value.type);
+				writer.WritePrimitive(kvp2.Key);
+				writer.WritePrimitive((int)kvp2.Value.type);
 				switch (kvp2.Value.type)
 				{
 					case Yarn.Value.Type.Bool:
-						writer.Write(kvp2.Value.AsBool);
+						writer.WritePrimitive(kvp2.Value.AsBool);
 						break;
 					case Yarn.Value.Type.String:
-						writer.Write(kvp2.Value.AsString);
+						writer.WritePrimitive(kvp2.Value.AsString);
 						break;
 					case Yarn.Value.Type.Number:
-						writer.Write(kvp2.Value.AsNumber);
+						writer.WritePrimitive(kvp2.Value.AsNumber);
 						break;
 				}
 			}

@@ -46,12 +46,12 @@ namespace Armere.Inventory
 				{
 					if (playerInventory.potions.items[i].item == ingredient.potionWorksFrom)
 					{
-						if (playerInventory.TakeItem(ingredient.itemName))
+						if (playerInventory.TakeItem(ingredient))
 						{
 							//Take the item and change the contents
 							playerInventory.potions.TakeItem(i, 1);
 
-							PotionItemUnique pot = new PotionItemUnique(ingredient.newPotionType);
+							PotionItemUnique pot = new PotionItemUnique(ingredient.newPotionType, 0, 0);
 
 							pot.potency = ingredient.increasedPotency;
 							playerInventory.TryAddItem(pot);

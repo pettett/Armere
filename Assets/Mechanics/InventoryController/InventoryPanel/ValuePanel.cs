@@ -4,15 +4,13 @@ namespace Armere.Inventory
 {
 
 	//Items added to this panel are not recorded, the values of the items are used
-	public class ValuePanel : InventoryPanel
+	public class ValuePanel : InventoryPanel, IBinaryVariableSerializer<ValuePanel>
 	{
 		public uint currency;
-		public readonly ItemDatabase db;
 
-		public ValuePanel(string name, uint limit, ItemType type, ItemDatabase db) : base(name, limit, type, ItemInteractionCommands.None)
+		public ValuePanel(string name, uint limit, ItemType type) : base(name, limit, type, ItemInteractionCommands.None)
 		{
 			currency = 0;
-			this.db = db;
 		}
 
 		public override ItemStackBase this[int i] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -71,6 +69,17 @@ namespace Armere.Inventory
 		public override bool AddItem(ItemStackBase stack)
 		{
 			throw new NotImplementedException();
+		}
+
+		public ValuePanel Read(in GameDataReader reader)
+		{
+			currency = reader.ReadUInt();
+			return this;
+		}
+
+		public void Write(in GameDataWriter writer)
+		{
+			writer.WritePrimitive(currency);
 		}
 	}
 }

@@ -8,12 +8,12 @@ namespace Armere.Inventory
 
 	[CreateAssetMenu(menuName = "Game/Items/Item Data", fileName = "New Item Data")]
 	[AllowItemTypes(ItemType.Common, ItemType.Quest, ItemType.Currency, ItemType.Potion)]
-	public class ItemData : ScriptableObject
+	public class ItemData : ScriptableObject, IBinaryVariableWritableSerializer<ItemData>
 	{
-		[Header("Item Data")]
-		[System.Obsolete] public ItemName itemName;
+		public static implicit operator ItemData(string itemName) => ItemDatabase.itemDataNames[itemName];
 
-		[MyBox.ReadOnly, Tooltip("To update itemID, use itemDatabase window")] public string itemID = "";
+
+		[Header("Item Data")]
 		public ItemType type;
 		[UnityEngine.Serialization.FormerlySerializedAs("displaySprite")] public AssetReferenceSprite thumbnail;
 		public string displayName = "New Item";
@@ -39,5 +39,14 @@ namespace Armere.Inventory
 		[Header("Interaction")]
 		[Tooltip("Should be none for most normal items")]
 		public ItemInteractionCommands disabledCommands;
+
+
+		public void Write(in GameDataWriter writer)
+		{
+			//Debug.Log($"Writing to {writer.writer.BaseStream.Position}");
+			(ulong, ulong) value = ItemDatabase.itemDataPrimaryKeys[this];
+			writer.WritePrimitive(value.Item1);
+			writer.WritePrimitive(value.Item2);
+		}
 	}
 }

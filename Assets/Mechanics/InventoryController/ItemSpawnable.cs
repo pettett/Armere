@@ -3,18 +3,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Armere.Inventory;
+using UnityEngine.Assertions;
+
 namespace Armere.Inventory
 {
 
 	public class ItemSpawnable : SpawnableBody
 	{
-		public ItemData item;
-		public uint count;
+		[System.NonSerialized] public ItemData item;
+		[System.NonSerialized] public uint count;
 
 		public void Init(ItemData item, uint count)
 		{
+			Assert.IsNotNull(item, "Item cannot be null");
 			this.item = item;
 			this.count = count;
+		}
+		private void Start()
+		{
+			if (item == null)
+				Debug.LogError("Item has not been inited", this);
 		}
 
 		public void AddItemsToInventory(System.Action onItemAdded, InventoryController inventory)

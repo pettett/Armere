@@ -86,9 +86,17 @@ public class CommandManager : ConsoleReceiver
 				break;
 			case give:
 				DesiredInputs(command, 2);
-				ItemName item = (ItemName)System.Enum.Parse(typeof(ItemName), command.values[0]);
-				uint count = uint.Parse(command.values[1]);
-				inventory.TryAddItem(inventory.db[item], count, false);
+				if (ItemDatabase.itemDataNames.ContainsKey(command.values[0]))
+				{
+					ItemData item = command.values[0];//Implicit parse
+					uint count = uint.Parse(command.values[1]);
+					inventory.TryAddItem(item, count, false);
+				}
+				else
+				{
+					//TODO:
+					//Load item
+				}
 				break;
 			case level:
 				DesiredInputs(command, 1);
@@ -136,11 +144,11 @@ public class CommandManager : ConsoleReceiver
 				{
 					//show suggestions for this argument
 					CommandArgument a = c.arguments[slice - 1];
-					if (a.HasFlag(CommandArgument.ItemName))
-					{
-						//add item name commands
-						AddEnumSuggestions<ItemName>(segments[slice], ref viableEntries);
-					}
+					// if (a.HasFlag(CommandArgument.ItemName))
+					// {
+					// 	//add item name commands
+					// 	AddEnumSuggestions<ItemName>(segments[slice], ref viableEntries);
+					// }
 					if (a.HasFlag(CommandArgument.LevelName))
 					{
 						AddEnumSuggestions<LevelName>(segments[slice], ref viableEntries);

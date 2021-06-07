@@ -1,12 +1,16 @@
+using System;
 using System.Collections.Generic;
 
 namespace Armere.Inventory
 {
 
 
-	public class ItemStack : ItemStackBase
+	public class ItemStack : ItemStackBase, IBinaryVariableAsyncSerializer<ItemStack>
 	{
 		public uint count;
+		public ItemStack()
+		{
+		}
 
 		public ItemStack(ItemData n) : base(n)
 		{
@@ -18,14 +22,26 @@ namespace Armere.Inventory
 			this.count = count;
 		}
 
-		public override void Write(in GameDataWriter writer)
+
+		public void Read(in GameDataReader reader, System.Action<ItemStack> onDone)
 		{
-			writer.Write((int)item.itemName);
-			writer.Write(count);
+			uint count = reader.ReadUInt();
+			reader.ReadAsync<ItemDataAsyncSerializer>(item =>
+			{
+				onDone?.Invoke(new ItemStack(item, count));
+			});
 		}
+
+		public void Write(in GameDataWriter writer, ItemStack data)
+		{
+			writer.WritePrimitive(count);
+			writer.Write(data.item);
+		}
+
 	}
 
-	public class StackPanel<StackT> : InventoryPanel where StackT : ItemStack
+	public class StackPanel<StackT> : InventoryPanel, IBinaryVariableAsyncSerializer<StackPanel<StackT>>
+			where StackT : ItemStack, IBinaryVariableAsyncSerializer<StackT>, new()
 	{
 
 		public List<StackT> items;
@@ -136,6 +152,21 @@ namespace Armere.Inventory
 		{
 			items.Add((StackT)stack);
 			return true;
+		}
+
+		public void Read(in GameDataReader reader, Action<StackPanel<StackT>> onDone)
+		{
+			var t = this;
+			reader.ReadAsync<BinaryListAsyncSerializer<StackT>>(data =>
+			{
+				t.items = data;
+				onDone?.Invoke(t);
+			});
+		}
+
+		public void Write(in GameDataWriter writer)
+		{
+			writer.Write<BinaryListAsyncSerializer<StackT>>(items);
 		}
 	}
 }

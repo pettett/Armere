@@ -1,85 +1,104 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Assertions;
 using UnityEngine.ResourceManagement;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Armere.Inventory
 {
+	public readonly struct ItemDataAsyncSerializer : IBinaryVariableAsyncSerializer<ItemDataAsyncSerializer>
+	{
+		public readonly ItemData item;
+
+		public ItemDataAsyncSerializer(ItemData item)
+		{
+			this.item = item;
+		}
+
+		public void Read(in GameDataReader reader, Action<ItemDataAsyncSerializer> data)
+		{
+			ItemDatabase.ReadItemData(reader, item => data?.Invoke(new ItemDataAsyncSerializer(item)));
+		}
+
+		public void Write(in GameDataWriter writer) => item.Write(writer);
+
+
+		public static implicit operator ItemDataAsyncSerializer(ItemData value) => new ItemDataAsyncSerializer(value);
+		public static implicit operator ItemData(ItemDataAsyncSerializer value) => value.item;
+	}
 
 	[CreateAssetMenu(fileName = "ItemDatabase", menuName = "Game/ItemDatabase", order = 0)]
-	public class ItemDatabase : SaveableSO
+	public class ItemDatabase : ScriptableObject
 	{
-		public ItemData this[ItemName key] => itemData[(int)key];
-		public AssetReferenceT<ItemData> test;
-		public ItemData[] itemData;
 
-		public Dictionary<ItemData, (ulong, ulong)> itemDataPrimaryKeys = new Dictionary<ItemData, (ulong, ulong)>();
+		public static readonly Dictionary<ItemData, (ulong, ulong)> itemDataPrimaryKeys = new Dictionary<ItemData, (ulong, ulong)>();
+		public static readonly Dictionary<string, ItemData> itemDataNames = new Dictionary<string, ItemData>();
 
-		public void LoadItemData(AssetReferenceT<ItemData> reference, System.Action<ItemData> data)
+		public static AsyncOperationHandle<ItemDataT> LoadItemDataAsync<ItemDataT>(AssetReferenceT<ItemDataT> reference, System.Action<ItemDataT> data) where ItemDataT : ItemData
 		{
-			var x = reference.LoadAssetAsync<ItemData>();
-
-			Debug.Log(reference.RuntimeKey);
+			var x = Addressables.LoadAssetAsync<ItemDataT>(reference);
 
 			Spawner.OnDone(x, result =>
 			{
-				itemDataPrimaryKeys[result.Result] = Encode(reference);
+				itemDataPrimaryKeys[result.Result] = GetPrimaryKey(reference);
+				itemDataNames[result.Result.displayName] = result.Result;
 				data?.Invoke(result.Result);
 			});
+
+			return x;
 		}
-		public void SaveItemData(ItemData data, in GameDataWriter writer)
+
+
+		//Will only work in situations where it can be guaranteed that the item has already been loaded before
+		public static ItemData LoadItemData(AssetReferenceT<ItemData> reference)
 		{
-			(ulong, ulong) value = itemDataPrimaryKeys[data];
-			writer.Write(value.Item1);
-			writer.Write(value.Item2);
+			return reference.LoadAssetAsync<ItemData>().Result;
 		}
-		public AssetReferenceT<ItemData> ReadItemDataReference(in GameDataReader reader)
+		public static AssetReferenceT<ItemData> ReadItemDataReference(in GameDataReader reader)
 		{
-			(ulong a, ulong b) = (reader.ReadULong(), reader.ReadULong());
-			return new AssetReferenceT<ItemData>(Decode(a, b));
+			ulong a = reader.ReadULong();
+			ulong b = reader.ReadULong();
+			string guid = Decode(a, b);
+
+			//Debug.Log($"{guid}, {a:x16}{b:x16}");
+			return new AssetReferenceT<ItemData>(guid);
 		}
-		public void ReadItemData(in GameDataReader reader, System.Action<ItemData> data)
+		public static void ReadItemData(in GameDataReader reader, System.Action<ItemData> data)
 		{
+
+			//Debug.Log($"Reading from {reader.reader.BaseStream.Position }:");
 			var x = ReadItemDataReference(in reader);
-			LoadItemData(x, data);
+			//Debug.Log(x.AssetGUID);
+			Assert.IsTrue(x.RuntimeKeyIsValid());
+			LoadItemDataAsync(x, data);
 		}
 
 
-		(ulong, ulong) Encode(AssetReference reference)
+		public static (ulong, ulong) GetPrimaryKey(AssetReference reference)
 		{
-
 			ulong a = ulong.Parse(reference.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber);
 			ulong b = ulong.Parse(reference.AssetGUID.Substring(16, 16), System.Globalization.NumberStyles.HexNumber);
 
+			//Debug.Log($"{reference.AssetGUID}, {a:x16}{b:x16}");
 			return (a, b);
 		}
-		string Decode(ulong a, ulong b)
+		static string Decode(ulong a, ulong b)
 		{
-			return $"{a:X16}{b:X16}";
+			return $"{a:x16}{b:x16}";
 		}
 
-
+		[MyBox.ButtonMethod]
 		public void Test()
 		{
-
-			LoadItemData(test, null);
-
+			string start = "d10c68d57a6c39544bb77206dfed0024";
+			ulong a = ulong.Parse(start.Substring(0, 16), System.Globalization.NumberStyles.HexNumber);
+			ulong b = ulong.Parse(start.Substring(16, 16), System.Globalization.NumberStyles.HexNumber);
+			//Debug.Log($"{a:x16}{b:x16}" == start);
 		}
 
-		public override void SaveBin(in GameDataWriter writer)
-		{
-
-		}
-
-		public override void LoadBin(in GameDataReader reader)
-		{
-
-		}
-
-		public override void LoadBlank()
-		{
-
-		}
 	}
+
 }

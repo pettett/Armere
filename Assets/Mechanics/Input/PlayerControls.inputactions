@@ -94,14 +94,6 @@
                     "interactions": "Press(behavior=2)"
                 },
                 {
-                    "name": "TabMenu",
-                    "type": "Button",
-                    "id": "def74620-7e63-4933-90ec-bee1e21aaf93",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
                     "name": "Console",
                     "type": "Button",
                     "id": "87c30319-f012-45cd-8a4e-26b53291af39",
@@ -453,17 +445,6 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "CameraMove",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "5af1578b-9d4f-4bc2-94ea-c87424f35a3e",
-                    "path": "<Keyboard>/tab",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "KeyboardMouse",
-                    "action": "TabMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -1251,6 +1232,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "TabMenu",
+                    "type": "Button",
+                    "id": "8f47f8be-4fbe-4556-8a27-494d2244738a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -1372,6 +1361,17 @@
                     "processors": "Scale(factor=9)",
                     "groups": "KeyboardMouse",
                     "action": "SelectSpell",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a9cc0a1c-21fb-4483-896a-57cf029f820f",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "TabMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

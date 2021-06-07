@@ -19,7 +19,6 @@ public class UIPanels : MonoBehaviour
 	public ColorBlock buttonNormal;
 	private void Start()
 	{
-		input.SwitchToUIInput();
 
 		SetOpenPanel();
 		if (setOpenPanelEventChannel != null)

@@ -5,10 +5,11 @@ using UnityEngine.Events;
 [CreateAssetMenu(menuName = "Channels/Save Load Event")]
 public class SaveLoadEventChannel : SaveableSO
 {
-	public delegate void InAction<T>(in T writer) where T : struct;
+	public delegate void WriteAction(in GameDataWriter writer);
+	public delegate void ReadAction(in GameDataReader writer);
 
-	public event InAction<GameDataWriter> onSaveBinEvent;
-	public event InAction<GameDataReader> onLoadBinEvent;
+	public event WriteAction onSaveBinEvent;
+	public event ReadAction onLoadBinEvent;
 	public event UnityAction onLoadBlankEvent;
 
 	public override void SaveBin(in GameDataWriter writer)

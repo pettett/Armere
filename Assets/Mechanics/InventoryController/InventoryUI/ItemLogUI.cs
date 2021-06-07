@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Assertions;
 using UnityEngine.ResourceManagement.AsyncOperations;
 namespace Armere.Inventory.UI
 {
@@ -33,6 +34,7 @@ namespace Armere.Inventory.UI
 
 		private void Start()
 		{
+			Assert.IsTrue(entryPrefab.RuntimeKeyIsValid());
 
 			entries = new Queue<Entry>(maxEntries);
 

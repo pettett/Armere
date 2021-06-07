@@ -6,13 +6,6 @@ using UnityEngine.InputSystem;
 namespace Armere.PlayerController
 {
 
-	[Serializable]
-	public class AnimatorVariables
-	{
-
-	}
-
-
 	public abstract class MovementState : State<PlayerController>
 	{
 		public bool updateWhilePaused = false;
@@ -51,20 +44,5 @@ namespace Armere.PlayerController
 	{
 
 	}
-
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-	public class RequiresParallelState : Attribute
-	{
-		public readonly System.Collections.ObjectModel.ReadOnlyCollection<Type> states;
-		public RequiresParallelState(params Type[] states)
-		{
-			foreach (var state in states)
-				if (!state.IsSubclassOf(typeof(MovementState)))
-					throw new Exception("Must use a parallel State");
-			this.states = Array.AsReadOnly(states);
-		}
-	}
-
-
 
 }

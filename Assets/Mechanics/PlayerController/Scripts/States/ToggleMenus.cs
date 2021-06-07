@@ -71,8 +71,17 @@ namespace Armere.PlayerController
 		public void ToggleTabMenu()
 		{
 			//Only enter if the game is not paused
-			if (inMenus) inMenus = false;
-			else if (!c.paused) inMenus = true;
+			if (inMenus)
+			{
+				c.inputReader.SwitchToGameplayInput();
+				inMenus = false;
+			}
+			else if (!c.paused)
+			{
+
+				c.inputReader.SwitchToUIInput();
+				inMenus = true;
+			}
 			else return;
 
 			UpdateMenus();

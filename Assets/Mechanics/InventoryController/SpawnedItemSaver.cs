@@ -10,7 +10,6 @@ namespace Armere.Inventory
 	public class SpawnedItemSaver : MonoBehaviour
 	{
 		public SaveLoadEventChannel spawnedItemSaveLoadChannel;
-		public ItemDatabase db;
 		public void LoadBlank()
 		{
 			//Do nothing
@@ -22,8 +21,8 @@ namespace Armere.Inventory
 		foreach in COUNT
 			-Vec3 position
 			-quat rotation
-			-int itemName
 			-uint bundleSize
+			-ulong,ulong itemData
 		*/
 
 		public void SaveBin(in GameDataWriter writer)
@@ -31,13 +30,13 @@ namespace Armere.Inventory
 			Profiler.BeginSample("Saving Item Spawnable Objects");
 
 			var spawnedItems = FindObjectsOfType<ItemSpawnable>();
-			writer.Write(spawnedItems.Length);
+			writer.WritePrimitive(spawnedItems.Length);
 			for (int i = 0; i < spawnedItems.Length; i++)
 			{
-				writer.Write(spawnedItems[i].transform.position);
-				writer.Write(spawnedItems[i].transform.rotation);
-				writer.Write((int)spawnedItems[i].item.itemName);
-				writer.Write(spawnedItems[i].count);
+				writer.WritePrimitive(spawnedItems[i].transform.position);
+				writer.WritePrimitive(spawnedItems[i].transform.rotation);
+				writer.WritePrimitive(spawnedItems[i].count);
+				writer.Write(spawnedItems[i].item);
 			}
 
 
@@ -45,11 +44,11 @@ namespace Armere.Inventory
 			Profiler.BeginSample("Saving Item Spawners");
 
 			var spawners = FindObjectsOfType<ItemSpawner>();
-			writer.Write(spawners.Length);
+			writer.WritePrimitive(spawners.Length);
 			for (int i = 0; i < spawners.Length; i++)
 			{
-				writer.Write(spawners[i].GetComponent<GuidComponent>().GetGuid());
-				writer.Write(spawners[i].spawnedItem);
+				writer.WritePrimitive(spawners[i].GetComponent<GuidComponent>().GetGuid());
+				writer.WritePrimitive(spawners[i].spawnedItem);
 			}
 
 			Profiler.EndSample();
@@ -58,7 +57,7 @@ namespace Armere.Inventory
 		{
 			if (reader.saveVersion != SaveManager.version)
 			{
-				Debug.Log("Incorrect version");
+				Debug.LogWarning("Incorrect version");
 			}
 			Profiler.BeginSample("Restoring Item Spawnable Objects");
 
@@ -67,13 +66,15 @@ namespace Armere.Inventory
 			{
 				Vector3 pos = reader.ReadVector3();
 				Quaternion rot = reader.ReadQuaternion();
-				ItemName item = (ItemName)reader.ReadInt();
 				uint bundleSize = reader.ReadUInt();
-
-				if (db[item] is PhysicsItemData data)
+				ItemDatabase.ReadItemData(reader, item =>
 				{
-					//ItemSpawner.SpawnItem(data, pos, rot);
-				}
+					if (item is PhysicsItemData data)
+					{
+						ItemSpawner.SpawnItem(data, pos, rot);
+					}
+				});
+
 			}
 
 			Profiler.EndSample();

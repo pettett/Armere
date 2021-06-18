@@ -39,16 +39,9 @@ namespace Armere.PlayerController
 		public Transform cameraTrackingTransform;
 
 
-		[Header("Ground detection")]
-		[Range(0, 90)] public float m_maxGroundSlopeAngle = 70;
-		[NonSerialized] public float m_maxGroundSlopeDot = 0.3f;
-		public bool onGround;
+
 		[Header("Movement")]
 
-		public float walkingHeight = 1.8f;
-
-		[Range(0, 1)]
-		public float dynamicFriction = 0.2f;
 
 		public bool useGravity = true;
 
@@ -59,8 +52,6 @@ namespace Armere.PlayerController
 		public Vector3 WorldDown => m_gravityDirection;
 
 
-		[Header("Water")]
-		public float maxWaterStrideDepth = 1;
 
 
 
@@ -168,13 +159,14 @@ namespace Armere.PlayerController
 		}
 
 
-		private void OnCollisionEnter(Collision col)
+		protected override void OnCollisionEnter(Collision col)
 		{
 			allCPs.Capacity += col.contactCount;
 			for (int i = 0; i < col.contactCount; i++)
 			{
 				allCPs.Add(col.GetContact(i));
 			}
+			base.OnCollisionEnter(col);
 		}
 		private void OnCollisionStay(Collision col)
 		{
@@ -202,11 +194,10 @@ namespace Armere.PlayerController
 
 			weaponGraphics = GetComponent<WeaponGraphicsController>();
 
-			m_maxGroundSlopeDot = Mathf.Cos(m_maxGroundSlopeAngle * Mathf.Deg2Rad);
 
 
 
-			collider.material.dynamicFriction = dynamicFriction;
+			collider.material.dynamicFriction = profile.dynamicFriction;
 
 			GetComponent<Ragdoller>().RagdollEnabled = false;
 
@@ -305,13 +296,15 @@ namespace Armere.PlayerController
 			for (int i = 1; i < 5; i++)
 			{
 				ItemType t = (ItemType)i;
-				int selection = itemSelections[t];
-
-
-				itemSelections[t] = selection;
-				if (selection != -1)
+				if (itemSelections[t] >= inventory.StackCount(t))
 				{
-					ItemData item = inventory.ItemAt(selection, t).item;
+					Debug.LogWarning($"Selected {t}, {itemSelections[t]} is out of range");
+					itemSelections[t] = inventory.StackCount(t) - 1;
+				}
+
+				if (itemSelections[t] >= 0)
+				{
+					ItemData item = inventory.ItemAt(itemSelections[t], t).item;
 					if (item is HoldableItemData holdableItemData)
 					{
 						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
@@ -544,12 +537,16 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started && selectingSlot == null && !paused)
 			{
-				selectingSlot = weaponSet switch
+				if (inputReader.GetActionState<float>(
+					InputReader.groundActionMap, InputReader.GroundActionMapActions.EquipBow.ToString()
+					) > 0.5f)
 				{
-					WeaponSet.MeleeSidearm => new ItemType[] { ItemType.Melee, ItemType.SideArm },
-					WeaponSet.BowArrow => new ItemType[] { ItemType.Bow, ItemType.Ammo },
-					_ => null,
-				};
+					selectingSlot = new ItemType[] { ItemType.Bow, ItemType.Ammo };
+				}
+				else
+				{
+					selectingSlot = new ItemType[] { ItemType.Melee, ItemType.SideArm };
+				}
 
 				var s = UIController.singleton.scrollingSelector.GetComponent<ScrollingSelectorUI>();
 				s.layers[0].selecting = selectingSlot[0];
@@ -784,7 +781,6 @@ namespace Armere.PlayerController
 				gamepad.SetMotorSpeeds(low, high);
 			}
 		}
-
 		public void ChangeToStateTimed(MovementStateTemplate timedState, float time, MovementStateTemplate returnedState = null) =>
 			StartCoroutine(ChangeToStateTimedRoutine(timedState, time, returnedState));
 
@@ -858,6 +854,7 @@ namespace Armere.PlayerController
 
 			StartAllStates();
 
+			StateChanged();
 			return currentState;
 		}
 
@@ -918,6 +915,7 @@ namespace Armere.PlayerController
 
 		public override void Knockout(float time)
 		{
+			knockoutState.time = time;
 			ChangeToState(knockoutState);
 		}
 	}

@@ -59,7 +59,7 @@ namespace Armere.Inventory
 			});
 		}
 
-		public void Write(in GameDataWriter writer)
+		public virtual void Write(in GameDataWriter writer)
 		{
 			writer.Write(item);
 		}
@@ -107,7 +107,6 @@ namespace Armere.Inventory
 
 		public ItemAddedEventChannelSO onItemAdded;
 
-		public ItemDatabase db;
 
 		const string itemPrefix = "$Item_";
 
@@ -183,6 +182,7 @@ namespace Armere.Inventory
 		public override IEnumerator LoadBinAsync(GameDataReader reader)
 		{
 			uint loaded = 0;
+			const uint asyncLoads = 8;
 			void OnLoaded<T>(T inp) where T : InventoryPanel
 			{
 				loaded++;
@@ -201,7 +201,9 @@ namespace Armere.Inventory
 			reader.ReadInto(currency);
 			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
 
-			yield return new WaitUntil(() => loaded == panels.Length - 1);
+			yield return new WaitUntil(() => loaded == asyncLoads);
+
+			Debug.Log($"Loaded inv, {loaded}");
 		}
 
 		public override void SaveBin(in GameDataWriter writer)
@@ -362,6 +364,7 @@ namespace Armere.Inventory
 		public bool TakeItem(int index, ItemType type, uint count = 1) => GetPanelFor(type).TakeItem(index, count);
 		public uint ItemCount(ItemData item) => GetPanelFor(item.type).ItemCount(item);
 		public uint ItemCount(int index, ItemType type) => GetPanelFor(type).ItemCount(index);
+		public int StackCount(ItemType type) => GetPanelFor(type).stackCount;
 		public ItemStackBase ItemAt(int index, ItemType type) => GetPanelFor(type)[index];
 
 		public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()

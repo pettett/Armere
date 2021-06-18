@@ -193,7 +193,7 @@ namespace Armere.Inventory.UI
 
 		public void OnItemSelected(ItemStackBase item)
 		{
-			selectedDisplay.ShowInfo(item, inventory.db);
+			selectedDisplay.ShowInfo(item);
 		}
 
 		void AddItemGroup(InventoryPanel panel)

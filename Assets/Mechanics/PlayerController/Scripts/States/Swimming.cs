@@ -72,7 +72,7 @@ namespace Armere.PlayerController
 			float heightOffset = 2;
 			int hits = Physics.RaycastNonAlloc(
 				transform.position + new Vector3(0, heightOffset, 0),
-				Vector3.down, waterHits, c.maxWaterStrideDepth + heightOffset,
+				Vector3.down, waterHits, c.profile.maxWaterStrideDepth + heightOffset,
 				//Scan for water and ground
 				c.m_groundLayerMask | c.m_waterLayerMask, QueryTriggerInteraction.Collide);
 
@@ -86,7 +86,7 @@ namespace Armere.PlayerController
 				{
 					//Hit water and ground
 					currentDepth = waterHits[0].distance - waterHits[1].distance;
-					if (currentDepth <= c.maxWaterStrideDepth)
+					if (currentDepth <= c.profile.maxWaterStrideDepth)
 					{
 						//Within walkable water
 						c.ChangeToState(c.defaultState);
@@ -99,7 +99,7 @@ namespace Armere.PlayerController
 				c.rb.velocity.y >= 0 &&
 				hits > 0 &&
 				waterHits[0].distance < heightOffset &&
-				heightOffset - waterHits[0].distance < c.maxWaterStrideDepth)
+				heightOffset - waterHits[0].distance < c.profile.maxWaterStrideDepth)
 				ChangeDive(false);
 
 			if (onSurface && c.allCPs.Count > 0)
@@ -118,8 +118,8 @@ namespace Armere.PlayerController
 
 						Debug.DrawLine(origin, origin + Vector3.down * c.collider.height * 1.05f, Color.blue, Time.deltaTime);
 						//Also allow vault into shallow water
-						if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, c.collider.height + c.maxWaterStrideDepth, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
-						 Vector3.Dot(c.WorldUp, hit.normal) > c.m_maxGroundSlopeDot)
+						if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, c.collider.height + c.profile.maxWaterStrideDepth, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
+						 Vector3.Dot(c.WorldUp, hit.normal) > c.profile.m_maxGroundSlopeDot)
 						{
 							//Can move to hit spot
 							transform.position = hit.point;
@@ -202,7 +202,7 @@ namespace Armere.PlayerController
 			if (onSurface && holdingCrouchKey)
 			{
 				ChangeDive(true);
-				transform.position += c.WorldDown * c.maxWaterStrideDepth;
+				transform.position += c.WorldDown * c.profile.maxWaterStrideDepth;
 			}
 		}
 

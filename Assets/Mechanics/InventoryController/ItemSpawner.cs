@@ -16,6 +16,7 @@ namespace Armere.Inventory
 
 
 		public bool spawnedItem;
+		//Item must be spawned with a reference to allow spawned item to be saved later
 		public AssetReferenceT<PhysicsItemData> item;
 
 

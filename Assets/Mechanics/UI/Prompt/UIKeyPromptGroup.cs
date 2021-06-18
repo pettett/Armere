@@ -14,15 +14,15 @@ public class UIKeyPromptGroup : MonoBehaviour
 	public struct KeyPrompt
 	{
 		public string name;
-		public string action;
+		public InputReader.GroundActionMapActions action;
 
-		public KeyPrompt(string name, string action)
+		public KeyPrompt(string name, InputReader.GroundActionMapActions action)
 		{
 			this.name = name;
 			this.action = action;
 		}
 
-		public static implicit operator KeyPrompt((string name, string action) s) => new KeyPrompt(s.name, s.action);
+		public static implicit operator KeyPrompt((string name, InputReader.GroundActionMapActions action) s) => new KeyPrompt(s.name, s.action);
 
 	}
 	[System.Serializable]
@@ -80,7 +80,7 @@ public class UIKeyPromptGroup : MonoBehaviour
 			bindT.font = fontAsset;
 			bindT.fontSize = fontSize;
 			bindT.fontMaterial = maskingTextMaterial;
-			bindT.text = input.GetBindingDisplayString(map, prompts[i].action);
+			bindT.text = input.GetBindingDisplayString(map, prompts[i].action.ToString());
 
 			bindT.alignment = TextAlignmentOptions.Right;
 

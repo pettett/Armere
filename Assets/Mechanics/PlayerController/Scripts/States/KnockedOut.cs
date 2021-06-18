@@ -25,6 +25,7 @@ namespace Armere.PlayerController
 			canBeTargeted = false;
 
 			c.gameObject.GetComponent<Ragdoller>().RagdollEnabled = true;
+			GameCameras.s.playerTrackingOffset = 0;
 			c.StartCoroutine(WaitForRespawn());
 		}
 
@@ -49,7 +50,7 @@ namespace Armere.PlayerController
 		//place this in end to make sure it always returns camera control even if state is externally changed
 		public override void End()
 		{
-
+			GameCameras.s.playerTrackingOffset = c.profile.m_standingHeight;
 		}
 	}
 }

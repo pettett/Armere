@@ -5,7 +5,7 @@ using UnityEngine.Events;
 public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 {
 	[System.Flags]
-	public enum FireSpreadMode { None = 0, Contact = 1, Trigger = 2 }
+	public enum FireSpreadMode { None = 0, Contact = 1, Trigger = 2, Particle = 4 }
 
 	public FireSpreadMode spreadMode;
 	public bool startLit;
@@ -55,7 +55,13 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 		}
 	}
 
-
+	void OnParticleCollision(GameObject other)
+	{
+		if (spreadMode.HasFlag(FireSpreadMode.Particle) && other.TryGetComponent<FlammableBody>(out var body) && !body.onFire)
+		{
+			body.Light();
+		}
+	}
 
 	[MyBox.ButtonMethod]
 	public void Light() => SetFire(true);
@@ -74,6 +80,15 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 		else
 		{
 			onFireEnd.Invoke();
+		}
+
+		if (spreadMode.HasFlag(FireSpreadMode.Particle))
+		{
+			var p = GetComponent<ParticleSystem>();
+			if (enabled && !p.isPlaying)
+				p.Play();
+			var e = p.emission;
+			e.enabled = enabled;
 		}
 
 	}

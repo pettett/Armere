@@ -33,7 +33,7 @@ namespace Armere.PlayerController
 		System.Text.StringBuilder entry;
 
 		public bool forceForwardHeadingToCamera = false;
-		bool isGrounded;
+
 		bool isHoldingCrouchKey;
 		bool isHoldingSprintKey;
 
@@ -43,7 +43,7 @@ namespace Armere.PlayerController
 		bool isCrouching { get => walkingType == WalkingType.Crouching; }
 		bool isSprinting { get => walkingType == WalkingType.Sprinting; }
 
-		public float walkingHeight => c.walkingHeight;
+		public float walkingHeight => c.profile.m_standingHeight;
 
 		WalkingType walkingType = WalkingType.Walking;
 		public bool inControl = true;
@@ -71,7 +71,11 @@ namespace Armere.PlayerController
 		public Spell currentCastingSpell;
 
 		bool debugStep = false;
-		bool coyote = false;
+		enum GroundState { Grounded, Coyote, Falling }
+		GroundState ground;
+
+		bool Coyote => ground == GroundState.Coyote;
+		bool IsGrounded => ground == GroundState.Grounded;
 
 		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
 		{
@@ -130,6 +134,8 @@ namespace Armere.PlayerController
 			c.inputReader.sprintEvent += OnSprint;
 			c.inputReader.crouchEvent += OnCrouch;
 			c.inputReader.attackEvent += OnAttack;
+
+
 			c.inputReader.equipBowEvent += OnAttackBow;
 			c.inputReader.altAttackEvent += OnAltAttack;
 			c.inputReader.jumpEvent += OnJump;
@@ -192,8 +198,8 @@ namespace Armere.PlayerController
 				UIKeyPromptGroup.singleton.ShowPrompts(
 					c.inputReader,
 					InputReader.groundActionMap,
-					new UIKeyPromptGroup.KeyPrompt("Rest", InputReader.attackAction),
-					new UIKeyPromptGroup.KeyPrompt("Roast Marshmellow", InputReader.altAttackAction)
+					new UIKeyPromptGroup.KeyPrompt("Rest", InputReader.GroundActionMapActions.Attack),
+					new UIKeyPromptGroup.KeyPrompt("Roast Marshmellow", InputReader.GroundActionMapActions.AltAttack)
 					);
 
 				if (c.TryGetParallelState<Interact>(out var s))
@@ -319,7 +325,7 @@ namespace Armere.PlayerController
 		}
 		public void HoldHoldable(HoldableBody body)
 		{
-			StartSpell(new PlayerHoldableInteraction(c, this, body));
+			StartSpell(new PlayerHoldableInteraction(this, body));
 		}
 
 		readonly RaycastHit[] waterHits = new RaycastHit[2];
@@ -333,7 +339,7 @@ namespace Armere.PlayerController
 			int hits = Physics.RaycastNonAlloc(
 				transform.position + c.WorldUp * heightOffset,
 				c.WorldDown, waterHits,
-				c.maxWaterStrideDepth + heightOffset,
+				c.profile.maxWaterStrideDepth + heightOffset,
 				c.m_groundLayerMask | c.m_waterLayerMask,
 				QueryTriggerInteraction.Collide);
 
@@ -345,7 +351,7 @@ namespace Armere.PlayerController
 					//Hit water and ground
 					float depth = waterHits[0].distance - waterHits[1].distance;
 
-					float scaledDepth = depth / c.maxWaterStrideDepth;
+					float scaledDepth = depth / c.profile.maxWaterStrideDepth;
 					if (scaledDepth > 1)
 					{
 						//Start swimming
@@ -502,7 +508,7 @@ namespace Armere.PlayerController
 		public Vector3 GetSlopeForce(Vector3 movement, Vector3 normal)
 		{
 			float dot = Vector3.Dot(c.WorldUp, normal);
-			if (dot > c.m_maxGroundSlopeDot)
+			if (dot > c.profile.m_maxGroundSlopeDot)
 			{
 				float slope = Mathf.Clamp01(1 - dot);
 
@@ -522,6 +528,69 @@ namespace Armere.PlayerController
 			return Vector3.zero;
 
 		}
+
+		/// <summary>
+		///	Sheath all player held weapons
+		/// </summary>
+		/// <returns>true if everything is fully sheathed</returns>
+		bool SheathAll()
+		{
+			//Do not allow sprinting while a weapon is equipped, so wait until
+			//The weapon for the set is sheathed before allowing sprint
+
+			if (!c.sheathing.melee && !c.weaponGraphics.holdables.melee.sheathed)
+			{
+				//Will only operate is sword exists
+				c.StartCoroutine(c.SheathItem(ItemType.Melee));
+			}
+
+			//Will only operate if sidearm exists
+			if (!c.sheathing.sidearm && !c.weaponGraphics.holdables.sidearm.sheathed)
+			{
+				//Will only operate is sword exists
+				c.StartCoroutine(c.SheathItem(ItemType.SideArm));
+			}
+
+			if (!c.sheathing.bow && !c.weaponGraphics.holdables.bow.sheathed)
+			{
+				//Will only operate if bow exists
+				c.StartCoroutine(c.SheathItem(ItemType.Bow));
+				//Reset to default weapon set
+				CancelSpellCast(true);
+			}
+
+			bool allSheathed = !c.sheathing.melee && !c.sheathing.sidearm && !c.sheathing.bow;
+
+			return allSheathed;
+
+		}
+
+		void AttemptSprint()
+		{
+			bool shouldSprint = isHoldingSprintKey;
+
+			if (shouldSprint)
+			{
+				if (cameras.m_UpdatingCameraDirection)
+				{
+					//Do not sprint while focusing
+					shouldSprint = false;
+				}
+				else
+				{
+					SheathAll();
+				}
+			}
+
+
+			//If no longer pressing the button return to normal movement
+			if (shouldSprint)
+				walkingType = WalkingType.Sprinting;
+			else
+				walkingType = WalkingType.Walking;
+		}
+
+
 		public override void FixedUpdate()
 		{
 			// if (c.onGround == false)
@@ -545,79 +614,29 @@ namespace Armere.PlayerController
 
 			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
 
-			bool wasGrounded = isGrounded;
+			bool wasGrounded = IsGrounded;
 
-			isGrounded = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
+			bool onGround = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
 
-			if (!isGrounded && !wasGrounded)
+			if (!onGround && wasGrounded)
 			{
-				coyote = true;
-				c.StartCoroutine(Coyote(t.coyoteTime));
+				Debug.Log($"Started coyote, {onGround}, {wasGrounded}");
+				ground = GroundState.Coyote;
+				c.StartCoroutine(DoCoyote(t.coyoteTime));
+			}
+			else if (onGround)
+			{
+				ground = GroundState.Grounded;
 			}
 
 
 
 
-
-			c.animationController.enableFeetIK = isGrounded;
-
-			if (isHoldingSprintKey)
-			{
-				if (cameras.m_UpdatingCameraDirection)
-				{
-					//Do not sprint while focusing
-					walkingType = WalkingType.Walking;
-				}
-
-				//Do not allow sprinting while a weapon is equipped, so wait until
-				//The weapon for the set is sheathed before allowing sprint
-				else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
-				{
-					if (!c.sheathing.melee)
-					{
-						if (!c.weaponGraphics.holdables.melee.sheathed)
-						{
-							//Will only operate is sword exists
-							c.StartCoroutine(c.SheathItem(ItemType.Melee));
-						}
-						else
-						{
-							walkingType = WalkingType.Sprinting;
-						}
-					}
-
-					//Will only operate if sidearm exists
-					if (!c.sheathing[ItemType.SideArm] && !c.weaponGraphics.holdables[ItemType.SideArm].sheathed)
-					{
-						//Will only operate is sword exists
-						c.StartCoroutine(c.SheathItem(ItemType.SideArm));
-					}
-
-				}
-				else
-				{
-
-					if (!c.sheathing.bow)
-					{
-						if (!c.weaponGraphics.holdables.bow.sheathed)
-						{
-							//Will only operate if bow exists
-							c.StartCoroutine(c.SheathItem(ItemType.Bow));
-							//Reset to default weapon set
-							c.weaponSet = (PlayerController.WeaponSet)0;
-						}
-						else
-						{
-							walkingType = WalkingType.Sprinting;
-						}
-					}
-				}
-			}
+			c.animationController.enableFeetIK = IsGrounded;
 
 
+			AttemptSprint();
 
-			//If no longer pressing the button return to normal movement
-			else if (isSprinting) walkingType = WalkingType.Walking;
 
 			//List<ContactPoint> groundCPs = new List<ContactPoint>();
 
@@ -636,7 +655,7 @@ namespace Armere.PlayerController
 			GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
 
 
-			if (isGrounded)
+			if (IsGrounded)
 			{
 				//step up onto the stair, reseting the velocity to what it was
 				if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, desiredVelocity))
@@ -647,14 +666,6 @@ namespace Armere.PlayerController
 					c.StartCoroutine(StepToPoint(transform.position + stepUpOffset, lastVelocity));
 				}
 			}
-			else
-			{
-				if (!c.onGround)
-				{
-					//c.ChangeToState<Freefalling>();
-				}
-			}
-
 
 			//c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
 			if (isHoldingCrouchKey)
@@ -691,7 +702,7 @@ namespace Armere.PlayerController
 			//rotate the target based on the ground the player is standing on
 
 
-			if (isGrounded)
+			if (IsGrounded)
 				requiredForce -= currentGroundNormal * t.groundClamp;
 
 			c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
@@ -701,7 +712,8 @@ namespace Armere.PlayerController
 			if (DebugMenu.menuEnabled)
 			{
 				entry.Clear();
-				entry.AppendLine($"Velocity: {c.rb.velocity.magnitude:0.0}, Contact Point Count: {c.allCPs.Count}, On Ground: {isGrounded}, Sprinting: {isSprinting}, Crouching: {isCrouching}");
+				entry.AppendLine($"Velocity: {c.rb.velocity.magnitude:0.0}, Contact Point Count: {c.allCPs.Count}");
+				entry.AppendLine($"On Ground: {ground}, Sprinting: {isSprinting}, Crouching: {isCrouching}");
 			}
 		}
 		#endregion
@@ -723,7 +735,7 @@ namespace Armere.PlayerController
 			//Create a spell casting instance
 			if (spell < c.spellTree.selectedNodes.Length && spell >= 0 && c.spellTree.selectedNodes[spell].canBeUsed)
 			{
-				StartSpell(c.spellTree.selectedNodes[spell].Use().BeginCast(c));
+				StartSpell(c.spellTree.selectedNodes[spell].Use().BeginCast(this));
 			}
 		}
 		public void StartSpell(Spell spell)
@@ -734,17 +746,10 @@ namespace Armere.PlayerController
 			forceForwardHeadingToCamera = true;
 			currentCastingSpell.Begin();
 		}
-		public void CastSpell(CastType castType)
-		{
-			currentCastingSpell.Cast();
-			currentCastingSpell = null;
-			forceForwardHeadingToCamera = false;
 
-
-		}
 		public void CancelSpellCast(bool manual)
 		{
-			currentCastingSpell.CancelCast(manual);
+			currentCastingSpell.EndCast(manual);
 			currentCastingSpell = null;
 			forceForwardHeadingToCamera = false;
 		}
@@ -757,7 +762,12 @@ namespace Armere.PlayerController
 
 		public void OnAttack(InputActionPhase phase)
 		{
-			if (currentCastingSpell != null && currentCastingSpell.castType == CastType.PrimaryFire) CastSpell(CastType.PrimaryFire);
+			if (!(currentCastingSpell?.CanAttackWhileInUse ?? true))
+			{
+				return;
+			}
+
+
 			else if (phase == InputActionPhase.Started && c.currentMelee != -1)
 			{
 				if (c.weaponSet != PlayerController.WeaponSet.MeleeSidearm)
@@ -783,45 +793,46 @@ namespace Armere.PlayerController
 				}
 			}
 		}
+		bool bowKeyHeld = false;
 
 		public void OnAttackBow(InputActionPhase phase)
 		{
-			if (inControl && c.currentBow != -1 && c.currentAmmo != -1)
+			if (phase == InputActionPhase.Performed) bowKeyHeld = true;
+			else if (phase == InputActionPhase.Canceled) bowKeyHeld = false;
+
+
+			if (inControl)
 			{
+
 				if (phase == InputActionPhase.Performed)
 				{
-					//Button down - start charge
-					//Player bow is kinda spell
-					//Start the spell at this point so that it can be canceled while items are sheathing
-					StartSpell(new PlayerBowAttack(c, this));
-
-					Debug.Log("Performed");
-
-					if (c.weaponSet != PlayerController.WeaponSet.BowArrow)
+					if (c.currentBow != -1 && c.currentAmmo != -1)
 					{
-						c.StartCoroutine(c.UnEquipAll(() =>
-						{
-							c.weaponSet = PlayerController.WeaponSet.BowArrow;
-							if (currentCastingSpell != null) //Change the bow is already cancelled
-								(currentCastingSpell as PlayerBowAttack).BeginCharge();
+						//Button down - start charge
+						//Player bow is kinda spell
+						//Start the spell at this point so that it can be canceled while items are sheathing
+						StartSpell(new PlayerBowAttack(c, this));
 
-						}));
+						if (c.weaponSet != PlayerController.WeaponSet.BowArrow)
+						{
+							c.StartCoroutine(c.UnEquipAll(() =>
+							{
+								c.weaponSet = PlayerController.WeaponSet.BowArrow;
+								if (currentCastingSpell != null) //Change the bow is already cancelled
+									((PlayerBowAttack)currentCastingSpell).BeginCharge();
+
+							}));
+						}
+						else
+						{
+							((PlayerBowAttack)currentCastingSpell).BeginCharge();
+						}
 					}
 					else
 					{
-						(currentCastingSpell as PlayerBowAttack).BeginCharge();
+						//TODO: Allow player to select a bow
+						Debug.Log("No Bow Equipped");
 					}
-
-
-
-				}
-				else if (phase == InputActionPhase.Canceled)
-				{
-					//button up - end charge
-					if (currentCastingSpell.castType == CastType.ReleaseCharge)
-						CastSpell(CastType.ReleaseCharge);
-
-					Debug.Log("Released");
 				}
 			}
 		}
@@ -977,8 +988,8 @@ namespace Armere.PlayerController
 		{
 			if (!inControl) return;
 
-
-			else if (currentCastingSpell != null) CancelSpellCast(true);
+			//If cancel the spell on alt attack, cancel. if null, do not cancel nothing
+			else if (currentCastingSpell?.CancelOnAltAttack ?? false) CancelSpellCast(true);
 
 			else if (c.weaponSet == PlayerController.WeaponSet.MeleeSidearm)
 			{
@@ -1050,7 +1061,7 @@ namespace Armere.PlayerController
 			foreach (ContactPoint cp in allCPs)
 			{
 				//Pointing with some up direction
-				if (Vector3.Dot(c.WorldUp, cp.normal) > c.m_maxGroundSlopeDot)
+				if (Vector3.Dot(c.WorldUp, cp.normal) > c.profile.m_maxGroundSlopeDot)
 				{
 					//Get the most upwards pointing contact point
 					//Also get the point that points most in the current direction the player desires to move
@@ -1103,7 +1114,7 @@ namespace Armere.PlayerController
 			// }
 
 			//if the step and the ground are too close, do not count
-			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.m_maxGroundSlopeDot)
+			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.profile.m_maxGroundSlopeDot)
 			{
 				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, c.WorldUp)}");
 				return false;
@@ -1186,15 +1197,16 @@ namespace Armere.PlayerController
 
 		#endregion
 
-		IEnumerator Coyote(float time)
+		IEnumerator DoCoyote(float time)
 		{
 			yield return new WaitForSeconds(time);
-			coyote = false;
+			if (Coyote)
+				ground = GroundState.Falling;
 		}
 
 		public void OnJump(InputActionPhase phase)
 		{
-			if (inControl && phase == InputActionPhase.Started && (isGrounded || coyote))
+			if (inControl && phase == InputActionPhase.Started && ground != GroundState.Falling)
 			{
 				//use acceleration to give constant upwards force regardless of mass
 				// Vector3 v = c.rb.velocity;
@@ -1209,8 +1221,10 @@ namespace Armere.PlayerController
 				c.rb.velocity = vel;
 
 				GetDesiredVelocity(transform.forward, t.GetSpeeds(walkingType).movementSpeed, 1, out Vector3 direction);
+				Debug.Log("Jumped");
+				ground = GroundState.Falling;
 
-				c.ChangeToState(t.freefalling);
+				//c.ChangeToState(t.freefalling);
 			}
 		}
 

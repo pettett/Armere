@@ -2,7 +2,20 @@ using System;
 
 namespace Armere.Inventory
 {
+	class CurrencyStack : ItemStackBase
+	{
+		public readonly uint currency;
 
+		public CurrencyStack(uint currency)
+		{
+			this.currency = currency;
+		}
+
+		public override string ToString()
+		{
+			return $"Currency: {currency}";
+		}
+	}
 	//Items added to this panel are not recorded, the values of the items are used
 	public class ValuePanel : InventoryPanel, IBinaryVariableSerializer<ValuePanel>
 	{
@@ -28,10 +41,7 @@ namespace Armere.Inventory
 		{
 			throw new NotImplementedException();
 		}
-		public override ItemStackBase ItemAt(int index)
-		{
-			throw new NotImplementedException();
-		}
+		public override ItemStackBase ItemAt(int index) => new CurrencyStack(currency);
 		public override uint ItemCount(ItemData data)
 		{
 			if (data.sellable)

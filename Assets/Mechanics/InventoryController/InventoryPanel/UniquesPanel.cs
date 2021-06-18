@@ -10,7 +10,7 @@ namespace Armere.Inventory
 
 	{
 
-		public List<UniqueT> items;
+		public readonly List<UniqueT> items;
 
 		public UniquesPanel(string name, uint limit, ItemType type, ItemInteractionCommands commands)
 			: base(name, limit, type, commands)
@@ -134,9 +134,8 @@ namespace Armere.Inventory
 		public void Read(in GameDataReader reader, Action<UniquesPanel<UniqueT>> onDone)
 		{
 			var t = this;
-			reader.ReadAsync<BinaryListAsyncSerializer<UniqueT>>(data =>
+			reader.ReadAsyncInto<BinaryListAsyncSerializer<UniqueT>>(items, _ =>
 			{
-				t.items = data;
 				onDone?.Invoke(t);
 			});
 		}

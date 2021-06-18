@@ -30,7 +30,7 @@ public abstract class Spawner : MonoBehaviour
 		}
 	}
 
-	public static void OnDone<T>(AsyncOperationHandle<T> handle, System.Action<AsyncOperationHandle<T>> onDone) where T : UnityEngine.Object
+	public static void OnDone<T>(AsyncOperationHandle<T> handle, System.Action<AsyncOperationHandle<T>> onDone)
 	{
 		if (!handle.IsDone)
 			handle.Completed += onDone;

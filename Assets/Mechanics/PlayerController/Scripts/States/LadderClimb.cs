@@ -34,7 +34,7 @@ namespace Armere.PlayerController
 			{
 				case Climbable.ClimbableSurface.Line:
 					//calculate height the player is at if they come at the ladder from above
-					height = Mathf.Clamp(ladder.transform.InverseTransformPoint(transform.position).y, 0, ladder.ladderHeight - c.walkingHeight - 0.1f);
+					height = Mathf.Clamp(ladder.transform.InverseTransformPoint(transform.position).y, 0, ladder.ladderHeight - c.profile.m_standingHeight - 0.1f);
 					transform.SetPositionAndRotation(GetLadderPos(height), ladder.transform.rotation);
 					break;
 				case Climbable.ClimbableSurface.Mesh:
@@ -145,14 +145,14 @@ namespace Armere.PlayerController
 			{
 				case Climbable.ClimbableSurface.Line:
 					height += inputHorizontal.y * Time.deltaTime * t.climbingSpeed;
-					height = Mathf.Clamp(height, 0, ladder.ladderHeight - c.walkingHeight);
+					height = Mathf.Clamp(height, 0, ladder.ladderHeight - c.profile.m_standingHeight);
 
 					transform.position = GetLadderPos(height);
 
-					if (height >= ladder.ladderHeight - c.walkingHeight - 0.01f)
+					if (height >= ladder.ladderHeight - c.profile.m_standingHeight - 0.01f)
 					{
 						//Get off at the top of the ladder
-						transform.position = GetLadderPos(ladder.ladderHeight - c.walkingHeight);
+						transform.position = GetLadderPos(ladder.ladderHeight - c.profile.m_standingHeight);
 						reachedLadderTop = true;
 						c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
 					}
@@ -229,7 +229,7 @@ namespace Armere.PlayerController
 						Vector3 origin = currentPosition + c.WorldUp * (oldColliderHeight + c.collider.height) - currentNormal * c.collider.radius * 2;
 
 						if (Physics.Raycast(origin, c.WorldDown, out RaycastHit hit, oldColliderHeight * 1.05f, c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
-							hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(c.WorldUp, hit.normal) > c.m_maxGroundSlopeDot)
+							hit.distance > oldColliderHeight * 0.95f && Vector3.Dot(c.WorldUp, hit.normal) > c.profile.m_maxGroundSlopeDot)
 						{
 							//go to tops
 							reachedLadderTop = true;

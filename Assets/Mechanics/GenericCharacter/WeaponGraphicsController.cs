@@ -182,12 +182,26 @@ public class WeaponGraphicsController : MonoBehaviour
 
 	public EquipmentSet<HoldableObject> holdables;
 
-
+	public Transform heldObjectHolder;
 	Animator animator;
 
 	AnimationController animationController;
 
-
+	/// <summary>
+	/// Helper method to have the player grab onto objects in front of them
+	/// To have the object move with the player's hand
+	/// </summary>
+	/// <param name="prefab"></param>
+	/// <returns></returns>
+	public T InstantiateHeldObject<T>(T prefab) where T : Object
+	{
+		var go = Instantiate(prefab, heldObjectHolder);
+		return go;
+	}
+	public void DestroyHeldObject(GameObject clone)
+	{
+		Destroy(clone);
+	}
 	public IEnumerator DrawItem(ItemType type, AnimationTransitionSet transitionSet)
 	{
 		if (type == ItemType.Melee)

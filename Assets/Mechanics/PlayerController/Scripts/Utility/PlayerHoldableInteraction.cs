@@ -8,11 +8,11 @@ namespace Armere.PlayerController
 		readonly HoldableBody holdable;
 		readonly Walking walking;
 
-		public PlayerHoldableInteraction(Character caster, Walking walking, HoldableBody holdable) : base(caster, CastType.PrimaryFire)
+		public PlayerHoldableInteraction(Walking walking, HoldableBody holdable) : base(walking)
 		{
 			this.holdable = holdable;
 			this.walking = walking;
-			caster.StartCoroutine(PickupHoldable());
+			caster.c.StartCoroutine(PickupHoldable());
 		}
 		IEnumerator PickupHoldable()
 		{
@@ -57,7 +57,7 @@ namespace Armere.PlayerController
 					yield return null;
 				}
 
-				caster.animationController.holdBarrelRig.AttachBarrel(holdable.gameObject);
+				caster.c.animationController.holdBarrelRig.AttachBarrel(holdable.gameObject);
 
 			}
 			else
@@ -71,8 +71,8 @@ namespace Armere.PlayerController
 			UIKeyPromptGroup.singleton.ShowPrompts(
 				walking.c.inputReader,
 				InputReader.groundActionMap,
-				("Throw", InputReader.attackAction),
-				("Drop", InputReader.altAttackAction));
+				("Throw", InputReader.GroundActionMapActions.Attack),
+				("Drop", InputReader.GroundActionMapActions.AltAttack));
 
 			walking.inControl = true;
 		}
@@ -82,7 +82,7 @@ namespace Armere.PlayerController
 			walking.forceForwardHeadingToCamera = false;
 		}
 
-		public override void CancelCast(bool manualCancel)
+		public override void EndCast(bool manualCancel)
 		{
 			if (manualCancel)
 				PlaceHoldable();
@@ -90,7 +90,7 @@ namespace Armere.PlayerController
 				DropHoldable();
 		}
 
-		public override void Cast()
+		public void Cast()
 		{
 			ThrowHoldable();
 		}
@@ -117,7 +117,7 @@ namespace Armere.PlayerController
 
 			if (holdable.shape == HoldableBody.HoldableShape.Cylinder)
 			{
-				caster.animationController.holdBarrelRig.DetachBarrel();
+				caster.c.animationController.holdBarrelRig.DetachBarrel();
 				holdable.transform.SetParent(null);
 				holdable.rb.isKinematic = false;
 				holdable.collider.enabled = true;

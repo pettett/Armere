@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public struct BinaryListSerializer<T> : IBinaryVariableSerializer<List<T>> where T : IBinaryVariableSerializer<T>, new()
 {
@@ -33,43 +34,45 @@ public struct BinaryListSerializer<T> : IBinaryVariableSerializer<List<T>> where
 
 public readonly struct BinaryListAsyncSerializer<T> : IBinaryVariableAsyncSerializer<BinaryListAsyncSerializer<T>> where T : IBinaryVariableAsyncSerializer<T>, new()
 {
-	readonly List<T> value;
+	readonly List<T> list;
 	public BinaryListAsyncSerializer(List<T> value)
 	{
-		this.value = value;
+		this.list = value;
 	}
 	public void Write(in GameDataWriter writer)
 	{
-		writer.WritePrimitive(value.Count);
-		for (int i = 0; i < value.Count; i++)
+		writer.WritePrimitive(list.Count);
+		for (int i = 0; i < list.Count; i++)
 		{
-			value[i].Write(writer);
+			list[i].Write(writer);
 		}
 	}
 	public void Read(in GameDataReader reader, System.Action<BinaryListAsyncSerializer<T>> onDone)
 	{
-		int count = reader.Read<BinaryIntSerializer>();
-		var list = new List<T>(count);
+		int count = reader.ReadInt();
+
+		var t = this;
 		int done = 0;
 		if (count == 0) onDone?.Invoke(this);
 		else for (int i = 0; i < count; i++)
 			{
 				list.Add(default);
 				int index = i;
+
 				reader.ReadAsync<T>(item =>
-			   {
-				   list[index] = item;
-				   done++;
-				   //When every item has been loaded, mark this generator as loaded
-				   if (done == count)
-				   {
-					   onDone?.Invoke(list);
-				   }
-			   });
+			  {
+				  t.list[index] = item;
+				  done++;
+				  //When every item has been loaded, mark this generator as loaded
+				  if (done == count)
+				  {
+					  onDone?.Invoke(t.list);
+				  }
+			  });
 			}
 	}
 
 
 	public static implicit operator BinaryListAsyncSerializer<T>(List<T> value) => new BinaryListAsyncSerializer<T>(value);
-	public static implicit operator List<T>(BinaryListAsyncSerializer<T> value) => value.value;
+	public static implicit operator List<T>(BinaryListAsyncSerializer<T> value) => value.list;
 }

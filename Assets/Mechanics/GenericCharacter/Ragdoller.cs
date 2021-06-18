@@ -14,16 +14,26 @@ public class Ragdoller : MonoBehaviour
 		}
 	}
 
-	[SerializeField] bool ragdollEnabled;
+	[SerializeField, ReadOnly] bool ragdollEnabled;
 	public bool alwaysKinematic = false;
 	public Transform hips;
 	Animator animator;
 
-	Vector3 startingPos;
 
 	private void Awake()
 	{
 		animator = GetComponentInChildren<Animator>();
+		enabled = false;
+	}
+	[MyBox.ButtonMethod]
+	void Ragdoll()
+	{
+		RagdollEnabled = true;
+	}
+	[MyBox.ButtonMethod]
+	void Compose()
+	{
+		RagdollEnabled = false;
 	}
 
 	void SetRagdollActive(bool enabled)
@@ -31,6 +41,8 @@ public class Ragdoller : MonoBehaviour
 		ragdollEnabled = enabled;
 
 		animator.enabled = !enabled;
+
+		this.enabled = enabled;
 
 
 
@@ -47,19 +59,16 @@ public class Ragdoller : MonoBehaviour
 			collider.enabled = enabled;
 		}
 
-		if (!ragdollEnabled)
-		{
-			transform.position = hips.position;
-		}
-		else
-		{
-			startingPos = hips.position;
-		}
 
 
 		if (TryGetComponent<Rigidbody>(out Rigidbody rigidbody)) rigidbody.isKinematic = enabled || alwaysKinematic;
 		//the main collider has the opposite state
 		GetComponent<Collider>().enabled = !enabled;
+	}
+	private void Update()
+	{
+		transform.position = hips.position;
+		hips.localPosition = default;
 	}
 
 }

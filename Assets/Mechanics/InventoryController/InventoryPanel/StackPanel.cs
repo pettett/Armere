@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Armere.Inventory
 {
@@ -25,17 +27,23 @@ namespace Armere.Inventory
 
 		public void Read(in GameDataReader reader, System.Action<ItemStack> onDone)
 		{
-			uint count = reader.ReadUInt();
+			count = reader.ReadUInt();
+
 			reader.ReadAsync<ItemDataAsyncSerializer>(item =>
 			{
 				onDone?.Invoke(new ItemStack(item, count));
 			});
 		}
 
-		public void Write(in GameDataWriter writer, ItemStack data)
+		public override string ToString()
+		{
+			return $"{item.displayName} x {count}";
+		}
+
+		public override void Write(in GameDataWriter writer)
 		{
 			writer.WritePrimitive(count);
-			writer.Write(data.item);
+			base.Write(in writer);
 		}
 
 	}
@@ -44,7 +52,7 @@ namespace Armere.Inventory
 			where StackT : ItemStack, IBinaryVariableAsyncSerializer<StackT>, new()
 	{
 
-		public List<StackT> items;
+		public readonly List<StackT> items;
 
 		public override int stackCount => items.Count;
 
@@ -157,9 +165,8 @@ namespace Armere.Inventory
 		public void Read(in GameDataReader reader, Action<StackPanel<StackT>> onDone)
 		{
 			var t = this;
-			reader.ReadAsync<BinaryListAsyncSerializer<StackT>>(data =>
+			reader.ReadAsyncInto<BinaryListAsyncSerializer<StackT>>(items, data =>
 			{
-				t.items = data;
 				onDone?.Invoke(t);
 			});
 		}

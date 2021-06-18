@@ -3,13 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Armere.UI;
-public enum LevelName
-{
-	test = 0,
-	stealthTest = 1,
-	Headlands = 2
-}
-
 public class LevelManager : MonoBehaviour
 {
 	public static LevelManager singleton;

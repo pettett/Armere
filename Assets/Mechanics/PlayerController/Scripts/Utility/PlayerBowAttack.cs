@@ -12,7 +12,7 @@ namespace Armere.PlayerController
 
 		bool bowAimViewEnabled = false;
 		bool chargingBow = false;
-		public PlayerBowAttack(PlayerController c, Walking w) : base(c, CastType.ReleaseCharge)
+		public PlayerBowAttack(PlayerController c, Walking w) : base(w)
 		{
 			this.c = c;
 			this.w = w;
@@ -130,7 +130,7 @@ namespace Armere.PlayerController
 			Debug.Log("Ending bow charging");
 		}
 
-		public override void Cast()
+		public void Cast()
 		{
 			FireBow();
 
@@ -150,7 +150,7 @@ namespace Armere.PlayerController
 
 		}
 
-		public override void CancelCast(bool manualCancel)
+		public override void EndCast(bool manualCancel)
 		{
 			End();
 		}

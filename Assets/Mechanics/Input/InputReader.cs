@@ -9,13 +9,47 @@ using CallbackContext = UnityEngine.InputSystem.InputAction.CallbackContext;
 [CreateAssetMenu(menuName = "Channels/Input Reader")]
 public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActions, PlayerControls.IDebugActions, PlayerControls.IUIActions, PlayerControls.IAlwaysActiveActions
 {
+
+	public enum GroundActionMapActions
+	{
+		Attack,
+		AltAttack,
+		EquipBow,
+	}
+
 	public const string groundActionMap = "Ground Action Map";
 	public const string attackAction = "Attack";
 	public const string altAttackAction = "AltAttack";
+
+	Dictionary<string, Dictionary<string, InputAction>> actions = new Dictionary<string, Dictionary<string, InputAction>>();
+
+	public InputAction GetInputAction(string map, string action)
+	{
+		if (!actions.TryGetValue(map, out var dict))
+		{
+			dict = new Dictionary<string, InputAction>();
+			actions[map] = dict;
+		}
+
+		if (!dict.TryGetValue(action, out var a))
+		{
+			a = asset.FindActionMap(map).FindAction(action);
+			dict[action] = a;
+		}
+
+		return a;
+	}
 	public string GetBindingDisplayString(string map, string action)
 	{
-		return asset.FindActionMap(map).FindAction(action).GetBindingDisplayString();
+		return GetInputAction(map, action).GetBindingDisplayString();
 	}
+
+	public TValue GetActionState<TValue>(string map, string action) where TValue : struct
+	{
+		return GetInputAction(map, action).ReadValue<TValue>();
+	}
+
+
 	public static bool PhaseMeansPressed(InputActionPhase phase) => phase switch
 	{
 		InputActionPhase.Performed => true,
@@ -25,37 +59,63 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 		InputActionPhase.Waiting => false,
 		_ => false
 	};
+
+	// public void AddGroundAction(GroundActionMapActions action, UnityAction<InputActionPhase> onInvoked)
+	// {
+	// 	switch (action)
+	// 	{
+	// 		case GroundActionMapActions.Attack:
+	// 			actionEvent += onInvoked;
+	// 			Debug.Log("Added event");
+	// 			return;
+	// 		default:
+	// 			throw new System.ArgumentException($"No action for {action}");
+	// 	}
+	// }
+	// public void RemoveGroundAction(GroundActionMapActions action, UnityAction<InputActionPhase> onInvoked)
+	// {
+	// 	switch (action)
+	// 	{
+	// 		case GroundActionMapActions.Attack:
+	// 			actionEvent -= onInvoked;
+	// 			Debug.Log("removed event");
+	// 			return;
+	// 		default:
+	// 			throw new System.ArgumentException($"No action for {action}");
+	// 	}
+	// }
+
 	public static bool DeviceIsMouse(CallbackContext context) => context.control.device.name == "Mouse";
 
-	public UnityAction<InputActionPhase> actionEvent;
-	public UnityAction<InputActionPhase> aimEvent;
-	public UnityAction<InputActionPhase> attackEvent;
-	public UnityAction<InputActionPhase> altAttackEvent;
-	public UnityAction<Vector2, bool> cameraMoveEvent;
-	public UnityAction<InputActionPhase> changeFocusEvent;
-	public UnityAction<InputActionPhase> consoleEvent;
-	public UnityAction<InputActionPhase> jumpEvent;
-	public UnityAction<float> verticalMovementEvent;
-	public UnityAction<Vector2> movementEvent;
-	public UnityAction<InputActionPhase> crouchEvent;
-	public UnityAction<InputActionPhase> koEvent;
-	public UnityAction<InputActionPhase> tabMenuEvent;
-	public UnityAction<InputActionPhase> openInventoryEvent;
-	public UnityAction<InputActionPhase> openMapEvent;
-	public UnityAction<InputActionPhase> openQuestsEvent;
-	public UnityAction<InputActionPhase> startChangeSelection;
-	public UnityAction<InputActionPhase> changeSelection;
-	public UnityAction<InputActionPhase> sprintEvent;
-	public UnityAction<InputActionPhase> shieldEvent;
-	public UnityAction<InputActionPhase> showReadoutScreenEvent;
+	public UnityAction<InputActionPhase>
+						actionEvent,
+						aimEvent,
+						attackEvent,
+						altAttackEvent,
+						changeFocusEvent,
+						consoleEvent,
+						jumpEvent,
+						crouchEvent,
+						koEvent,
+						tabMenuEvent,
+						openInventoryEvent,
+						openMapEvent,
+						openQuestsEvent,
+						startChangeSelection,
+						changeSelection,
+						sprintEvent,
+						shieldEvent,
+						showReadoutScreenEvent,
+						quicksaveEvent,
+						quickloadEvent,
+						equipBowEvent,
+						uiSubmitEvent,
+						uiCancelEvent;
 	public UnityAction<InputActionPhase, int> selectSpellEvent;
-	public UnityAction<InputActionPhase> quicksaveEvent;
-	public UnityAction<InputActionPhase> quickloadEvent;
-	public UnityAction<InputActionPhase> equipBowEvent;
-
-	public UnityAction<InputActionPhase> uiSubmitEvent;
-	public UnityAction<InputActionPhase> uiCancelEvent;
 	public UnityAction<Vector2> uiNavigateEvent;
+	public UnityAction<float> verticalMovementEvent;
+	public UnityAction<Vector2, bool> cameraMoveEvent;
+	public UnityAction<Vector2> movementEvent;
 	public UnityAction<InputActionPhase, float> uiNavigateHorizontalEvent;
 	public UnityAction<InputAction.CallbackContext> uiScrollEvent;
 

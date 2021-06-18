@@ -50,7 +50,7 @@ namespace Armere.PlayerController
 		public override void Update()
 		{
 			//animator.SetFloat(vars.vertical.id, c.input.horizontal.magnitude);
-			animator.SetBool(c.transitionSet.isGrounded.id, c.onGround);
+			animator.SetBool(c.transitionSet.isGrounded.id, false);
 			animator.SetFloat(c.transitionSet.verticalVelocity.id, c.rb.velocity.y);
 			animator.SetFloat(c.transitionSet.groundDistance.id, currentHeight);
 		}

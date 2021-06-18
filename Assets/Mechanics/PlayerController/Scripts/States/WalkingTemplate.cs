@@ -30,7 +30,7 @@ namespace Armere.PlayerController
 	[CreateAssetMenu(menuName = "Game/PlayerController/Walking")]
 	public class WalkingTemplate : MovementStateTemplate
 	{
-		public MovementStateTemplate freefalling;
+		//public MovementStateTemplate freefalling;
 
 		[Header("Movement")]
 		public Speeds crouching;

@@ -58,6 +58,7 @@ public abstract class Character : SpawnableBody
 		}
 	}
 	public Team team;
+	public CharacterProfile profile;
 	public bool SameTeamAs(Character other) => !enemies[(int)team].Contains(other.team);
 	public Team[] Enemies() => enemies[(int)team];
 
@@ -65,6 +66,8 @@ public abstract class Character : SpawnableBody
 
 	public static Character playerCharacter;
 
+	public event System.Action onStateChanged;
+	protected void StateChanged() => onStateChanged?.Invoke();
 	[System.NonSerialized] public WeaponGraphicsController weaponGraphics;
 	[System.NonSerialized] public AnimationController animationController;
 	public Animator animator => animationController.anim;
@@ -88,6 +91,19 @@ public abstract class Character : SpawnableBody
 	{
 		teams[team].Remove(this);
 	}
+	protected virtual void OnCollisionEnter(Collision collision)
+	{
+		if (collision.rigidbody != null)
+		{
+			float koTime = collision.relativeVelocity.magnitude * collision.rigidbody.mass - profile.m_minKnockoutForce;
 
+			if (koTime > 0)
+			{
+				koTime = profile.m_knockoutTimePerMassPerSpeed.Evaluate(koTime);
+				Debug.Log($"KO For {koTime}s");
+				Knockout(koTime);
+			}
+		}
+	}
 
 }

@@ -13,7 +13,7 @@ namespace Armere.Inventory.UI
 		public TextMeshProUGUI title;
 		public TextMeshProUGUI description;
 		AsyncOperationHandle<Sprite> spriteAsyncOperation;
-		public void ShowInfo(ItemStackBase stackBase, ItemDatabase db)
+		public void ShowInfo(ItemStackBase stackBase)
 		{
 			title.text = stackBase.item.displayName;
 			description.text = stackBase.item.description;

@@ -70,6 +70,8 @@ namespace Armere.PlayerController
 
 		public void ToggleTabMenu()
 		{
+			if (inConsole) return;
+
 			//Only enter if the game is not paused
 			if (inMenus)
 			{

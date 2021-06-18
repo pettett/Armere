@@ -32,6 +32,7 @@ public class WeaponTrigger : MonoBehaviour
 	public void Init(AssetReferenceGameObject hitSparkEffectReference)
 	{
 		inited = true;
+		trigger.enabled = false;
 		if (hitSparkEffectReference != null)
 			Spawner.LoadAsset(hitSparkEffectReference, (x) =>
 				{

@@ -25,7 +25,7 @@ namespace Armere.PlayerController
 		public override void Start()
 		{
 			nearObjects = new List<T>();
-			scanCenterOffset = Vector3.up * c.walkingHeight;
+			scanCenterOffset = Vector3.up * c.profile.m_standingHeight;
 			_sqrScanDistance = scanDistance * scanDistance;
 		}
 		public override void Update()

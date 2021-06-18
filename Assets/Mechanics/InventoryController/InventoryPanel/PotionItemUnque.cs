@@ -37,11 +37,11 @@ namespace Armere.Inventory
 			});
 		}
 
-		public void Write(in GameDataWriter writer, PotionItemUnique data)
+		public override void Write(in GameDataWriter writer)
 		{
 			writer.WritePrimitive(potency);
 			writer.WritePrimitive(duration);
-			writer.WritePrimitive(data.item);
+			base.Write(in writer);
 		}
 
 

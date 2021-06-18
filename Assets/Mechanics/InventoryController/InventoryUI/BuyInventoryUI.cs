@@ -66,7 +66,7 @@ namespace Armere.Inventory.UI
 
 		public void ShowInfo(int index)
 		{
-			selectedDisplay.ShowInfo(new ItemStackBase(inventory[index].item), playerInventory.db);
+			selectedDisplay.ShowInfo(new ItemStackBase(inventory[index].item));
 		}
 		public void WaitForBuyConfirmation()
 		{

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Armere.Inventory;
+using UnityEngine.AddressableAssets;
 
 public class CommandManager : ConsoleReceiver
 {
@@ -96,6 +97,9 @@ public class CommandManager : ConsoleReceiver
 				{
 					//TODO:
 					//Load item
+					uint count = uint.Parse(command.values[1]);
+
+					ItemDatabase.LoadItemDataAsync<ItemData>(command.values[0], item => inventory.TryAddItem(item, count, false));
 				}
 				break;
 			case level:
@@ -151,7 +155,7 @@ public class CommandManager : ConsoleReceiver
 					// }
 					if (a.HasFlag(CommandArgument.LevelName))
 					{
-						AddEnumSuggestions<LevelName>(segments[slice], ref viableEntries);
+						//AddEnumSuggestions<LevelName>(segments[slice], ref viableEntries);
 					}
 					if (a.HasFlag(CommandArgument.Location))
 					{

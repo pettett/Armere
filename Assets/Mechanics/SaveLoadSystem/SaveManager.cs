@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.Profiling;
 using UnityEngine.AddressableAssets;
 using System.Collections;
+using UnityEngine.Assertions;
 
 public readonly struct Version : IBinaryVariableSerializer<Version>
 {
@@ -74,40 +75,134 @@ public interface IBinaryVariableAsyncSerializer<T> : IBinaryVariableWritableSeri
 }
 
 
-
+enum PrimitiveCode : byte
+{
+	Unsigned = 0b1000_0000,
+	Long = 1,
+	Short = 2,
+	Byte = 3,
+	Bool = 4,
+	Float = 5,
+	Char = 6,
+	Vector3 = 7,
+	Vector2 = 8,
+	Quaternion = 9,
+	Int = 10,
+	UInt = Unsigned | Int,
+	ULong = Unsigned | Long,
+	UShort = Unsigned | Short,
+}
 
 public readonly struct GameDataReader
 {
+
 	public readonly Version saveVersion;
 	public readonly BinaryReader reader;
+
+	readonly Stack<(long, long)> regionStack;
+	readonly void AssertType(PrimitiveCode type)
+	{
+		PrimitiveCode t = (PrimitiveCode)reader.ReadByte();
+		Assert.IsTrue(t == type, $"Loaded Primitive {t} is not {type}");
+	}
 
 	public GameDataReader(BinaryReader reader)
 	{
 		this.reader = reader;
 		saveVersion = default;
+		regionStack = new Stack<(long, long)>();
 		saveVersion = Read<Version>();
 	}
 
-	public readonly int ReadInt() => reader.ReadInt32();
-	public readonly uint ReadUInt() => reader.ReadUInt32();
-	public readonly bool ReadBool() => reader.ReadBoolean();
-	public readonly float ReadFloat() => reader.ReadSingle();
+	public readonly void BeginRegion()
+	{
+		long startingPosition = reader.BaseStream.Position;
+		long desiredLength = reader.ReadInt64();
+		regionStack.Push((desiredLength, startingPosition));
+	}
+	public readonly bool EndRegion()
+	{
+		(long desiredLength, long startingPosition) = regionStack.Pop();
+		long endPos = reader.BaseStream.Position;
+
+		long actualLength = endPos - startingPosition;
+		if (actualLength != desiredLength)
+		{
+			Debug.LogError($"Region loaded incorrectly: len{actualLength}, supposed{desiredLength}");
+			return false;
+		}
+		return true;
+	}
+
+
+
+
+
+	public readonly int ReadInt()
+	{
+		AssertType(PrimitiveCode.Int);
+		return reader.ReadInt32();
+	}
+	public readonly uint ReadUInt()
+	{
+		AssertType(PrimitiveCode.UInt);
+		return reader.ReadUInt32();
+	}
+	public readonly bool ReadBool()
+	{
+		AssertType(PrimitiveCode.Bool);
+		return reader.ReadBoolean();
+	}
+	public readonly float ReadFloat()
+	{
+		AssertType(PrimitiveCode.Float);
+		return reader.ReadSingle();
+	}
 	public readonly string ReadString() => reader.ReadString();
-	public readonly char ReadChar() => reader.ReadChar();
-	public readonly long ReadLong() => reader.ReadInt64();
-	public readonly ulong ReadULong() => reader.ReadUInt64();
-	public readonly byte ReadByte() => reader.ReadByte();
-	public readonly ushort ReadUShort() => reader.ReadUInt16();
+	public readonly char ReadChar()
+	{
+		AssertType(PrimitiveCode.Char);
+		return reader.ReadChar();
+	}
+	public readonly long ReadLong()
+	{
+		AssertType(PrimitiveCode.Long);
+		return reader.ReadInt64();
+	}
+	public readonly ulong ReadULong()
+	{
+		AssertType(PrimitiveCode.ULong);
+		return reader.ReadUInt64();
+	}
+	public readonly byte ReadByte()
+	{
+		AssertType(PrimitiveCode.Byte);
+		return reader.ReadByte();
+	}
+	public readonly ushort ReadUShort()
+	{
+		AssertType(PrimitiveCode.UShort);
+		return reader.ReadUInt16();
+	}
 	//Asset reference is based of 32 digit hex guid string
 
 	public readonly System.Guid ReadGuid() => new System.Guid(ReadBytes(16));
 	public readonly byte[] ReadBytes(int count) => reader.ReadBytes(count);
 
-	public readonly Vector3 ReadVector3() => new Vector3(ReadFloat(), ReadFloat(), ReadFloat());
-	public readonly Vector2 ReadVector2() => new Vector2(ReadFloat(), ReadFloat());
+	public readonly Vector3 ReadVector3()
+	{
+		AssertType(PrimitiveCode.Vector3);
+		return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+	}
+	public readonly Vector2 ReadVector2()
+	{
+		AssertType(PrimitiveCode.Vector2);
+		return new Vector2(reader.ReadSingle(), reader.ReadSingle());
+	}
 	public readonly Quaternion ReadQuaternion()
 	{
-		var x = new Quaternion(ReadFloat(), ReadFloat(), ReadFloat(), 0);
+		AssertType(PrimitiveCode.Quaternion);
+		var x = new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), 0);
 		//Quaterions are normalized
 		x.w = 1 - Mathf.Sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
 		return x;
@@ -118,7 +213,7 @@ public readonly struct GameDataReader
 
 	public readonly T Read<T>() where T : IBinaryVariableSerializer<T>, new() => (new T()).Read(this);
 	public readonly T ReadInto<T>(T data) where T : IBinaryVariableSerializer<T> => data.Read(this);
-	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IBinaryVariableAsyncSerializer<T>, new() => (new T()).Read(this, onDone);
+	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IBinaryVariableAsyncSerializer<T>, new() => ReadAsyncInto(new T(), onDone);
 	public readonly void ReadAsyncInto<T>(T data, System.Action<T> onDone = null) where T : IBinaryVariableAsyncSerializer<T> => data.Read(this, onDone);
 
 }
@@ -126,26 +221,91 @@ public readonly struct GameDataWriter
 {
 	public readonly BinaryWriter writer;
 
+	readonly Stack<long> regionStack;
+
+	readonly void AssertType(PrimitiveCode type)
+	{
+		writer.Write((byte)type);
+	}
+
+	public readonly void BeginRegion()
+	{
+		//Record the starting position of this portion of the saving
+		regionStack.Push(writer.BaseStream.Position);
+		writer.Write(0L);
+	}
+	public readonly void EndRegion()
+	{
+		long startingPos = regionStack.Pop();
+		long endingPos = writer.BaseStream.Position;
+
+		//Write the length of the saved file for loading
+		writer.BaseStream.Position = startingPos;
+		writer.Write(endingPos - startingPos);
+		//And return the writer to where it was before
+		writer.BaseStream.Position = endingPos;
+	}
+
+
+
 	public GameDataWriter(BinaryWriter writer)
 	{
 		this.writer = writer;
+		regionStack = new Stack<long>();
 		//Save the version of the game saved
 		Write(SaveManager.version);
 	}
 
-	public readonly void WritePrimitive(int value) => writer.Write(value);
-	public readonly void WritePrimitive(long value) => writer.Write(value);
-	public readonly void WritePrimitive(ushort value) => writer.Write(value);
-	public readonly void WritePrimitive(ulong value) => writer.Write(value);
-	public readonly void WritePrimitive(bool value) => writer.Write(value);
-	public readonly void WritePrimitive(float value) => writer.Write(value);
-	public readonly void WritePrimitive(uint value) => writer.Write(value);
-	public readonly void WritePrimitive(char value) => writer.Write(value);
-	public readonly void WritePrimitive(byte value) => writer.Write(value);
+	public readonly void WritePrimitive(int value)
+	{
+		AssertType(PrimitiveCode.Int);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(long value)
+	{
+		AssertType(PrimitiveCode.Long);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(ushort value)
+	{
+		AssertType(PrimitiveCode.UShort);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(ulong value)
+	{
+		AssertType(PrimitiveCode.ULong);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(bool value)
+	{
+		AssertType(PrimitiveCode.Bool);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(float value)
+	{
+		AssertType(PrimitiveCode.Float);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(uint value)
+	{
+		AssertType(PrimitiveCode.UInt);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(char value)
+	{
+		AssertType(PrimitiveCode.Char);
+		writer.Write(value);
+	}
+	public readonly void WritePrimitive(byte value)
+	{
+		AssertType(PrimitiveCode.Byte);
+		writer.Write(value);
+	}
 	public readonly void WritePrimitive(byte[] value) => writer.Write(value);
 	public readonly void WritePrimitive(System.Guid value) => writer.Write(value.ToByteArray());
 	public readonly void WritePrimitive(Quaternion value)
 	{
+		AssertType(PrimitiveCode.Quaternion);
 		writer.Write(value.x);
 		writer.Write(value.y);
 		writer.Write(value.z);
@@ -153,12 +313,14 @@ public readonly struct GameDataWriter
 	}
 	public readonly void WritePrimitive(Vector3 value)
 	{
+		AssertType(PrimitiveCode.Vector3);
 		writer.Write(value.x);
 		writer.Write(value.y);
 		writer.Write(value.z);
 	}
 	public readonly void WritePrimitive(Vector2 value)
 	{
+		AssertType(PrimitiveCode.Vector2);
 		writer.Write(value.x);
 		writer.Write(value.y);
 	}
@@ -188,7 +350,7 @@ public readonly struct GameDataWriter
 public class SaveManager : MonoBehaviour
 {
 
-	public static readonly Version version = new Version(0, 0, 3);
+	public static readonly Version version = new Version(0, 0, 5);
 
 	public const string savesDirectoryName = "saves";
 	public static string currentSaveFileDirectoryName = "save1";
@@ -535,11 +697,18 @@ public class SaveManager : MonoBehaviour
 			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
 				//Debug.Log($"Loading {i} from position {gameDataReader.reader.BaseStream.Position}");
+				gameDataReader.BeginRegion();
 				saveLoadEventChannels[i].LoadBin(gameDataReader);
 				if (saveLoadEventChannels[i] is LoadableAsyncSO async)
 				{
 					yield return async.LoadBinAsync(gameDataReader);
 				}
+
+				if (!gameDataReader.EndRegion())
+				{
+					break;
+				}
+
 			}
 		}
 
@@ -581,13 +750,16 @@ public class SaveManager : MonoBehaviour
 
 		string savePath = Path.Combine(dir, saveRecordFileName);
 
+		//Save the actual file
+
 		WriteFile(savePath, gameWriter =>
 		{
 			gameWriter.WritePrimitive(LevelManager.singleton.currentLevel);
 			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
-				//Debug.Log($"Saving {i} from position {gameWriter.writer.BaseStream.Position}");
+				gameWriter.BeginRegion();
 				saveLoadEventChannels[i].SaveBin(gameWriter);
+				gameWriter.EndRegion();
 			}
 		});
 

@@ -15,6 +15,7 @@ namespace Armere.Inventory
 
 		[Header("Item Data")]
 		public ItemType type;
+		public AssetReferenceT<ItemData> selfReference;
 		[UnityEngine.Serialization.FormerlySerializedAs("displaySprite")] public AssetReferenceSprite thumbnail;
 		public string displayName = "New Item";
 		[TextArea]
@@ -43,7 +44,6 @@ namespace Armere.Inventory
 
 		public void Write(in GameDataWriter writer)
 		{
-			//Debug.Log($"Writing to {writer.writer.BaseStream.Position}");
 			(ulong, ulong) value = ItemDatabase.itemDataPrimaryKeys[this];
 			writer.WritePrimitive(value.Item1);
 			writer.WritePrimitive(value.Item2);

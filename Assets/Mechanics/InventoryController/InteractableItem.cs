@@ -20,6 +20,7 @@ namespace Armere.Inventory
 
 		public Vector3 worldOffset => default;
 
+
 		public void Interact(IInteractor c) =>
 			AddItemsToInventory(
 				() =>

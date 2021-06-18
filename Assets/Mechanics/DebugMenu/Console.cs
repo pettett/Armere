@@ -12,11 +12,45 @@ public struct Command
 
 	public Command(string text)
 	{
-		string[] segs = text.Split(' ');
+		text = text.Trim();
+		List<string> segs = new List<string>();
+
+		int pos = 0;
+		bool end = false;
+		while (!end)
+		{
+			int nextSpace = text.IndexOf(' ', pos);
+
+			if (text[pos] == '"')
+			{
+				//Use quote selection
+				int endQuote = text.IndexOf('"', pos + 1);
+
+				segs.Add(text.Substring(pos + 1, endQuote - pos - 1));
+				if (text[endQuote + 1] != ' ')
+					throw new System.ArgumentException("Quote should be followed by space");
+
+				pos = endQuote + 2;
+			}
+			else if (nextSpace != -1)
+			{
+				//use space selection
+				segs.Add(text.Substring(pos, nextSpace - pos));
+				pos = nextSpace + 1;
+			}
+			else
+			{
+				segs.Add(text.Substring(pos)); ;
+
+				end = true;
+			}
+		}
+
 		this.func = segs[0];
 		this.values = segs.Skip(1).ToArray();
 	}
 }
+
 public abstract class ConsoleReceiver : MonoBehaviour
 {
 	public abstract void OnCommand(Command command);

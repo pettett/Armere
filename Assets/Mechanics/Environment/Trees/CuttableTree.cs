@@ -115,7 +115,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		activeCutVectors.Add(new CutVector(Vector3.SignedAngle(transform.forward, direction, Vector3.up) * Mathf.Deg2Rad, intensity));
 		totalDamage += intensity;
 
-		if (profile.cutClips.Valid())
+		if (profile.cutClips?.Valid()??false)
 		{
 			profile.soundProfile.position = transform.position;
 			profile.audioEventChannelSO.RaiseEvent(profile.cutClips, profile.soundProfile);

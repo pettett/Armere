@@ -21,16 +21,11 @@ cbuffer CB{
 
 #include "MeshProperties.hlsl"
 #include "MatrixStruct.hlsl"
-
+ 
 
 StructuredBuffer<MeshProperties> _Properties;
-StructuredBuffer<uint> _CullResult;
-
 RWStructuredBuffer<MatrixStruct> _Output;
 
-RWStructuredBuffer<uint> _IndirectArgs;
-
-StructuredBuffer<uint> _PrefixScanData;
 
 
 //StructuredBuffer<float4> _PusherPositions;
@@ -115,27 +110,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
     uint index = id.x;
 	//Clear the output buffer
-	_Output[index] = (MatrixStruct)0;
+	//TODO: Never make this dumb mistake again
+	//_Output[index] = (MatrixStruct)0;
 
-	uint placedIndex = _PrefixScanData[index];
-	
-	//Count existing blades before this one - warning: slow, but faster than rendering? 
-	//TODO: Fix with scan
-
-	// for(uint i = 0; i < index; i++){
-	// 	placedIndex -= 1 - saturate(_Properties[i].chunkID);
-	// }
-	
-	if (index == 0){
-		_IndirectArgs[1] = _PrefixScanData[THREADGROUPS * dispatchSize.x];
-	}
-
-    MeshProperties properties = _Properties[index];
-
-
-	MatrixStruct output = (MatrixStruct)0;
-	
-	uint exists = _CullResult[index];
 
 	// In a transform matrix, the position (translation) vector is the last column.
 
@@ -162,7 +139,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	//_Properties[id.x].rotation.y += 1 * deltatime;
 
 
-	 
+	
 	// 			snoise(properties.position.xz*0.02 + time*0.1) * (1-damp) * 0.25 + pi,
 	// 			snoise(properties.position.zx*0.02 + time*0.1) * (1-damp) * 0.25);
 
@@ -170,7 +147,12 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	//_Properties[id.x].rotation.x += damp*pi* 0.5 +pi;
 
 	
+	uint placedIndex = index;
 	//float4x4 dampRotation = rotationMatrix(dampAxis,-damp * pi *0.5);
+	MeshProperties properties = _Properties[index];
+
+
+	MatrixStruct output = (MatrixStruct)0;
 
 	float4x4 rotation = AngleAxis4x4(properties.yRot,float3(0,1,0));
 
@@ -185,8 +167,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	// Apply translation to existing matrix, which will be read in the shader.
 
-	float distance = length(properties.position.xyz - cameraPosition);
-	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance);
+	float distance = length(properties.position.xyz - cameraPosition) / properties.shrinkDistance;
+
+	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance );
 	size.y *= view;
 	//If over the threshold completely disappear it
 	size.x *= 1 - step(viewRadiusMinMax.y,distance);
@@ -223,13 +206,17 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 
-	if (exists){
-		output.mat =mul(mul(translation, rotation),scale);
-		output.color = properties.color ;
-		output.chunkID = properties.chunkID;
+	float4x4 worldTransform =mul(mul(translation, rotation),scale);
 
-		_Output[placedIndex] = output;
-	}
+	output.worldTransform[0] = worldTransform[0];
+	output.worldTransform[1] = worldTransform[1];
+	output.worldTransform[2] = worldTransform[2];
+
+	output.color = properties.color ;
+	//output.chunkID = properties.chunkID;
+
+	_Output[placedIndex] = output;
+
     //_Output[index].color = view;
 
     /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.

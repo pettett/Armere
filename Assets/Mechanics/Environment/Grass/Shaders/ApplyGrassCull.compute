@@ -1,0 +1,33 @@
+#pragma kernel CSMain
+#include "MeshProperties.hlsl"
+
+
+cbuffer CB{
+    //int pushers;
+    int2 dispatchSize;
+};
+
+StructuredBuffer<MeshProperties> _Properties;
+
+RWStructuredBuffer<MeshProperties> _CulledProperties;
+
+StructuredBuffer<uint> _CullResult;
+
+RWStructuredBuffer<uint> _IndirectRenderingArgs;
+RWStructuredBuffer<uint> _IndirectDispatchingArgs;
+
+StructuredBuffer<uint> _PrefixScanData;
+
+[numthreads(THREADGROUPS,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (_CullResult[id.x])
+		_CulledProperties[_PrefixScanData[id.x]] =_Properties[id.x];
+
+	if (id.x == 0){
+		uint blades = _PrefixScanData[THREADGROUPS * dispatchSize.x];
+		_IndirectRenderingArgs[1] = blades;
+		_IndirectDispatchingArgs[0] = blades / 64 + (blades % 64 != 0 ? 1 : 0);
+	}
+}
+

@@ -27,6 +27,14 @@ namespace Armere.PlayerController
 		}
 	}
 
+	[System.Serializable]
+	public struct Propusion
+	{
+		public float maxAcceleration;
+		public float rotationSpeed;
+	}
+
+
 	[CreateAssetMenu(menuName = "Game/PlayerController/Walking")]
 	public class WalkingTemplate : MovementStateTemplate
 	{
@@ -52,16 +60,21 @@ namespace Armere.PlayerController
 			}
 		}
 
+		public Propusion groundPropulsion;
+		public Propusion airPropulsion;
+		public ref Propusion GetPropulsion(Walking.GroundState ground)
+		{
+			if (ground.HasFlag(Walking.GroundState.Grounded)) return ref groundPropulsion;
+			return ref airPropulsion;
+		}
 
 		public float crouchingHeight = 0.9f;
 		public float groundClamp = 1f;
-		public float maxAcceleration = 20f;
 		public float minStepHeight = 0.1f;
 		public float maxStepHeight = 1f;
 		public float maxStepDown = 0.25f;
 		public float stepSearchOvershoot = 0.3f;
 		public float steppingSpeed = 0.1f;
-		public float jumpForce = 4f;
 		public float slopeForce = 1f;
 		public float coyoteTime = 0.05f;
 		[Header("Holding")]

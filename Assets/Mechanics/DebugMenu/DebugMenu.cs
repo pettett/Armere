@@ -76,6 +76,10 @@ public class DebugMenu : MonoBehaviour
 
 	public static int GroupFromName(string groupName)
 	{
+		if (singleton == null)
+		{
+			return -1;
+		}
 
 		for (int i = 0; i < singleton.groups.Length; i++)
 		{
@@ -85,8 +89,8 @@ public class DebugMenu : MonoBehaviour
 		return -1;
 	}
 
-	public static StringBuilder CreateEntry(string groupName) => singleton._CreateEntry(GroupFromName(groupName));
-	public static StringBuilder CreateEntry(int group) => singleton._CreateEntry(group);
+	public static StringBuilder CreateEntry(string groupName) => singleton?._CreateEntry(GroupFromName(groupName));
+	public static StringBuilder CreateEntry(int group) => singleton?._CreateEntry(group);
 
 	StringBuilder _CreateEntry(int group)
 	{

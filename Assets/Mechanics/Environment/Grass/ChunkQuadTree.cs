@@ -147,28 +147,28 @@ public class QuadTree : QuadTreeLeaf
 
 
 
-	QuadTreeLeaf GenerateLeaf(bool[,] cells, Vector2 center, int startX, int startY, int endX, int endY, int minCellGroupSize, int maxCellGroupSize, ref int chunkID, ref int endID)
+	QuadTreeLeaf GenerateLeaf(bool[,] cells, Vector2 center, int startX, int startY, int endX, int endY, int maxCellGroupSize, ref int chunkID, ref int endID)
 	{
 		// Debug.Log($"{startX},{startY},{endX},{endY}");
 		//Debug.Log(endX - startX);
-		if (endX - startX == minCellGroupSize)
-		{
-			bool enabled = false;
-			//Search through all the cells in region. If any are enabled, all are enabled
-			for (int xCell = startX; xCell < endX; xCell++)
-				for (int yCell = startY; yCell < endY; yCell++)
-					if (cells[xCell, yCell])
-					{
-						enabled = true;
-						continue;
-					}
+		// if (endX - startX == minCellGroupSize)
+		// {
+		// 	bool enabled = false;
+		// 	//Search through all the cells in region. If any are enabled, all are enabled
+		// 	for (int xCell = startX; xCell < endX; xCell++)
+		// 		for (int yCell = startY; yCell < endY; yCell++)
+		// 			if (cells[xCell, yCell])
+		// 			{
+		// 				enabled = true;
+		// 				continue;
+		// 			}
 
-			return new QuadTreeEnd(enabled, center, rect.size / 2, minCellGroupSize, ref chunkID, ref endID);
-		}
+		// 	return new QuadTreeEnd(enabled, center, rect.size / 2, minCellGroupSize, ref chunkID, ref endID);
+		// }
 		//This square is too big, 
 		if (endX - startX > maxCellGroupSize)
 		{
-			return new QuadTree(cells, center, rect.size / 2, startX, startY, endX, endY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
+			return new QuadTree(cells, center, rect.size / 2, startX, startY, endX, endY, maxCellGroupSize, ref chunkID, ref endID);
 		}
 
 		bool hasChunk = false;
@@ -201,7 +201,7 @@ public class QuadTree : QuadTreeLeaf
 			}
 			else
 			{
-				return new QuadTree(cells, center, rect.size / 2, startX, startY, endX, endY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
+				return new QuadTree(cells, center, rect.size / 2, startX, startY, endX, endY, maxCellGroupSize, ref chunkID, ref endID);
 			}
 		}
 		else
@@ -214,14 +214,14 @@ public class QuadTree : QuadTreeLeaf
 	}
 
 
-	public static QuadTree CreateQuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int minCellGroupSize, int maxCellGroupSize)
+	public static QuadTree CreateQuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int maxChunkWidth)
 	{
 		int id = 1;
 		int id2 = 1;
-		return new QuadTree(chunks, centre, size, 0, 0, chunks.GetLength(0), chunks.GetLength(1), minCellGroupSize, maxCellGroupSize, ref id, ref id2);
+		return new QuadTree(chunks, centre, size, 0, 0, chunks.GetLength(0), chunks.GetLength(1), maxChunkWidth, ref id, ref id2);
 	}
 
-	public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int startX, int startY, int endX, int endY, int minCellGroupSize, int maxCellGroupSize,
+	public QuadTree(bool[,] chunks, Vector2 centre, Vector2 size, int startX, int startY, int endX, int endY, int maxChunkWidth,
 	 ref int chunkID, ref int endID)
 	{
 		this.rect = new Rect(centre - size / 2, size);
@@ -243,10 +243,10 @@ public class QuadTree : QuadTreeLeaf
 		int midX = startX + leafSize / 2;
 
 
-		bottomLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, -offset.y), startX, startY, midX, midY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
-		bottomRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, -offset.y), midX, startY, endX, midY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
-		topLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, offset.y), startX, midY, midX, endY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
-		topRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, offset.y), midX, midY, endX, endY, minCellGroupSize, maxCellGroupSize, ref chunkID, ref endID);
+		bottomLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, -offset.y), startX, startY, midX, midY, maxChunkWidth, ref chunkID, ref endID);
+		bottomRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, -offset.y), midX, startY, endX, midY, maxChunkWidth, ref chunkID, ref endID);
+		topLeft = GenerateLeaf(chunks, centre + new Vector2(-offset.x, offset.y), startX, midY, midX, endY, maxChunkWidth, ref chunkID, ref endID);
+		topRight = GenerateLeaf(chunks, centre + new Vector2(offset.x, offset.y), midX, midY, endX, endY, maxChunkWidth, ref chunkID, ref endID);
 	}
 
 

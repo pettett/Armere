@@ -87,6 +87,8 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);
 
+	m.shrinkDistance =  hash12(seed + id.xy + m.size*100) * 0.5 + 0.5;
+
 	_Grass[grassBladesOffset + id.x] = m;
     
 }

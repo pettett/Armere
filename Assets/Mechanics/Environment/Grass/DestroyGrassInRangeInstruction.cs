@@ -13,7 +13,7 @@ public class DestroyGrassInRangeInstruction : GrassInstruction
 		this.size = size;
 	}
 
-	public override void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd)
+	public override void Execute(GrassController c, ref GrassLayerInstance layer, CommandBuffer cmd)
 	{
 		if (!layer.hasBlades)
 		{
@@ -21,7 +21,7 @@ public class DestroyGrassInRangeInstruction : GrassInstruction
 			return;
 		}
 
-		layer.SetDispatchSize(c, c.destroyGrassInRange, cmd);
+		layer.SetDispatchSize(c.destroyGrassInRange, cmd);
 
 		//Send the data needed and destroy grass
 		cmd.SetComputeVectorParam(c.destroyGrassInRange, ID_rangeTransform,

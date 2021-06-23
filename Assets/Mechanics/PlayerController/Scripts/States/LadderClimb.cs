@@ -18,7 +18,7 @@ namespace Armere.PlayerController
 		bool reachedLadderTop = false;
 		float oldColliderHeight;
 
-
+		Vector2 inputHorizontal => c.inputReader.horizontalMovement;
 		public LadderClimb(PlayerController c, LadderClimbTemplate t) : base(c, t)
 		{
 
@@ -53,7 +53,6 @@ namespace Armere.PlayerController
 			c.animationController.TriggerTransition(c.transitionSet.ladderClimb);
 
 
-			c.inputReader.movementEvent += OnInputHorizontal;
 			c.inputReader.jumpEvent += OnJump;
 		}
 
@@ -80,9 +79,7 @@ namespace Armere.PlayerController
 				c.animationController.TriggerTransition(c.transitionSet.stepDownFromLadder);
 			}
 
-
 			c.inputReader.jumpEvent -= OnJump;
-			c.inputReader.movementEvent -= OnInputHorizontal;
 		}
 
 		public int RoundToNearest(float value, int interval, int offset) => Mathf.RoundToInt((value - offset) / interval) * interval + offset;
@@ -126,8 +123,10 @@ namespace Armere.PlayerController
 			{
 				//Jump off the ladder
 				c.rb.isKinematic = false;
-				c.rb.AddForce(ladder.transform.forward * -100);
+				c.rb.AddForce(-transform.forward * t.jumpForceHorizontal + transform.up * t.jumpForceVertical);
 				c.ChangeToState(c.defaultState);
+
+				transform.forward = -transform.forward;
 			}
 		}
 
@@ -136,7 +135,7 @@ namespace Armere.PlayerController
 			transform.position = pos + normal * c.collider.radius;
 			transform.forward = -normal;
 		}
-		float Dot(Vector3 a, Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
+		float Dot(in Vector3 a, in Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
 		public override void Update()
 		{
 
@@ -271,26 +270,17 @@ namespace Armere.PlayerController
 					deltaPos = transform.position - oldPos;
 
 					//do normal dot product
-					float up = upTangent.x * deltaPos.x + upTangent.y * deltaPos.y + upTangent.z * deltaPos.z;
-					float left = leftTangent.x * deltaPos.x + leftTangent.y * deltaPos.y + leftTangent.z * deltaPos.z;
+					float up = Dot(upTangent, deltaPos);
+					float left = Dot(leftTangent, deltaPos);
 
 					//Get movement in the up and left tangent directions
 
-					animator.SetFloat(c.transitionSet.vertical.id, (up + left) * t.meshAnimationSpeed);
-					animator.SetFloat(c.transitionSet.horizontal.id, 0f);
+					animator.SetFloat(c.transitionSet.vertical, Mathf.Sign(up) * Mathf.Clamp01(Mathf.Abs(up) + Mathf.Abs(left)) * t.meshAnimationSpeed);
+					animator.SetFloat(c.transitionSet.horizontal, 0f);
+					animator.SetBool(c.transitionSet.isGrounded, true);
 
 					break;
 			}
-		}
-
-
-
-		Vector2 inputHorizontal;
-
-
-		public void OnInputHorizontal(Vector2 input)
-		{
-			inputHorizontal = input;
 		}
 
 

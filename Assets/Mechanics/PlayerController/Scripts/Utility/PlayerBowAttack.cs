@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
 namespace Armere.PlayerController
 {
 	public class PlayerBowAttack : Spell
@@ -22,6 +24,28 @@ namespace Armere.PlayerController
 
 
 			EnableBowAimView();
+		}
+		public override void Begin()
+		{
+
+			c.inputReader.equipBowEvent += OnBowAttack;
+		}
+		void End()
+		{
+			//Dont do this, only stop bow view if player sheaths bow
+			DisableBowAimView();
+			c.animationController.headWeight = 0; // don't need to do others - master switch
+
+			c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = 0;
+			bowCharge = 0;
+
+			Debug.Log("Ending bow charging");
+
+			c.inputReader.equipBowEvent -= OnBowAttack;
+		}
+		public void OnBowAttack(InputActionPhase phase)
+		{
+
 		}
 
 		public void BeginCharge()
@@ -118,18 +142,6 @@ namespace Armere.PlayerController
 			}
 		}
 
-		void End()
-		{
-			//Dont do this, only stop bow view if player sheaths bow
-			DisableBowAimView();
-			c.animationController.headWeight = 0; // don't need to do others - master switch
-
-			c.weaponGraphics.holdables.bow.holdPoint.overrideRig.bowPull = 0;
-			bowCharge = 0;
-
-			Debug.Log("Ending bow charging");
-		}
-
 		public void Cast()
 		{
 			FireBow();
@@ -155,8 +167,6 @@ namespace Armere.PlayerController
 			End();
 		}
 
-		public override void Begin()
-		{
-		}
+
 	}
 }

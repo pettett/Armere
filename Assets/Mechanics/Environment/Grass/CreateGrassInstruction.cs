@@ -1,51 +1,73 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using static GrassController;
-
-public class DestroyGrassInBoundsInstruction : GrassInstruction
+public class CreateGrassInstruction : GrassInstruction
 {
-	public readonly Bounds destructionBounds;
-	public readonly float rotation;
-
-	public DestroyGrassInBoundsInstruction(Bounds bounds, float rotation)
+	public QuadTreeEnd chunk;
+	public CreateGrassInstruction(QuadTreeEnd chunk)
 	{
-		this.destructionBounds = bounds;
-		this.rotation = rotation;
+		this.chunk = chunk;
 	}
 
-	public override void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd)
+	public override void Execute(GrassController c, ref GrassLayerInstance layer, CommandBuffer cmd)
 	{
-		if (!layer.hasBlades)
+
+		if (!layer.TryFitChunk(chunk, out int cellsOffset))
 		{
-			Debug.Log("No blades???");
-			//No blades - nothing to try to destroy
 			return;
 		}
 
-		// Debug.Log("Removing");
+		//Debug.Log($"Loading {chunk.cellsWidth * chunk.cellsWidth} cells at {cellsOffset} into buffer for chunk {chunk.id}");
 
-		layer.SetDispatchSize(c, c.destroyGrassInBounds, cmd);
+		//These passes could be done once
+		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassDensityUVMinMax,
+			new Vector4(chunk.rect.min.x, chunk.rect.min.y, chunk.rect.max.x, chunk.rect.max.y));
+
+		Vector4 bounds = new Vector4(
+							chunk.rect.min.x * c.range * 2 - c.range,
+							chunk.rect.min.y * c.range * 2 - c.range,
+							chunk.rect.max.x * c.range * 2 - c.range,
+							chunk.rect.max.y * c.range * 2 - c.range);
+
+		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassPositionBoundsMinMax, bounds);
+
+		//Debug.Log($"Bounds: min X{bounds.x} max X{bounds.z} min Y{bounds.y} max Y{bounds.w}");
+
+		cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, ID_Grass, layer.grassBladesBuffer);
+
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient, layer.profile.gradientTexture);
+
+		//Place the blades into the layer from this index
+		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_GrassBladesOffset, cellsOffset * layer.bladesInCell);
 
 
-		//Send the data needed and destroy grass
-		cmd.SetComputeVectorParam(c.destroyGrassInBounds, ID_boundsTransform,
-			new Vector4(destructionBounds.center.x - c.bounds.center.x,
-						destructionBounds.center.y - c.bounds.center.y,
-						destructionBounds.center.z - c.bounds.center.z,
-						rotation));
+		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassSizeMinMax,
+			new Vector4(layer.quadWidthRange.x, layer.quadHeightRange.x, layer.quadWidthRange.y, layer.quadHeightRange.y));
 
-		cmd.SetComputeVectorParam(c.destroyGrassInBounds, ID_boundsExtents, destructionBounds.extents);
-
+		//Chunk ID
+		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_chunkID, chunk.id);
+		//Layer seed
+		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_seed, layer.seed);
 
 
-		//dispatch a compute shader that will take in buffer of all mesh data
-		//And return an append buffer of mesh data remaining
-		//Then use this buffer as the main buffer
 
-		cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, ID_Grass, layer.grassBladesBuffer);
-		cmd.SetComputeBufferParam(c.destroyGrassInBounds, 0, ID_IndirectArgs, layer.drawIndirectArgsBuffer);
+		//Splat map weights for sampling terrain textures
+		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_densityLayerWeights, layer.splatMapWeights);
+		//Height placement infomation
+		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassHeightRange,
+			new Vector2(c.grassHeightOffset, c.terrain.terrainData.heightmapScale.y));
 
-		layer.DispatchComputeWithThreads(cmd, c.destroyGrassInBounds, 0);
+		ushort dispatch = (ushort)(chunk.cellsWidth * chunk.cellsWidth * layer.groupsOf8InCell);
 
+		//Debug.Log($"Creating {chunk.cellsWidth * chunk.cellsWidth} blades, offset {cellsOffset}");
+
+		if (dispatch > 0)
+		{
+			//Dispatched in groups of 8
+			cmd.DispatchCompute(c.createGrassInBoundsCompute, 0, dispatch, 1, 1);
+		}
+
+		//Update the sizes
+		//cmd.SetComputeBufferData(c.drawIndirectArgsBuffer, new uint[] { (uint)c.currentGrassCellCapacity }, 0, 1, 1);
 	}
 }

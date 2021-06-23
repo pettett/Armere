@@ -16,16 +16,27 @@ public class CharacterProfile : ScriptableObject
 
 	[Header("Ground detection")]
 	[Range(0, 90)] public float m_maxGroundSlopeAngle = 70;
-	float maxGroundDot = float.NaN;
+	[ReadOnly] public float maxGroundDot = 0.5f;
 	public float m_maxGroundSlopeDot
 	{
 		get
 		{
-			if (float.IsNaN(maxGroundDot))
-				maxGroundDot = Mathf.Cos(m_maxGroundSlopeAngle * Mathf.Deg2Rad);
+			// if (float.IsNaN(maxGroundDot))
+			// 	maxGroundDot = Mathf.Cos(m_maxGroundSlopeAngle * Mathf.Deg2Rad);
 			return maxGroundDot;
 		}
 	}
+	private void OnValidate()
+	{
+		maxGroundDot = Mathf.Cos(m_maxGroundSlopeAngle * Mathf.Deg2Rad);
+	}
+
+	public bool CanWalkOn(Vector3 normal, Vector3 up)
+	{
+		//Debug.Log($"{Vector3.Dot(normal, up)},{ m_maxGroundSlopeDot}");
+		return Vector3.Dot(normal, up) > m_maxGroundSlopeDot;
+	}
+
 	[Header("Water")]
 	public float maxWaterStrideDepth = 1;
 }

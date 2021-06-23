@@ -43,7 +43,9 @@ public class GrassController : MonoBehaviour
 		ID_time = Shader.PropertyToID("time"),
 		ID_windDirection = Shader.PropertyToID("windDirection");
 
-	public GrassLayer[] layers = new GrassLayer[2];
+	public GrassLayer[] layers = new GrassLayer[0];
+
+	public GrassLayerInstance[] instances = null;
 
 
 	private const string k_RenderGrassTag = "Render Grass";
@@ -88,6 +90,7 @@ public class GrassController : MonoBehaviour
 	List<GrassInstruction> grassInstructions = new List<GrassInstruction>();
 
 	[Header("Grass Rendering")]
+	public bool updateGrass;
 	public float viewRadius = 10;
 	public ComputeShader compute;
 	public ComputeShader destroyGrassInBounds;
@@ -95,6 +98,7 @@ public class GrassController : MonoBehaviour
 	public ComputeShader destroyGrassInRange;
 	public ComputeShader prefixScanCompute;
 	public ComputeShader cullGrassCompute;
+	public ComputeShader applyGrassCullCompute;
 
 	public Material material;
 	[System.NonSerialized] public Bounds bounds;
@@ -121,7 +125,7 @@ public class GrassController : MonoBehaviour
 
 	public abstract class GrassInstruction
 	{
-		public abstract void Execute(GrassController controller, GrassLayer layer, CommandBuffer cmd);
+		public abstract void Execute(GrassController controller, ref GrassLayerInstance layer, CommandBuffer cmd);
 	}
 
 
@@ -129,24 +133,30 @@ public class GrassController : MonoBehaviour
 
 
 	// Mesh Properties struct to be read from the GPU.
-	// Size() is a convenience funciton which returns the stride of the struct.
+	// Size() is a convenience function which returns the stride of the struct.
 	public struct MeshProperties
 	{
-		Vector3 position;
-		float yRot;
-		Vector2 scale;
-		Vector3 color;
+		public Vector3 position;
+		public float yRot;
+		public Vector2 scale;
+		public Vector3 color;
 		//If chunkID = 0, grass does not exist
 		public uint chunkID;
 		//  rotation, position,size
 
 		//Vector3 blank0, blank1;
 		public const int size = sizeof(float) * (3 + 1 + 2 + 3) + sizeof(int);
+
+
+		public override string ToString()
+		{
+			return $"Grass Blade at {position}, chunk {chunkID}";
+		}
 	}
 
 	public struct MatricesStruct
 	{
-		public const int size = sizeof(float) * (4 * 4 + 3);
+		public const int size = sizeof(float) * (4 * 4);
 	}
 
 
@@ -163,21 +173,13 @@ public class GrassController : MonoBehaviour
 
 
 		mainKernel = compute.FindKernel("CSMain");
+		instances = new GrassLayerInstance[layers.Length];
 
 		//int frustumKernel = frustumCuller.FindKernel("CSMain");
 		for (int i = 0; i < layers.Length; i++)
 		{
-			layers[i].InitLayer(this, i);
+			instances[i] = new GrassLayerInstance(this, i, layers[i]);
 		}
-
-
-		//matrixesBuffer.SetCounterValue(0);
-
-		PlaceBlades();
-		//frustumCuller.SetBuffer(frustumKernel, "_Properties", meshPropertiesBuffer);
-
-		// cmd.SetComputeBufferParam(compute, mainKernel, "_Output", matrixesBuffer);
-
 	}
 
 
@@ -187,7 +189,7 @@ public class GrassController : MonoBehaviour
 	bool inited = false;
 
 
-	private void Start()
+	private void OnEnable()
 	{
 		mainCamera = Camera.main;
 		m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
@@ -220,10 +222,10 @@ public class GrassController : MonoBehaviour
 		// Profiler.EndSample();
 
 		//Setup the call to draw the grass when the time comes
-		for (int i = 0; i < layers.Length; i++)
+		for (int i = 0; i < instances.Length; i++)
 		{
 			//Profiler.BeginSample(layers[i].name);
-			layers[i].DrawGrassLayer(this);
+			instances[i].DrawGrassLayer();
 			//Profiler.EndSample();
 		}
 
@@ -242,77 +244,78 @@ public class GrassController : MonoBehaviour
 
 
 
-		if (Time.deltaTime == 0) return; //No need to update grass - nothing has happened
+		if (Time.deltaTime == 0 || !updateGrass) return; //No need to update grass - nothing has happened
 
 		CommandBuffer cmd = CommandBufferPool.Get(k_RenderGrassTag);
 
-		using (new ProfilingScope(cmd, m_Grass_Profile))
+		//using (new ProfilingScope(cmd, m_Grass_Profile))
+		//{
+
+
+
+
+		//meshPropertiesBuffer.SetCounterValue((uint)totalPopulation);
+
+		cmd.Clear();
+		//cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+
+		//Set common variables for movement
+
+		//cmd.SetComputeVectorArrayParam(compute, ID_PusherPositions, pushersData);
+
+		// cmd.SetComputeIntParam(compute, ID_pushers, Mathf.Min(maxGrassPushers, pushers.Count));
+		// cmd.SetComputeBufferParam(compute, 0, ID_PusherPositions, radialGrassPushers);
+
+		cmd.SetComputeVectorParam(compute, ID_cameraPosition, mainCam.transform.position - bounds.center);
+		cmd.SetComputeFloatParam(compute, ID_time, Time.time);
+		if (onWindDirectionChangedGlobal != null)
+			cmd.SetComputeVectorParam(compute, ID_windDirection, onWindDirectionChangedGlobal.value);
+
+
+		int instructionsThisFrameCount = Mathf.Min(grassInstructions.Count, 8);
+
+
+		for (int i = 0; i < instances.Length; i++)
 		{
-
-
-
-
-			//meshPropertiesBuffer.SetCounterValue((uint)totalPopulation);
-
-			cmd.Clear();
-			//cmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
-
-			//Set common variables for movement
-
-			//cmd.SetComputeVectorArrayParam(compute, ID_PusherPositions, pushersData);
-
-			// cmd.SetComputeIntParam(compute, ID_pushers, Mathf.Min(maxGrassPushers, pushers.Count));
-			// cmd.SetComputeBufferParam(compute, 0, ID_PusherPositions, radialGrassPushers);
-
-			cmd.SetComputeVectorParam(compute, ID_cameraPosition, mainCam.transform.position - bounds.center);
-			cmd.SetComputeFloatParam(compute, ID_time, Time.time);
-			if (onWindDirectionChangedGlobal != null)
-				cmd.SetComputeVectorParam(compute, ID_windDirection, onWindDirectionChangedGlobal.value);
-
-
-			int instructionsThisFrameCount = Mathf.Min(grassInstructions.Count, 8);
-
-
-			for (int i = 0; i < layers.Length; i++)
+			if (!inited)
 			{
-				if (!inited)
-				{
 
-					Texture2D grassDensity = terrain.terrainData.alphamapTextures[0];
-					cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, ID_Density, grassDensity);
-					inited = true;
-				}
-				else if (!layers[i].inited)
-				{
-					layers[i].InitComputeShaders(this, cmd);
-				}
-				else if (layers[i].enabled)
-				{
-					if (layers[i].layerType == GrassLayer.LayerType.Main)
-					{
-						//Only apply global commands to main layers
-
-						//Execute all the commands queued from the last frame
-
-
-						//Execute global instructions
-						for (int ii = 0; ii < instructionsThisFrameCount; ii++)
-						{
-							grassInstructions[ii].Execute(this, layers[i], cmd);
-						}
-						//Execute local instructions
-					}
-					layers[i].OnCameraBeginRendering(this, cmd);
-
-				}
+				Texture2D grassDensity = terrain.terrainData.alphamapTextures[0];
+				cmd.SetComputeTextureParam(createGrassInBoundsCompute, 0, ID_Density, grassDensity);
+				inited = true;
 			}
+			else if (!instances[i].inited)
+			{
+				instances[i].InitComputeShaders(cmd);
+			}
+			else if (layers[i].enabled)
+			{
+				if (layers[i].layerType == GrassLayer.LayerType.Main)
+				{
+					//Only apply global commands to main layers
 
-			grassInstructions.RemoveRange(0, instructionsThisFrameCount);
+					//Execute all the commands queued from the last frame
 
 
-			context.ExecuteCommandBuffer(cmd);
+					//Execute global instructions
+					for (int ii = 0; ii < instructionsThisFrameCount; ii++)
+					{
+						grassInstructions[ii].Execute(this, ref instances[i], cmd);
+					}
+					//Execute local instructions
+				}
+				instances[i].OnCameraBeginRendering(this, cmd);
+
+			}
 		}
 
+		grassInstructions.RemoveRange(0, instructionsThisFrameCount);
+
+		//}
+
+
+		context.ExecuteCommandBuffer(cmd);
+		//context.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
 		CommandBufferPool.Release(cmd);
 
 		// material.SetBuffer("_Properties", meshPropertiesBuffer);
@@ -324,10 +327,11 @@ public class GrassController : MonoBehaviour
 
 	private void DisposeBuffers()
 	{
-		for (int i = 0; i < layers.Length; i++)
+		for (int i = 0; i < instances.Length; i++)
 		{
-			layers[i].DisposeBuffers();
+			instances[i].DisposeBuffers();
 		}
+		instances = null;
 		radialGrassPushers.Dispose();
 	}
 
@@ -340,37 +344,12 @@ public class GrassController : MonoBehaviour
 	public RenderTexture terrainHeight;
 
 
-	private void PlaceBlades()
-	{
-		for (int i = 0; i < layers.Length; i++)
-		{
-			layers[i].UpdateChunkTree(this);
-		}
 
-
-		// void CreateGrassInTree(QuadTree tree)
-		// {
-		//     foreach (QuadTreeLeaf leaf in tree)
-		//     {
-		//         if (leaf is QuadTree t)
-		//         {
-		//             CreateGrassInTree(t);
-		//         }
-		//         else if (leaf is QuadTreeEnd end && end.enabled)
-		//         {
-		//             grassInstructions.Enqueue(new CreateGrassInstruction(end.id, end.rect, end.cellsWidth * end.cellsWidth));
-		//         }
-		//     }
-		// }
-		//CreateGrassInTree(chunkTree);
-
-		//grassInstructions.Enqueue(new CreateGrassInstruction(0, new Rect(-range, -range, range * 2, range * 2), texSize * texSize));
-	}
-
-	private void OnDestroy()
+	private void OnDisable()
 	{
 		DisposeBuffers();
 		inited = false;
+
 
 		RenderPipelineManager.beginFrameRendering -= OnBeginCameraRendering;
 		//Disable event channels
@@ -381,11 +360,11 @@ public class GrassController : MonoBehaviour
 	[ButtonMethod]
 	public void ReInitGrass()
 	{
-		if (!Application.isPlaying)
+		if (Application.isPlaying)
 		{
 			if (inited)
-				OnDestroy();
-			Start();
+				OnDisable();
+			OnEnable();
 
 		}
 	}
@@ -397,83 +376,83 @@ public class GrassController : MonoBehaviour
 
 
 		// //This is all witchcraft :(
-		// const int testSize = 20;
+		const int testSize = 20;
 
-		// const int BLOCK_SIZE = 128;
+		const int BLOCK_SIZE = 128;
 
-		// int blocks = ((testSize + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
-		// int scanBlocks = Mathf.NextPowerOfTwo(blocks);
-
-
-
-		// var source = new ComputeBuffer(testSize, MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
-		// var destination = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-		// var workBuffer = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-
-		// var a = source.BeginWrite<MeshProperties>(0, testSize);
-
-		// uint[] correctData = new uint[testSize];
-		// uint[] input = new uint[testSize];
-		// uint runningTotal = 0;
-
-		// for (int i = 0; i < testSize; i++)
-		// {
-		// 	uint value = (uint)UnityEngine.Random.Range(0, 2);
-		// 	a[i] = new MeshProperties() { chunkID = value };
-		// 	input[i] = value;
-
-		// 	correctData[i] = runningTotal;
-
-		// 	runningTotal += value;
-		// }
+		int blocks = ((testSize + BLOCK_SIZE * 2 - 1) / (BLOCK_SIZE * 2));
+		int scanBlocks = Mathf.NextPowerOfTwo(blocks);
 
 
-		// source.EndWrite<MeshProperties>(testSize);
 
-		// prefixScanCompute.SetBuffer(0, GrassController.ID_Grass, source);
-		// prefixScanCompute.SetBuffer(0, "dst", destination);
-		// prefixScanCompute.SetBuffer(0, "sumBuffer", workBuffer);
+		var source = new ComputeBuffer(testSize, MeshProperties.size, ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
+		var destination = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+		var workBuffer = new ComputeBuffer(testSize, sizeof(uint), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
 
-		// prefixScanCompute.SetBuffer(1, "dst", workBuffer);
+		var a = source.BeginWrite<MeshProperties>(0, testSize);
 
+		uint[] correctData = new uint[testSize];
+		uint[] input = new uint[testSize];
+		uint runningTotal = 0;
 
-		// prefixScanCompute.SetInt("m_numElems", testSize);
-		// prefixScanCompute.SetInt("m_numBlocks", blocks); //Number of sharedmemory blokes
-		// prefixScanCompute.SetInt("m_numScanBlocks", scanBlocks); //Number of thread groups
+		for (int i = 0; i < testSize; i++)
+		{
+			uint value = (uint)UnityEngine.Random.Range(0, 2);
+			a[i] = new MeshProperties() { chunkID = value };
+			input[i] = value;
 
+			correctData[i] = runningTotal;
 
-		// prefixScanCompute.Dispatch(0, blocks, 1, 1);
-
-
-		// prefixScanCompute.Dispatch(1, 1, 1, 1);
-
-		// if (blocks > 1)
-		// {
-		// 	prefixScanCompute.SetBuffer(2, "dst", destination);
-		// 	prefixScanCompute.SetBuffer(2, "blockSum2", workBuffer);
-		// 	prefixScanCompute.Dispatch(2, (blocks - 1), 1, 1);
-		// }
-
-		// uint[] result = new uint[testSize];
-		// destination.GetData(result);
+			runningTotal += value;
+		}
 
 
-		// bool equal = Enumerable.SequenceEqual(result, correctData);
-		// Debug.Log($"For {testSize} items prefix sum is equal? {equal}");
-		// if (!equal)
-		// {
-		// 	Debug.Log($"Blocks: {blocks}, scanBlocks: {scanBlocks}");
-		// 	Debug.Log(string.Join(",", input));
-		// 	Debug.Log(string.Join(",", result));
-		// 	Debug.Log(string.Join(",", correctData));
-		// }
+		source.EndWrite<MeshProperties>(testSize);
 
-		// source.Release();
-		// destination.Release();
-		// workBuffer.Release();
+		prefixScanCompute.SetBuffer(0, GrassController.ID_Grass, source);
+		prefixScanCompute.SetBuffer(0, "dst", destination);
+		prefixScanCompute.SetBuffer(0, "sumBuffer", workBuffer);
+
+		prefixScanCompute.SetBuffer(1, "dst", workBuffer);
 
 
-		layers[0].Test();
+		prefixScanCompute.SetInt("m_numElems", testSize);
+		prefixScanCompute.SetInt("m_numBlocks", blocks); //Number of sharedmemory blokes
+		prefixScanCompute.SetInt("m_numScanBlocks", scanBlocks); //Number of thread groups
+
+
+		prefixScanCompute.Dispatch(0, blocks, 1, 1);
+
+
+		prefixScanCompute.Dispatch(1, 1, 1, 1);
+
+		if (blocks > 1)
+		{
+			prefixScanCompute.SetBuffer(2, "dst", destination);
+			prefixScanCompute.SetBuffer(2, "blockSum2", workBuffer);
+			prefixScanCompute.Dispatch(2, (blocks - 1), 1, 1);
+		}
+
+		uint[] result = new uint[testSize];
+		destination.GetData(result);
+
+
+		bool equal = Enumerable.SequenceEqual(result, correctData);
+		Debug.Log($"For {testSize} items prefix sum is equal? {equal}");
+		if (!equal)
+		{
+			Debug.Log($"Blocks: {blocks}, scanBlocks: {scanBlocks}");
+			Debug.Log(string.Join(",", input));
+			Debug.Log(string.Join(",", result));
+			Debug.Log(string.Join(",", correctData));
+		}
+
+		source.Release();
+		destination.Release();
+		workBuffer.Release();
+
+
+		//instances[0].Test();
 	}
 
 
@@ -500,7 +479,6 @@ public class GrassController : MonoBehaviour
 
 		Gizmos.DrawWireCube(bounds.center, bounds.size);
 
-
 		// UpdateChunkTree();
 
 		Gizmos.matrix = Matrix4x4.identity;
@@ -511,38 +489,32 @@ public class GrassController : MonoBehaviour
 							mainCam.transform.position.z - transform.position.z) / (range * 2);
 
 
-
-		for (int i = 0; i < layers.Length; i++)
-		{
-			float uvViewRadius = (viewRadius * layers[i].viewRadiusScalar * 0.5f) / range;
-			//Debug.Log($"{playerUV}, {uvViewRadius}");
-			if (layers[i].chunkTree == null)
+		if (instances != null)
+			for (int i = 0; i < instances.Length; i++)
 			{
-				Debug.Log($"Updating {i} chunk tree");
-				layers[i].UpdateChunkTree(this);
+				float uvViewRadius = (viewRadius * layers[i].viewRadiusScalar * 0.5f) / range;
+				//Debug.Log($"{playerUV}, {uvViewRadius}");
+
+				instances[i].chunkTree.DrawGizmos(terrain, playerUV, uvViewRadius, instances[i].loadedChunks);
+
+				// UnityEngine.Random.InitState(100);
+
+				// foreach (int dataIndex in layers[i].fullQuadTree.GetNodesInRange(playerUV, uvViewRadius))
+				// {
+
+				// 	// Gizmos.color = new Color(
+				// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 0 : 1,
+				// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 1 : 0,
+				// 	// 	0,
+				// 	// 1
+				// 	// );
+				// 	Gizmos.color = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0, 1, 1, 1);
+
+				// 	Gizmos.DrawCube(new Vector3(0, 0, 1) + (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.center * 10,
+				// 	 (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.size * 10);
+				// }
+
 			}
-			else
-			{
-				layers[i].chunkTree.DrawGizmos(terrain, playerUV, uvViewRadius, layers[i].loadedChunks);
-			}
-			// UnityEngine.Random.InitState(100);
-
-			// foreach (int dataIndex in layers[i].fullQuadTree.GetNodesInRange(playerUV, uvViewRadius))
-			// {
-
-			// 	// Gizmos.color = new Color(
-			// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 0 : 1,
-			// 	// 	layers[i].fullQuadTree.nodeData[dataIndex].enabled ? 1 : 0,
-			// 	// 	0,
-			// 	// 1
-			// 	// );
-			// 	Gizmos.color = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0, 1, 1, 1);
-
-			// 	Gizmos.DrawCube(new Vector3(0, 0, 1) + (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.center * 10,
-			// 	 (Vector3)layers[i].fullQuadTree.nodes[dataIndex].rect.size * 10);
-			// }
-
-		}
 
 	}
 

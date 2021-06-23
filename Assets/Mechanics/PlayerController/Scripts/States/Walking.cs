@@ -16,8 +16,15 @@ namespace Armere.PlayerController
 	{
 		public override string StateName => "Walking";
 
-
-		public enum WalkingType { Walking, Sprinting, Crouching }
+		[System.Flags]
+		public enum GroundState
+		{
+			Grounded = 1,
+			Falling = 2,
+			Coyote = 4,
+			Jumping = 8,
+		}
+		public enum WalkingType { Walking, Sprinting, Crouching, Stepping }
 
 		protected DialogueRunner runner => DialogueInstances.singleton.runner;
 
@@ -28,7 +35,7 @@ namespace Armere.PlayerController
 		//used to continue momentum when the controller hits a stair
 		Vector3 lastVelocity;
 
-
+		readonly ParticleGroups movementParticles;
 		//shooting variables for gizmos
 		System.Text.StringBuilder entry;
 
@@ -70,12 +77,11 @@ namespace Armere.PlayerController
 
 		public Spell currentCastingSpell;
 
-		bool debugStep = false;
-		enum GroundState { Grounded, Coyote, Falling }
+		const bool debugStep = false;
 		GroundState ground;
 
-		bool Coyote => ground == GroundState.Coyote;
-		bool IsGrounded => ground == GroundState.Grounded;
+		bool Coyote => ground.HasFlag(GroundState.Coyote);
+		bool IsGrounded => ground.HasFlag(GroundState.Grounded);
 
 		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
 		{
@@ -84,6 +90,7 @@ namespace Armere.PlayerController
 			isHoldingSprintKey = c.inputReader.IsSprintPressed();
 
 			playerWaterObject = c.GetComponent<PlayerWaterObject>();
+			movementParticles = c.GetComponent<ParticleGroups>();
 		}
 
 		public bool Usable(ItemType t) => t switch
@@ -330,61 +337,8 @@ namespace Armere.PlayerController
 
 		readonly RaycastHit[] waterHits = new RaycastHit[2];
 		#region Movement
-		public void MoveThroughWater(ref float speedScalar)
-		{
-			//Find depth of water
-			//Buffer of two: One for water surface, one for water base
-			float heightOffset = 2;
-			//Cannot raycast up as raycasts do not hit back surface of shapes
-			int hits = Physics.RaycastNonAlloc(
-				transform.position + c.WorldUp * heightOffset,
-				c.WorldDown, waterHits,
-				c.profile.maxWaterStrideDepth + heightOffset,
-				c.m_groundLayerMask | c.m_waterLayerMask,
-				QueryTriggerInteraction.Collide);
 
-			if (hits == 2)
-			{
-				Debug.Log("two hits");
-				if (waterHits[1].collider.GetComponentInParent<WaterController>() != null)
-				{
-					//Hit water and ground
-					float depth = waterHits[0].distance - waterHits[1].distance;
-
-					float scaledDepth = depth / c.profile.maxWaterStrideDepth;
-					if (scaledDepth > 1)
-					{
-						//Start swimming
-						Debug.Log("over max depth, swimming");
-						c.ChangeToState(t.swimming);
-					}
-					else if (scaledDepth >= 0)
-					{
-						//Striding through water
-						//Slow speed of walk
-						//Full depth walks at half speed
-						speedScalar = (1 - scaledDepth) * t.maxStridingDepthSpeedScalar + (1 - t.maxStridingDepthSpeedScalar);
-					}
-
-				}
-				else
-				{
-
-					c.ChangeToState(t.swimming);
-				}
-
-			}
-			else if (hits == 1 && waterHits[0].collider.GetComponentInParent<WaterController>() != null)
-			{
-
-				//Start swimming
-				Debug.Log("only one hit, swimming");
-				c.ChangeToState(t.swimming);
-			}
-		}
-
-
-		public void GetDesiredVelocity(Vector3 playerDirection, float movementSpeed, float speedScalar, out Vector3 desiredVelocity)
+		public Vector3 GetDesiredVelocity(Vector3 playerInputDirection, float movementSpeed, float speedScalar)
 		{
 			if (forceForwardHeadingToCamera)
 			{
@@ -392,11 +346,13 @@ namespace Armere.PlayerController
 				transform.forward = forward;
 
 				//Include speed scalar from water
-				desiredVelocity = playerDirection * movementSpeed * speedScalar;
+				var desiredVelocity = playerInputDirection * movementSpeed * speedScalar;
 				//Rotate the velocity based on ground
 				desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
+
+				return desiredVelocity;
 			}
-			else if (playerDirection.sqrMagnitude > 0.1f)
+			else if (playerInputDirection.sqrMagnitude > 0.1f)
 			{
 				Quaternion walkingAngle;
 
@@ -407,26 +363,28 @@ namespace Armere.PlayerController
 				}
 				else
 				{
-					walkingAngle = Quaternion.LookRotation(playerDirection, c.WorldUp);
+					walkingAngle = Quaternion.LookRotation(playerInputDirection, c.WorldUp);
 				}
 
 
 
 
 				float angle = Quaternion.Angle(transform.rotation, walkingAngle);
+				//If not forcing heading, rotate towards walking
+				transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * t.GetPropulsion(ground).rotationSpeed);
 				//Debug.Log(angle);
 				if (angle > 170 && c.rb.velocity.sqrMagnitude > 0.5f)
 				{
 					//Perform a 180 manuever
 
-					desiredVelocity = Vector3.zero;
+					return Vector3.zero;
 					//c.StartCoroutine(Perform180());
 				}
 				else if (angle > 30f)
 				{
 					//Only allow the player to walk forward if they have finished turning to the direction
 					//But do allow the player to run at a slight angle
-					desiredVelocity = Vector3.zero;
+					return Vector3.zero;
 				}
 				else
 				{
@@ -436,19 +394,16 @@ namespace Armere.PlayerController
 					//only allow sprinting if the play is moving forward
 
 					//Include speed scalar from water
-					desiredVelocity = playerDirection * movementSpeed * speedScalar;
+					var desiredVelocity = playerInputDirection * movementSpeed * speedScalar;
 					//Rotate the velocity based on ground
-					desiredVelocity = Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
+					return Quaternion.AngleAxis(0, currentGroundNormal) * desiredVelocity;
+
 				}
-
-				//If not forcing heading, rotate towards walking
-				transform.rotation = Quaternion.RotateTowards(transform.rotation, walkingAngle, Time.deltaTime * 800);
-
 			}
 			else
 			{
 				//No movement
-				desiredVelocity = Vector3.zero;
+				return Vector3.zero;
 			}
 		}
 		// IEnumerator Perform180()
@@ -495,7 +450,7 @@ namespace Armere.PlayerController
 			//c.animator.SetFloat("InputHorizontal", c.input.inputWalk.x);
 
 			animator.SetFloat("WalkingSpeed", 1);
-			animator.SetBool("IsGrounded", true);
+			animator.SetBool("IsGrounded", IsGrounded);
 
 
 			animator.SetFloat("VerticalVelocity", c.rb.velocity.y);
@@ -589,7 +544,103 @@ namespace Armere.PlayerController
 			else
 				walkingType = WalkingType.Walking;
 		}
+		public struct WaterData
+		{
+			/// <summary>
+			/// Is water present at all?
+			/// </summary>
+			public bool inWater;
+			/// <summary>
+			/// Scaled between 0 and 1
+			/// </summary>
+			[Range(0, 1)] public float depth;
+			/// <summary>
+			/// Should the controller move to swimming state
+			/// </summary>
+			public bool shouldSwim;
+		}
+		public WaterData GetWaterInfo()
+		{
+			WaterData data = default;
+			//Test for water
+			if (playerWaterObject?.currentFluid != null)
+			{
+				data.inWater = true;
 
+				//Find depth of water
+				//Buffer of two: One for water surface, one for water base
+				float heightOffset = 2;
+				//Cannot raycast up as raycasts do not hit back surface of shapes
+				int hits = Physics.RaycastNonAlloc(
+					transform.position + c.WorldUp * heightOffset,
+					c.WorldDown, waterHits,
+					c.profile.maxWaterStrideDepth + heightOffset,
+					c.m_groundLayerMask | c.m_waterLayerMask,
+					QueryTriggerInteraction.Collide);
+
+				if (hits == 2)
+				{
+					Debug.Log("two hits");
+					if (waterHits[1].collider.GetComponentInParent<WaterController>() != null)
+					{
+						//Hit water and ground
+						float depth = waterHits[0].distance - waterHits[1].distance;
+
+						float scaledDepth = depth / c.profile.maxWaterStrideDepth;
+						if (scaledDepth > 1)
+						{
+							//Start swimming
+							Debug.Log("over max depth, swimming");
+							//c.ChangeToState(t.swimming);
+							data.shouldSwim = true;
+							return data;
+						}
+
+						//Striding through water
+						//Slow speed of walk
+						//Full depth walks at half speed
+						data.depth = scaledDepth;// (1 - scaledDepth) * t.maxStridingDepthSpeedScalar + (1 - t.maxStridingDepthSpeedScalar);
+						return data;
+
+					}
+
+					data.shouldSwim = true;
+					return data;
+
+				}
+				else if (hits == 1 && waterHits[0].collider.GetComponentInParent<WaterController>() != null)
+				{
+
+					//Start swimming
+					Debug.Log("only one hit, swimming");
+					data.shouldSwim = true;
+					return data;
+				}
+				//I dont think it should get here
+				Debug.LogWarning("Unexpected water result");
+				return data;
+			}
+
+			data.inWater = false;
+			return data;
+		}
+
+		public float GetSpeedScalar(WaterData waterData)
+		{
+			float speedScalar = 1;
+
+			if (waterData.inWater)
+			{
+				return (1 - waterData.depth) * t.maxStridingDepthSpeedScalar + (1 - t.maxStridingDepthSpeedScalar);
+			}
+
+			return speedScalar;
+		}
+		public float GetMaxAcceleration()
+		{
+			if (IsGrounded) return t.groundPropulsion.maxAcceleration;
+			else return t.airPropulsion.maxAcceleration;
+		}
 
 		public override void FixedUpdate()
 		{
@@ -612,62 +663,73 @@ namespace Armere.PlayerController
 
 			//Debug.Log($"Average turning {averageTurning}");
 
-			Vector3 playerDirection = PlayerInputUtility.WorldSpaceFlatInput(c);
+			Vector3 inputDirectionWS = PlayerInputUtility.WorldSpaceFlatInput(c);
 
 			bool wasGrounded = IsGrounded;
 
-			bool onGround = FindGround(out var groundCP, out currentGroundNormal, playerDirection, c.allCPs);
+			bool onGround = FindGround(out currentGroundNormal, inputDirectionWS, c.allCPs);
+			bool jumping = ground.HasFlag(GroundState.Jumping);
 
-			if (!onGround && wasGrounded)
+			if (walkingType == WalkingType.Stepping)
 			{
-				Debug.Log($"Started coyote, {onGround}, {wasGrounded}");
-				ground = GroundState.Coyote;
+				//Just finished stepping, does not could as landing
+				walkingType = WalkingType.Walking;
+				ground = GroundState.Grounded;
+				onGround = true;
+
+			}
+			else if (!onGround && wasGrounded && !jumping)
+			{
+				ground = GroundState.Coyote | GroundState.Falling;
 				c.StartCoroutine(DoCoyote(t.coyoteTime));
 			}
-			else if (onGround)
+			else if (onGround && !IsGrounded)
 			{
-				ground = GroundState.Grounded;
+				if (jumping)
+				{
+					//If on ground and jumping, test to see if we should move back onto the ground or continue in jump mode
+					Vector3 vel = c.rb.velocity;
+
+					//Only allow to return to ground if velocity is not in opposite ish direction to ground
+					float dot = Vector3.Dot(vel, currentGroundNormal);
+					if (dot < 0.5f || vel.sqrMagnitude < 0.5f)
+						OnLanded();
+				}
+				else
+				{
+					OnLanded();
+				}
 			}
-
-
 
 
 			c.animationController.enableFeetIK = IsGrounded;
 
-
 			AttemptSprint();
-
 
 			//List<ContactPoint> groundCPs = new List<ContactPoint>();
 
-			float speedScalar = 1;
-
-			//Test for water
-
-			if (playerWaterObject?.currentFluid != null)
-			{
-				MoveThroughWater(ref speedScalar);
-			}
-
+			WaterData water = GetWaterInfo();
 
 			float currentMovementSpeed = t.GetSpeeds(walkingType).movementSpeed;
 
-			GetDesiredVelocity(playerDirection, currentMovementSpeed, speedScalar, out Vector3 desiredVelocity);
+			Vector3 desiredVelocity = GetDesiredVelocity(inputDirectionWS, currentMovementSpeed, GetSpeedScalar(water));
 
+			//Stepping also allowed when in air as it allows players to reach surfaces better when jumping
+			Vector3 groundPoint = transform.position;
 
-			if (IsGrounded)
+			Vector3 groundNormal = IsGrounded switch
 			{
-				//step up onto the stair, reseting the velocity to what it was
-				if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundCP, desiredVelocity))
-				{
-					//transform.position += stepUpOffset;
-					//c.rb.velocity = lastVelocity;
+				true => currentGroundNormal,
+				false => c.WorldUp,
+			};
 
-					c.StartCoroutine(StepToPoint(transform.position + stepUpOffset, lastVelocity));
-				}
+			//step up onto the stair, reseting the velocity to what it was
+			if (FindStep(out Vector3 stepUpOffset, c.allCPs, groundPoint, groundNormal, desiredVelocity))
+			{
+				Debug.Log("Stepping");
+				c.StartCoroutine(StepToPoint(transform.position + stepUpOffset, lastVelocity));
 			}
 
-			//c.transform.rotation = Quaternion.Euler(0, cc.camRotation.x, 0);
 			if (isHoldingCrouchKey)
 			{
 				c.collider.height = t.crouchingHeight;
@@ -690,22 +752,26 @@ namespace Armere.PlayerController
 			c.collider.center = Vector3.up * c.collider.height * 0.5f;
 
 
-			Vector3 requiredForce = Vector3.ProjectOnPlane(desiredVelocity - c.rb.velocity, c.WorldDown);
+			Vector3 movementForce = Vector3.ProjectOnPlane(desiredVelocity - c.rb.velocity, groundNormal);
 
 
-			requiredForce = Vector3.ClampMagnitude(requiredForce, t.maxAcceleration * Time.fixedDeltaTime);
+			movementForce = Vector3.ClampMagnitude(movementForce, GetMaxAcceleration() * Time.fixedDeltaTime);
 
 			//Add slope boost or reduction
-			requiredForce += GetSlopeForce(requiredForce, groundCP.normal);
+			movementForce += GetSlopeForce(movementForce, currentGroundNormal);
 
 
 			//rotate the target based on the ground the player is standing on
 
 
 			if (IsGrounded)
-				requiredForce -= currentGroundNormal * t.groundClamp;
+			{
+				c.rb.AddForce(-currentGroundNormal * t.groundClamp);
+				//Stick to the ground
 
-			c.rb.AddForce(requiredForce, ForceMode.VelocityChange);
+
+			}
+			c.rb.AddForce(movementForce, ForceMode.VelocityChange);
 
 			lastVelocity = velocity;
 
@@ -713,7 +779,7 @@ namespace Armere.PlayerController
 			{
 				entry.Clear();
 				entry.AppendLine($"Velocity: {c.rb.velocity.magnitude:0.0}, Contact Point Count: {c.allCPs.Count}");
-				entry.AppendLine($"On Ground: {ground}, Sprinting: {isSprinting}, Crouching: {isCrouching}");
+				entry.AppendLine($"Ground: {ground}, Walk: {walkingType}");
 			}
 		}
 		#endregion
@@ -837,8 +903,17 @@ namespace Armere.PlayerController
 			}
 		}
 
-		#region Bows
+		#region Events
 
+		public void OnJumped()
+		{
+			movementParticles.PlayGroup("Jump");
+		}
+		public void OnLanded()
+		{
+			ground = GroundState.Grounded;
+			movementParticles.PlayGroup("Land");
+		}
 
 
 		#endregion
@@ -884,6 +959,7 @@ namespace Armere.PlayerController
 		{
 			c.rb.velocity = Vector3.zero; //Stop the player moving
 			inControl = false;
+
 			activated.melee = true;
 			//swing the sword
 
@@ -1052,43 +1128,66 @@ namespace Armere.PlayerController
 		/// \param allCPs List to search
 		/// \param groundCP The contact point with the ground
 		/// \return If grounded
-		public bool FindGround(out ContactPoint groundCP, out Vector3 groundNormal, Vector3 playerDirection, List<ContactPoint> allCPs)
+		public bool FindGround(out Vector3 groundNormal, Vector3 playerDirection, List<ContactPoint> allCPs)
 		{
-			groundCP = default;
+			groundNormal = default;
 			bool found = false;
 			float bestDirectionDot = 1;
-			groundNormal = default;
 			foreach (ContactPoint cp in allCPs)
 			{
 				//Pointing with some up direction
-				if (Vector3.Dot(c.WorldUp, cp.normal) > c.profile.m_maxGroundSlopeDot)
+				if (c.profile.CanWalkOn(c.WorldUp, cp.normal))
 				{
 					//Get the most upwards pointing contact point
 					//Also get the point that points most in the current direction the player desires to move
 					float directionDot = Vector3.Dot(cp.normal, playerDirection);
 					if (found == false || /*cp.normal.y > groundCP.normal.y ||*/ directionDot < bestDirectionDot)
 					{
-						groundCP = cp;
+						groundNormal = cp.normal;
 						bestDirectionDot = directionDot;
 						found = true;
-						groundNormal = cp.normal;
 					}
 				}
 			}
+
+			if (!found && IsGrounded && inControl)
+			{
+				//Raycast down to see if we have simply walked off a small ledge
+				float startHeight = 1f;
+				if (Physics.SphereCast(
+					transform.position + c.WorldUp * startHeight,
+					c.collider.radius, c.WorldDown,
+					out var hit, startHeight + t.maxStepDown,
+					c.m_groundLayerMask, QueryTriggerInteraction.Ignore) &&
+					//Is walkable
+					c.profile.CanWalkOn(hit.normal, c.WorldUp) &&
+					//Is actually a step down
+					hit.point.y < transform.position.y - t.minStepHeight
+
+					)
+				{
+					Debug.Log("Stepping down");
+					c.StartCoroutine(StepToPoint(hit.point, c.rb.velocity));
+
+					groundNormal = hit.normal;
+					return true;
+				}
+			}
+
 			return found;
 		}
 		/// Find the first step up point if we hit a step
 		/// \param allCPs List to search
 		/// \param stepUpOffset A Vector3 of the offset of the player to step up the step
 		/// \return If we found a step
-		bool FindStep(out Vector3 stepUpOffset, List<ContactPoint> allCPs, ContactPoint groundCP, Vector3 currVelocity)
+		bool FindStep(out Vector3 stepUpOffset, List<ContactPoint> allCPs, Vector3 groundPoint, Vector3 groundNormal, Vector3 currVelocity)
 		{
 			stepUpOffset = default(Vector3);
 			//No chance to step if the player is not moving
 			if (new Vector2(currVelocity.x, currVelocity.z).sqrMagnitude < 0.0001f)
 				return false;
 			for (int i = 0; i < allCPs.Count; i++)// test if every point is suitable for a step up
-				if (ResolveStepUp(out stepUpOffset, allCPs[i], groundCP, currVelocity))
+				if (ResolveStepUp(out stepUpOffset, allCPs[i], groundPoint, groundNormal, currVelocity))
 					return true;
 			return false;
 		}
@@ -1100,7 +1199,7 @@ namespace Armere.PlayerController
 		/// \param groundCP ContactPoint on the ground.
 		/// \param stepUpOffset The offset from the stepTestCP.point to the stepUpPoint (to add to the player's position so they're now on the step)
 		/// \return If the passed ContactPoint was a step
-		bool ResolveStepUp(out Vector3 stepUpOffset, ContactPoint stepTestCP, ContactPoint groundCP, Vector3 velocity)
+		bool ResolveStepUp(out Vector3 stepUpOffset, ContactPoint stepTestCP, Vector3 groundPoint, Vector3 groundNormal, Vector3 velocity)
 		{
 			stepUpOffset = default;
 			Collider stepCol = stepTestCP.otherCollider;
@@ -1113,17 +1212,20 @@ namespace Armere.PlayerController
 			//     return false;
 			// }
 
+
 			//if the step and the ground are too close, do not count
-			if (Vector3.Dot(stepTestCP.normal, c.WorldUp) > c.profile.m_maxGroundSlopeDot)
+			if (Vector3.Dot(stepTestCP.normal, groundNormal) > 0.9 && Vector3.Dot(groundNormal, c.WorldUp) < 0.5f)
 			{
-				if (debugStep) Debug.Log($"Contact too close to ground normal {Vector3.Dot(stepTestCP.normal, c.WorldUp)}");
+				if (debugStep) Debug.Log($"Contact too similar to ramp");
 				return false;
 			}
-			float height = stepTestCP.point.y - groundCP.point.y;
+
+
+			float height = stepTestCP.point.y - groundPoint.y;
 			//( 2 ) Make sure the contact point is low enough to be a step
 			if (height < t.minStepHeight || height >= t.maxStepHeight)
 			{
-				if (debugStep) Debug.Log("Contact to high");
+				if (debugStep) Debug.Log($"Contact to high or low, {height}");
 				return false;
 			}
 
@@ -1139,7 +1241,7 @@ namespace Armere.PlayerController
 			//( 3 ) Check to see if there's actually a place to step in front of us
 			//Fires one Raycast
 			RaycastHit hitInfo;
-			float stepHeight = groundCP.point.y + t.maxStepHeight + 0.0001f;
+			float stepHeight = groundPoint.y + t.maxStepHeight + 0.0001f;
 
 			Vector3 stepTestInvDir = velocity.normalized; // new Vector3(-stepTestCP.normal.x, 0, -stepTestCP.normal.z).normalized;
 
@@ -1153,9 +1255,16 @@ namespace Armere.PlayerController
 				return false;
 			}
 
+
+			if (!c.profile.CanWalkOn(hitInfo.normal, c.WorldUp))
+			{
+				if (debugStep) Debug.Log("Cannot walk onto destination");
+				return false;
+			}
+
 			//We have enough info to calculate the points
 			Vector3 stepUpPoint = new Vector3(stepTestCP.point.x, hitInfo.point.y + 0.0001f, stepTestCP.point.z) + (stepTestInvDir * t.stepSearchOvershoot);
-			Vector3 stepUpPointOffset = stepUpPoint - new Vector3(stepTestCP.point.x, groundCP.point.y, stepTestCP.point.z);
+			Vector3 stepUpPointOffset = stepUpPoint - new Vector3(stepTestCP.point.x, groundPoint.y, stepTestCP.point.z);
 
 			//We passed all the checks! Calculate and return the point!
 			stepUpOffset = stepUpPointOffset;
@@ -1166,6 +1275,8 @@ namespace Armere.PlayerController
 		{
 			c.rb.isKinematic = true;
 			inControl = false;
+			walkingType = WalkingType.Stepping;
+
 			Vector3 start = transform.position;
 			Vector3 pos = Vector3.zero;
 			Vector2 xzStart = new Vector2(start.x, start.z);
@@ -1174,14 +1285,31 @@ namespace Armere.PlayerController
 			float t = 0;
 			float dist = Vector3.Distance(point, start);
 
+
+			float time = dist / this.t.steppingSpeed;
+			float rate = 1 / time;
+
+			//Doing a step guarantees groundedness
+			//So make grounded now in case of coming in from falling
+			ground = GroundState.Grounded;
+
+			if (start.y < point.y)
+			{
+				//Play the step up animation for the time that this will take to execute
+				c.animationController.TriggerTransition(c.transitionSet.stepUp);
+				yield return null;
+				c.animationController.OverrideCurrentAnimationLength(c.transitionSet.animationSpeed, time, 0);
+			}
+			c.animationController.movePelvis = false;
+
 			while (t < 1)
 			{
-				t += Time.deltaTime * this.t.steppingSpeed / dist;
+				t += Time.deltaTime * rate;
 				//entry.values[2] = t;
 				t = Mathf.Clamp01(t);
 				//lerp y values
 				//first quarter of sin graph is quick at first but slower later
-				pos.y = Mathf.Lerp(start.y, point.y, Mathf.Sin(t * Mathf.PI * 0.5f));
+				pos.y = Mathf.Lerp(start.y, point.y, 1 - Mathf.Cos(t * Mathf.PI * 0.5f));
 				//lerp xz values
 				xz = Vector2.Lerp(xzStart, xzEnd, t);
 				pos.x = xz.x;
@@ -1189,10 +1317,13 @@ namespace Armere.PlayerController
 				transform.position = pos;
 				yield return null;
 			}
+			c.animationController.movePelvis = true;
 			//entry.values[2] = 0;
 			c.rb.isKinematic = false;
 			c.rb.velocity = lastVelocity;
+
 			inControl = true;
+
 		}
 
 		#endregion
@@ -1200,13 +1331,12 @@ namespace Armere.PlayerController
 		IEnumerator DoCoyote(float time)
 		{
 			yield return new WaitForSeconds(time);
-			if (Coyote)
-				ground = GroundState.Falling;
+			ground &= ~GroundState.Coyote;
 		}
 
 		public void OnJump(InputActionPhase phase)
 		{
-			if (inControl && phase == InputActionPhase.Started && ground != GroundState.Falling)
+			if (inControl && phase == InputActionPhase.Started && (Coyote || IsGrounded))
 			{
 				//use acceleration to give constant upwards force regardless of mass
 				// Vector3 v = c.rb.velocity;
@@ -1214,15 +1344,17 @@ namespace Armere.PlayerController
 				// c.rb.velocity = v;
 
 				Vector2 jump = t.GetSpeeds(walkingType).twoDJumpForce;
-				var vel = Vector3.ProjectOnPlane(c.rb.velocity, c.WorldUp).normalized;
-				vel *= jump.x;
-				vel += c.WorldUp * jump.y;
 
-				c.rb.velocity = vel;
+				Vector3 inputDirectionWS = PlayerInputUtility.WorldSpaceFlatInput(c);
 
-				GetDesiredVelocity(transform.forward, t.GetSpeeds(walkingType).movementSpeed, 1, out Vector3 direction);
-				Debug.Log("Jumped");
-				ground = GroundState.Falling;
+				Vector3 jumpVelocity = inputDirectionWS;
+				jumpVelocity *= jump.x;
+				jumpVelocity += c.WorldUp * jump.y;
+				c.rb.velocity = jumpVelocity;
+
+				ground = GroundState.Falling | GroundState.Jumping;
+
+				OnJumped();
 
 				//c.ChangeToState(t.freefalling);
 			}
@@ -1231,6 +1363,13 @@ namespace Armere.PlayerController
 
 		public override void OnDrawGizmos()
 		{
+			for (int i = 0; i < c.allCPs.Count; i++)
+			{
+				Gizmos.color = c.profile.CanWalkOn(c.allCPs[i].normal, c.WorldUp) ? Color.green : Color.red;
+				Gizmos.DrawLine(c.allCPs[i].point, c.allCPs[i].point + c.allCPs[i].normal);
+			}
+
+
 			currentCastingSpell?.OnDrawGizmos();
 		}
 	}

@@ -11,7 +11,7 @@ public class DestroyGrassInChunkInstruction : GrassInstruction
 		this.end = end;
 	}
 
-	public override void Execute(GrassController c, GrassLayer layer, CommandBuffer cmd)
+	public override void Execute(GrassController c, ref GrassLayerInstance layer, CommandBuffer cmd)
 	{
 		if (!layer.hasBlades)
 		{
@@ -19,7 +19,7 @@ public class DestroyGrassInChunkInstruction : GrassInstruction
 			return;
 		}
 
-		layer.SetDispatchSize(c, c.destroyGrassInChunk, cmd);
+		layer.SetDispatchSize(c.destroyGrassInChunk, cmd);
 		//Send the data needed and destroy grass
 
 		cmd.SetComputeIntParam(c.destroyGrassInChunk, ID_chunkID, end.id);

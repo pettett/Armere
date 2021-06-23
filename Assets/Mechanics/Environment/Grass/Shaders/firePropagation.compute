@@ -23,7 +23,7 @@ cbuffer CB{
 float GetFireSpread(uint2 pos){
     //one over 255 as 255 is the max blades of grass per tile
     return (FireMap[pos].x > spreadThreshold)  * FireDensityMap[pos] ;
-}
+} 
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)

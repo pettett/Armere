@@ -112,7 +112,7 @@ public class GameCameras : MonoBehaviour
 		lockingMouse = true;
 
 		entry = DebugMenu.CreateEntry("Player");
-		entry.AppendFormat("Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
+		entry?.AppendFormat("Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
 		freeLookTarget = cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
 		regularCamera = cameraTransform.GetComponent<Camera>();

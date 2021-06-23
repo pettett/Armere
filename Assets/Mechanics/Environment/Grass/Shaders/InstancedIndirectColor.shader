@@ -97,12 +97,18 @@ Shader "Custom/InstancedIndirectColor" {
 
 				MatrixStruct p = _Properties[instanceID];
 
+				float4x4 transformMatrix = (float4x4)0;
+				transformMatrix[0] = p.worldTransform[0];
+				transformMatrix[1] = p.worldTransform[1];
+				transformMatrix[2] = p.worldTransform[2];
+				transformMatrix._33 = 1;
+
 
 				//Apply matrix transformations
-				float4 pos = mul(p.mat, i.vertex);
+				float4 pos = mul(transformMatrix, i.vertex);
 
-				float3 n = mul(p.mat, float4(i.normalOS,0)).xyz;
-				float4 t = mul(p.mat, i.tangentOS);
+				float3 n = mul(transformMatrix, float4(i.normalOS,0)).xyz;
+				float4 t = mul(transformMatrix, i.tangentOS);
 
 				// float4 pos = i.vertex;
 				// float3 n = i.normalOS;
@@ -258,8 +264,15 @@ Shader "Custom/InstancedIndirectColor" {
 
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				MatrixStruct p = _Properties[instanceID];
+				
+				float4x4 transformMatrix = (float4x4)0;
+				transformMatrix[0] = p.worldTransform[0];
+				transformMatrix[1] = p.worldTransform[1];
+				transformMatrix[2] = p.worldTransform[2];
+				transformMatrix._33 = 1;
 				//Apply matrix transformations
-				input.positionOS = mul(_Properties[instanceID].mat, input.positionOS);
+				input.positionOS = mul(transformMatrix, input.positionOS);
 
 				o.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 				o.positionCS = GetShadowPositionHClip(input);

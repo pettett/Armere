@@ -16,11 +16,14 @@ MonoImporter:
       type: 3}
   - prefixScanCompute: {fileID: 7200000, guid: 4c34ca6ae2aa63d43872c08aca8818ec, type: 3}
   - cullGrassCompute: {fileID: 7200000, guid: fe6708d853b87dc48aba4c357e767f8c, type: 3}
+  - applyGrassCullCompute: {fileID: 7200000, guid: a140717573dc4294896e3f97a6e64d43,
+      type: 3}
   - material: {fileID: 2100000, guid: cb5b9944543a33a4e87b818cc7aa8395, type: 2}
   - destroyGrassInRangeEventChannel: {fileID: 11400000, guid: 4a23cc8ca1bd4c94081ea5dbd77bf68d,
       type: 2}
   - destroyGrassInBoundsEventChannel: {fileID: 11400000, guid: df016e3a4fcf3084887b2eefcaf9cad2,
       type: 2}
+  - onWindDirectionChangedGlobal: {instanceID: 0}
   - terrainHeight: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}

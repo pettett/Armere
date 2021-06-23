@@ -23,6 +23,10 @@ public class AnimationTransitionSet : ScriptableObject
 
 
 	public AnimationTransition freeMovement = new AnimationTransition("Free Movement", 0.05f, 0.05f, Layers.BaseLayer);
+
+	public AnimationTransition stepUp = new AnimationTransition("Step Up", 0.05f, 0.05f, Layers.BaseLayer);
+
+
 	public AnimationTransition jump = new AnimationTransition("Jump", 0.05f, 0.05f, Layers.BaseLayer);
 
 
@@ -55,5 +59,6 @@ public class AnimationTransitionSet : ScriptableObject
 	public AnimatorVariable isGrounded = new AnimatorVariable("IsGrounded");
 	public AnimatorVariable verticalVelocity = new AnimatorVariable("VerticalVelocity");
 	public AnimatorVariable groundDistance = new AnimatorVariable("GroundDistance");
+	public AnimatorVariable animationSpeed = new AnimatorVariable("AnimSpeed");
 
 }

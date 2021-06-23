@@ -213,7 +213,7 @@
                     normalWS = input.normalWS;
                 #endif
 
-                half3 attenuatedLightColor = light.color;
+                half3 lightColor = light.color;
 
                 half ndotl = dot(normalWS,light.direction);
                 half lightIntensity = smoothstep(_ShadowCutoff,_ShadowCutoff+0.005, ndotl * light.distanceAttenuation * light.shadowAttenuation);
@@ -246,12 +246,15 @@
                 half3 specular =   specularTint* lightIntensity * light.color * specularIntensity;
 
                 //calculate reflection amount
-                half3 fresnel = FresnelSchlick( saturate( dot(SafeNormalize(viewDirWS),normalWS)),lerp(0.04,albedo,_Metallic));
-                fresnel = max(0.5 , smoothstep(_FresnelCutoff,_FresnelCutoff + 0.01,fresnel)*_FresnelMultiplier); //toon ramp
+                half3 fresnel = 1- saturate( dot(SafeNormalize(viewDirWS),normalWS));
 
-                half3 ambient = fresnel * albedo * GlossyEnvironmentReflection(reflect(-viewDirWS, normalWS), 1-smoothness + 0.8, 1);//   half3(0.1,0.1,0.1);
+                fresnel = smoothstep(_FresnelCutoff,_FresnelCutoff + 0.01,fresnel)*_FresnelMultiplier; //toon ramp
 
-                half3 color = specular + diffuse * attenuatedLightColor * lightIntensity + ambient ;
+				half3 rimLight = fresnel * lightIntensity * lightColor;
+
+                half3 ambient = albedo * GlossyEnvironmentReflection(reflect(-viewDirWS, normalWS), 1-smoothness + 0.8, 1);//   half3(0.1,0.1,0.1);
+
+                half3 color = specular + diffuse * lightColor * lightIntensity + ambient + rimLight;
 
 
                 //add additional light colors

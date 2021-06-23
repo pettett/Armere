@@ -59,6 +59,10 @@ public struct AnimationTransition
 		this.layers = layers;
 	}
 }
+
+
+
+
 [Serializable]
 public struct AnimatorVariable
 {
@@ -78,7 +82,9 @@ public struct AnimatorVariable
 		this.name = name;
 		_id = null;
 	}
+	public static implicit operator int(AnimatorVariable var) => var.id;
 }
+
 
 [RequireComponent(typeof(Animator))]
 public class AnimationController : MonoBehaviour
@@ -91,6 +97,7 @@ public class AnimationController : MonoBehaviour
 
 	#region Public Variables
 	[Header("Feet Grounder")]
+	public bool movePelvis = true;
 	public bool enableFeetIK = true;
 	[Range(0, 2)] [SerializeField] private float heightFromGroundRaycast = 1.14f;
 
@@ -179,6 +186,33 @@ public class AnimationController : MonoBehaviour
 		if (transition.layers.HasFlag(Layers.UpperBody))
 			TriggerTransition(transition, 1);
 	}
+
+	List<AnimatorClipInfo> clips = new List<AnimatorClipInfo>();
+	public void OverrideCurrentAnimationLength(AnimatorVariable speedVar, float newLength, int layer, bool restore = true)
+	{
+		clips.Clear();
+		anim.GetCurrentAnimatorClipInfo(layer, clips);
+		anim.GetNextAnimatorClipInfo(layer, clips);
+		if (clips.Count > 0)
+		{
+			var state = clips[0];
+			float speed = state.clip.length / newLength;
+			anim.SetFloat(speedVar.id, speed);
+			if (restore)
+				StartCoroutine(RestoreSpeed(speedVar, newLength));
+		}
+		else
+		{
+			Debug.LogWarning("No clips playing");
+		}
+	}
+	IEnumerator RestoreSpeed(AnimatorVariable speedVar, float time)
+	{
+		yield return new WaitForSeconds(time);
+		anim.SetFloat(speedVar.id, 1);
+	}
+
+
 	private void Awake()
 	{
 		anim = GetComponent<Animator>();
@@ -282,7 +316,8 @@ public class AnimationController : MonoBehaviour
 	{
 		if (enableFeetIK)
 		{
-			MovePelvisHeight();
+			if (movePelvis)
+				MovePelvisHeight();
 			//Right foot ik position and rotation
 			float left = 1;
 			float right = 1;

@@ -23,6 +23,6 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     uint index = id.x;
 
     if (_Grass[index].chunkID == chunkID){
-        _Grass[index].chunkID = 0;
+        _Grass[index] = (MeshProperties)0;
     }
 }

@@ -1,68 +1,72 @@
-﻿// using System.Collections;
-// using System.Collections.Generic;
-// using UnityEngine;
-// using UnityEditor;
+using UnityEngine;
+using UnityEditor;
 
-// [CustomEditor(typeof(GrassController))]
-// public class GrassControllerEditor : Editor
-// {
-//     float drawStrength = 0.5f;
+[CustomEditor(typeof(GrassController))]
+public class GrassControllerEditor : Editor
+{
+	GrassController t => (GrassController)target;
+	bool showBuffers = false;
+	public override void OnInspectorGUI()
+	{
+		base.OnInspectorGUI();
+		showBuffers = EditorGUILayout.Toggle("Show Buffers", showBuffers);
 
-//     Texture2D density;
+		if (t.instances != null)
+			for (int i = 0; i < t.instances.Length; i++)
+			{
 
-//     private void OnEnable()
-//     {
-//         GrassController c = (GrassController)target;
-//         density = new Texture2D(c.texSize, c.texSize, TextureFormat.R8, 0, true);
-//         density.wrapMode = TextureWrapMode.Clamp;
-//         if (c.grassDensity != null)
-//             density.SetPixels(c.grassDensity.GetPixels());
-//     }
-//     private void OnDisable()
-//     {
-//         AssetDatabase.Refresh();
-//     }
-//     public override void OnInspectorGUI()
-//     {
-//         base.OnInspectorGUI();
+				GUI.enabled = false;
+				ref GrassLayerInstance inst = ref t.instances[i];
+				GUILayout.Label(inst.profile.name, EditorStyles.boldLabel);
+				EditorGUILayout.FloatField("Loaded Cells:", inst.loadedCellsCount);
+				EditorGUILayout.FloatField("Last Active Cell:", inst.lastActiveCellIndex);
+				EditorGUILayout.FloatField("Max Loaded Cells:", inst.maxLoadedCells);
+				EditorGUILayout.FloatField("Blades per cell:", inst.bladesInCell);
+				EditorGUILayout.FloatField("Max Loaded Blades:", inst.maxLoadedBlades);
+				EditorGUILayout.FloatField("Max Rendered Blades:", inst.maxRenderedBlades);
+				EditorGUILayout.FloatField("Cell area:", inst.cellArea);
 
-//         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+				EditorGUILayout.FloatField("Thread Groups:", inst.GetThreadGroups());
+				EditorGUILayout.FloatField("Loaded Chunks:", inst.loadedChunks.Count);
+				if (showBuffers)
+				{
+					EditorGUILayout.LabelField($"Exact blades: { inst.drawIndirectArgsBuffer.BeginWrite<uint>(1, 1)[0]}");
+					inst.drawIndirectArgsBuffer.EndWrite<uint>(0);
+				}
+				// //Preseve rectct
+				const int pad = 2;
+				Rect r = GUILayoutUtility.GetRect(20, inst.occupiedBufferCells.Length + pad * 2);
+				EditorGUI.DrawRect(r, Color.white);
 
-//         GrassController c = (GrassController)target;
+				int chunkStart = 0;
+				int chunkID = inst.occupiedBufferCells[0];
+				void DrawChunk(int end)
+				{
+					if (chunkID != 0)
+					{
+						Random.InitState(chunkID);
+						var rect = new Rect(r.x + 5, r.y + chunkStart + pad, r.width - 10, end - chunkStart);
+						var col = Random.ColorHSV();
+						var invCol = new Color(1 - col.r, 1 - col.g, 1 - col.b);
+						EditorGUI.DrawRect(rect, col);
+						GUI.Label(rect, $"Chunk {chunkID}", new GUIStyle() { normal = new GUIStyleState() { textColor = invCol } });
+					}
+				}
 
-//         drawStrength = EditorGUILayout.Slider(drawStrength, 0, 1);
-//         Rect rect = GUILayoutUtility.GetAspectRect(1);
-//         GUI.DrawTexture(rect, density);
+				for (int ii = 1; ii < inst.occupiedBufferCells.Length; ii++)
+				{
+					if (inst.occupiedBufferCells[ii] != chunkID)
+					{
+						//Draw color reprosenting chunk
+						DrawChunk(ii);
+						chunkID = inst.occupiedBufferCells[ii];
+						chunkStart = ii;
+					}
+				}
+				//Draw last chunk
+				DrawChunk(inst.occupiedBufferCells.Length);
 
-//         GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
-
-//         if ((Event.current.type == EventType.MouseDrag || Event.current.type == EventType.MouseDown) && rect.Contains(Event.current.mousePosition))
-//         {
-
-//             Vector2 localPos = (Event.current.mousePosition - rect.min) * c.texSize / rect.size;
-//             int xCoord = Mathf.FloorToInt(localPos.x);
-//             int yCoord = c.texSize - Mathf.FloorToInt(localPos.y) - 1;
-
-
-//             Color[] pix = density.GetPixels();
-//             pix[xCoord + yCoord * c.texSize] = Color.red * drawStrength;
-//             c.cells1D = new bool[c.texSize * c.texSize];
-//             for (int i = 0; i < pix.Length; i++)
-//             {
-//                 c.cells1D[i] = pix[i].r > 0.1f;
-//             }
-
-//             c.UpdateChunkTree();
-
-
-//             density.SetPixels(pix);
-//             density.Apply();
-
-//             byte[] b = density.EncodeToPNG();
-//             Debug.Log(AssetDatabase.GetAssetPath(c.grassDensity));
-//             System.IO.File.WriteAllBytes(AssetDatabase.GetAssetPath(c.grassDensity), b);
-
-//             Repaint();
-//         }
-//     }
-// }
+			}
+		//Repaint();
+	}
+}

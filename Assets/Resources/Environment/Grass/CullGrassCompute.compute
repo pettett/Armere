@@ -1,0 +1,34 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#include "MeshProperties.hlsl"
+
+cbuffer CB{
+
+	float4x4 cameraFrustum;
+}
+
+RWStructuredBuffer<MeshProperties> _Grass;
+RWStructuredBuffer<uint> _CullResult;
+inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
+{
+    return (clipPos.z > clipPos.w 
+            || clipPos.x < -clipPos.w 
+            || clipPos.x > clipPos.w 
+            || clipPos.y < -clipPos.w 
+            || clipPos.y > clipPos.w) 
+            ? 0 : 1;
+}
+
+uint ShouldCull(MeshProperties properties){
+	float4 clipSpace = mul(cameraFrustum,float4(properties.position + float3(0,properties.size.y,0),1));
+
+    return saturate(properties.chunkID) && IsVisibleAfterFrustumCulling(clipSpace);
+}
+
+[numthreads(THREADGROUPS,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) 
+{
+
+    _CullResult[id.x] =ShouldCull(_Grass[id.x]);
+}
+

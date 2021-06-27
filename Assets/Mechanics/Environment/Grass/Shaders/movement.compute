@@ -2,7 +2,10 @@
 #pragma kernel CSMain
 
 
-
+cbuffer MovementConstantBufferData{
+	float angleOverride;
+	float2 sizeOverride;
+}
 
 cbuffer CB{
     float3 cameraPosition;
@@ -15,8 +18,6 @@ cbuffer CB{
 
     //int pushers;
     int2 dispatchSize;
-
-
 }; 
 
 #include "MeshProperties.hlsl"
@@ -27,44 +28,15 @@ StructuredBuffer<MeshProperties> _Properties;
 RWStructuredBuffer<MatrixStruct> _Output;
 
 
+#define pi 3.14159265359
 
-//StructuredBuffer<float4> _PusherPositions;
+#define OVERRIDE_DATA
 
+#include "noiseSimplex.cginc"
+#include "matrix.hlsl"
+#include "quaternion.hlsl"
 
-float4x4 Rotation(float z, float y, float x){
-    return float4x4 (
-        cos(x)*cos(y),cos(x)*sin(y)*sin(z)-sin(x)*cos(z),cos(x)*sin(y)*cos(z)+sin(x)*sin(z),0,
-        sin(x)*cos(y),cos(x)*sin(y)*sin(z)-cos(x)*cos(z),cos(x)*sin(y)*sin(z)+cos(x)*sin(z),0,
-        -sin(y), cos(y)*sin(z), cos(y)*cos(z),0,
-        0,0,0,1
-    );
-}
-
-float4x4 rotationMatrix(float3 axis, float angle)
-{
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
-    
-    return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                0.0,                                0.0,                                0.0,                                1.0);
-}
-
-
-float4x4 RotationY(float y){
-    return float4x4 (
-        cos(y),0,sin(y),0,
-        0,1,0,0,
-        -sin(y),0,cos(y),0,
-        0,0,0,1
-    );
-}
-
-// Rotation with angle (in radians) and axis
-float4x4 AngleAxis4x4(float angle, float3 axis)
+float3x3 AngleAxis3x3(float angle, float3 axis)
 {
     float c, s;
     sincos(angle, s, c);
@@ -74,33 +46,12 @@ float4x4 AngleAxis4x4(float angle, float3 axis)
     float y = axis.y;
     float z = axis.z;
 
-    return float4x4(
-        t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,0,
-        t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,0,
-        t * x * z - s * y,  t * y * z + s * x,  t * z * z + c,0,
-		0,0,0,1
+    return float3x3(
+        t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
+        t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
+        t * x * z - s * y,  t * y * z + s * x,  t * z * z + c
     );
 }
-
-#define pi 3.14159265359
-
-
-inline float angle(float2 vec) {
-    return atan2(vec.x, vec.y);
-}
-
-float Repeat(float t, float length)
-{
-    return clamp(t - floor(t / length) * length, 0.0f, length);
-}
-float LerpAngle(float a, float b, float t)
-{
-    float delta = Repeat((b - a), pi*2);
-    return a + delta * saturate(t);
-}
-
-
-#include "noiseSimplex.cginc"
 
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
@@ -153,9 +104,11 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 	MatrixStruct output = (MatrixStruct)0;
-
+#ifdef OVERRIDE_DATA
+	float4 rotation = rotate_angle_axis(angleOverride,float3(0,1,0));
+#else
 	float4x4 rotation = AngleAxis4x4(properties.yRot,float3(0,1,0));
-
+#endif
 	float windStrength = length(windDirection);
 
 	float2 size = properties.size;
@@ -169,63 +122,40 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	float distance = length(properties.position.xyz - cameraPosition) / properties.shrinkDistance;
 
-	float view = smoothstep(viewRadiusMinMax.y,viewRadiusMinMax.x,distance );
+	float2 viewRadius = viewRadiusMinMax ;
+
+	float view = smoothstep(viewRadius.y,viewRadius.x,distance );
 	size.y *= view;
 	//If over the threshold completely disappear it
-	size.x *= 1 - step(viewRadiusMinMax.y,distance);
+	//size.x *= 1 - step(viewRadius.y,distance);
 
 
 	float angle = 0;
-
-
 	angle += x;
 	// angle += sin(x) * 0.2 + 0.5;
 	angle += sin(t*2) * 0.1 *size.y;
 	angle += sin(t*8 ) * 0.025 *size.y;
 	angle *= windStrength;
 
-	rotation = mul(AngleAxis4x4(angle , windDirection / windStrength),rotation);
-// float4x4 mat_local_r = Rotation(pi,0,0);
+	float4 windRot = rotate_angle_axis(angle,windDirection/windStrength);
+
+	rotation = qmul(rotation,windRot);
+
+	//Compose creates transform matrix from position, rotation(quat) , scale
+	float4x4 rotationMat = quaternion_to_matrix(rotation);
+
+	float4x4 worldTransform = m_scale(rotationMat,size.xyx ) ;// compose(properties.position,QUATERNION_IDENTITY,size.xyx);
+	worldTransform = m_translate(worldTransform,properties.position ) ;// compose(properties.position,QUATERNION_IDENTITY,size.xyx);
 
 
-	// Create a new translation matrix which represents a move in a direction.
-	float4x4 translation = float4x4(
-		1, 0, 0, properties.position.x,
-		0, 1, 0, properties.position.y,
-		0, 0, 1, properties.position.z,
-		0, 0, 0, 1
-	);
-	float4x4 scale = float4x4(
-		size.x, 0, 0, 0,
-		0, size.y, 0, 0,
-		0, 0, size.x,0,
-		0, 0, 0, 1
-	);
-
-
-
-
-
-	float4x4 worldTransform =mul(mul(translation, rotation),scale);
-
+	// output.worldTransform[0] = float4(rot[0],properties.position[0]);
+	// output.worldTransform[1] = float4(rot[1],properties.position[1]);
+	// output.worldTransform[2] = float4(rot[2],properties.position[2]);
+	
 	output.worldTransform[0] = worldTransform[0];
 	output.worldTransform[1] = worldTransform[1];
 	output.worldTransform[2] = worldTransform[2];
 
 	output.color = properties.color ;
-	//output.chunkID = properties.chunkID;
-
 	_Output[placedIndex] = output;
-
-    //_Output[index].color = view;
-
-    /* Just for demo gif.  Not actually very useful -- need to inverse rotation first.
-    float4x4 rotation = float4x4(
-        .999, -.01, 0, 0.1,
-        .01, .999, 0, 0.1,
-        0, 0, 1, 0.1,
-        0, 0, 0, 1
-    );
-    _Properties[id.x].mat = mul(_Properties[id.x].mat, rotation);
-    */
 }

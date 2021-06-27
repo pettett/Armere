@@ -5,13 +5,13 @@ using UnityEngine;
 public class CutLog : MonoBehaviour, IAttackable
 {
 	public GameObject canopy;
-	public GameObject trunk;
+	public GameObject originatingStump;
 
 	//Needed to spawn items and place offset
-	public Vector2 lengthRegion;
+	[System.NonSerialized] public Vector2 lengthRegion;
 
 
-	public Vector3 offset;
+	[System.NonSerialized] public Vector3 offset;
 	Vector3 IScanable.offset => offset;
 
 
@@ -54,7 +54,7 @@ public class CutLog : MonoBehaviour, IAttackable
 	//Remove the canopy when hit ground
 	private void OnCollisionEnter(Collision other)
 	{
-		if (other.gameObject != trunk && (other.rigidbody?.isKinematic ?? true))
+		if (other.gameObject != originatingStump && (other.rigidbody?.isKinematic ?? true))
 		{
 			//Only interact with kinematic rbs or nothing
 			Destroy(canopy);

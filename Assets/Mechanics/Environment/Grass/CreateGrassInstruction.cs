@@ -3,6 +3,12 @@ using UnityEngine.Rendering;
 using static GrassController;
 public class CreateGrassInstruction : GrassInstruction
 {
+	public static readonly int
+		ID_Gradient0 = Shader.PropertyToID("_Gradient0"),
+		ID_Gradient1 = Shader.PropertyToID("_Gradient1"),
+		ID_Gradient2 = Shader.PropertyToID("_Gradient2"),
+		ID_Gradient3 = Shader.PropertyToID("_Gradient3");
+
 	public QuadTreeEnd chunk;
 	public CreateGrassInstruction(QuadTreeEnd chunk)
 	{
@@ -35,24 +41,34 @@ public class CreateGrassInstruction : GrassInstruction
 
 		cmd.SetComputeBufferParam(c.createGrassInBoundsCompute, 0, ID_Grass, layer.grassBladesBuffer);
 
-		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient, layer.profile.gradientTexture);
 
 		//Place the blades into the layer from this index
 		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_GrassBladesOffset, cellsOffset * layer.bladesInCell);
 
 
-		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassSizeMinMax,
-			new Vector4(layer.quadWidthRange.x, layer.quadHeightRange.x, layer.quadWidthRange.y, layer.quadHeightRange.y));
+		// cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassSizeMinMax,
+		// 	new Vector4(layer.quadWidthRange.x, layer.quadHeightRange.x, layer.quadWidthRange.y, layer.quadHeightRange.y));
 
 		//Chunk ID
 		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_chunkID, chunk.id);
 		//Layer seed
 		cmd.SetComputeIntParam(c.createGrassInBoundsCompute, ID_seed, layer.seed);
 
+		// cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "layerColor0", c.terrainLayerData.terrainLayers[0].color);
+		// cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "layerColor1", c.terrainLayerData.terrainLayers[1].color);
+		// cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "layerColor2", c.terrainLayerData.terrainLayers[2].color);
+		// cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, "layerColor3", c.terrainLayerData.terrainLayers[3].color);
+
+		layer.profile.grassCreationConstantBuffer.BindBuffer(cmd, c.createGrassInBoundsCompute);
+
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient0, c.terrainLayerData.terrainLayers[0].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient1, c.terrainLayerData.terrainLayers[1].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient2, c.terrainLayerData.terrainLayers[2].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient3, c.terrainLayerData.terrainLayers[3].colorGradient);
 
 
 		//Splat map weights for sampling terrain textures
-		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_densityLayerWeights, layer.splatMapWeights);
+
 		//Height placement infomation
 		cmd.SetComputeVectorParam(c.createGrassInBoundsCompute, ID_grassHeightRange,
 			new Vector2(c.grassHeightOffset, c.terrain.terrainData.heightmapScale.y));

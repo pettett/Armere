@@ -39,7 +39,7 @@ public class CuttableTreeProfile : ScriptableObject
 	public float cutSize = 1.2f;
 	public AudioClipSet cutClips;
 	public AudioProfile soundProfile;
-
+	public GameObject emptyLogPrefab;
 	public AudioEventChannelSO audioEventChannelSO;
 
 	[Header("Log Felling")]

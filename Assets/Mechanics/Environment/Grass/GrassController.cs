@@ -32,7 +32,6 @@ public class GrassController : MonoBehaviour
 		ID_grassSizeMinMax = Shader.PropertyToID("grassSizeMinMax"),
 		ID_densityLayerWeights = Shader.PropertyToID("densityLayerWeights"),
 		ID_dispatchSize = Shader.PropertyToID("dispatchSize"),
-		ID_Gradient = Shader.PropertyToID("_Gradient"),
 		ID_Density = Shader.PropertyToID("_Density"),
 		ID_Height = Shader.PropertyToID("_Height"),
 		ID_grassHeightRange = Shader.PropertyToID("grassHeightRange"),
@@ -86,7 +85,7 @@ public class GrassController : MonoBehaviour
 
 	public Terrain terrain;
 
-
+	public TerrainLayerData terrainLayerData;
 	List<GrassInstruction> grassInstructions = new List<GrassInstruction>();
 
 	[Header("Grass Rendering")]
@@ -248,8 +247,8 @@ public class GrassController : MonoBehaviour
 
 		CommandBuffer cmd = CommandBufferPool.Get(k_RenderGrassTag);
 
-		//using (new ProfilingScope(cmd, m_Grass_Profile))
-		//{
+		// using (new ProfilingScope(cmd, m_Grass_Profile))
+		// {
 
 
 

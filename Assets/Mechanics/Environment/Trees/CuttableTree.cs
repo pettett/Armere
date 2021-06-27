@@ -115,7 +115,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		activeCutVectors.Add(new CutVector(Vector3.SignedAngle(transform.forward, direction, Vector3.up) * Mathf.Deg2Rad, intensity));
 		totalDamage += intensity;
 
-		if (profile.cutClips?.Valid()??false)
+		if (profile.cutClips?.Valid() ?? false)
 		{
 			profile.soundProfile.position = transform.position;
 			profile.audioEventChannelSO.RaiseEvent(profile.cutClips, profile.soundProfile);
@@ -152,7 +152,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		UpdateMeshRendererMaterials(meshRenderer);
 
 		Mesh trunkMesh = CreateCutMesh(TriangleCutMode.Top);
-		GameObject log = new GameObject("Tree trunk", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider), typeof(Rigidbody), typeof(CutLog));
+		GameObject log = Instantiate(profile.emptyLogPrefab);
 		log.transform.SetPositionAndRotation(transform.position + Vector3.up * profile.cutSize * 0.5f, transform.rotation);
 
 		MeshCollider logCollider = log.GetComponent<MeshCollider>();
@@ -161,7 +161,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 		MeshRenderer logRenderer = log.GetComponent<MeshRenderer>();
 		CutLog cutLog = log.GetComponent<CutLog>();
 
-		cutLog.trunk = gameObject;
+		cutLog.originatingStump = gameObject;
 		GameObject canopy = new GameObject("Canopy", typeof(MeshFilter), typeof(MeshRenderer));
 		canopy.GetComponent<MeshFilter>().sharedMesh = profile.canopyMesh;
 		canopy.GetComponent<MeshRenderer>().materials = profile.logMaterials;

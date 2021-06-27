@@ -4,14 +4,22 @@
 
 #define PI 3.141592
 
+cbuffer CreateGrassCB{
+	
+	float4 layerWeights;
+
+	//X : min width, Y: max width, Z: min height, W:max height
+	float4 quadSizeRanges[4];
+
+}
+
 cbuffer CB{
     float4 grassPositionBoundsMinMax;
     float4 grassDensityUVMinMax;
-    float4 grassSizeMinMax;
     float2 grassHeightRange;
+
     int chunkID;
     int seed;
-    float4 densityLayerWeights;
     int2 dispatchSize;
 	int grassBladesOffset;
 }; 
@@ -20,11 +28,23 @@ cbuffer CB{
 #include "MeshProperties.hlsl"
 RWStructuredBuffer<MeshProperties> _Grass;
 
-Texture2D<float3> _Gradient;
-SamplerState sampler_Gradient;
+Texture2D<float3> _Gradient0;
+SamplerState sampler_Gradient0;
+
+Texture2D<float3> _Gradient1;
+SamplerState sampler_Gradient1;
+
+Texture2D<float3> _Gradient2;
+SamplerState sampler_Gradient2;
+
+Texture2D<float3> _Gradient3;
+SamplerState sampler_Gradient3;
+
+
 
 Texture2D<float4> _Density;
 SamplerState sampler_Density;
+
 Texture2D<unorm half2> _Height;
 SamplerState sampler_Height;
 
@@ -57,17 +77,35 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 
-	m.size =  lerp(grassSizeMinMax.xy,grassSizeMinMax.zw, hash22(grassSizeMinMax.zw + id.xy));
+	float2 sizeHash = hash22(quadSizeRanges[0].zw + id.xy);
     //Create the t value of the lerp for position and density uv
 
 
 
 
 
-    float2 positionLerp = hash22(grassPositionBoundsMinMax.xy + id.x  + m.size + seed);
+    float2 positionLerp = hash22(grassPositionBoundsMinMax.xy + id.x  + sizeHash + seed);
     float2 densityUV = lerp(grassDensityUVMinMax.xy,grassDensityUVMinMax.zw,positionLerp);
         //Perform rejection sampling on grass based on desired density at position
-    float4 densities = _Density.SampleLevel(sampler_Density, densityUV, 0) * densityLayerWeights;
+
+	float4 splatMap =  _Density.SampleLevel(sampler_Density, densityUV, 0);
+
+	float2 gradUV = float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0);
+
+	float3 grad0 = _Gradient0.SampleLevel(sampler_Gradient0, gradUV ,0);
+	float3 grad1 = _Gradient1.SampleLevel(sampler_Gradient1, gradUV ,0);
+	float3 grad2 = _Gradient2.SampleLevel(sampler_Gradient2, gradUV ,0);
+	float3 grad3 = _Gradient3.SampleLevel(sampler_Gradient3, gradUV ,0);
+
+	float4 gradWeights =normalize(smoothstep(0.5,1, splatMap));
+
+	float3 color =  grad0 * gradWeights.x + grad1 * gradWeights.y + grad2 * gradWeights.z + grad3 * gradWeights.w;
+
+    float4 densities = splatMap * layerWeights;
+	float2 size = float2(0,0);
+	[unroll(4)]for(int i = 0; i < 4; i++){
+		size += lerp(quadSizeRanges[i].xz,quadSizeRanges[i].yw,sizeHash) * gradWeights[i];
+	}
 	float density = densities.x + densities.y + densities.z + densities.w;
     float2 pos = lerp(grassPositionBoundsMinMax.xy,grassPositionBoundsMinMax.zw, positionLerp);
 
@@ -83,10 +121,10 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 	m.position.y = grassHeightRange.x + grassHeightRange.y * heightMapData.y + heightMapData.x * (grassHeightRange.y / 256);
 
-	m.yRot = lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy));
+	m.yRot =  lerp(-PI,PI,hash12(grassPositionBoundsMinMax.zy + id.xy)) ;
 
-	m.color = _Gradient.SampleLevel(sampler_Gradient, float2(hash12(grassPositionBoundsMinMax.xw + id.xy),0) ,0);
-
+	m.color = color;//;
+	m.size = size;
 	m.shrinkDistance =  hash12(seed + id.xy + m.size*100) * 0.5 + 0.5;
 
 	_Grass[grassBladesOffset + id.x] = m;

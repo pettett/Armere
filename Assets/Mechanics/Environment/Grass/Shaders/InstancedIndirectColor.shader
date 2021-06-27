@@ -51,11 +51,11 @@ Shader "Custom/InstancedIndirectColor" {
 
 
 
-				float4 vertex   : POSITION;
+				float3 vertex   : POSITION;
 				float2 texCoord : TEXCOORD0;
 				//input normal and tangent for world space normals
 				float3 normalOS     : NORMAL;
-				float4 tangentOS    : TANGENT;
+				float3 tangentOS    : TANGENT;
 				float4 color    : COLOR;
 
 			};
@@ -105,36 +105,38 @@ Shader "Custom/InstancedIndirectColor" {
 
 
 				//Apply matrix transformations
-				float4 pos = mul(transformMatrix, i.vertex);
+				float3 posWS = mul(transformMatrix, float4(i.vertex,1)).xyz;
 
-				float3 n = mul(transformMatrix, float4(i.normalOS,0)).xyz;
-				float4 t = mul(transformMatrix, i.tangentOS);
+				float3 normalWS = mul(transformMatrix, float4(i.normalOS,0)).xyz;
+				float4 tangentWS = mul(transformMatrix, float4(i.tangentOS,0));
 
 				// float4 pos = i.vertex;
 				// float3 n = i.normalOS;
 				// float4 t = i.tangentOS;
 
+				//Create vertex positions using instance data
+				VertexPositionInputs input;
+				input.positionWS = posWS;
+				input.positionVS = TransformWorldToView(input.positionWS);
+				input.positionCS = TransformWorldToHClip(input.positionWS);
 
- 
 
-				VertexPositionInputs vertexInput = GetVertexPositionInputs(pos.xyz);
-				o.posWS = vertexInput.positionWS;
-				VertexNormalInputs normalInput = GetVertexNormalInputs(n, t);
+				o.posWS = input.positionWS;
 
-				half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+				half3 viewDirWS = GetCameraPositionWS() - input.positionWS;
 				o.viewDirectionWS = viewDirWS;
-				o.vertex = vertexInput.positionCS;  
+				o.vertex = input.positionCS;  
 				o.color.rgb = p.color;
 				o.color.a = 1;
 				o.texCoord = i.texCoord;
-				o.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+				o.fogFactor = ComputeFogFactor(input.positionCS.z);
 
 				//store the shadow coordinate for lighting calculations
 				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-					o.shadowCoord = GetShadowCoord(vertexInput);
+					o.shadowCoord = GetShadowCoord(input);
 				#endif
 
-				o.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+				o.normalWS = NormalizeNormalPerVertex(normalWS);
 
 				return o;
 			}

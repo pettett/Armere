@@ -5,9 +5,76 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+[System.Serializable]
+public struct ConstantBuffer<T> where T : unmanaged
+{
+	[System.NonSerialized] public ComputeBuffer buffer;
+	public string bufferName;
+	public T data; //Name of T data type move be the same as the targeted c buffer
+	[System.NonSerialized] public int nameID;
 
+	public ConstantBuffer(string bufferName)
+	{
+		this.buffer = null;
+		this.bufferName = bufferName;
+		this.data = default;
+		this.nameID = 0;
+	}
 
+	public unsafe void Init()
+	{
+		buffer = new ComputeBuffer(1, sizeof(T), ComputeBufferType.Structured, ComputeBufferMode.Dynamic);
+		nameID = Shader.PropertyToID(bufferName);
+		UploadData();
+	}
+	public void UploadData()
+	{
+		NativeArray<T> dataArray = new NativeArray<T>(1, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+		dataArray[0] = data;
+		buffer.SetData(dataArray);
+		dataArray.Dispose();
+	}
+	public void BindBuffer(CommandBuffer cmd, ComputeShader shader)
+	{
+		cmd.SetComputeConstantBufferParam(shader, nameID, buffer, 0, buffer.stride);
+	}
 
+	public void Dispose()
+	{
+		buffer.Dispose();
+	}
+}
+[System.Serializable]
+public struct SplatMapWeights
+{
+	[Range(0, 1)]
+	public float layer0, layer1, layer2, layer3;
+	public static implicit operator Vector4(in SplatMapWeights weights)
+	{
+		return new Vector4(weights.layer0, weights.layer1, weights.layer2, weights.layer3);
+	}
+}
+
+[System.Serializable]
+public struct GrassCreationConstantBufferData
+{
+	public SplatMapWeights layerWeights;
+	public Vector2 layer0QuadWidthRange,
+					layer0QuadHeightRange,
+					layer1QuadWidthRange,
+					layer1QuadHeightRange,
+					layer2QuadWidthRange,
+					layer2QuadHeightRange,
+					layer3QuadWidthRange,
+					layer3QuadHeightRange;
+
+}
+[System.Serializable]
+public struct GrassMovementConstantBufferData
+{
+	public float rotationOverride;
+	public Vector2 sizeOverride;
+}
 public struct GrassLayerInstance
 {
 
@@ -48,10 +115,7 @@ public struct GrassLayerInstance
 	//Frustum cull estimate
 	public readonly Bounds bounds => c.bounds;
 	public readonly int cellsInGreatestChunk => profile.cellsInGreatestChunk;
-	public readonly float groupsOf8PerArea => profile.groupsOf8PerArea;
-	public readonly Vector2 quadHeightRange => profile.quadHeightRange;
-	public readonly Vector2 quadWidthRange => profile.quadWidthRange;
-	public ref GrassLayer.SplatMapWeights splatMapWeights => ref profile.splatMapWeights;
+	public readonly float groupsOf8PerArea => profile.bladesPerArea / 8;
 	public readonly float cellArea => (bounds.size.x / cellsWidth) * (bounds.size.z / cellsWidth);
 	public readonly int maxLoadedBlades => maxLoadedCells * bladesInCell + 1;
 	public readonly int maxRenderedBlades; //TODO: Make this better
@@ -103,7 +167,7 @@ public struct GrassLayerInstance
 		//Calculate the max number of blades a camera could view at once
 		float view = c.viewRadius * profile.viewRadiusScalar;
 		float viewArea = c.mainCam.fieldOfView * Mathf.Deg2Rad * view * view * 2;
-		maxRenderedBlades = Mathf.CeilToInt(profile.groupsOf8PerArea * 8 * viewArea);
+		maxRenderedBlades = Mathf.CeilToInt(profile.bladesPerArea * viewArea);
 
 		//TODO: Make immutable because should never be touched by cpu processes?
 		var bufferMode = ComputeBufferMode.Immutable;
@@ -117,6 +181,8 @@ public struct GrassLayerInstance
 		matrixesBuffer = new ComputeBuffer(maxRenderedBlades, GrassController.MatricesStruct.size, ComputeBufferType.Default, bufferMode);
 
 		dispatchIndirectArgsBuffer = new ComputeBuffer(3, sizeof(uint), ComputeBufferType.IndirectArguments, bufferMode);
+		profile.grassCreationConstantBuffer.Init();
+		profile.grassMovementConstantBuffer.Init();
 
 
 		var args = new NativeArray<uint>(3, Allocator.Temp);
@@ -325,6 +391,7 @@ public struct GrassLayerInstance
 			cmd.SetComputeBufferParam(c.compute, computeKernel, GrassController.ID_Properties, culledGrassBladesBuffer);
 			cmd.SetComputeBufferParam(c.compute, computeKernel, GrassController.ID_Output, matrixesBuffer);
 
+			profile.grassMovementConstantBuffer.BindBuffer(cmd, c.compute);
 
 			//Turn blades into matrices
 			cmd.DispatchCompute(c.compute, computeKernel, dispatchIndirectArgsBuffer, 0);
@@ -437,7 +504,7 @@ public struct GrassLayerInstance
 						for (int yy = 0; yy < profile.pixelsPerCell; yy++)
 						{
 							var col = pix[(x * profile.pixelsPerCell + xx) + (y * profile.pixelsPerCell + yy) * grassDensity.width];
-							weight += Vector4.Scale((Vector4)(Color)col, profile.splatMapWeights).sqrMagnitude;
+							weight += Vector4.Scale((Vector4)(Color)col, profile.grassCreationConstantBuffer.data.layerWeights).sqrMagnitude;
 						}
 
 
@@ -583,6 +650,8 @@ public struct GrassLayerInstance
 		DisposeBuffer(matrixesBuffer);
 		DisposeBuffer(drawIndirectArgsBuffer);
 		DisposeBuffer(dispatchIndirectArgsBuffer);
+		profile.grassCreationConstantBuffer.Dispose();
+		profile.grassMovementConstantBuffer.Dispose();
 	}
 
 	private static void DisposeBuffer(ComputeBuffer buffer)
@@ -600,24 +669,11 @@ public class GrassLayer : ScriptableObject
 	public bool enabled = true;
 	public LayerType layerType;
 
-	public float groupsOf8PerArea = 3;
+	public float bladesPerArea = 3;
 
+	public ConstantBuffer<GrassCreationConstantBufferData> grassCreationConstantBuffer;
+	public ConstantBuffer<GrassMovementConstantBufferData> grassMovementConstantBuffer = new ConstantBuffer<GrassMovementConstantBufferData>("MovementConstantBufferData");
 
-
-	[System.Serializable]
-	public struct SplatMapWeights
-	{
-		[Range(0, 1)]
-		public float layer0, layer1, layer2, layer3;
-		public static implicit operator Vector4(in SplatMapWeights weights)
-		{
-			return new Vector4(weights.layer0, weights.layer1, weights.layer2, weights.layer3);
-		}
-	}
-	public SplatMapWeights splatMapWeights = new SplatMapWeights();
-
-	public Vector2 quadWidthRange = new Vector2(0.5f, 1f);
-	public Vector2 quadHeightRange = new Vector2(0.5f, 1f);
 
 	public ShadowCastingMode shadowCastingMode = ShadowCastingMode.On;
 
@@ -653,6 +709,13 @@ public class GrassLayer : ScriptableObject
 
 
 
-
+	private void OnValidate()
+	{
+		if (Application.isPlaying)
+		{
+			grassCreationConstantBuffer.UploadData();
+			grassMovementConstantBuffer.UploadData();
+		}
+	}
 
 }

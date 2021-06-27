@@ -4,16 +4,11 @@ using UnityEngine;
 
 public class GrassDeformCamera : MonoBehaviour
 {
-	public Camera camera;
+	public Transform followObject;
 	// Start is called before the first frame update
-	void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+	private void LateUpdate()
+	{
+		transform.position = followObject.position;
+	}
 }

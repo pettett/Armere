@@ -8,8 +8,8 @@ cbuffer CreateGrassCB{
 	
 	float4 layerWeights;
 
-	//X : min width, Y: max width, Z: min height, W:max height
-	float4 quadSizeRanges[4];
+	//X: min height, Y:max height
+	float2 quadSizeRanges[4];
 
 }
 
@@ -77,7 +77,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 
-	float2 sizeHash = hash22(quadSizeRanges[0].zw + id.xy);
+	float2 sizeHash = hash22(quadSizeRanges[0].xy + id.xy);
     //Create the t value of the lerp for position and density uv
 
 
@@ -102,9 +102,9 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	float3 color =  grad0 * gradWeights.x + grad1 * gradWeights.y + grad2 * gradWeights.z + grad3 * gradWeights.w;
 
     float4 densities = splatMap * layerWeights;
-	float2 size = float2(0,0);
+	float size = 0;
 	[unroll(4)]for(int i = 0; i < 4; i++){
-		size += lerp(quadSizeRanges[i].xz,quadSizeRanges[i].yw,sizeHash) * gradWeights[i];
+		size += lerp(quadSizeRanges[i].x,quadSizeRanges[i].y,sizeHash) * gradWeights[i];
 	}
 	float density = densities.x + densities.y + densities.z + densities.w;
     float2 pos = lerp(grassPositionBoundsMinMax.xy,grassPositionBoundsMinMax.zw, positionLerp);

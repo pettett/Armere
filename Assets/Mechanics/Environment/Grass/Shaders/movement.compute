@@ -4,7 +4,7 @@
 
 cbuffer MovementConstantBufferData{
 	float angleOverride;
-	float2 sizeOverride;
+	float sizeOverride;
 }
 
 cbuffer CB{
@@ -30,29 +30,10 @@ RWStructuredBuffer<MatrixStruct> _Output;
 
 #define pi 3.14159265359
 
-#define OVERRIDE_DATA
 
 #include "noiseSimplex.cginc"
 #include "matrix.hlsl"
 #include "quaternion.hlsl"
-
-float3x3 AngleAxis3x3(float angle, float3 axis)
-{
-    float c, s;
-    sincos(angle, s, c);
-
-    float t = 1 - c;
-    float x = axis.x;
-    float y = axis.y;
-    float z = axis.z;
-
-    return float3x3(
-        t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
-        t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
-        t * x * z - s * y,  t * y * z + s * x,  t * z * z + c
-    );
-}
-
 
 // For the sake of simplicity, only using 1, 1, 1 threads.
 //lol no
@@ -104,19 +85,21 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 
 
 	MatrixStruct output = (MatrixStruct)0;
-#ifdef OVERRIDE_DATA
-	float4 rotation = rotate_angle_axis(angleOverride,float3(0,1,0));
-#else
-	float4x4 rotation = AngleAxis4x4(properties.yRot,float3(0,1,0));
-#endif
+
+	//Angle will be yRot if angleoverride is 0, else angleOverride
+	float windMod = 1- sign(angleOverride);
+	float yAngle = properties.yRot *windMod + angleOverride;
+
+	float4 rotation = rotate_angle_axis(yAngle,float3(0,1,0));
+
 	float windStrength = length(windDirection);
 
-	float2 size = properties.size;
+	float size = properties.size * (1-sign(sizeOverride)) + sizeOverride;
+
+	float height = size;
 
 
 	float x = snoise(properties.position.xz * 0.05 + float2(time,time) * 0.2) * 0.1;
-	float t = snoise(properties.position.xz * 0.05 ) + time;
-	t /= size.y;
 
 	// Apply translation to existing matrix, which will be read in the shader.
 
@@ -125,36 +108,35 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 	float2 viewRadius = viewRadiusMinMax ;
 
 	float view = smoothstep(viewRadius.y,viewRadius.x,distance );
-	size.y *= view;
+	height *= view;
 	//If over the threshold completely disappear it
-	//size.x *= 1 - step(viewRadius.y,distance);
+	//height *= 1 - step(viewRadius.y,distance);
 
+	float t = (snoise(properties.position.xz * 0.05 ) + time)/height;
 
-	float angle = 0;
-	angle += x;
+	float angle = x;
 	// angle += sin(x) * 0.2 + 0.5;
-	angle += sin(t*2) * 0.1 *size.y;
-	angle += sin(t*8 ) * 0.025 *size.y;
-	angle *= windStrength;
+	angle += sin(t*2) * 0.1 *height;
+	angle += sin(t*8 ) * 0.025 *height;
+	angle *= windStrength * windMod;
 
 	float4 windRot = rotate_angle_axis(angle,windDirection/windStrength);
 
 	rotation = qmul(rotation,windRot);
 
 	//Compose creates transform matrix from position, rotation(quat) , scale
-	float4x4 rotationMat = quaternion_to_matrix(rotation);
+	//float4x4 rotationMat = quaternion_to_matrix(rotation);
 
-	float4x4 worldTransform = m_scale(rotationMat,size.xyx ) ;// compose(properties.position,QUATERNION_IDENTITY,size.xyx);
-	worldTransform = m_translate(worldTransform,properties.position ) ;// compose(properties.position,QUATERNION_IDENTITY,size.xyx);
+	float4x4 worldTransform =  compose(properties.position,rotation,height);
 
 
 	// output.worldTransform[0] = float4(rot[0],properties.position[0]);
 	// output.worldTransform[1] = float4(rot[1],properties.position[1]);
 	// output.worldTransform[2] = float4(rot[2],properties.position[2]);
 	
-	output.worldTransform[0] = worldTransform[0];
-	output.worldTransform[1] = worldTransform[1];
-	output.worldTransform[2] = worldTransform[2];
+	output.worldTransform = PackMatrix(worldTransform);
+	// output.worldTransform[1] = worldTransform[1];
+	// output.worldTransform[2] = worldTransform[2];
 
 	output.color = properties.color ;
 	_Output[placedIndex] = output;

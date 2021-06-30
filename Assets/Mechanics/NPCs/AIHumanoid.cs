@@ -19,7 +19,6 @@ public class AIHumanoid : Character
 	[System.NonSerialized] public Transform lookingAtTarget;
 	[System.NonSerialized] public Ragdoller ragdoller;
 	[System.NonSerialized] public CharacterMeshController meshController;
-	[System.NonSerialized] public GameObjectInventory inventory;
 
 	public AIStateTemplate defaultState;
 
@@ -53,13 +52,11 @@ public class AIHumanoid : Character
 		base.Start();
 		agent = GetComponent<NavMeshAgent>();
 		ragdoller = GetComponent<Ragdoller>();
-		inventory = GetComponent<GameObjectInventory>();
 		meshController = GetComponent<CharacterMeshController>();
 		collider = GetComponent<Collider>();
 
 		Assert.IsNotNull(agent);
 		Assert.IsNotNull(ragdoller);
-		Assert.IsNotNull(inventory);
 		Assert.IsNotNull(collider);
 
 		ragdoller.RagdollEnabled = false;
@@ -157,7 +154,7 @@ public class AIHumanoid : Character
 		Debug.Log("reached dest");
 
 		//now here
-		if (inventory.inventory.TryAddItem(item.item, item.count, true))
+		if (inventory.TryAddItem(item.item, item.count, true))
 		{
 			Destroy(item.gameObject);
 			onItemPickupEnd?.Invoke(true); // success

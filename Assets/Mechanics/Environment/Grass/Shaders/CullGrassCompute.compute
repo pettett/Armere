@@ -20,7 +20,7 @@ inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
 }
 
 uint ShouldCull(MeshProperties properties){
-	float4 clipSpace = mul(cameraFrustum,float4(properties.position + float3(0,properties.size.y,0),1));
+	float4 clipSpace = mul(cameraFrustum,float4(properties.position + float3(0,properties.size,0),1));
 
     return saturate(properties.chunkID) && IsVisibleAfterFrustumCulling(clipSpace);
 }

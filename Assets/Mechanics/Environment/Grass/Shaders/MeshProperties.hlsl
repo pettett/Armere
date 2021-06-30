@@ -8,13 +8,13 @@ struct MeshProperties {
 	//12
     float yRot;		//4
 	//16
-    float2 size;	//8
-	//24
+    float size;	//4
+	//20
     float3 color;	//12
-	//36
+	//32
 	//If chunkID = 0, grass does not exist
     uint chunkID;	//4
-	//40
+	//36
 	//Space for 6 more floats
 	float shrinkDistance;
 };

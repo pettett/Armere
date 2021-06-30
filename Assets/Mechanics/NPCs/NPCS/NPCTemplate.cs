@@ -108,8 +108,9 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 	public int currentRoutineStage;
 
 	public readonly AIDialogue d;
+	public NPCManager.NPCData data;
 
-	public int RoutineIndex { get => t.manager.data[d.npcName].routineIndex; set => t.manager.data[d.npcName].routineIndex = value; }
+	public int RoutineIndex { get => data.routineIndex; set => data.routineIndex = value; }
 
 	public NPCTemplate.Routine CurrentRoutine => t.routines[RoutineIndex];
 	public string StartNode => CurrentRoutine.stages[currentRoutineStage].conversationStartNode;
@@ -125,12 +126,12 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 	{
 		get
 		{
-			if (t.manager.data[d.npcName].variables.TryGetValue(name, out Value value))
+			if (data.variables.TryGetValue(name, out Value value))
 				return value;
 			else
 				throw new System.ArgumentException($"NPC {d.npcName} does not have variable {value}");
 		}
-		set => t.manager.data[d.npcName].variables[name] = value;
+		set => data.variables[name] = value;
 	}
 	IEnumerator RotatePlayerTowardsNPC(Transform playerTransform)
 	{
@@ -186,6 +187,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 	{
 		Assert.IsNotNull(t);
 		Assert.IsNotNull(t.routines);
+		Assert.IsNotNull(t.manager);
 		Assert.IsNotNull(TimeDayController.singleton);
 
 		spawn = c.spawner as NPCSpawn;
@@ -197,15 +199,16 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 		d.npcName = t.name;
 		thought = c.GetComponent<AIAmbientThought>();
 
-		if (t.manager == null)
-		{
-			Debug.LogWarning($"{t.name} has no npc manager", t);
-		}
 
 		if (!t.manager.data.ContainsKey(d.npcName))
 		{
 			//Only add this data if the NPC has not existed in the save before
-			t.manager.data[d.npcName] = new NPCManager.NPCData(t);
+			data = new NPCManager.NPCData(t);
+			t.manager.data[d.npcName] = data;
+		}
+		else
+		{
+			data = t.manager.data[d.npcName];
 		}
 
 		for (int i = 0; i < t.clothes.Length; i++)

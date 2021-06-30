@@ -45,7 +45,7 @@ namespace Armere.Inventory
 		public static readonly Dictionary<ItemData, (ulong, ulong)> itemDataPrimaryKeys = new Dictionary<ItemData, (ulong, ulong)>();
 		public static readonly Dictionary<string, ItemData> itemDataNames = new Dictionary<string, ItemData>();
 
-		public static void LoadItemDataAsync<ItemDataT>(object reference, System.Action<ItemDataT> data) where ItemDataT : ItemData
+		public static AsyncOperationHandle<ItemDataT> LoadItemDataAsync<ItemDataT>(object reference, System.Action<ItemDataT> data) where ItemDataT : ItemData
 		{
 			var x = Addressables.LoadAssetAsync<ItemDataT>(reference);
 
@@ -60,8 +60,10 @@ namespace Armere.Inventory
 				itemDataNames[result.Result.displayName] = result.Result;
 				data?.Invoke(result.Result);
 			});
+
+			return x;
 		}
-		public static void LoadItemDataAsync<ItemDataT>(AssetReferenceT<ItemDataT> reference, System.Action<ItemDataT> data) where ItemDataT : ItemData
+		public static AsyncOperationHandle<ItemDataT> LoadItemDataAsync<ItemDataT>(AssetReferenceT<ItemDataT> reference, System.Action<ItemDataT> data) where ItemDataT : ItemData
 			=> LoadItemDataAsync<ItemDataT>((object)reference, data);
 
 		//Will only work in situations where it can be guaranteed that the item has already been loaded before

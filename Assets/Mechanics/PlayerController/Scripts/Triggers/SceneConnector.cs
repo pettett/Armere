@@ -14,7 +14,6 @@ public class SceneConnector : PlayerTrigger
 	public Transform endTransform;
 	public Transform exitTransform;
 	public string changeToLevel;
-	public SaveableSO playerControllerSaveChannel;
 	public override void OnPlayerTrigger(PlayerController player)
 	{
 		StartSceneChange(player);
@@ -22,10 +21,17 @@ public class SceneConnector : PlayerTrigger
 
 	public void StartSceneChange(PlayerController player)
 	{
-		transitionToCamera.Priority = 20;
+		if (transitionToCamera != null)
+		{
+			transitionToCamera.Priority = 20;
+			StartCoroutine(Dolly(player));
+		}
+		else
+		{
+			StartCoroutine(ChangeScene(player));
+		}
 		walker = (AutoWalking)player.ChangeToState(player.autoWalk);
 		walker.WalkTo(endTransform.position);
-		StartCoroutine(Dolly(player));
 	}
 	IEnumerator Dolly(PlayerController player)
 	{
@@ -44,7 +50,6 @@ public class SceneConnector : PlayerTrigger
 				UIController.singleton.FadeOut(0.1f);
 			}
 		}
-
 		//Save the player's state temporarily - or maybe transfere go between scenes
 		// var stream = new System.IO.MemoryStream();
 		// var bw = new System.IO.BinaryWriter(stream);
@@ -54,27 +59,26 @@ public class SceneConnector : PlayerTrigger
 		// bw.Flush(); //Do not close the memory stream
 
 
+		ChangeLevel(player);
+	}
+	IEnumerator ChangeScene(PlayerController player)
+	{
+		yield return new WaitForSeconds(dollyTime * 0.6f);
+		UIController.singleton.FadeOut(dollyTime * 0.2f);
+		yield return new WaitForSeconds(dollyTime * 0.4f);
+		ChangeLevel(player);
+	}
+	void ChangeLevel(PlayerController player)
+	{
 		player.ChangeToState(player.defaultState);
 
-
-
-		SaveableSO test = playerControllerSaveChannel;
-		System.Action func = null;
-		func = () => OnLevelLoaded(test, null, exitConnection, func);
-
 		//LevelManager.afterLevelLoaded += func;
-		LevelManager.LoadLevel(changeToLevel, true, func);
-
+		LevelManager.LoadLevel(changeToLevel, () => OnLevelLoaded(exitConnection));
 	}
 
-	public static void OnLevelLoaded(SaveableSO playerControllerSaveChannel, System.IO.MemoryStream saveStream, string exitConnector, System.Action func)
+	public static void OnLevelLoaded(string exitConnector)
 	{
-		// saveStream.Position = 0;
-		// using (var bw = new System.IO.BinaryReader(saveStream))
-		// {
-		// 	var reader = new GameDataReader(bw);
-		// 	playerControllerSaveChannel.LoadBin(reader);
-		// }
+
 		//Teleport player to exit connector
 		foreach (var connector in FindObjectsOfType<SceneConnector>())
 		{
@@ -85,8 +89,6 @@ public class SceneConnector : PlayerTrigger
 				break;
 			}
 		}
-
-		//LevelController.afterLevelLoaded -= func;
 	}
 
 }

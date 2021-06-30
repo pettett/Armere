@@ -71,9 +71,6 @@ namespace Armere.PlayerController
 		[NonSerialized] public Rigidbody rb;
 		[NonSerialized] new public CapsuleCollider collider;
 		[NonSerialized] public Health health;
-		[NonSerialized] public GameObjectInventory inventoryHolder;
-		public InventoryController inventory => inventoryHolder.inventory;
-
 
 		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
 		[NonSerialized] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
@@ -95,14 +92,9 @@ namespace Armere.PlayerController
 		[Header("Animations")]
 		public AnimationTransitionSet transitionSet;
 
-		public readonly int[] armourSelections = new int[3] { -1, -1, -1 };
+		public int[] armourSelections => playerSaveData.armourSelections;
+		public Dictionary<ItemType, int> itemSelections => playerSaveData.itemSelections;
 
-		public readonly Dictionary<ItemType, int> itemSelections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
-			{ItemType.Melee,-1},
-			{ItemType.Bow,-1},
-			{ItemType.Ammo,-1},
-			{ItemType.SideArm,-1},
-		};
 		public int currentMelee { get => itemSelections[ItemType.Melee]; set => itemSelections[ItemType.Melee] = value; }
 		public int currentBow { get => itemSelections[ItemType.Bow]; set => itemSelections[ItemType.Bow] = value; }
 		public int currentAmmo { get => itemSelections[ItemType.Ammo]; set => itemSelections[ItemType.Ammo] = value; }
@@ -115,7 +107,7 @@ namespace Armere.PlayerController
 		public IntEventChannelSO onChangeSelectedBow;
 		public IntEventChannelSO onChangeSelectedAmmo;
 		public InputReader inputReader;
-		public SaveLoadEventChannel playerSaveLoadChannel;
+		public PlayerSaveData playerSaveData;
 
 
 		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
@@ -135,16 +127,11 @@ namespace Armere.PlayerController
 			playerCharacter = this;
 			animationController = GetComponent<AnimationController>();
 
-			playerSaveLoadChannel.onSaveBinEvent += SaveBin;
-			playerSaveLoadChannel.onLoadBinEvent += LoadBin;
-			playerSaveLoadChannel.onLoadBlankEvent += LoadBlank;
+			GameCameras.s.freeLookTarget = cameraTrackingTransform;
 		}
 
 		private void OnDestroy()
 		{
-			playerSaveLoadChannel.onSaveBinEvent -= SaveBin;
-			playerSaveLoadChannel.onLoadBinEvent -= LoadBin;
-			playerSaveLoadChannel.onLoadBlankEvent -= LoadBlank;
 
 			inventory.armour.onItemRemoved -= OnArmourRemoved;
 			inventory.OnDropItemEvent -= OnDropItem;
@@ -182,7 +169,6 @@ namespace Armere.PlayerController
 			base.Start();
 
 
-
 			print("Starting player controller");
 
 			rb = GetComponent<Rigidbody>();
@@ -193,8 +179,6 @@ namespace Armere.PlayerController
 			inventoryHolder = GetComponent<GameObjectInventory>();
 
 			weaponGraphics = GetComponent<WeaponGraphicsController>();
-
-
 
 
 			collider.material.dynamicFriction = profile.dynamicFriction;
@@ -213,74 +197,7 @@ namespace Armere.PlayerController
 			inventory.bow.onItemRemoved += OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
 
-			enabled = false;
-
-
-		}
-
-
-		public override void OnEnable()
-		{
-			inputReader.changeSelection += OnChangeSelection;
-		}
-		public override void OnDisable()
-		{
-			inputReader.changeSelection -= OnChangeSelection;
-		}
-		public void SetGravityDirection(Vector3 direction)
-		{
-			m_gravityDirection = direction;
-
-			transform.up = WorldUp;
-		}
-
-		public void AfterLoaded()
-		{
-			inputReader.SwitchToGameplayInput();
-			enabled = true;
-		}
-
-
-		public void TriggerFallingDeath()
-		{
-			health.Die();
-		}
-
-
-		public static MovementStateTemplate SymbolToType(char symbol)
-		{
-			//Search assembly for the symbol by creating an instance of every class and comparing - slow
-			foreach (var t in Resources.LoadAll<MovementStateTemplate>("PlayerController"))
-				//Create an instance of the type and check it's symbol
-				if (t.stateSymbol == symbol)
-					return t;
-			throw new ArgumentException("Symbol not mapped to state");
-		}
-
-
-
-		public void LoadBin(in GameDataReader reader)
-		{
-			Debug.Log("Loading player controller");
-
-			transform.position = reader.ReadVector3();
-
-			transform.rotation = reader.ReadQuaternion();
-
-			armourSelections[0] = reader.ReadInt();
-			armourSelections[1] = reader.ReadInt();
-			armourSelections[2] = reader.ReadInt();
-
-			itemSelections[ItemType.Melee] = reader.ReadInt();
-			itemSelections[ItemType.SideArm] = reader.ReadInt();
-			itemSelections[ItemType.Bow] = reader.ReadInt();
-			itemSelections[ItemType.Ammo] = reader.ReadInt();
-
-			EquipmentSet<bool> sheathedItems = new EquipmentSet<bool>(reader.ReadBool(), reader.ReadBool(), reader.ReadBool());
-
-			var startingState = SymbolToType(reader.ReadChar());
-
-			//currentState.LoadBin(saveVersion, reader);
+			playerSaveData.c = this;
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -308,46 +225,48 @@ namespace Armere.PlayerController
 					if (item is HoldableItemData holdableItemData)
 					{
 						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
-						weaponGraphics.holdables[t].sheathed = sheathedItems[t];
+						weaponGraphics.holdables[t].sheathed = playerSaveData.sheathedItems[t];
 
 						//OnSelectItem(t, selection);
 					}
 				}
 			}
 
-			AfterLoaded();
 			//start a fresh state
-			ChangeToState(startingState);
+			ChangeToState(playerSaveData.startingState ?? defaultState);
+
+			inputReader.SwitchToGameplayInput();
+			enabled = true;
+
 		}
-		public void SaveBin(in GameDataWriter writer)
+
+
+		public override void OnEnable()
 		{
-			writer.WritePrimitive(transform.position);
-			writer.WritePrimitive(transform.rotation);
-
-			writer.WritePrimitive(armourSelections[0]);
-			writer.WritePrimitive(armourSelections[1]);
-			writer.WritePrimitive(armourSelections[2]);
-
-			writer.WritePrimitive(itemSelections[ItemType.Melee]);
-			writer.WritePrimitive(itemSelections[ItemType.SideArm]);
-			writer.WritePrimitive(itemSelections[ItemType.Bow]);
-			writer.WritePrimitive(itemSelections[ItemType.Ammo]);
-
-			writer.WritePrimitive(weaponGraphics.holdables.melee.sheathed);
-			writer.WritePrimitive(weaponGraphics.holdables.sidearm.sheathed);
-			writer.WritePrimitive(weaponGraphics.holdables.bow.sheathed);
-
-			//Save the current state
-			writer.WritePrimitive(currentState.stateSymbol);
-			//currentState.SaveBin(writer);
+			inputReader.changeSelection += OnChangeSelection;
 		}
-
-		public void LoadBlank()
+		public override void OnDisable()
 		{
-			AfterLoaded();
-			//start a fresh state
-			ChangeToState(defaultState);
+			inputReader.changeSelection -= OnChangeSelection;
 		}
+		public void SetGravityDirection(Vector3 direction)
+		{
+			m_gravityDirection = direction;
+
+			transform.up = WorldUp;
+		}
+
+		public void AfterLoaded()
+		{
+
+		}
+
+
+		public void TriggerFallingDeath()
+		{
+			health.Die();
+		}
+
 
 		public void EnterRoom(Room room)
 		{

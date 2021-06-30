@@ -97,11 +97,7 @@ Shader "Custom/InstancedIndirectColor" {
 
 				MatrixStruct p = _Properties[instanceID];
 
-				float4x4 transformMatrix = (float4x4)0;
-				transformMatrix[0] = p.worldTransform[0];
-				transformMatrix[1] = p.worldTransform[1];
-				transformMatrix[2] = p.worldTransform[2];
-				transformMatrix._33 = 1;
+				float4x4 transformMatrix = UnpackMatrix(p.worldTransform);
 
 
 				//Apply matrix transformations

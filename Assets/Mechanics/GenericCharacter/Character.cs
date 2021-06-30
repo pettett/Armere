@@ -1,7 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Armere.Inventory;
 using UnityEngine;
+using UnityEngine.Assertions;
+
 [RequireComponent(typeof(WeaponGraphicsController))]
 public abstract class Character : SpawnableBody
 {
@@ -13,14 +17,6 @@ public abstract class Character : SpawnableBody
 	}
 
 
-
-	public static Team[][] enemies = new Team[][]{
-		new Team[]{ Team.Evil}, //Good
-		new Team[]{ Team.Good}, //Evil
-		new Team[0], //Neutral
-	};
-
-	public static readonly Dictionary<Team, List<Character>> teams = new Dictionary<Team, List<Character>>();
 
 	public enum BuffType
 	{
@@ -36,14 +32,23 @@ public abstract class Character : SpawnableBody
 		public BuffType buff;
 		public float remainingTime;
 	}
+	public static Team[][] enemies = new Team[][]{
+		new Team[]{ Team.Evil}, //Good
+		new Team[]{ Team.Good}, //Evil
+		new Team[0], //Neutral
+	};
+
+	public static readonly Dictionary<Team, List<Character>> teams = new Dictionary<Team, List<Character>>();
 
 	public List<Buff> buffs = new List<Buff>();
+	[NonSerialized] public GameObjectInventory inventoryHolder;
+	public InventoryController inventory => inventoryHolder.inventory;
 
 	public OnBuffChangedEventChannel onBuffAdded;
 	[MyBox.ButtonMethod]
 	public void AddRandomBuff()
 	{
-		AddBuff(new Buff() { buff = (BuffType)Random.Range(0, 5), remainingTime = Random.Range(10, 400) });
+		AddBuff(new Buff() { buff = (BuffType)UnityEngine.Random.Range(0, 5), remainingTime = UnityEngine.Random.Range(10, 400) });
 	}
 	public void AddBuff(Buff buff)
 	{
@@ -78,6 +83,11 @@ public abstract class Character : SpawnableBody
 	{
 		animationController = GetComponentInChildren<AnimationController>();
 		weaponGraphics = GetComponent<WeaponGraphicsController>();
+		inventoryHolder = GetComponent<GameObjectInventory>();
+
+		Assert.IsNotNull(animationController);
+		Assert.IsNotNull(weaponGraphics);
+		Assert.IsNotNull(inventoryHolder);
 	}
 	public virtual void OnEnable()
 	{

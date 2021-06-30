@@ -93,7 +93,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 		if (inventory.HasMeleeWeapon)
 		{
-			inventory.inventory.selectedMelee = inventory.BestMeleeWeapon;
+			inventory.selectedMelee = inventory.BestMeleeWeapon;
 			SetHeldMelee(inventory.SelectedMeleeWeapon);
 		}
 	}

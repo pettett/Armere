@@ -131,6 +131,29 @@ namespace Armere.Inventory
 			set => throw new System.NotImplementedException("Cannot set inventory values");
 		}
 
+		public bool HasMeleeWeapon => melee.items.Count > 0;
+
+		public int BestMeleeWeapon
+		{
+			get
+			{
+				int best = -1;
+				for (int i = 0; i < melee.items.Count; i++)
+				{
+					if (best == -1 || ((MeleeWeaponItemData)melee.items[best].item).damage < ((MeleeWeaponItemData)melee.items[i].item).damage)
+					{
+						best = i;
+					}
+				}
+
+				return best;
+			}
+		}
+
+
+		public MeleeWeaponItemData SelectedMeleeWeapon => (MeleeWeaponItemData)melee.items[selectedMelee].item;
+
+
 
 		public InventoryPanel GetPanelFor(ItemType t) => panels[(int)t];
 

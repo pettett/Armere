@@ -64,7 +64,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 		//some failures are from full inventory, do not allow items added with magic to create inf loop
 		if (success || c.inventory.HasMeleeWeapon)
 		{
-			c.inventory.inventory.selectedMelee = c.inventory.BestMeleeWeapon;
+			c.inventory.selectedMelee = c.inventory.BestMeleeWeapon;
 			Spawner.OnDone(c.SetHeldMelee(c.inventory.SelectedMeleeWeapon), _ => Engage());
 		}
 		else

@@ -5,6 +5,7 @@ using Cinemachine;
 using System.Linq;
 using UnityEngine.InputSystem;
 using System.Threading.Tasks;
+using UnityEngine.Assertions;
 
 public class GameCameras : MonoBehaviour
 {
@@ -30,7 +31,7 @@ public class GameCameras : MonoBehaviour
 	//default to everything but player
 	public LayerMask cameraCollisionMask;
 	public LayerMask doNotCollideWithCamera;
-	public Transform cameraCollisionTarget;
+	[System.NonSerialized] public Transform cameraCollisionTarget;
 	Camera regularCamera;
 
 	bool controlling = true;
@@ -114,8 +115,9 @@ public class GameCameras : MonoBehaviour
 		entry = DebugMenu.CreateEntry("Player");
 		entry?.AppendFormat("Direction ({0:0.0} / {1:0.0}) )", 180f, 0f);
 
-		freeLookTarget = cameraTrackingTarget = LevelInfo.currentLevelInfo.playerTransform.Find("Camera_Track");
 		regularCamera = cameraTransform.GetComponent<Camera>();
+
+		Assert.IsNotNull(regularCamera);
 	}
 	private void OnEnable()
 	{
@@ -195,8 +197,6 @@ public class GameCameras : MonoBehaviour
 		//SetCameraTargets(cameraTrackingTarget);
 
 		freeLookTarget = cameraTrackingTarget;
-		//freeLook.LookAt = cameraTrackingTarget;
-		//freeLook.Follow = cameraTrackingTarget;
 	}
 
 
@@ -206,11 +206,6 @@ public class GameCameras : MonoBehaviour
 		//Offset back by the starting angle so that there will be no jump at the start
 		freeLookBias -= FlatLookAngle(cameraTrackingTarget.position, focused.transform.position);
 
-
-		//freeLook.OnTargetObjectWarped(conversationGroup.transform, conversationGroup.transform.position - (cameraTrackingTarget.position * 2 + focused.transform.position) / 3);
-
-		//freeLook.m_BindingMode = Cinemachine.CinemachineTransposer.BindingMode.LockToTargetWithWorldUp;
-		//freeLook.m_Heading.m_Bias = 0;
 	}
 
 	public void DisableRelitiveCameraAim()
@@ -218,8 +213,7 @@ public class GameCameras : MonoBehaviour
 		m_UpdatingCameraDirection = false;
 		freeLookBias = freeLook.m_Heading.m_Bias;
 
-		//freeLook.m_BindingMode = Cinemachine.CinemachineTransposer.BindingMode.WorldSpace;
-		//freeLook.m_Heading.m_Bias = freeLookBias;
+
 	}
 
 
@@ -313,6 +307,7 @@ public class GameCameras : MonoBehaviour
 	}
 	private void Update()
 	{
+		if (cameraCollisionTarget == null) return;
 
 		cameraTransform.position = Vector3.Lerp(cameraCollisionTarget.position + cameraCollisionTarget.up * _playerTrackingOffset, cameraTransform.parent.position, currentCameraLerp);
 
@@ -355,7 +350,7 @@ public class GameCameras : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		if (!cameraColision) return;
+		if (!cameraColision || cameraCollisionTarget == null) return;
 
 		Vector3 halfExtents = CameraHalfExtends;
 		Vector3 collisionTarget = cameraCollisionTarget.position + new Vector3(0, _playerTrackingOffset + halfExtents.y, 0);

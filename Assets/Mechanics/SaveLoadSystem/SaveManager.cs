@@ -674,7 +674,7 @@ public class SaveManager : MonoBehaviour
 	public void HardSceneLoad(string sceneName, System.Action OnCompleted)
 	{
 
-		LevelManager.LoadLevel(sceneName, false, OnCompleted);
+		LevelManager.LoadLevel(sceneName, OnCompleted);
 
 
 	}

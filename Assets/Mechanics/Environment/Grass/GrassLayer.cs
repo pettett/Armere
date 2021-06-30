@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 [System.Serializable]
@@ -29,6 +30,7 @@ public struct ConstantBuffer<T> where T : unmanaged
 	}
 	public void UploadData()
 	{
+		Assert.IsNotNull(buffer);
 		NativeArray<T> dataArray = new NativeArray<T>(1, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 		dataArray[0] = data;
 		buffer.SetData(dataArray);
@@ -59,13 +61,9 @@ public struct SplatMapWeights
 public struct GrassCreationConstantBufferData
 {
 	public SplatMapWeights layerWeights;
-	public Vector2 layer0QuadWidthRange,
-					layer0QuadHeightRange,
-					layer1QuadWidthRange,
+	public Vector2 layer0QuadHeightRange,
 					layer1QuadHeightRange,
-					layer2QuadWidthRange,
 					layer2QuadHeightRange,
-					layer3QuadWidthRange,
 					layer3QuadHeightRange;
 
 }
@@ -73,7 +71,7 @@ public struct GrassCreationConstantBufferData
 public struct GrassMovementConstantBufferData
 {
 	public float rotationOverride;
-	public Vector2 sizeOverride;
+	public float sizeOverride;
 }
 public struct GrassLayerInstance
 {

@@ -22,7 +22,7 @@ namespace Armere.Inventory
 		private void Start()
 		{
 			if (item == null)
-				Debug.LogError("Item has not been inited", this);
+				Debug.LogError($"Item {gameObject.name} has not been inited", this);
 		}
 
 		public void AddItemsToInventory(System.Action onItemAdded, InventoryController inventory)

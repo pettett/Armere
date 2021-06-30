@@ -19,12 +19,12 @@ public class LevelManager : MonoBehaviour
 	}
 
 
-	public static void LoadLevel(string levelName, bool keepPlayerLoaded, System.Action afterSceneLoad = null)
+	public static void LoadLevel(string levelName, System.Action afterSceneLoad = null)
 	{
-		singleton.StartCoroutine(singleton.Load(levelName, keepPlayerLoaded, afterSceneLoad));
+		singleton.StartCoroutine(singleton.Load(levelName, afterSceneLoad));
 	}
 
-	IEnumerator Load(string levelName, bool keepPlayerLoaded, System.Action afterSceneLoad)
+	IEnumerator Load(string levelName, System.Action afterSceneLoad)
 	{
 		loadingDisplayRoot.SetActive(true);
 		UIController.singleton.FadeOut(0, levelName);
@@ -32,38 +32,25 @@ public class LevelManager : MonoBehaviour
 
 		Time.timeScale = 0;
 
-		int sceneToLoadID = SceneManager.GetSceneByName(levelName).buildIndex;
 		Scene currentScene = SceneManager.GetActiveScene();
 
-		GameObject player = LevelInfo.currentLevelInfo.player;
 
-		if (keepPlayerLoaded)
-		{
-
-			SceneManager.MoveGameObjectToScene(player, mainScene);
-		}
 
 		yield return SceneManager.UnloadSceneAsync(currentScene);
 
-		yield return SceneManager.LoadSceneAsync(sceneToLoadID, LoadSceneMode.Additive);
+		yield return new WaitForSecondsRealtime(1f);
 
-		var sceneToLoad = SceneManager.GetSceneByBuildIndex(sceneToLoadID);
-		SceneManager.SetActiveScene(sceneToLoad);
+		yield return SceneManager.LoadSceneAsync(levelName, LoadSceneMode.Additive);
 
-		if (keepPlayerLoaded)
+		var loadedScene = SceneManager.GetSceneByName(levelName);
+
+		if (!SceneManager.SetActiveScene(loadedScene))
 		{
-			SceneManager.MoveGameObjectToScene(player, sceneToLoad);
+			Debug.LogWarning("Unable to set active scene");
 		}
+
 
 		currentLevel = levelName;
-
-		if (keepPlayerLoaded)
-		{
-			//Unload the player that came with the scene and set the persisten one
-			//TODO: Make player created as prefab only when not persistent
-			Destroy(LevelInfo.currentLevelInfo.player);
-			LevelInfo.currentLevelInfo.player = player;
-		}
 
 		System.GC.Collect();
 		Time.timeScale = 1;

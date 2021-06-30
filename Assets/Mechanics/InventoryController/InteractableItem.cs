@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Armere.Inventory;
 using Armere.UI;
+using UnityEngine.AddressableAssets;
 
 namespace Armere.Inventory
 {
@@ -42,7 +43,7 @@ namespace Armere.Inventory
 
 			spawner.transform.SetParent(transform.parent);
 
-			//spawner.GetComponent<ItemSpawner>().item = (PhysicsItemData)item;
+			spawner.GetComponent<ItemSpawner>().item = (AssetReferenceT<PhysicsItemData>)(AssetReference)((PhysicsItemData)item).selfReference;
 			//spawner.GetComponent<ItemSpawner>().count = count;
 
 

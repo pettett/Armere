@@ -42,7 +42,7 @@ public class TriggerBox : MonoBehaviour
 		OnTrigger(other);
 		//Dont bother ever scanning again
 		if (minTimeBetweenTriggers == Mathf.Infinity)
-			gameObject.SetActive(false);
+			GetComponent<Collider>().enabled = false;
 	}
 
 	public virtual void OnTrigger(Collider other) { }

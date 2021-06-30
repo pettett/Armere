@@ -104,7 +104,7 @@ public class CommandManager : ConsoleReceiver
 				break;
 			case level:
 				DesiredInputs(command, 1);
-				LevelManager.LoadLevel(command.values[0], true);
+				LevelManager.LoadLevel(command.values[0]);
 				break;
 			case giveQuest:
 				DesiredInputs(command, 1);

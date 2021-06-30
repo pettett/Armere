@@ -7,6 +7,7 @@ public class LevelInfo : MonoBehaviour
 {
 	public static LevelInfo currentLevelInfo;
 	public string levelName;
+	public GameObject playerPrefab;
 	public GameObject player;
 	public Transform playerTransform => player.transform;
 
@@ -16,6 +17,14 @@ public class LevelInfo : MonoBehaviour
 	private void Start()
 	{
 		LevelManager.singleton.currentLevel = levelName;
+
+		Debug.Log("Spawning player", this);
+		player = Instantiate(playerPrefab);
+	}
+	private void OnDestroy()
+	{
+		if (currentLevelInfo == this)
+			currentLevelInfo = null;
 	}
 
 	private void Awake()

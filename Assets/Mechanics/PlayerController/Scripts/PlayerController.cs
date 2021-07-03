@@ -323,6 +323,8 @@ namespace Armere.PlayerController
 
 		public override Bounds bounds => collider.bounds;
 
+		public override Vector3 velocity => rb.velocity;
+
 		public void Pause()
 		{
 			Time.timeScale = 0;

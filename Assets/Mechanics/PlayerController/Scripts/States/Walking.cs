@@ -24,7 +24,7 @@ namespace Armere.PlayerController
 			Coyote = 4,
 			Jumping = 8,
 		}
-		public enum WalkingType { Walking, Sprinting, Crouching, Stepping }
+		public enum WalkingType { Walking, Sprinting, Crouching, Stepping, Pushing }
 
 		protected DialogueRunner runner => DialogueInstances.singleton.runner;
 
@@ -668,6 +668,8 @@ namespace Armere.PlayerController
 			bool wasGrounded = IsGrounded;
 
 			bool onGround = FindGround(out currentGroundNormal, inputDirectionWS, c.allCPs);
+
+
 			bool jumping = ground.HasFlag(GroundState.Jumping);
 
 			if (walkingType == WalkingType.Stepping)
@@ -701,6 +703,13 @@ namespace Armere.PlayerController
 				}
 			}
 
+			if (IsGrounded && FindPushTarget(out var push, inputDirectionWS, c.allCPs))
+			{
+				Debug.Log($"Pushing {push.otherCollider}");
+				walkingType = WalkingType.Pushing;
+			}
+
+
 
 			c.animationController.enableFeetIK = IsGrounded;
 
@@ -709,6 +718,12 @@ namespace Armere.PlayerController
 			//List<ContactPoint> groundCPs = new List<ContactPoint>();
 
 			WaterData water = GetWaterInfo();
+
+			if (water.shouldSwim)
+			{
+				c.ChangeToState(t.swimming);
+				return;
+			}
 
 			float currentMovementSpeed = t.GetSpeeds(walkingType).movementSpeed;
 
@@ -1176,6 +1191,27 @@ namespace Armere.PlayerController
 
 			return found;
 		}
+		public bool FindPushTarget(out ContactPoint pushTarget, Vector3 playerDirection, List<ContactPoint> allCPs)
+		{
+			foreach (var item in allCPs)
+			{
+				if (item.otherCollider.attachedRigidbody is Rigidbody rb && !rb.isKinematic && rb.mass >= t.minPushMass && rb.mass < t.maxPushMass)
+				{
+					//Not null	
+					float dot = Vector3.Dot(item.normal, playerDirection);
+
+					if (dot < -0.9f)
+					{
+						pushTarget = item;
+						return true;
+					}
+				}
+
+			}
+			pushTarget = default;
+			return false;
+		}
+
 		/// Find the first step up point if we hit a step
 		/// \param allCPs List to search
 		/// \param stepUpOffset A Vector3 of the offset of the player to step up the step

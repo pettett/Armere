@@ -13,6 +13,13 @@ namespace Armere.PlayerController
 		public float verticalJumpHeight;
 		public float horizontalJumpDistance;
 
+		public Speeds(float movementSpeed, float verticalJumpHeight, float horizontalJumpDistance)
+		{
+			this.movementSpeed = movementSpeed;
+			this.verticalJumpHeight = verticalJumpHeight;
+			this.horizontalJumpDistance = horizontalJumpDistance;
+		}
+
 		public Vector2 twoDJumpForce
 		{
 			get
@@ -41,9 +48,9 @@ namespace Armere.PlayerController
 		//public MovementStateTemplate freefalling;
 
 		[Header("Movement")]
-		public Speeds crouching;
-		public Speeds walking;
-		public Speeds sprinting;
+		public Speeds crouching = new Speeds(1f, 0.25f, 0.5f);
+		public Speeds walking = new Speeds(1f, 0.75f, 1f);
+		public Speeds sprinting = new Speeds(1.5f, 0.5f, 1.5f);
 
 		public ref Speeds GetSpeeds(Walking.WalkingType type)
 		{
@@ -80,6 +87,10 @@ namespace Armere.PlayerController
 		[Header("Holding")]
 
 		public float throwForce = 100;
+		[Header("Pushing")]
+		public float pushSpeed = 1f;
+		public float minPushMass = 10f;
+		public float maxPushMass = 100f;
 
 		[Header("Weapons")]
 		public float swordUseDelay = 0.4f;

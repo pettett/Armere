@@ -42,6 +42,8 @@ public class AIHumanoid : Character
 	[System.NonSerialized] new public Collider collider;
 	public override Bounds bounds => collider.bounds;
 
+	public override Vector3 velocity => agent.velocity;
+
 	[System.NonSerialized] public Plane[] viewPlanes = new Plane[6];
 	[Header("Weapons")]
 	public BoundsFloatEventChannelSO destroyGrassInBoundsEventChannel;

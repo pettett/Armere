@@ -68,6 +68,7 @@ public abstract class Character : SpawnableBody
 	public Team[] Enemies() => enemies[(int)team];
 
 	public abstract Bounds bounds { get; }
+	public abstract Vector3 velocity { get; }
 
 	public static Character playerCharacter;
 
@@ -105,6 +106,20 @@ public abstract class Character : SpawnableBody
 	{
 		if (collision.rigidbody != null)
 		{
+			//Test which body impacted the other
+			Vector3 otherVel = collision.relativeVelocity - velocity;
+
+			if (otherVel.sqrMagnitude < 0.1)
+			{
+				return; //Other body not moving
+			}
+			float dot = Vector3.Dot(otherVel, velocity);
+			if (dot < 0)
+			{
+				//moving in the same direction
+				return;
+			}
+
 			float koTime = collision.relativeVelocity.magnitude * collision.rigidbody.mass - profile.m_minKnockoutForce;
 
 			if (koTime > 0)

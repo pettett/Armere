@@ -12,7 +12,7 @@ public class FindWeaponRoutine : AIFocusCharacterStateTemplate
 	public AIFocusCharacterStateTemplate foundWeaponRoutine;
 	public AIFocusCharacterStateTemplate notFoundWeaponRoutine;
 
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		Assert.IsNotNull(engaging);
 		var s = new FindWeapon(c, this, engaging);
@@ -23,7 +23,7 @@ public class FindWeaponRoutine : AIFocusCharacterStateTemplate
 public class FindWeapon : AIState<FindWeaponRoutine>
 {
 	readonly Character character;
-	public FindWeapon(AIHumanoid c, FindWeaponRoutine t, Character character) : base(c, t)
+	public FindWeapon(AIMachine c, FindWeaponRoutine t, Character character) : base(c, t)
 	{
 		//Find weapons near to this enemy within certain range
 		this.character = character;
@@ -51,7 +51,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 		if (best == null)
 		{
 			//Not item in range, resort to throwing rocks or something
-			c.ChangeToState(t.notFoundWeaponRoutine?.EngageWith(character));
+			machine.ChangeToState(t.notFoundWeaponRoutine?.EngageWith(character));
 		}
 		else
 		{
@@ -72,7 +72,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 	}
 	public void Engage()
 	{
-		c.ChangeToState(t.foundWeaponRoutine.EngageWith(character));
+		machine.ChangeToState(t.foundWeaponRoutine.EngageWith(character));
 	}
 
 }

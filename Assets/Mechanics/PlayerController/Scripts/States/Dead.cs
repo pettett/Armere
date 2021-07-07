@@ -10,7 +10,7 @@ namespace Armere.PlayerController
 
 	public class Dead : MovementState<DeadTemplate>
 	{
-		public Dead(PlayerController c, DeadTemplate t) : base(c, t)
+		public Dead(PlayerMachine c, DeadTemplate t) : base(c, t)
 		{
 		}
 

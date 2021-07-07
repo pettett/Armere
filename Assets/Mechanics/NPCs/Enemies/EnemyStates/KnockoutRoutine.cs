@@ -12,7 +12,7 @@ public class KnockoutRoutine : AIState
 
 
 	Coroutine r;
-	public KnockoutRoutine(AIHumanoid c, float knockoutTime) : base(c)
+	public KnockoutRoutine(AIMachine c, float knockoutTime) : base(c)
 	{
 		this.knockoutTime = knockoutTime;
 		r = c.StartCoroutine(Routine());

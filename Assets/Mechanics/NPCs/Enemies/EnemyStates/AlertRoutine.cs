@@ -9,7 +9,7 @@ public class AlertRoutine : AIFocusCharacterStateTemplate
 	public AIFocusCharacterStateTemplate engagePlayer;
 	public AIFocusCharacterStateTemplate findWeapons;
 
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		Assert.IsNotNull(engaging);
 		var s = new Alert(c, this, engaging);
@@ -29,7 +29,7 @@ public class Alert : AIState<AlertRoutine>
 
 	Coroutine r;
 	readonly Character character;
-	public Alert(AIHumanoid c, AlertRoutine t, Character character) : base(c, t)
+	public Alert(AIMachine c, AlertRoutine t, Character character) : base(c, t)
 	{
 		this.character = character;
 		r = c.StartCoroutine(Routine());
@@ -56,12 +56,12 @@ public class Alert : AIState<AlertRoutine>
 			if (c.weaponGraphics.holdables.melee.sheathed)
 				yield return c.DrawItem(ItemType.Melee);
 
-			c.ChangeToState(t.engagePlayer.EngageWith(character));
+			machine.ChangeToState(t.engagePlayer.EngageWith(character));
 		}
 		else
 		{
 			//Attempt to get hold of a melee weapon
-			c.ChangeToState(t.findWeapons.EngageWith(character));
+			machine.ChangeToState(t.findWeapons.EngageWith(character));
 		}
 	}
 }

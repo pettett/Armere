@@ -33,7 +33,7 @@ public class StealthArena : MonoBehaviour
 	{
 		foreach (var s in enemyAISpawners)
 		{
-			s.body.Destroy();
+			Destroy(s.body);
 		}
 	}
 }

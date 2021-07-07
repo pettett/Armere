@@ -6,8 +6,8 @@ using Armere.Inventory;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-[RequireComponent(typeof(WeaponGraphicsController))]
-public abstract class Character : SpawnableBody
+[RequireComponent(typeof(WeaponGraphicsController), typeof(SpawnableBody))]
+public abstract class Character : MonoBehaviour
 {
 	public enum Team
 	{
@@ -72,10 +72,10 @@ public abstract class Character : SpawnableBody
 
 	public static Character playerCharacter;
 
-	public event System.Action onStateChanged;
-	protected void StateChanged() => onStateChanged?.Invoke();
 	[System.NonSerialized] public WeaponGraphicsController weaponGraphics;
 	[System.NonSerialized] public AnimationController animationController;
+	[System.NonSerialized] public SpawnableBody spawnableBody;
+	public bool inited => spawnableBody.inited;
 	public Animator animator => animationController.anim;
 
 	public abstract void Knockout(float time);
@@ -85,10 +85,12 @@ public abstract class Character : SpawnableBody
 		animationController = GetComponentInChildren<AnimationController>();
 		weaponGraphics = GetComponent<WeaponGraphicsController>();
 		inventoryHolder = GetComponent<GameObjectInventory>();
+		spawnableBody = GetComponent<SpawnableBody>();
 
 		Assert.IsNotNull(animationController);
 		Assert.IsNotNull(weaponGraphics);
 		Assert.IsNotNull(inventoryHolder);
+		Assert.IsNotNull(spawnableBody);
 	}
 	public virtual void OnEnable()
 	{

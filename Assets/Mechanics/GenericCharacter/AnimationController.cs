@@ -174,17 +174,25 @@ public class AnimationController : MonoBehaviour
 		lookAtTarget = null;
 	}
 
-	void TriggerTransition(in AnimationTransition transition, int layer)
+	public static void TriggerTransition(Animator anim, in AnimationTransition transition, int layer = 0)
 	{
 		anim.CrossFadeInFixedTime(transition.nameHash, transition.duration, layer, transition.offset);
+	}
+	public static IEnumerator WaitForAnimation(Animator anim, int layer = 0)
+	{
+
+		List<AnimatorClipInfo> clips = new List<AnimatorClipInfo>();
+		yield return null;
+		anim.GetCurrentAnimatorClipInfo(layer, clips);
+		yield return new WaitForSeconds(clips[0].clip.length);
 	}
 
 	public void TriggerTransition(in AnimationTransition transition)
 	{
 		if (transition.layers.HasFlag(Layers.BaseLayer))
-			TriggerTransition(transition, 0);
+			TriggerTransition(anim, transition, 0);
 		if (transition.layers.HasFlag(Layers.UpperBody))
-			TriggerTransition(transition, 1);
+			TriggerTransition(anim, transition, 1);
 	}
 
 	List<AnimatorClipInfo> clips = new List<AnimatorClipInfo>();
@@ -211,7 +219,6 @@ public class AnimationController : MonoBehaviour
 		yield return new WaitForSeconds(time);
 		anim.SetFloat(speedVar.id, 1);
 	}
-
 
 	private void Awake()
 	{

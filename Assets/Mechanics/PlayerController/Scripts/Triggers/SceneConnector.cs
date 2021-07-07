@@ -30,7 +30,7 @@ public class SceneConnector : PlayerTrigger
 		{
 			StartCoroutine(ChangeScene(player));
 		}
-		walker = (AutoWalking)player.ChangeToState(player.autoWalk);
+		walker = (AutoWalking)player.machine.ChangeToState(player.autoWalk);
 		walker.WalkTo(endTransform.position);
 	}
 	IEnumerator Dolly(PlayerController player)
@@ -70,7 +70,7 @@ public class SceneConnector : PlayerTrigger
 	}
 	void ChangeLevel(PlayerController player)
 	{
-		player.ChangeToState(player.defaultState);
+		player.machine.ChangeToState(player.machine.defaultState);
 
 		//LevelManager.afterLevelLoaded += func;
 		LevelManager.LoadLevel(changeToLevel, () => OnLevelLoaded(exitConnection));

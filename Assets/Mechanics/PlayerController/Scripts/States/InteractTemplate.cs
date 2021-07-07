@@ -13,7 +13,7 @@ namespace Armere.PlayerController
 		public System.Action<IInteractable> OnBeginHighlight;
 		public System.Action OnEndHighlight;
 
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Interact(c, this);
 		}

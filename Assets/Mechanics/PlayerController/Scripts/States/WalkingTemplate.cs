@@ -111,7 +111,7 @@ namespace Armere.PlayerController
 		public VoidEventChannelSO onAimModeEnable;
 		public VoidEventChannelSO onAimModeDisable;
 		public FloatEventChannelSO changeTimeEventChannel;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Walking(c, this);
 		}

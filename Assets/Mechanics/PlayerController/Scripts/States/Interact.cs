@@ -21,7 +21,7 @@ namespace Armere.PlayerController
 		IInteractable prevTarget;
 		public bool enabled = false;
 
-		public Interact(PlayerController c, InteractTemplate t) : base(c, t)
+		public Interact(PlayerMachine c, InteractTemplate t) : base(c, t)
 		{
 
 		}
@@ -219,18 +219,19 @@ namespace Armere.PlayerController
 						switch (i)
 						{
 							case AIDialogue converser:
-								c.ChangeToState(t.interactNPC.StartConversation(converser));
+								machine.ChangeToState(t.interactNPC.StartConversation(converser));
 								break;
 							case Climbable climbable:
 								if (c.WorldUp == climbable.upDirection)
-									c.ChangeToState(t.interactLadder.Interact(climbable));
+									machine.ChangeToState(t.interactLadder.Interact(climbable));
 								break;
 							case IDialogue dialogue:
-								c.ChangeToState(t.interactDialogue.Interact(dialogue));
+								machine.ChangeToState(t.interactDialogue.Interact(dialogue));
 								break;
 							default:
 								if (i.canInteract)
-									(c.currentState as IInteractReceiver)?.OnInteract(i);
+									foreach (var s in machine.currentStates)
+										(s as IInteractReceiver)?.OnInteract(i);
 								else
 									ExitInteractable(interactablesInRange[currentLookAt]);
 								break;

@@ -6,10 +6,11 @@ using UnityEngine.InputSystem;
 namespace Armere.PlayerController
 {
 
-	public abstract class MovementState : State<PlayerController>
+	public abstract class MovementState : State<MovementState, PlayerMachine, MovementStateTemplate>
 	{
 		public bool updateWhilePaused = false;
 		public bool canBeTargeted = true;
+		public PlayerController c => machine.c;
 		public Transform transform => c.transform;
 		public GameObject gameObject => c.gameObject;
 		public Animator animator => c.animator;
@@ -17,7 +18,7 @@ namespace Armere.PlayerController
 
 
 		protected GameCameras cameras => GameCameras.s;
-		public MovementState(PlayerController c) : base(c)
+		public MovementState(PlayerMachine c) : base(c)
 		{
 
 		}
@@ -33,14 +34,14 @@ namespace Armere.PlayerController
 		public readonly TemplateT t;
 
 
-		protected MovementState(PlayerController c, TemplateT t) : base(c)
+		protected MovementState(PlayerMachine c, TemplateT t) : base(c)
 		{
 			this.t = t;
 		}
 	}
 
 
-	public abstract class MovementStateTemplate : StateTemplate<MovementStateTemplate, PlayerController, MovementState>
+	public abstract class MovementStateTemplate : StateTemplate<MovementState, PlayerMachine, MovementStateTemplate>
 	{
 
 	}

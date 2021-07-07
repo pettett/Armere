@@ -39,7 +39,7 @@ public class PromptedSceneChangeTrigger : SceneConnector, IDialogue, IVariableAd
 	public DialogueTemplate dialogueTemplate;
 	public override void OnPlayerTrigger(PlayerController player)
 	{
-		d = (Dialogue<DialogueTemplate>)player.ChangeToState(dialogueTemplate.Interact(this));
+		d = (Dialogue<DialogueTemplate>)player.machine.ChangeToState(dialogueTemplate.Interact(this));
 		p = player; //hold for if player confirms
 		print("Entered scene change prompt");
 

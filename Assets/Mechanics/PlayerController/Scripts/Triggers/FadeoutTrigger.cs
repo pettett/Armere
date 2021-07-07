@@ -13,7 +13,7 @@ public class FadeoutTrigger : PlayerTrigger
 		StartCoroutine(UIController.singleton.FullFade(0.25f, 1f));
 		StartCoroutine(MovePlayer(player));
 		//Transition from walking to walking
-		player.ChangeToState(TransitionStateTemplate.GenerateTransition(1, player.defaultState));
+		player.machine.ChangeToState(TransitionStateTemplate.GenerateTransition(1, player.machine.defaultState));
 	}
 
 	IEnumerator MovePlayer(PlayerController player)

@@ -3,7 +3,7 @@ namespace Armere.PlayerController
 
 	public class ScanForNearTTemplate<T> : MovementStateTemplate where T : IScanable
 	{
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new ScanForNearT<T>(c, this);
 		}

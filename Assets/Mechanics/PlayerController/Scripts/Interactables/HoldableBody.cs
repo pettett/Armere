@@ -35,7 +35,7 @@ public class HoldableBody : MonoBehaviour, IInteractable
 		rb.mass = 0;
 		joint = gameObject.AddComponent<FixedJoint>();
 
-		(((PlayerController)interactor).currentState as Walking)?.HoldHoldable(this);
+		(((PlayerController)interactor).machine.mainState as Walking)?.HoldHoldable(this);
 	}
 	public void OnDropped()
 	{

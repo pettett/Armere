@@ -23,7 +23,7 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	protected string overrideStartNode = null;
 
-	public Dialogue(PlayerController c, TemplateT t) : base(c, t)
+	public Dialogue(PlayerMachine machine, TemplateT t) : base(machine, t)
 	{
 		Assert.IsNotNull(runner, "Dialogue needs runner to exist");
 
@@ -135,7 +135,7 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	public virtual void OnDialogueComplete()
 	{
-		c.ChangeToState(c.defaultState);
+		c.machine.ChangeToState(machine.defaultState);
 	}
 
 	// Update is called once per frame

@@ -12,12 +12,12 @@ namespace Armere.PlayerController
 	public class ShieldSurfing : MovementState<ShieldSurfingTemplate>
 	{
 		SlideAnchor slide;
-		public ShieldSurfing(PlayerController c, ShieldSurfingTemplate t) : base(c, t)
+		public ShieldSurfing(PlayerMachine machine, ShieldSurfingTemplate t) : base(machine, t)
 		{
 
-			originalMaterial = c.collider.material;
+			originalMaterial = c.GetComponent<Collider>().material;
 
-			c.collider.material = new PhysicMaterial()
+			c.GetComponent<Collider>().material = new PhysicMaterial()
 			{
 				frictionCombine = PhysicMaterialCombine.Minimum,
 				dynamicFriction = t.friction
@@ -58,7 +58,7 @@ namespace Armere.PlayerController
 			currentSpeed = c.rb.velocity.magnitude;
 			if (currentSpeed <= t.minSurfingSpeed)
 			{
-				c.ChangeToState(c.defaultState);
+				machine.ChangeToState(machine.defaultState);
 			}
 
 			movement = Vector2.Lerp(movement, c.inputReader.horizontalMovement, Time.fixedDeltaTime * t.directionChangeSpeed);
@@ -115,7 +115,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)
 			{
-				c.ChangeToState(c.defaultState);
+				machine.ChangeToState(machine.defaultState);
 			}
 		}
 

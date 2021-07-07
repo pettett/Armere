@@ -11,14 +11,12 @@ using UnityEngine.AddressableAssets;
 using Armere.UI;
 namespace Armere.PlayerController
 {
-	[RequireComponent(typeof(Rigidbody))]
+	[RequireComponent(typeof(Rigidbody), typeof(PlayerMachine))]
 	public class PlayerController : Character, IInteractor
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
 		public SpellUnlockTree spellTree;
-
-		[NonSerialized] public MovementState currentState;
 
 		//Parallel state list:
 
@@ -26,11 +24,7 @@ namespace Armere.PlayerController
 		//Weapons - DONE
 		//Interaction with objects - DONE
 
-		[NonSerialized] private MovementState[] parallelStates = new MovementState[0];
 
-
-
-		[NonSerialized] private MovementState[] allStates;
 
 
 		[Header("Cameras")]
@@ -58,7 +52,6 @@ namespace Armere.PlayerController
 
 
 		[Header("States")]
-		public MovementStateTemplate defaultState;
 		public MovementStateTemplate deadState;
 		public KnockedOutTemplate knockoutState;
 		public AutoWalkingTemplate autoWalk;
@@ -72,12 +65,11 @@ namespace Armere.PlayerController
 		[NonSerialized] new public CapsuleCollider collider;
 		[NonSerialized] public Health health;
 
-		//set capacity to 1 as it is common for the player to be touching the ground in at least one point
-		[NonSerialized] public List<ContactPoint> allCPs = new List<ContactPoint>(1);
+
 
 		private System.Text.StringBuilder _entry;
 
-		private System.Text.StringBuilder entry
+		public System.Text.StringBuilder entry
 		{
 			get
 			{
@@ -111,7 +103,7 @@ namespace Armere.PlayerController
 
 
 		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
-
+		[NonSerialized] public PlayerMachine machine;
 
 		// Start is called before the first frame update
 		/// <summary>
@@ -141,28 +133,9 @@ namespace Armere.PlayerController
 			inventory.bow.onItemRemoved -= OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
-			if (allStates != null)
-				foreach (var s in allStates) s.End();
 		}
 
 
-		protected override void OnCollisionEnter(Collision col)
-		{
-			allCPs.Capacity += col.contactCount;
-			for (int i = 0; i < col.contactCount; i++)
-			{
-				allCPs.Add(col.GetContact(i));
-			}
-			base.OnCollisionEnter(col);
-		}
-		private void OnCollisionStay(Collision col)
-		{
-			allCPs.Capacity += col.contactCount;
-			for (int i = 0; i < col.contactCount; i++)
-			{
-				allCPs.Add(col.GetContact(i));
-			}
-		}
 
 		public override void Start()
 		{
@@ -179,6 +152,8 @@ namespace Armere.PlayerController
 			inventoryHolder = GetComponent<GameObjectInventory>();
 
 			weaponGraphics = GetComponent<WeaponGraphicsController>();
+
+			machine = GetComponent<PlayerMachine>();
 
 
 			collider.material.dynamicFriction = profile.dynamicFriction;
@@ -233,7 +208,7 @@ namespace Armere.PlayerController
 			}
 
 			//start a fresh state
-			ChangeToState(playerSaveData.startingState ?? defaultState);
+			machine.ChangeToState(playerSaveData.startingState ?? machine.defaultState);
 
 			inputReader.SwitchToGameplayInput();
 			enabled = true;
@@ -300,7 +275,7 @@ namespace Armere.PlayerController
 		public void OnDeath()
 		{
 			// The player has died.
-			ChangeToState(deadState);
+			machine.ChangeToState(deadState);
 
 		}
 
@@ -349,7 +324,6 @@ namespace Armere.PlayerController
 		}
 
 
-		public bool StateActive(int i) => !paused || paused && allStates[i].updateWhilePaused;
 
 
 		public void OnDropItem(ItemType type, int itemIndex)
@@ -382,9 +356,6 @@ namespace Armere.PlayerController
 		{
 			base.Update();
 
-			for (int i = 0; i < allStates.Length; i++)
-				if (StateActive(i))
-					allStates[i].Update();
 
 			cameraTrackingTransform.rotation = Quaternion.identity;
 			cameraTrackingTransform.up = WorldUp;
@@ -406,53 +377,15 @@ namespace Armere.PlayerController
 			}
 		}
 
+		public List<ContactPoint> allCPs => machine.allCPs;
+		private ItemType[] selectingSlot = null;
 
-		private void LateUpdate()
-		{
-			for (int i = 0; i < allStates.Length; i++)
-				if (StateActive(i))
-					allStates[i].LateUpdate();
-		}
-
-		private void OnTriggerEnter(Collider other)
-		{
-			if (enabled)
-				for (int i = 0; i < allStates.Length; i++)
-					if (StateActive(i))
-						allStates[i].OnTriggerEnter(other);
-		}
-
-		private void OnTriggerExit(Collider other)
-		{
-			if (enabled)
-				for (int i = 0; i < allStates.Length; i++)
-					if (StateActive(i))
-						allStates[i].OnTriggerExit(other);
-		}
 
 		private void FixedUpdate()
 		{
 			if (useGravity)
 				rb.AddForce(m_gravityDirection * Physics.gravity.magnitude);
-
-
-			for (int i = 0; i < allStates.Length; i++)
-				if (StateActive(i))
-					allStates[i].FixedUpdate();
-
-			allCPs.Clear();
 		}
-		private void OnAnimatorIK(int layerIndex)
-		{
-			for (int i = 0; i < allStates.Length; i++)
-				if (StateActive(i))
-					allStates[i].OnAnimatorIK(layerIndex);
-		}
-
-
-		private ItemType[] selectingSlot = null;
-
-
 
 		private void OnChangeSelection(InputActionPhase phase)
 		{
@@ -702,134 +635,6 @@ namespace Armere.PlayerController
 				gamepad.SetMotorSpeeds(low, high);
 			}
 		}
-		public void ChangeToStateTimed(MovementStateTemplate timedState, float time, MovementStateTemplate returnedState = null) =>
-			StartCoroutine(ChangeToStateTimedRoutine(timedState, time, returnedState));
-
-		IEnumerator ChangeToStateTimedRoutine(MovementStateTemplate timedState, float time, MovementStateTemplate returnedState = null)
-		{
-			ChangeToState(timedState);
-			yield return new WaitForSeconds(time);
-			//Returned state or default state if it is null
-			ChangeToState(returnedState ?? defaultState);
-		}
-
-
-		public MovementState ChangeToState(MovementStateTemplate t)
-		{
-			currentState?.End(); // state specific end method
-			currentState = t.StartState(this);
-
-
-			//go through and end all the parallel states not used by this state
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-
-				Type stateType = parallelStates[i].GetType();
-				for (int j = 0; j < t.parallelStates.Length; j++)
-					if (stateType == t.parallelStates[j].StateType())
-						goto DoNotEndState;
-
-				//Goto saves time here - ending state will only be skipped if it is required
-				parallelStates[i].End();
-			DoNotEndState:
-				continue;
-			}
-
-
-			MovementState[] newStates = new MovementState[t.parallelStates.Length];
-
-			for (int i = 0; i < t.parallelStates.Length; i++)
-			{
-				//test if the desired parallel state is currently active
-				newStates[i] = GetParallelState(t.parallelStates[i].StateType());
-				if (newStates[i] == null)
-				{
-					newStates[i] = t.parallelStates[i].StartState(this);
-				}
-			}
-			parallelStates = newStates;
-
-
-
-
-			if (DebugMenu.menuEnabled && entry != null)
-			{
-				//Show all the currentley active states
-
-				//update f3 information
-				entry.Clear();
-				entry.Append("Current State: ");
-				entry.Append(currentState.StateName);
-				if (parallelStates.Length != 0)
-				{
-					entry.Append('{');
-					foreach (var s in parallelStates)
-					{
-						entry.Append(s.StateName);
-						entry.Append(',');
-					}
-					entry.Append('}');
-				}
-			}
-			FillAllStates();
-
-			StartAllStates();
-
-			StateChanged();
-			return currentState;
-		}
-
-		public void FillAllStates()
-		{
-			allStates = new MovementState[parallelStates.Length + 1];
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-				allStates[i] = parallelStates[i];
-			}
-			allStates[parallelStates.Length] = currentState;
-		}
-		public void StartAllStates()
-		{
-
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-				parallelStates[i].Start();
-			}
-			currentState.Start();
-		}
-		public MovementState GetParallelState(Type t)
-		{
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-				if (parallelStates[i].GetType() == t)
-				{
-					return parallelStates[i];
-				}
-			}
-			return null;
-		}
-		public bool TryGetParallelState<T>(out T state) where T : MovementState
-		{
-			for (int i = 0; i < parallelStates.Length; i++)
-			{
-				if (parallelStates[i].GetType() == typeof(T))
-				{
-					state = parallelStates[i] as T;
-					return true;
-				}
-			}
-			state = default;
-			return false;
-		}
-
-
-		private void OnDrawGizmos()
-		{
-			if (allStates != null)
-				for (int i = 0; i < allStates.Length; i++)
-					if (StateActive(i))
-						allStates[i].OnDrawGizmos();
-		}
 
 		//show the sound on the minimap?
 
@@ -837,7 +642,7 @@ namespace Armere.PlayerController
 		public override void Knockout(float time)
 		{
 			knockoutState.time = time;
-			ChangeToState(knockoutState);
+			machine.ChangeToState(knockoutState);
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace Armere.PlayerController
 
 		public GameObject waterTrailPrefab;
 
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Swimming(c, this);
 		}

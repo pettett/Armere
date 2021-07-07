@@ -12,7 +12,7 @@ namespace Armere.PlayerController
 	{
 		public readonly float knockoutTime = 4f;
 
-		public KnockedOut(PlayerController c, KnockedOutTemplate t) : base(c, t)
+		public KnockedOut(PlayerMachine c, KnockedOutTemplate t) : base(c, t)
 		{
 			this.knockoutTime = t.time;
 		}
@@ -44,7 +44,7 @@ namespace Armere.PlayerController
 
 
 			//go back to the spawn point
-			c.ChangeToState(t.returnState);
+			machine.ChangeToState(t.returnState);
 		}
 
 		//place this in end to make sure it always returns camera control even if state is externally changed

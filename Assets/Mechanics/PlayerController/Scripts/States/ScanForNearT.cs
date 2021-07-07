@@ -18,7 +18,7 @@ namespace Armere.PlayerController
 		public bool updateEveryFrame = true;
 		float _sqrScanDistance;
 
-		public ScanForNearT(PlayerController c, ScanForNearTTemplate<T> t) : base(c, t)
+		public ScanForNearT(PlayerMachine c, ScanForNearTTemplate<T> t) : base(c, t)
 		{
 		}
 

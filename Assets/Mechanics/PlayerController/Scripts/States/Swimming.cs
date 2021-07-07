@@ -20,7 +20,7 @@ namespace Armere.PlayerController
 		float oldDrag;
 		System.Text.StringBuilder entry;
 
-		public Swimming(PlayerController c, SwimmingTemplate t) : base(c, t)
+		public Swimming(PlayerMachine machine, SwimmingTemplate t) : base(machine, t)
 		{
 			c.useGravity = false;
 			(oldDrag, c.rb.drag) = (c.rb.drag, t.waterDrag);
@@ -89,7 +89,7 @@ namespace Armere.PlayerController
 					if (currentDepth <= c.profile.maxWaterStrideDepth)
 					{
 						//Within walkable water
-						c.ChangeToState(c.defaultState);
+						machine.ChangeToState(machine.defaultState);
 					}
 				}
 			}
@@ -124,7 +124,7 @@ namespace Armere.PlayerController
 							//Can move to hit spot
 							transform.position = hit.point;
 
-							c.ChangeToState(TransitionStateTemplate.GenerateTransition(0.2f, c.defaultState));
+							machine.ChangeToState(TransitionStateTemplate.GenerateTransition(0.2f, machine.defaultState));
 							return;
 						}
 					}

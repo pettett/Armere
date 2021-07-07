@@ -9,7 +9,7 @@ namespace Armere.PlayerController
 
 		public MovementStateTemplate airInteract;
 
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Freefalling(c, this);
 		}

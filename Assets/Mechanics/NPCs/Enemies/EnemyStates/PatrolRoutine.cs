@@ -15,7 +15,7 @@ public class PatrolRoutine : AIStateTemplate
 	//Used to light torches
 	public bool lightFlammableBody = true;
 
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		return new Patrol(c, this);
 	}
@@ -23,7 +23,7 @@ public class PatrolRoutine : AIStateTemplate
 public class Patrol : AIState<PatrolRoutine>
 {
 	readonly Coroutine r;
-	public Patrol(AIHumanoid c, PatrolRoutine t) : base(c, t)
+	public Patrol(AIMachine c, PatrolRoutine t) : base(c, t)
 	{
 		r = c.StartCoroutine(Routine());
 	}

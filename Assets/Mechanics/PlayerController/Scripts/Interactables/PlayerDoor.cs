@@ -72,7 +72,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 			doorPivot = leftDoor ? leftDoorPivot : rightDoorPivot;
 		}
 
-		var autowalk = (AutoWalking)player.ChangeToState(player.autoWalk);
+		var autowalk = (AutoWalking)player.machine.ChangeToState(player.autoWalk);
 
 		//Needs to go to the left if using the right door pivot
 		Vector3 doorCenter = transform.TransformPoint(doorPivot.localPosition + Vector3.right * doorWidth * 0.5f * (leftDoor ? 1 : -1));
@@ -100,7 +100,7 @@ public class PlayerDoor : MonoBehaviour, IInteractable
 		yield return ChangeDoorRotation(doorPivot, Quaternion.identity);
 
 		//Return control
-		player.ChangeToState(player.defaultState);
+		player.machine.ChangeToState(player.machine.defaultState);
 	}
 
 

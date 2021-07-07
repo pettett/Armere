@@ -15,7 +15,7 @@ namespace Armere.PlayerController
 
 		float currentHeight;
 
-		public Freefalling(PlayerController c, FreefallingTemplate t) : base(c, t)
+		public Freefalling(PlayerMachine c, FreefallingTemplate t) : base(c, t)
 		{
 
 		}
@@ -40,7 +40,7 @@ namespace Armere.PlayerController
 
 			if (c.allCPs.Count > 0 && d < 0)
 			{
-				c.ChangeToState(c.defaultState);
+				machine.ChangeToState(machine.defaultState);
 			}
 
 			//only change back when the body is actually touching the ground
@@ -60,7 +60,7 @@ namespace Armere.PlayerController
 		{
 			if (phase == InputActionPhase.Started)//shield surfing combo - shield, jump, interact
 			{
-				c.ChangeToState(t.airInteract);
+				c.machine.ChangeToState(t.airInteract);
 			}
 		}
 

@@ -22,7 +22,7 @@ namespace Armere.PlayerController
 
 
 
-			(walking.c.GetParallelState(typeof(Interact)) as Interact).End();
+			(walking.machine.GetState(typeof(Interact)) as Interact).End();
 
 			float rotationTime = 0.2f;
 			var dir = holdable.transform.position - caster.transform.position;
@@ -130,7 +130,7 @@ namespace Armere.PlayerController
 
 			UIKeyPromptGroup.singleton.RemovePrompts();
 
-			(walking.c.GetParallelState(typeof(Interact)) as Interact).Start();
+			(walking.machine.GetState(typeof(Interact)) as Interact).Start();
 		}
 
 

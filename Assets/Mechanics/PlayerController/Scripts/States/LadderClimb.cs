@@ -19,7 +19,7 @@ namespace Armere.PlayerController
 		float oldColliderHeight;
 
 		Vector2 inputHorizontal => c.inputReader.horizontalMovement;
-		public LadderClimb(PlayerController c, LadderClimbTemplate t) : base(c, t)
+		public LadderClimb(PlayerMachine machine, LadderClimbTemplate t) : base(machine, t)
 		{
 
 
@@ -124,7 +124,7 @@ namespace Armere.PlayerController
 				//Jump off the ladder
 				c.rb.isKinematic = false;
 				c.rb.AddForce(-transform.forward * t.jumpForceHorizontal + transform.up * t.jumpForceVertical);
-				c.ChangeToState(c.defaultState);
+				c.machine.ChangeToState(machine.defaultState);
 
 				transform.forward = -transform.forward;
 			}
@@ -153,7 +153,7 @@ namespace Armere.PlayerController
 						//Get off at the top of the ladder
 						transform.position = GetLadderPos(ladder.ladderHeight - c.profile.m_standingHeight);
 						reachedLadderTop = true;
-						c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
+						c.machine.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, machine.defaultState));
 					}
 
 					animator.SetFloat(c.transitionSet.vertical.id, inputHorizontal.y * t.climbingSpeed);
@@ -187,7 +187,7 @@ namespace Armere.PlayerController
 						if (Physics.Raycast(origin, c.WorldDown, upOffset + minGroundDistance, c.m_groundLayerMask, QueryTriggerInteraction.Ignore))
 						{
 							//Hit the ground layer, stand up from climbing
-							c.ChangeToState(c.defaultState);
+							c.machine.ChangeToState(machine.defaultState);
 						}
 					}
 
@@ -232,7 +232,7 @@ namespace Armere.PlayerController
 						{
 							//go to tops
 							reachedLadderTop = true;
-							c.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, c.defaultState));
+							c.machine.ChangeToState(TransitionStateTemplate.GenerateTransition(t.transitionTime, machine.defaultState));
 
 						}
 						else

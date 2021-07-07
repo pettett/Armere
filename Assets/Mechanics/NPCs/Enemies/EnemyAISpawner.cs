@@ -23,7 +23,7 @@ public class EnemyAISpawner : Spawner
 		body.waypointGroup = optionalWaypoints;
 		body.onPlayerDetected += onPlayerDetected.Invoke;
 		if (startingState != null)
-			body.defaultState = startingState;
+			body.machine.defaultState = startingState;
 		body.InitEnemy();
 	}
 

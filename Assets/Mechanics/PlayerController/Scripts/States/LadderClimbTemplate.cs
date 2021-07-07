@@ -14,7 +14,7 @@ namespace Armere.PlayerController
 		public float jumpForceHorizontal = 200f;
 		public float jumpForceVertical = 100f;
 		[Range(0, 180)] public float maxHeadBodyRotationDifference = 5f;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new LadderClimb(c, this);
 		}

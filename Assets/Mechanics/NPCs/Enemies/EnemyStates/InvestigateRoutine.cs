@@ -8,7 +8,7 @@ public class InvestigateRoutine : AIStateTemplate
 	public AlertRoutine alertRoutine;
 	public AnimationCurve investigateRateOverDistance = AnimationCurve.EaseInOut(0, 1, 1, 0.1f);
 	[System.NonSerialized] public Character investigating;
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		return new Investigate(c, this);
 	}
@@ -29,7 +29,7 @@ public class Investigate : AIState<InvestigateRoutine>
 	public override bool investigateOnSight => false;
 	readonly Character investigating;
 	Coroutine r;
-	public Investigate(AIHumanoid c, InvestigateRoutine t) : base(c, t)
+	public Investigate(AIMachine c, InvestigateRoutine t) : base(c, t)
 	{
 		investigating = t.investigating;
 		r = c.StartCoroutine(Routine());
@@ -72,14 +72,14 @@ public class Investigate : AIState<InvestigateRoutine>
 			if (investProgress < -0.5f)
 			{
 				//Cannot see player
-				c.ChangeToState(c.defaultState);
+				machine.ChangeToState(c.defaultState);
 
 				break;
 			}
 			else if (investProgress >= 1)
 			{
 				//Seen player
-				c.ChangeToState(t.alertRoutine.EngageWith(investigating));
+				machine.ChangeToState(t.alertRoutine.EngageWith(investigating));
 				break;
 			}
 

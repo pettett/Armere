@@ -46,9 +46,9 @@ namespace Armere.PlayerController
 			action.enableTimer.RaiseEvent(true);
 
 
-			caster.c.ChangeToStateTimed(action.flying, action.time);
+			caster.machine.ChangeToStateTimed(action.flying, action.time);
 
-			caster.c.onStateChanged += Cancel;
+			caster.machine.onStateChanged += Cancel;
 			while (remaining > 0)
 			{
 				action.setTimerValue.RaiseEvent(remaining, action.time);
@@ -66,7 +66,7 @@ namespace Armere.PlayerController
 		{
 
 			action.enableTimer.RaiseEvent(false);
-			caster.c.onStateChanged -= Cancel;
+			caster.machine.onStateChanged -= Cancel;
 		}
 
 		public override void EndCast(bool manualCancel)

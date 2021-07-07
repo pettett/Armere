@@ -12,7 +12,7 @@ namespace Armere.PlayerController
 		[NonSerialized] bool inMenus;
 		[NonSerialized] bool inConsole;
 
-		public ToggleMenus(PlayerController c, ToggleMenusTemplate t) : base(c, t)
+		public ToggleMenus(PlayerMachine c, ToggleMenusTemplate t) : base(c, t)
 		{
 		}
 

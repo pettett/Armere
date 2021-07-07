@@ -83,7 +83,7 @@ namespace Armere.PlayerController
 		bool Coyote => ground.HasFlag(GroundState.Coyote);
 		bool IsGrounded => ground.HasFlag(GroundState.Grounded);
 
-		public Walking(PlayerController c, WalkingTemplate t) : base(c, t)
+		public Walking(PlayerMachine machine, WalkingTemplate t) : base(machine, t)
 		{
 			//Init sprint and crouch with correct values
 			isHoldingCrouchKey = c.inputReader.IsCrouchPressed();
@@ -133,7 +133,7 @@ namespace Armere.PlayerController
 			c.health.onBlockDamage += OnBlockDamage;
 
 
-			nearAttackables = (ScanForNearT<IAttackable>)c.GetParallelState(typeof(ScanForNearT<IAttackable>));
+			nearAttackables = machine.GetState<ScanForNearT<IAttackable>>();
 			nearAttackables.updateEveryFrame = false;
 
 			//Add input reader events
@@ -209,7 +209,7 @@ namespace Armere.PlayerController
 					new UIKeyPromptGroup.KeyPrompt("Roast Marshmellow", InputReader.GroundActionMapActions.AltAttack)
 					);
 
-				if (c.TryGetParallelState<Interact>(out var s))
+				if (machine.TryGetState<Interact>(out var s))
 					s.End();
 
 
@@ -721,7 +721,7 @@ namespace Armere.PlayerController
 
 			if (water.shouldSwim)
 			{
-				c.ChangeToState(t.swimming);
+				machine.ChangeToState(t.swimming);
 				return;
 			}
 

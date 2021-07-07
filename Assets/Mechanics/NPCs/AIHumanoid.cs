@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions;
 using UnityEngine.ResourceManagement.AsyncOperations;
-
+[RequireComponent(typeof(AIMachine))]
 [RequireComponent(typeof(NavMeshAgent))]
 public class AIHumanoid : Character
 {
@@ -20,7 +20,7 @@ public class AIHumanoid : Character
 	[System.NonSerialized] public Ragdoller ragdoller;
 	[System.NonSerialized] public CharacterMeshController meshController;
 
-	public AIStateTemplate defaultState;
+	public AIStateTemplate defaultState => machine.defaultState;
 
 
 	[Header("Vision")]
@@ -48,6 +48,8 @@ public class AIHumanoid : Character
 	[Header("Weapons")]
 	public BoundsFloatEventChannelSO destroyGrassInBoundsEventChannel;
 
+	public AIMachine machine;
+
 	// Start is called before the first frame update
 	public override void Start()
 	{
@@ -62,7 +64,6 @@ public class AIHumanoid : Character
 		Assert.IsNotNull(collider);
 
 		ragdoller.RagdollEnabled = false;
-		ChangeToState(defaultState);
 	}
 
 	public void Spawn(Spawner spawner)
@@ -303,29 +304,8 @@ public class AIHumanoid : Character
 		return weaponGraphics.holdables.bow.SetHeld(weapon);
 	}
 
-	public void ChangeToState(AIStateTemplate newState)
-	{
-		if (newState == null)
-			ChangeToState(defaultState);
-		else
-			ChangeToState(newState.StartState(this));
-	}
-	public void ChangeToState(AIState newState)
-	{
-		currentState?.End();
-		currentState = newState;
-		currentState.Start();
-	}
 
-	protected override void Update()
-	{
-		base.Update();
-		currentState.Update();
-	}
-	protected virtual void FixedUpdate()
-	{
-		currentState.FixedUpdate();
-	}
+
 	public AIState currentState;
 
 }

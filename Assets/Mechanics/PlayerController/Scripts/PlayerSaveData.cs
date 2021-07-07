@@ -75,7 +75,7 @@ namespace Armere.PlayerController
 			writer.WritePrimitive(c.weaponGraphics.holdables.bow.sheathed);
 
 			//Save the current state
-			writer.WritePrimitive(c.currentState.stateSymbol);
+			writer.WritePrimitive(c.machine.mainState.stateSymbol);
 
 		}
 	}

@@ -1,14 +1,14 @@
 ﻿
-public abstract class State<CharacterT>
-	where CharacterT : Character
+public abstract class State<StateT, MachineT, TemplateT>
+	where MachineT : StateMachine<StateT, MachineT, TemplateT>
+	where StateT : State<StateT, MachineT, TemplateT>
+	where TemplateT : StateTemplate<StateT, MachineT, TemplateT>
 {
-	public readonly CharacterT c;
+	public readonly MachineT machine;
 
-
-
-	public State(CharacterT c)
+	public State(MachineT machine)
 	{
-		this.c = c;
+		this.machine = machine;
 	}
 
 	public virtual void Start() { }

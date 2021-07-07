@@ -12,7 +12,7 @@ public class SearchForEventRoutine : AIState
 
 
 
-	public SearchForEventRoutine(AIHumanoid c, Vector3 eventPos) : base(c)
+	public SearchForEventRoutine(AIMachine c, Vector3 eventPos) : base(c)
 	{
 		this.eventPos = eventPos;
 		r = c.StartCoroutine(Routine());

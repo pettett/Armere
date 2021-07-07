@@ -8,7 +8,7 @@ namespace Armere.PlayerController
 		[Header("Channels")]
 		public BoolEventChannelSO setTabMenuEventChannel;
 		public IntEventChannelSO setTabMenuPanelEventChannel;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new ToggleMenus(c, this);
 		}

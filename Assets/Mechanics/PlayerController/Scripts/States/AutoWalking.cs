@@ -14,7 +14,7 @@ namespace Armere.PlayerController
 		NavMeshAgent agent;
 		float oldFriction;
 
-		public AutoWalking(PlayerController c, AutoWalkingTemplate t) : base(c, t)
+		public AutoWalking(PlayerMachine c, AutoWalkingTemplate t) : base(c, t)
 		{
 		}
 

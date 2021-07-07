@@ -45,7 +45,7 @@ namespace Armere.PlayerController
 		string speakingNPC = null;
 
 
-		public Conversation(PlayerController c, ConversationTemplate t, AIDialogue d) : base(c, t)
+		public Conversation(PlayerMachine machine, ConversationTemplate t, AIDialogue d) : base(machine, t)
 		{
 			c.StartCoroutine(c.UnEquipAll());
 			overrideStartNode = t.overrideStartingNode;

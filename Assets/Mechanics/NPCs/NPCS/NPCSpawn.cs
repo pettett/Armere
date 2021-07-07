@@ -46,7 +46,7 @@ public class NPCSpawn : Spawner
 	public void OnNPCLoaded(AsyncOperationHandle<GameObject> handle)
 	{
 		var npc = handle.Result.GetComponent<AIHumanoid>();
-		npc.defaultState = template;
+		handle.Result.GetComponent<AIMachine>().defaultState = template;
 		npc.Spawn(this);
 	}
 

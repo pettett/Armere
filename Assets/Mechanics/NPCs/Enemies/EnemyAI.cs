@@ -30,7 +30,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	{
 		//Push the ai back
 		if (currentState.alertOnAttack && attacker.TryGetComponent(out Character c))
-			ChangeToState(alert.EngageWith(c));
+			machine.ChangeToState(alert.EngageWith(c));
 	}
 
 	public void OnExplosion(Vector3 source, float radius, float force)
@@ -39,14 +39,14 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		float sqrDistance01 = 1 - Vector3.SqrMagnitude(transform.position - source) / (radius * radius);
 
 
-		ChangeToState(new KnockoutRoutine(this, sqrDistance01 * maxExplosionKnockoutTime));
+		machine.ChangeToState(new KnockoutRoutine(machine, sqrDistance01 * maxExplosionKnockoutTime));
 
 	}
 
 	[MyBox.ButtonMethod()]
 	public void Ragdoll()
 	{
-		ChangeToState(new KnockoutRoutine(this, knockoutTime));
+		machine.ChangeToState(new KnockoutRoutine(machine, knockoutTime));
 	}
 
 
@@ -54,7 +54,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	{
 		//TODO: Make this better
 		health.Damage(time * 10, gameObject);
-		ChangeToState(new KnockoutRoutine(this, time));
+		machine.ChangeToState(new KnockoutRoutine(machine, time));
 	}
 
 	private void OnValidate()
@@ -73,7 +73,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	public void Die()
 	{
-		ChangeToState(new DieRoutine(this));
+		machine.ChangeToState(new DieRoutine(machine));
 	}
 
 	public override void Start()
@@ -103,7 +103,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	{
 		if (currentState.searchOnEvent)
 		{
-			ChangeToState(new SearchForEventRoutine(this, position));
+			machine.ChangeToState(new SearchForEventRoutine(machine, position));
 		}
 	}
 
@@ -118,7 +118,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	public void ForceEngage(Character c)
 	{
-		ChangeToState(alert.EngageWith(c));
+		machine.ChangeToState(alert.EngageWith(c));
 	}
 
 
@@ -164,7 +164,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 						if (ProportionBoundsVisible(b) != 0)
 						{
 							//can see the player, interrupt current routine
-							ChangeToState(investigate.Investigate(targets[i]));
+							machine.ChangeToState(investigate.Investigate(targets[i]));
 							return;
 						}
 					}

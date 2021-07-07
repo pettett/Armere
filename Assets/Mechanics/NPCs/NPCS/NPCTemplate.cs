@@ -66,7 +66,7 @@ public class NPCTemplate : AIStateTemplate
 
 	}
 
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		return new NPCRoutine(c, this);
 	}
@@ -183,7 +183,7 @@ public class NPCRoutine : AIState<NPCTemplate>, IDialogue, IVariableAddon
 
 	readonly NPCSpawn spawn;
 
-	public NPCRoutine(AIHumanoid c, NPCTemplate t) : base(c, t)
+	public NPCRoutine(AIMachine machine, NPCTemplate t) : base(machine, t)
 	{
 		Assert.IsNotNull(t);
 		Assert.IsNotNull(t.routines);

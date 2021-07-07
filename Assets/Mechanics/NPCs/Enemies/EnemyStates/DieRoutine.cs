@@ -10,7 +10,7 @@ public class DieRoutine : AIState
 
 	public override bool investigateOnSight => false;
 	Coroutine r;
-	public DieRoutine(AIHumanoid c) : base(c)
+	public DieRoutine(AIMachine c) : base(c)
 	{
 
 		r = c.StartCoroutine(Routine());

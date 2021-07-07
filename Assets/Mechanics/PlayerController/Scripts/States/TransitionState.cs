@@ -8,7 +8,7 @@ namespace Armere.PlayerController
 	public class TransitionState : MovementState
 	{
 		readonly MovementStateTemplate next;
-		public TransitionState(PlayerController c, TransitionStateTemplate t) : base(c)
+		public TransitionState(PlayerMachine machine, TransitionStateTemplate t) : base(machine)
 		{
 			next = t.nextState;
 			c.StartCoroutine(MoveToNext(t.time));
@@ -22,7 +22,7 @@ namespace Armere.PlayerController
 		IEnumerator MoveToNext(float time)
 		{
 			yield return new WaitForSeconds(time);
-			c.ChangeToState(next);
+			machine.ChangeToState(next);
 		}
 	}
 }

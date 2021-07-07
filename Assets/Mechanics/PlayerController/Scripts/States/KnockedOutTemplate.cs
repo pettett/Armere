@@ -8,7 +8,7 @@ namespace Armere.PlayerController
 		public MovementStateTemplate returnState;
 		[System.NonSerialized]
 		public float time;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new KnockedOut(c, this);
 		}

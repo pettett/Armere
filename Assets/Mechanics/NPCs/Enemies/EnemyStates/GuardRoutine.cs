@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Guard Routine", menuName = "Game/NPCs/Guard Routine", order = 0)]
 public class GuardRoutine : AIStateTemplate
 {
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		return new Guard(c, this);
 	}
@@ -13,7 +13,7 @@ public class GuardRoutine : AIStateTemplate
 public class Guard : AIState<GuardRoutine>
 {
 	readonly Coroutine r;
-	public Guard(AIHumanoid c, GuardRoutine t) : base(c, t)
+	public Guard(AIMachine c, GuardRoutine t) : base(c, t)
 	{
 		r = c.StartCoroutine(Routine());
 	}

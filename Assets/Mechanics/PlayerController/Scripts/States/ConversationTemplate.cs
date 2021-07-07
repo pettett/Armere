@@ -8,7 +8,7 @@ namespace Armere.PlayerController
 		public NPCManager npcManager;
 		[System.NonSerialized] public AIDialogue npc;
 		[System.NonSerialized] public string overrideStartingNode;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Conversation(c, this, npc);
 		}
@@ -22,7 +22,7 @@ namespace Armere.PlayerController
 
 		public void StartConversation(PlayerController controller, AIDialogue target, string overrideStartingNode = null)
 		{
-			controller.ChangeToState(StartConversation(target, overrideStartingNode));
+			controller.machine.ChangeToState(StartConversation(target, overrideStartingNode));
 		}
 
 		public void TeleportToConversation(PlayerController controller, AIDialogue target, string overrideStartingNode = null)
@@ -33,7 +33,7 @@ namespace Armere.PlayerController
 				onFadeEnd: () =>
 				{
 					controller.Play();
-					controller.ChangeToState(StartConversation(target, overrideStartingNode));
+					controller.machine.ChangeToState(StartConversation(target, overrideStartingNode));
 				}
 			));
 		}

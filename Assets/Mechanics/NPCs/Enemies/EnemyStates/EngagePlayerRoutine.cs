@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 [CreateAssetMenu(fileName = "Engage Player Routine", menuName = "Game/NPCs/Engage Player Routine", order = 0)]
 public class EngagePlayerRoutine : AIFocusCharacterStateTemplate
 {
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		Assert.IsNotNull(engaging);
 		var s = new EngagePlayer(c, this, engaging);
@@ -27,7 +27,7 @@ public class EngagePlayer : AIState<EngagePlayerRoutine>
 	public bool approachPlayer = true;
 	Coroutine r;
 	Character target;
-	public EngagePlayer(AIHumanoid c, EngagePlayerRoutine t, Character target) : base(c, t)
+	public EngagePlayer(AIMachine c, EngagePlayerRoutine t, Character target) : base(c, t)
 	{
 		Assert.IsNotNull(target);
 
@@ -89,7 +89,7 @@ public class EngagePlayer : AIState<EngagePlayerRoutine>
 			yield return null;
 		}
 		//Once the player has died, return to normal routine to stop end looking janky
-		c.ChangeToState(c.defaultState);
+		machine.ChangeToState(c.defaultState);
 	}
 
 }

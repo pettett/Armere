@@ -20,7 +20,7 @@ namespace Armere.PlayerController
 
 		public MovementStateTemplate nextState;
 		public float time = 5;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new TransitionState(c, this);
 		}

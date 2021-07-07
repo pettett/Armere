@@ -14,7 +14,7 @@ public class AutoBowRoutine : AIStateTemplate
 	public float arrowSpeed = 100;
 
 
-	public override AIState StartState(AIHumanoid c)
+	public override AIState StartState(AIMachine c)
 	{
 		return new AutoBow(c, this);
 	}
@@ -23,7 +23,7 @@ public class AutoBowRoutine : AIStateTemplate
 public class AutoBow : AIState<AutoBowRoutine>
 {
 	readonly Coroutine r;
-	public AutoBow(AIHumanoid c, AutoBowRoutine t) : base(c, t)
+	public AutoBow(AIMachine c, AutoBowRoutine t) : base(c, t)
 	{
 		r = c.StartCoroutine(Routine());
 	}

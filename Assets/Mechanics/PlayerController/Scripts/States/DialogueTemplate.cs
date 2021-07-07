@@ -6,7 +6,7 @@ namespace Armere.PlayerController
 	public class DialogueTemplate : MovementStateTemplate
 	{
 		[System.NonSerialized] public IDialogue dialogue;
-		public override MovementState StartState(PlayerController c)
+		public override MovementState StartState(PlayerMachine c)
 		{
 			return new Dialogue<DialogueTemplate>(c, this);
 		}

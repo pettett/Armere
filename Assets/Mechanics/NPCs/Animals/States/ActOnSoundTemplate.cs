@@ -4,7 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/NPCs/Act On Sound")]
 public class ActOnSoundTemplate : AnimalStateTemplate
 {
-	public AnimalStateTemplate act;
+	public AnimalStateContextTemplate<Vector3> act;
 	public override AnimalState StartState(AnimalMachine machine)
 	{
 		return new ActOnSound(machine, this);
@@ -25,6 +25,6 @@ public class ActOnSound : AnimalState<ActOnSoundTemplate>
 	}
 	public void OnHearNoise(Vector3 source)
 	{
-		machine.ChangeToState(t.act);
+		machine.ChangeToState(t.act, source);
 	}
 }

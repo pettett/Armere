@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
 using System.Linq;
-using Malee.List;
 
 [RequireComponent(typeof(LayoutGroup))]
 public class UIKeyPromptGroup : MonoBehaviour
@@ -41,10 +40,7 @@ public class UIKeyPromptGroup : MonoBehaviour
 	public Material maskingTextMaterial;
 	public Material maskedSpriteMaterial;
 
-	[System.Serializable]
-	public class KeyBindSpritesArray : ReorderableArray<KeyBindSprite> { }
-	[Reorderable(paginate = false)]
-	public KeyBindSpritesArray keybindSpritesOrder;
+	public KeyBindSprite[] keybindSpritesOrder;
 	public static UIKeyPromptGroup singleton;
 
 

@@ -11,6 +11,7 @@ public class CuttableTreeEditor : Editor
 	private void OnEnable()
 	{
 		var t = (target as CuttableTree);
+		t.UpdateComponents();
 	}
 
 	void Property(string name)
@@ -33,9 +34,6 @@ public class CuttableTreeEditor : Editor
 		// ObjectField<MeshFilter>("Mesh Filter", ref t.meshFilter);
 		// ObjectField<MeshCollider>("Mesh Filter", ref t.meshCollider);
 		// ObjectField<AudioSource>("Audio Source", ref t.audioSource);
-		Property("meshFilter");
-		Property("meshCollider");
-		Property("meshRenderer");
 		Property("profile");
 
 		// GUILayout.Label("Cutting", EditorStyles.boldLabel);

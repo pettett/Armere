@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public abstract class StateMachine<StateT, MachineT, TemplateT> : MonoBehaviour
 	where MachineT : StateMachine<StateT, MachineT, TemplateT>
@@ -12,6 +13,15 @@ public abstract class StateMachine<StateT, MachineT, TemplateT> : MonoBehaviour
 	public readonly List<StateT> currentStates = new List<StateT>();
 	private void Start()
 	{
+		if (defaultState != null)
+			ChangeToState(defaultState);
+	}
+
+
+	public void Init(TemplateT defaultState)
+	{
+		Assert.IsNotNull(defaultState);
+		this.defaultState = defaultState;
 		ChangeToState(defaultState);
 	}
 

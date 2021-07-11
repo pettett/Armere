@@ -83,6 +83,8 @@ public struct AnimatorVariable
 		_id = null;
 	}
 	public static implicit operator int(AnimatorVariable var) => var.id;
+
+
 }
 
 

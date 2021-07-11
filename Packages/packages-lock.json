@@ -7,19 +7,16 @@
       "dependencies": {},
       "hash": "61de17f4dbb51a46aec89bc22e33db7b11b52bbf"
     },
-    "com.malee.reorderablelist": {
-      "version": "https://github.com/cfoulston/Unity-Reorderable-List.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "ac1f508240fb752b1f9d7c222c231d7f2a33df87"
-    },
-    "com.mybox": {
+    "com.domybest.mybox": {
       "version": "https://github.com/Deadcows/MyBox.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "8e527a416896c54767d718a0e1769df25518a662"
+      "dependencies": {
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.ai": "1.0.0",
+        "com.unity.modules.physics2d": "1.0.0"
+      },
+      "hash": "725b8fb2ca2f88e2998b7e4ad4d38373d6bf9a1f"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -28,11 +25,11 @@
       "dependencies": {}
     },
     "com.unity.addressables": {
-      "version": "1.18.4",
+      "version": "1.18.11",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.scriptablebuildpipeline": "1.18.0",
+        "com.unity.scriptablebuildpipeline": "1.19.1",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
@@ -145,7 +142,7 @@
       }
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.18.0",
+      "version": "1.19.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {},

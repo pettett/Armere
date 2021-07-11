@@ -12,10 +12,11 @@ public struct AudioProfile
 [CreateAssetMenu(fileName = "AudioEventChannelSO", menuName = "Game/Audio/AudioEventChannelSO")]
 public class AudioEventChannelSO : EventChannelSO<AudioClip, AudioProfile>
 {
-	public void RaiseEvent(AudioClipSet set, Vector3 position)
+	public void RaiseEvent(AudioClipSet set, Vector3 position, float volume = 1)
 	{
 		var p = set.profile;
 		p.position = position;
+		p.virtualAudioVolume = volume;
 		RaiseEvent(set.SelectClip(), p);
 	}
 }

@@ -9,6 +9,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
 using Unity.Mathematics;
+using UnityEngine.Assertions;
 
 [System.Serializable]
 public struct Triangle
@@ -30,6 +31,7 @@ public struct Triangle
 }
 public enum TriangleCutMode : byte { Full, Top, Base }
 [ExecuteAlways]
+[RequireComponent(typeof(MeshFilter), typeof(MeshCollider), typeof(MeshRenderer))]
 public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 {
 
@@ -50,10 +52,10 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 
 
+	[System.NonSerialized] public MeshFilter meshFilter;
+	[System.NonSerialized] public MeshCollider meshCollider;
+	[System.NonSerialized] public MeshRenderer meshRenderer;
 	[Header("References")]
-	public MeshFilter meshFilter;
-	public MeshCollider meshCollider;
-	public MeshRenderer meshRenderer;
 	public CuttableTreeProfile profile;
 
 	public List<CutVector> activeCutVectors = new List<CutVector>();
@@ -63,9 +65,18 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 	public Vector3 offset => Vector3.up * profile.cutHeight;
 
+	public void UpdateComponents()
+	{
+		Assert.IsTrue(TryGetComponent(out meshFilter));
+		Assert.IsTrue(TryGetComponent(out meshCollider));
+		Assert.IsTrue(TryGetComponent(out meshRenderer));
+	}
+
 	private void Start()
 	{
 		activeCutVectors = new List<CutVector>();
+		UpdateComponents();
+
 		UpdateMeshFilter(TriangleCutMode.Full);
 	}
 

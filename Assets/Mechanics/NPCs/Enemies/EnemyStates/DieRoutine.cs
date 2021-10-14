@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class DieRoutine : AIState
 {
-	public override bool alertOnAttack => false;
+	public override string StateName => "Died";
 
-	public override bool searchOnEvent => false;
-
-	public override bool investigateOnSight => false;
 	Coroutine r;
 	public DieRoutine(AIMachine c) : base(c)
 	{

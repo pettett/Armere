@@ -3,14 +3,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Armere.Inventory;
 
-[RequireComponent(typeof(Health), typeof(WeaponGraphicsController), typeof(Ragdoller))]
+[RequireComponent(typeof(Health), typeof(Ragdoller))]
 public class EnemyAI : AIHumanoid, IExplosionEffector
 {
 	[System.NonSerialized] public Health health;
 
 	[Header("Player Engagement")]
 
-	public InvestigateRoutine investigate;
 	public AlertRoutine alert;
 
 	public float knockoutTime = 4f;
@@ -23,15 +22,6 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 	Vector3 lookingAtOffset = Vector3.up * 1.6f;
 
 
-
-
-
-	public void OnDamageTaken(GameObject attacker, GameObject victim)
-	{
-		//Push the ai back
-		if (currentState.alertOnAttack && attacker.TryGetComponent(out Character c))
-			machine.ChangeToState(alert.EngageWith(c));
-	}
 
 	public void OnExplosion(Vector3 source, float radius, float force)
 	{
@@ -57,19 +47,6 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 		machine.ChangeToState(new KnockoutRoutine(machine, time));
 	}
 
-	private void OnValidate()
-	{
-		if (clippingPlanes.x > clippingPlanes.y)
-		{
-			//If the lower value is bigger, make the upper value equal
-			clippingPlanes.y = clippingPlanes.x;
-		}
-		else if (clippingPlanes.y < clippingPlanes.x)
-		{
-			//if the upper value is smaller, make the lower value equal
-			clippingPlanes.x = clippingPlanes.y;
-		}
-	}
 
 	public void Die()
 	{
@@ -78,34 +55,22 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 	public override void Start()
 	{
-		health = GetComponent<Health>();
+		AssertComponent(out health);
+		AssertComponent(out collider);
 
-		collider = GetComponent<Collider>();
-
-		health.onTakeDamage += OnDamageTaken;
 		health.onDeathEvent.AddListener(Die);
 
 		base.Start();
 		//TODO: remove
 		meshController.SetMeshColor(Color.red);
 
-		GetComponent<VirtualAudioListener>().onHearNoise += OnNoiseHeard;
-
-		if (inventory.HasMeleeWeapon)
+		if (hasInventory && inventory.HasMeleeWeapon)
 		{
 			inventory.selectedMelee = inventory.BestMeleeWeapon;
 			SetHeldMelee(inventory.SelectedMeleeWeapon);
 		}
 	}
 
-
-	public void OnNoiseHeard(Vector3 position)
-	{
-		if (currentState.searchOnEvent)
-		{
-			machine.ChangeToState(new SearchForEventRoutine(machine, position));
-		}
-	}
 
 	public virtual void InitEnemy()
 	{
@@ -115,67 +80,26 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 
 
-
 	public void ForceEngage(Character c)
 	{
-		machine.ChangeToState(alert.EngageWith(c));
+		machine.ChangeToState(alert.Target(c));
 	}
 
 
 
 
-
-	public bool CanSeeBounds(Bounds b)
-	{
-		if (sightMode == SightMode.View)
-		{
-			var viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
-			GeometryUtility.CalculateFrustumPlanes(viewMatrix * eye.worldToLocalMatrix, viewPlanes);
-			return GeometryUtility.TestPlanesAABB(viewPlanes, b);
-		}
-		else if (sightMode == SightMode.Range)
-		{
-			float sqrDistance = (b.center - eye.position).sqrMagnitude;
-			if (sqrDistance < clippingPlanes.y * clippingPlanes.y && sqrDistance > clippingPlanes.x * clippingPlanes.x)
-			{
-				return true;
-			}
-			else return false;
-		}
-		return false;
-	}
 
 
 	protected override void Update()
 	{
 		base.Update();
 		//Test if the c can see the player at this point
-		if (currentState?.investigateOnSight ?? false)
-		{
-			Team[] enemies = Enemies();
-			for (int i = 0; i < enemies.Length; i++)
-			{
-				if (teams.ContainsKey(enemies[i]))
-				{
-					List<Character> targets = teams[enemies[i]];
-					for (int j = 0; j < targets.Count; j++)
-					{
-						var b = targets[i].bounds;
-						if (ProportionBoundsVisible(b) != 0)
-						{
-							//can see the player, interrupt current routine
-							machine.ChangeToState(investigate.Investigate(targets[i]));
-							return;
-						}
-					}
-				}
-			}
-		}
 
-		float speed = Mathf.Sign(agent.velocity.sqrMagnitude);
+
+		float speed = Mathf.Sign(velocity.sqrMagnitude);
 
 		animationController.anim.SetBool("Idle", speed == 0);
-		animationController.anim.SetFloat("InputVertical", agent.velocity.sqrMagnitude / (agent.speed * agent.speed), 0.01f, Time.deltaTime);
+		animationController.anim.SetFloat("InputVertical", velocity.sqrMagnitude / (agent.speed * agent.speed), 0.01f, Time.deltaTime);
 	}
 
 	private void OnAnimatorIK(int layerIndex)
@@ -184,43 +108,5 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 			LookAtPlayer(lookingAtTarget.position + lookingAtOffset);
 	}
 
-	private void OnDrawGizmos()
-	{
 
-
-		Team[] enemies = Enemies();
-		for (int i = 0; i < enemies.Length; i++)
-		{
-			if (teams.ContainsKey(enemies[i]))
-			{
-				List<Character> targets = teams[enemies[i]];
-				for (int j = 0; j < targets.Count; j++)
-				{
-					var b = targets[j].bounds;
-
-					float visibility = ProportionBoundsVisible(b);
-					if (CanSeeBounds(b))
-					{
-						Gizmos.color = new Color(visibility, 0, 0); Gizmos.DrawWireCube(b.center, b.size);
-					}
-
-
-
-				}
-			}
-		}
-
-
-		if (sightMode == SightMode.View)
-		{
-			Gizmos.color = Color.white;
-			Gizmos.matrix = eye.localToWorldMatrix;
-			Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.y, clippingPlanes.x, 1f);
-		}
-		else if (sightMode == SightMode.Range)
-		{
-			Gizmos.DrawWireSphere(eye.position, clippingPlanes.x);
-			Gizmos.DrawWireSphere(eye.position, clippingPlanes.y);
-		}
-	}
 }

@@ -2,11 +2,9 @@ using System.Collections;
 using UnityEngine;
 public class SearchForEventRoutine : AIState
 {
-	public override bool alertOnAttack => true;
 
-	public override bool searchOnEvent => true;
+	public override string StateName => "SearchForEventRoutine";
 
-	public override bool investigateOnSight => true;
 	readonly Vector3 eventPos;
 	Coroutine r;
 

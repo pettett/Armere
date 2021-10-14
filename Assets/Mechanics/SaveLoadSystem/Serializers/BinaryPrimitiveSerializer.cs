@@ -9,14 +9,29 @@ public readonly struct BinaryIntSerializer : IBinaryVariableSerializer<BinaryInt
 	public BinaryIntSerializer Read(in GameDataReader reader) => reader.ReadInt();
 
 
-	public override string ToString()
-	{
-		return value.ToString();
-	}
+	public override string ToString() => value.ToString();
 
 	public static implicit operator BinaryIntSerializer(int value) => new BinaryIntSerializer(value);
 	public static implicit operator int(BinaryIntSerializer value) => value.value;
 }
+
+public readonly struct BinaryStringSerializer : IBinaryVariableSerializer<BinaryStringSerializer>
+{
+	readonly string value;
+	public BinaryStringSerializer(string value)
+	{
+		this.value = value;
+	}
+	public void Write(in GameDataWriter writer) => writer.WritePrimitive(value);
+	public BinaryStringSerializer Read(in GameDataReader reader) => reader.ReadString();
+
+
+	public override string ToString() => value.ToString();
+
+	public static implicit operator BinaryStringSerializer(string value) => new BinaryStringSerializer(value);
+	public static implicit operator string(BinaryStringSerializer value) => value.value;
+}
+
 public readonly struct BinaryULongSerializer : IBinaryVariableSerializer<BinaryULongSerializer>
 {
 	readonly ulong value;

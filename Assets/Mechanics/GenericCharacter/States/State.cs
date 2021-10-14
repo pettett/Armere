@@ -6,6 +6,8 @@ public abstract class State<StateT, MachineT, TemplateT>
 {
 	public readonly MachineT machine;
 
+	public abstract string StateName { get; }
+	
 	public State(MachineT machine)
 	{
 		this.machine = machine;
@@ -17,4 +19,5 @@ public abstract class State<StateT, MachineT, TemplateT>
 	public virtual void FixedUpdate() { }
 	public virtual void End() { }
 	public virtual void OnDrawGizmos() { }
+
 }

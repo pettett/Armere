@@ -85,7 +85,7 @@ namespace Armere.Inventory
 		}
 
 	}
-	[CreateAssetMenu(menuName = "Game/Inventory")]
+	[CreateAssetMenu(menuName = "Game/Inventory/Inventory Controller")]
 	public class InventoryController : LoadableAsyncSO, IVariableAddon
 	{
 
@@ -132,6 +132,7 @@ namespace Armere.Inventory
 		}
 
 		public bool HasMeleeWeapon => melee.items.Count > 0;
+		public bool HasBowWeapon => bow.items.Count > 0;
 
 		public int BestMeleeWeapon
 		{

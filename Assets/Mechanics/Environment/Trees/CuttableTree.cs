@@ -128,8 +128,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 
 		if (profile.cutClips?.Valid() ?? false)
 		{
-			profile.soundProfile.position = transform.position;
-			profile.audioEventChannelSO.RaiseEvent(profile.cutClips, profile.soundProfile);
+			profile.audioEventChannelSO.RaiseEvent(profile.cutClips, transform.position);
 		}
 		//Cut or split the tree
 		if (totalDamage < profile.damageToCut)

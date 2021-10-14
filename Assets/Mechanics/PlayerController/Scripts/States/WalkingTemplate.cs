@@ -2,7 +2,7 @@
 
 using Armere.Inventory;
 using UnityEngine;
-
+using UnityEngine.Events;
 namespace Armere.PlayerController
 {
 	[System.Serializable]
@@ -46,7 +46,7 @@ namespace Armere.PlayerController
 	public class WalkingTemplate : MovementStateTemplate
 	{
 		//public MovementStateTemplate freefalling;
-
+		public bool debugStep = false;
 		[Header("Movement")]
 		public Speeds crouching = new Speeds(1f, 0.25f, 0.5f);
 		public Speeds walking = new Speeds(1f, 0.75f, 1f);
@@ -115,5 +115,7 @@ namespace Armere.PlayerController
 		{
 			return new Walking(c, this);
 		}
+		[Header("Events")]
+		public UnityEvent onJump;
 	}
 }

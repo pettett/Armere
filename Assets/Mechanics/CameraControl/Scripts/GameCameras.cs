@@ -59,7 +59,7 @@ public class GameCameras : MonoBehaviour
 	public DuelFocusGroup focusGroup;
 
 	[Header("Vision")]
-	public VirtualVision cameraVision;
+	public PlayerVision cameraVision;
 
 	public float currentCameraLerp = 1f;
 	float cameraLerpSpeed;

@@ -169,6 +169,7 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 		gameInput.GroundActionMap.Disable();
 
 		gameInput.UI.Disable();
+
 	}
 
 	public void SwitchToUIInput()
@@ -219,7 +220,7 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	public void OnQuickSave(InputAction.CallbackContext context) => quicksaveEvent?.Invoke(context.phase);
 	public void OnQuickLoad(InputAction.CallbackContext context) => quickloadEvent?.Invoke(context.phase);
 
-	public void OnSumbit(CallbackContext context) => uiSubmitEvent?.Invoke(context.phase);
+	public void OnSubmit(CallbackContext context) => uiSubmitEvent?.Invoke(context.phase);
 
 	public void OnCancel(CallbackContext context) => uiCancelEvent?.Invoke(context.phase);
 
@@ -274,7 +275,4 @@ public class InputReader : ScriptableObject, PlayerControls.IGroundActionMapActi
 	{
 	}
 
-	public void OnSubmit(CallbackContext context)
-	{
-	}
 }

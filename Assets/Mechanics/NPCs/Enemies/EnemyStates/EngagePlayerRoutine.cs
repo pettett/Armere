@@ -3,13 +3,18 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 [CreateAssetMenu(fileName = "Engage Player Routine", menuName = "Game/NPCs/Engage Player Routine", order = 0)]
-public class EngagePlayerRoutine : AIFocusCharacterStateTemplate
+public class EngagePlayerRoutine : AIContextStateTemplate<Character>
 {
+	public bool useSword;
+	public bool useBow;
+	public float meleeDistance = 1;
+	public float bowDistance = 5f;
+
 	public override AIState StartState(AIMachine c)
 	{
-		Assert.IsNotNull(engaging);
-		var s = new EngagePlayer(c, this, engaging);
-		engaging = null;
+		Assert.IsNotNull(context);
+		var s = new EngagePlayer(c, this, context);
+		context = null;
 		return s;
 	}
 
@@ -17,14 +22,10 @@ public class EngagePlayerRoutine : AIFocusCharacterStateTemplate
 
 public class EngagePlayer : AIState<EngagePlayerRoutine>
 {
-	public override bool alertOnAttack => false;
 
-	public override bool searchOnEvent => false;
 
-	public override bool investigateOnSight => false;
-	public float approachDistance = 1;
-	float sqrApproachDistance => approachDistance * approachDistance;
-	public bool approachPlayer = true;
+	float sqrMeleeDistance => t.meleeDistance * t.meleeDistance;
+
 	Coroutine r;
 	Character target;
 	public EngagePlayer(AIMachine c, EngagePlayerRoutine t, Character target) : base(c, t)
@@ -45,7 +46,7 @@ public class EngagePlayer : AIState<EngagePlayerRoutine>
 		c.agent.isStopped = true;
 
 		Vector3 directionToPlayer;
-		Health playerHealth = target.GetComponent<Health>();
+		Health targetHealth = target.GetComponent<Health>();
 		bool movingToCatchPlayer = false;
 		c.lookingAtTarget = target.transform;
 
@@ -54,30 +55,59 @@ public class EngagePlayer : AIState<EngagePlayerRoutine>
 
 
 		//Stop attacking the player after it has died
-		while (!playerHealth.dead)
+		while (!targetHealth.dead)
 		{
 			directionToPlayer = target.transform.position - c.transform.position;
-			if (approachPlayer && directionToPlayer.sqrMagnitude > sqrApproachDistance)
+
+			float targetDistSqr = sqrMeleeDistance;
+			//Melee if sword is on or neither are on
+			//Should be one or the other
+			bool sword = (t.useSword && c.hasInventory && c.inventory.HasMeleeWeapon);
+			bool bow = (t.useBow && c.hasInventory && c.inventory.HasBowWeapon);
+
+			bool melee = sword || !bow; //Melee with sword if we can, else use bow, else use fists
+
+			if (!melee) targetDistSqr = t.bowDistance * t.bowDistance;
+
+
+			bool tooFarToAttack = directionToPlayer.sqrMagnitude > targetDistSqr;
+
+
+
+			switch (melee, tooFarToAttack, movingToCatchPlayer)
 			{
-				if (!movingToCatchPlayer)
-				{
+
+				case (_, true, false):
 					movingToCatchPlayer = true;
 					yield return new WaitForSeconds(0.1f);
-				}
+					break;
+				case (_, true, true): //Wants to melee, too far to melee and already moving
+					c.agent.Move(directionToPlayer.normalized * Time.deltaTime * c.agent.speed);
+					break;
+				case (_, false, true):
+					movingToCatchPlayer = false;
+					//Small delay to adjust to stopped movement
+					yield return new WaitForSeconds(0.1f);
+					break;
 
-				c.agent.Move(directionToPlayer.normalized * Time.deltaTime * c.agent.speed);
-			}
-			else if (movingToCatchPlayer)
-			{
-				movingToCatchPlayer = false;
-				//Small delay to adjust to stopped movement
-				yield return new WaitForSeconds(0.1f);
-			}
-			else
-			{
-				//Within sword range of player
-				//Swing sword
-				yield return c.SwingSword();
+				case (true, false, false):
+					//Within melee range of player
+
+					if (t.useSword)
+						//Swing sword
+						yield return c.SwingSword();
+					else
+					{
+						//Melee attack
+						Debug.Log("Doing melee attack");
+
+					}
+					break;
+				case (false, false, false):
+					//use bow, can only use bow
+					Debug.Log("Doing bow attack");
+					break;
+
 			}
 
 			directionToPlayer.y = 0;

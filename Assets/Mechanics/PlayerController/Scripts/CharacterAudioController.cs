@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Armere.PlayerController
 {
-	[RequireComponent(typeof(AudioSource))]
 
 	public class CharacterAudioController : MonoBehaviour
 	{
-		AudioSource source;
 		PlayerWaterObject c;
 
 		private void Start()
 		{
-			source = GetComponent<AudioSource>();
 			c = GetComponent<PlayerWaterObject>();
 
 			GetComponentInChildren<AnimationController>().onFootDown += FootDown;

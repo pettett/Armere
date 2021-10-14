@@ -12,6 +12,7 @@ public abstract class AnimalState : State<AnimalState, AnimalMachine, AnimalStat
 public abstract class AnimalState<TemplateT> : AnimalState where TemplateT : AnimalStateTemplate
 {
 	public readonly TemplateT t;
+	public override string StateName => t.name;
 
 	protected AnimalState(AnimalMachine machine, TemplateT t) : base(machine)
 	{

@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class VirtualAudioListener : MonoBehaviour
 {
+	public static readonly List<VirtualAudioListener> listeners = new List<VirtualAudioListener>();
 	public float noiseThreshold;
 	public bool pathfindNoiseVolume = true;
 	public event System.Action<Vector3> onHearNoise;
 	private void Start()
 	{
-		VirtualAudioController.singleton.listeners.Add(this);
+		listeners.Add(this);
 	}
 	private void OnDestroy()
 	{
-		VirtualAudioController.singleton.listeners.Remove(this);
+		listeners.Remove(this);
 	}
 
 	public void OnHearNoise(Vector3 position)

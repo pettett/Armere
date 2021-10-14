@@ -161,13 +161,13 @@ public class WeaponGraphicsController : MonoBehaviour
 				GameObjectSpawner.Despawn(gameObject);
 		}
 
-		public void OnClank(AudioSource source)
+		public void OnClank(AudioEventChannelSO audioEvent)
 		{
 			if (holdable != null && holdable.clankSet != null && holdable.clankSet.Valid())
 			{
 				if (Random.Range(0f, 1f) > holdable.clankProbability)
 				{
-					source.PlayOneShot(holdable.clankSet.SelectClip());
+					audioEvent.RaiseEvent(holdable.clankSet, gameObject.transform.position, holdable.clankSet.profile);
 				}
 			}
 		}
@@ -175,7 +175,7 @@ public class WeaponGraphicsController : MonoBehaviour
 
 	public CharacterMeshController characterMesh;
 
-	public AudioSource source;
+	public AudioEventChannelSO audioEvent;
 	// public HoldableObject weapon;
 	// public HoldableObject bow;
 	// public HoldableObject sidearm;
@@ -245,7 +245,10 @@ public class WeaponGraphicsController : MonoBehaviour
 
 	private void Start()
 	{
-		animationController = GetComponentInChildren<AnimationController>();
+		if (!TryGetComponent(out animationController))
+			animationController = GetComponentInChildren<AnimationController>();
+
+		Assert.IsNotNull(animationController);
 
 		animator = animationController.anim;
 
@@ -260,6 +263,6 @@ public class WeaponGraphicsController : MonoBehaviour
 	{
 		//Called by animator
 		foreach (HoldableObject h in holdables)
-			h.OnClank(source);
+			h.OnClank(audioEvent);
 	}
 }

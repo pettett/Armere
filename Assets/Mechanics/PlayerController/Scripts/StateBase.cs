@@ -23,7 +23,6 @@ namespace Armere.PlayerController
 
 		}
 
-		public abstract string StateName { get; }
 		public virtual void OnAnimatorIK(int layerIndex) { }
 		public virtual void OnTriggerEnter(Collider other) { }
 		public virtual void OnTriggerExit(Collider other) { }

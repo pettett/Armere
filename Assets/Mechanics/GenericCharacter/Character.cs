@@ -5,17 +5,17 @@ using System.Linq;
 using Armere.Inventory;
 using UnityEngine;
 using UnityEngine.Assertions;
-
-[RequireComponent(typeof(WeaponGraphicsController), typeof(SpawnableBody))]
-public abstract class Character : MonoBehaviour
+public enum Team
 {
-	public enum Team
-	{
-		Good = 0,
-		Evil = 1,
-		Neutral = 2,
-	}
+	Good = 0,
+	Evil = 1,
+	Neutral = 2,
+}
 
+
+[RequireComponent(typeof(SpawnableBody))]
+public abstract class Character : ArmereBehaviour
+{
 
 
 	public enum BuffType
@@ -32,10 +32,10 @@ public abstract class Character : MonoBehaviour
 		public BuffType buff;
 		public float remainingTime;
 	}
-	public static Team[][] enemies = new Team[][]{
+	public static readonly Team[][] enemies = new Team[][]{
 		new Team[]{ Team.Evil}, //Good
 		new Team[]{ Team.Good}, //Evil
-		new Team[0], //Neutral
+		new Team[]{}, //Neutral
 	};
 
 	public static readonly Dictionary<Team, List<Character>> teams = new Dictionary<Team, List<Character>>();
@@ -43,6 +43,7 @@ public abstract class Character : MonoBehaviour
 	public List<Buff> buffs = new List<Buff>();
 	[NonSerialized] public GameObjectInventory inventoryHolder;
 	public InventoryController inventory => inventoryHolder.inventory;
+	public bool hasInventory => inventoryHolder != null;
 
 	public OnBuffChangedEventChannel onBuffAdded;
 	[MyBox.ButtonMethod]
@@ -80,17 +81,14 @@ public abstract class Character : MonoBehaviour
 
 	public abstract void Knockout(float time);
 
+
+
 	public virtual void Start()
 	{
-		animationController = GetComponentInChildren<AnimationController>();
-		weaponGraphics = GetComponent<WeaponGraphicsController>();
-		inventoryHolder = GetComponent<GameObjectInventory>();
-		spawnableBody = GetComponent<SpawnableBody>();
-
-		Assert.IsNotNull(animationController);
-		Assert.IsNotNull(weaponGraphics);
-		Assert.IsNotNull(inventoryHolder);
-		Assert.IsNotNull(spawnableBody);
+		FindComponent(out animationController);
+		TryGetComponent(out weaponGraphics);
+		TryGetComponent(out inventoryHolder);
+		AssertComponent(out spawnableBody);
 	}
 	public virtual void OnEnable()
 	{

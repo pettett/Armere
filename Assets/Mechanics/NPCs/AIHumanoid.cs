@@ -7,7 +7,7 @@ using UnityEngine.AI;
 using UnityEngine.Assertions;
 using UnityEngine.ResourceManagement.AsyncOperations;
 [RequireComponent(typeof(AIMachine))]
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavMeshAgent), typeof(CharacterMeshController))]
 public class AIHumanoid : Character
 {
 
@@ -23,9 +23,7 @@ public class AIHumanoid : Character
 	public AIStateTemplate defaultState => machine.defaultState;
 
 
-	[Header("Vision")]
 
-	public Vector2 clippingPlanes = new Vector2(0.1f, 10f);
 
 	public event System.Action<AIHumanoid> onPlayerDetected;
 
@@ -33,10 +31,6 @@ public class AIHumanoid : Character
 	{
 		onPlayerDetected?.Invoke(this);
 	}
-	public SightMode sightMode;
-	[MyBox.ConditionalField("sightMode", false, SightMode.View)] [Range(1, 90)] public float fov = 45;
-	public Transform eye; //Used for vision frustum calculations
-	public LayerMask visionBlockingMask;
 	[System.NonSerialized] public Spawner spawner;
 
 	[System.NonSerialized] new public Collider collider;
@@ -71,48 +65,6 @@ public class AIHumanoid : Character
 		this.spawner = spawner;
 	}
 
-	public float ProportionBoundsVisible(Bounds b)
-	{
-		if (sightMode == SightMode.View)
-		{
-			var viewMatrix = Matrix4x4.Perspective(fov, 1, clippingPlanes.x, clippingPlanes.y) * Matrix4x4.Scale(new Vector3(1, 1, -1));
-			GeometryUtility.CalculateFrustumPlanes(viewMatrix * eye.worldToLocalMatrix, viewPlanes);
-
-			float visibility = 0;
-			int samples = 2;
-
-			for (int i = 0; i < samples; i++)
-			{
-				Vector3 testPoint = b.center;
-				testPoint.y += b.size.y * (i / (samples - 1f)) - b.extents.y;
-
-				foreach (var plane in viewPlanes)
-				{
-					if (!plane.GetSide(testPoint))
-					{
-						//This point is not inside frustum, ignore it
-						goto SkipPoint;
-					}
-				}
-
-				//Line cast to point
-				if (!Physics.Linecast(eye.position, testPoint, out RaycastHit hit, visionBlockingMask, QueryTriggerInteraction.Ignore))
-				{
-					//Add to visibility
-					visibility += 1f / samples;
-
-				}
-
-			SkipPoint:
-				continue;
-
-			}
-
-			return visibility;
-		}
-
-		return 1;
-	}
 	public IEnumerator DrawItem(ItemType type)
 	{
 		yield return weaponGraphics.DrawItem(type, transitionSet);
@@ -173,6 +125,8 @@ public class AIHumanoid : Character
 	public int GetClosestWaypoint()
 	{
 		//Pick the closest waypoint by non -pathed distance
+		if (waypointGroup == null || waypointGroup.Length == 0) return -1;
+
 		int waypoint = 0;
 		for (int i = 1; i < waypointGroup.Length; i++)
 		{

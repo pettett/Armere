@@ -38,7 +38,6 @@ namespace Armere.Inventory
 		public static implicit operator ItemData(ItemDataAsyncSerializer value) => value.item;
 	}
 
-	[CreateAssetMenu(fileName = "ItemDatabase", menuName = "Game/ItemDatabase", order = 0)]
 	public class ItemDatabase : ScriptableObject
 	{
 
@@ -51,10 +50,8 @@ namespace Armere.Inventory
 
 			Spawner.OnDone(x, result =>
 			{
-				Assert.IsNotNull(result.Result.selfReference);
-
-
-				if (result.Result.selfReference == null) throw new System.ArgumentException($"{result.Result.name} has no reference");
+				if (result.Result.selfReference == null || !result.Result.selfReference.RuntimeKeyIsValid())
+					throw new System.ArgumentException($"{result.Result.name} has no reference");
 
 				itemDataPrimaryKeys[result.Result] = GetPrimaryKey(result.Result.selfReference);
 				itemDataNames[result.Result.displayName] = result.Result;
@@ -95,6 +92,7 @@ namespace Armere.Inventory
 
 		public static (ulong, ulong) GetPrimaryKey(AssetReference reference)
 		{
+
 			ulong a = ulong.Parse(reference.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber);
 			ulong b = ulong.Parse(reference.AssetGUID.Substring(16, 16), System.Globalization.NumberStyles.HexNumber);
 

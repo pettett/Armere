@@ -30,7 +30,6 @@ public class Footsteps : MonoBehaviour
 	{
 		Transform f = animationController.anim.GetBoneTransform(foot < 0 ? HumanBodyBones.RightToes : HumanBodyBones.LeftToes);
 		system.transform.position = f.position;
-
 		onFootstep.RaiseEvent(footStepsSet, f.position);
 		if (useParticleSystem)
 		{

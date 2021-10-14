@@ -5,18 +5,18 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 [CreateAssetMenu(fileName = "Find Weapon Routine", menuName = "Game/NPCs/Find Weapon Routine", order = 0)]
-public class FindWeaponRoutine : AIFocusCharacterStateTemplate
+public class FindWeaponRoutine : AIContextStateTemplate<Character>
 {
 	public float maxSearchRange = 15f;
 	public LayerMask searchMask = -1;
-	public AIFocusCharacterStateTemplate foundWeaponRoutine;
-	public AIFocusCharacterStateTemplate notFoundWeaponRoutine;
+	public AIContextStateTemplate<Character> foundWeaponRoutine;
+	public AIContextStateTemplate<Character> notFoundWeaponRoutine;
 
 	public override AIState StartState(AIMachine c)
 	{
-		Assert.IsNotNull(engaging);
-		var s = new FindWeapon(c, this, engaging);
-		engaging = null;
+		Assert.IsNotNull(context);
+		var s = new FindWeapon(c, this, context);
+		context = null;
 		return s;
 	}
 }
@@ -51,7 +51,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 		if (best == null)
 		{
 			//Not item in range, resort to throwing rocks or something
-			machine.ChangeToState(t.notFoundWeaponRoutine?.EngageWith(character));
+			machine.ChangeToState(t.notFoundWeaponRoutine?.Target(character));
 		}
 		else
 		{
@@ -72,7 +72,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 	}
 	public void Engage()
 	{
-		machine.ChangeToState(t.foundWeaponRoutine.EngageWith(character));
+		machine.ChangeToState(t.foundWeaponRoutine.Target(character));
 	}
 
 }

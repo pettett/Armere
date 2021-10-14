@@ -133,6 +133,9 @@ namespace Armere.PlayerController
 			inventory.bow.onItemRemoved -= OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
+
+
+			if (playerSaveData.c == this) playerSaveData.c = null;
 		}
 
 
@@ -163,6 +166,10 @@ namespace Armere.PlayerController
 			//Allow for custom gravity
 			rb.useGravity = false;
 
+			playerSaveData.c = this;
+
+			transform.SetPositionAndRotation(playerSaveData.position, playerSaveData.rotation);
+
 			inventory.armour.onItemRemoved += OnArmourRemoved;
 			inventory.OnDropItemEvent += OnDropItem;
 			inventory.OnConsumeItemEvent += OnConsumeItem;
@@ -171,8 +178,6 @@ namespace Armere.PlayerController
 			inventory.melee.onItemRemoved += OnEquipableItemRemoved;
 			inventory.bow.onItemRemoved += OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
-
-			playerSaveData.c = this;
 
 			for (int i = 0; i < 3; i++)
 			{

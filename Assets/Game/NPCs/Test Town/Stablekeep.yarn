@@ -1,0 +1,13 @@
+title: Start
+---
+options,Stablekeep: Hello!, what would you like?
+-> Sleep
+	options,Stablekeep: When should I wake you up?
+	-> Morning
+		Stablekeep: Lovely
+	-> Noon
+		Stablekeep: Lovely
+	-> Night
+		Stablekeep: Lovely
+-> <exit>Nothing, thanks
+===

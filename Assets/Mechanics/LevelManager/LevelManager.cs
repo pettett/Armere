@@ -18,6 +18,10 @@ public class LevelManager : MonoBehaviour
 		mainScene = SceneManager.GetSceneByName("MainScene");
 	}
 
+	private void Start()
+	{
+		currentLevel = SceneManager.GetActiveScene().name;
+	}
 
 	public static void LoadLevel(string levelName, System.Action afterSceneLoad = null)
 	{

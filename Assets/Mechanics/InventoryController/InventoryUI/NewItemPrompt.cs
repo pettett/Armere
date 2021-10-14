@@ -85,7 +85,8 @@ namespace Armere.Inventory.UI
 			continueAction.Disable();
 			continueAction.Dispose();
 			//Remove the prompt
-			Addressables.Release(thumbnail.sprite);
+
+			Addressables.Release(handle);
 
 			onPromptRemoved?.Invoke();
 		}

@@ -17,9 +17,9 @@ public class AudioFactory : MonoBehaviour
 	{
 		makeNoise.OnEventRaised -= MakeNoise;
 	}
-	public void MakeNoise(AudioClip clip, AudioProfile profile)
+	public void MakeNoise(AudioClip clip, AudioEventData data)
 	{
-		StartCoroutine(PlayClip(clip, profile));
+		StartCoroutine(PlayClip(clip, data));
 	}
 	public AudioSource GetSource()
 	{
@@ -36,14 +36,14 @@ public class AudioFactory : MonoBehaviour
 			return go.GetComponent<AudioSource>();
 		}
 	}
-	public IEnumerator PlayClip(AudioClip clip, AudioProfile profile)
+	public IEnumerator PlayClip(AudioClip clip, AudioEventData data)
 	{
 		AudioSource source = GetSource();
 
 		source.clip = clip;
 		source.loop = false;
-		source.transform.position = profile.position;
-		source.spatialBlend = profile.spacialBlend;
+		source.transform.position = data.position;
+		source.spatialBlend = data.profile.spacialBlend;
 
 		source.Play();
 

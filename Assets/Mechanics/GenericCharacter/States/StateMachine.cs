@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public abstract class StateMachine<StateT, MachineT, TemplateT> : MonoBehaviour
+public abstract class StateMachine<StateT, MachineT, TemplateT> : ArmereBehaviour
 	where MachineT : StateMachine<StateT, MachineT, TemplateT>
 	where StateT : State<StateT, MachineT, TemplateT>
 	where TemplateT : StateTemplate<StateT, MachineT, TemplateT>
 {
+	public bool autoRunDefault = true;
 	public TemplateT defaultState;
 	public StateT mainState;
 	public readonly List<StateT> currentStates = new List<StateT>();
 	private void Start()
 	{
-		if (defaultState != null)
+		if (autoRunDefault && defaultState != null)
 			ChangeToState(defaultState);
 	}
 
@@ -80,9 +81,10 @@ public abstract class StateMachine<StateT, MachineT, TemplateT> : MonoBehaviour
 		currentStates.Clear();
 		currentStates.AddRange(newStates);
 
-
-		StartAllStates();
-
+		for (int i = 0; i < currentStates.Count; i++)
+		{
+			currentStates[i].Start();
+		}
 		StateChanged();
 		return mainState;
 	}
@@ -101,13 +103,7 @@ public abstract class StateMachine<StateT, MachineT, TemplateT> : MonoBehaviour
 
 
 
-	public void StartAllStates()
-	{
-		for (int i = 0; i < currentStates.Count; i++)
-		{
-			currentStates[i].Start();
-		}
-	}
+
 	public StateT GetState(Type t)
 	{
 		for (int i = 0; i < currentStates.Count; i++)

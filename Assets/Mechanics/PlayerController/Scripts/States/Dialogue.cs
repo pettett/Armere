@@ -7,6 +7,7 @@ using Cinemachine;
 using UnityEngine.Assertions;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.InputSystem;
 
 
 //Base class for basic functionality related to yarn
@@ -49,9 +50,43 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 
 	public override void Start()
 	{
+		//Setup PlayerController for static conversation
+		GameCameras.s.lockingMouse = false;
+		c.rb.velocity = Vector3.zero;
+		GameCameras.s.DisableControl();
+		c.rb.isKinematic = true;
+		GameCameras.s.EnableCutsceneCamera();
 
-		StartDialogue(dialogue);
+
+		GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(transform.position, dialogue.transform.position, 0.5f);
+
+		Debug.Log("Enabling UI input for dialogue");
+		c.inputReader.SwitchToUIInput();
+		c.inputReader.uiSubmitEvent += RequestNewLine;
+
+		SetupRunner();
 	}
+	public override void End()
+	{
+		CleanUpRunner();
+
+		GameCameras.s.lockingMouse = true;
+		c.rb.isKinematic = false;
+		GameCameras.s.EnableControl();
+		GameCameras.s.DisableCutsceneCamera();
+
+
+		c.inputReader.SwitchToGameplayInput();
+
+		c.inputReader.uiSubmitEvent -= RequestNewLine;
+	}
+
+	public void RequestNewLine(InputActionPhase phase)
+	{
+		Debug.Log("Requested new line!");
+		DialogueInstances.singleton.ui.MarkLineComplete();
+	}
+
 
 	public float GetCameraAngle(Transform target)
 	{
@@ -69,22 +104,7 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 		t.m_RecenterToTargetHeading.m_enabled = true;
 	}
 
-	public void StartDialogue(IDialogue d)
-	{
-		//Setup PlayerController for static conversation
-		GameCameras.s.lockingMouse = false;
-		c.rb.velocity = Vector3.zero;
-		GameCameras.s.DisableControl();
-		c.rb.isKinematic = true;
-		GameCameras.s.EnableCutsceneCamera();
 
-
-		GameCameras.s.conversationGroup.Transform.position = Vector3.Lerp(transform.position, dialogue.transform.position, 0.5f);
-
-
-
-		SetupRunner();
-	}
 
 	public static CinemachineTargetGroup.Target GenerateTarget(Transform transform, float weight = 1, float radius = 1)
 	{
@@ -143,13 +163,5 @@ public class Dialogue<TemplateT> : MovementState<TemplateT> where TemplateT : Di
 	{
 
 	}
-	public override void End()
-	{
-		CleanUpRunner();
 
-		GameCameras.s.lockingMouse = true;
-		c.rb.isKinematic = false;
-		GameCameras.s.EnableControl();
-		GameCameras.s.DisableCutsceneCamera();
-	}
 }

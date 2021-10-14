@@ -5,12 +5,11 @@ using UnityEngine.AI;
 public class VirtualAudioController : MonoBehaviour
 {
 	public AudioEventChannelSO audioEventChannelSO;
-	public static VirtualAudioController singleton;
 
-	[System.NonSerialized] public List<VirtualAudioListener> listeners = new List<VirtualAudioListener>();
+	[ReadOnly] public int listenerCount;
+
 	private void Awake()
 	{
-		singleton = this;
 	}
 	private void OnEnable()
 	{
@@ -23,26 +22,30 @@ public class VirtualAudioController : MonoBehaviour
 		if (audioEventChannelSO != null)
 			audioEventChannelSO.OnEventRaised -= OnAudioEvent;
 	}
-
-	public void OnAudioEvent(AudioClip clip, AudioProfile profile)
+	private void Update()
 	{
-		MakeNoise(profile.position, profile.virtualAudioVolume);
+		listenerCount = VirtualAudioListener.listeners.Count;
+	}
+	public void OnAudioEvent(AudioClip clip, AudioEventData data)
+	{
+		MakeNoise(data.position, data.profile.virtualAudioVolume);
 	}
 	public void MakeNoise(Vector3 position, float volume)
 	{
-		for (int i = 0; i < listeners.Count; i++)
+		for (int i = 0; i < VirtualAudioListener.listeners.Count; i++)
 		{
-			float distance = Vector3.Distance(position, listeners[i].transform.position);
+			float distance = Vector3.Distance(position, VirtualAudioListener.listeners[i].transform.position);
 			//For every doubling of distance, the sound level reduces by 6 decibels (dB),
 			float relitiveVolume = volume - Mathf.Log(distance, 2) * 6;
 
-			if (relitiveVolume > listeners[i].noiseThreshold)
+
+			if (relitiveVolume > VirtualAudioListener.listeners[i].noiseThreshold)
 			{
-				if (listeners[i].pathfindNoiseVolume)
+				if (VirtualAudioListener.listeners[i].pathfindNoiseVolume)
 				{
 					//Calculate a new distance with a pathfinding sample
 					NavMeshPath path = new NavMeshPath();
-					NavMesh.CalculatePath(position, listeners[i].transform.position, -1, path);
+					NavMesh.CalculatePath(position, VirtualAudioListener.listeners[i].transform.position, -1, path);
 					distance = 0;
 					for (int c = 0; c < path.corners.Length - 1; c++)
 					{
@@ -51,17 +54,17 @@ public class VirtualAudioController : MonoBehaviour
 					}
 
 					relitiveVolume = volume - Mathf.Log(distance, 2) * 6;
-					if (relitiveVolume > listeners[i].noiseThreshold)
+					if (relitiveVolume > VirtualAudioListener.listeners[i].noiseThreshold)
 					{
 
 						//The virtual listener can hear this
-						listeners[i].OnHearNoise(position);
+						VirtualAudioListener.listeners[i].OnHearNoise(position);
 					}
 				}
 				else
 				{
 					//The virtual listener can hear this without pathfinding - through walls
-					listeners[i].OnHearNoise(position);
+					VirtualAudioListener.listeners[i].OnHearNoise(position);
 				}
 			}
 		}

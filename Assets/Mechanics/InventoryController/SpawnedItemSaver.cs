@@ -6,11 +6,10 @@ using UnityEngine.Profiling;
 
 namespace Armere.Inventory
 {
-
-	public class SpawnedItemSaver : MonoBehaviour
+	[CreateAssetMenu(menuName = "Game/Inventory/Spawned item saver")]
+	public class SpawnedItemSaver : SaveableSO
 	{
-		public SaveLoadEventChannel spawnedItemSaveLoadChannel;
-		public void LoadBlank()
+		public override void LoadBlank()
 		{
 			//Do nothing
 		}
@@ -25,7 +24,7 @@ namespace Armere.Inventory
 			-ulong,ulong itemData
 		*/
 
-		public void SaveBin(in GameDataWriter writer)
+		public override void SaveBin(in GameDataWriter writer)
 		{
 			Profiler.BeginSample("Saving Item Spawnable Objects");
 
@@ -53,7 +52,7 @@ namespace Armere.Inventory
 
 			Profiler.EndSample();
 		}
-		public void LoadBin(in GameDataReader reader)
+		public override void LoadBin(in GameDataReader reader)
 		{
 			if (reader.saveVersion != SaveManager.version)
 			{
@@ -102,26 +101,6 @@ namespace Armere.Inventory
 			Profiler.EndSample();
 		}
 
-		static SpawnedItemSaver singleton = null;
-		private void Awake()
-		{
-			if (singleton == null)
-			{
-				spawnedItemSaveLoadChannel.onLoadBinEvent += LoadBin;
-				spawnedItemSaveLoadChannel.onLoadBlankEvent += LoadBlank;
-				spawnedItemSaveLoadChannel.onSaveBinEvent += SaveBin;
-				singleton = this;
-			}
-		}
-		private void OnDestroy()
-		{
-			if (singleton == this)
-			{
-				spawnedItemSaveLoadChannel.onLoadBinEvent -= LoadBin;
-				spawnedItemSaveLoadChannel.onLoadBlankEvent -= LoadBlank;
-				spawnedItemSaveLoadChannel.onSaveBinEvent -= SaveBin;
-				singleton = null;
-			}
-		}
+
 	}
 }

@@ -2,11 +2,8 @@ using System.Collections;
 using UnityEngine;
 public class KnockoutRoutine : AIState
 {
-	public override bool alertOnAttack => false;
 
-	public override bool searchOnEvent => false;
-
-	public override bool investigateOnSight => false;
+	public override string StateName => "Knockout";
 
 	readonly float knockoutTime;
 

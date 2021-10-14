@@ -19,15 +19,18 @@ public class Guard : AIState<GuardRoutine>
 	}
 	public override void End()
 	{
-		c.StopCoroutine(r);
+		if (r != null)
+			c.StopCoroutine(r);
 	}
 
 	public IEnumerator Routine()
 	{
-		c.debugText.SetText("Guarding");
+		c.debugText?.SetText("Guarding");
 
 
 		int waypoint = c.GetClosestWaypoint();
-		yield return c.GoToWaypoint(waypoint);
+
+		if (waypoint != -1)
+			yield return c.GoToWaypoint(waypoint);
 	}
 }

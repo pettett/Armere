@@ -8,6 +8,8 @@ using Armere.Inventory;
 using Yarn.Unity;
 using System.Linq;
 using Armere.UI;
+using UnityEngine.Assertions;
+
 namespace Armere.PlayerController
 {
 
@@ -77,7 +79,6 @@ namespace Armere.PlayerController
 
 		public Spell currentCastingSpell;
 
-		const bool debugStep = false;
 		GroundState ground;
 
 		bool Coyote => ground.HasFlag(GroundState.Coyote);
@@ -91,6 +92,8 @@ namespace Armere.PlayerController
 
 			playerWaterObject = c.GetComponent<PlayerWaterObject>();
 			movementParticles = c.GetComponent<ParticleGroups>();
+
+			Assert.IsNotNull(c.animationController);
 		}
 
 		public bool Usable(ItemType t) => t switch
@@ -923,6 +926,7 @@ namespace Armere.PlayerController
 		public void OnJumped()
 		{
 			movementParticles.PlayGroup("Jump");
+			t.onJump.Invoke();
 		}
 		public void OnLanded()
 		{
@@ -1252,7 +1256,7 @@ namespace Armere.PlayerController
 			//if the step and the ground are too close, do not count
 			if (Vector3.Dot(stepTestCP.normal, groundNormal) > 0.9 && Vector3.Dot(groundNormal, c.WorldUp) < 0.5f)
 			{
-				if (debugStep) Debug.Log($"Contact too similar to ramp");
+				if (t.debugStep) Debug.Log($"Contact too similar to ramp");
 				return false;
 			}
 
@@ -1261,7 +1265,7 @@ namespace Armere.PlayerController
 			//( 2 ) Make sure the contact point is low enough to be a step
 			if (height < t.minStepHeight || height >= t.maxStepHeight)
 			{
-				if (debugStep) Debug.Log($"Contact to high or low, {height}");
+				if (t.debugStep) Debug.Log($"Contact to high or low, {height}");
 				return false;
 			}
 
@@ -1269,7 +1273,7 @@ namespace Armere.PlayerController
 			//( 2.5 ) Make sure the step is in the direction the player is moving
 			if (Vector3.Dot(-stepTestCP.normal, velocity.normalized) < 0.01f)
 			{
-				if (debugStep) Debug.Log(Vector3.Dot(-stepTestCP.normal, velocity.normalized).ToString());
+				if (t.debugStep) Debug.Log(Vector3.Dot(-stepTestCP.normal, velocity.normalized).ToString());
 				//not pointing in the general direction of movement - fail
 				return false;
 			}
@@ -1287,14 +1291,14 @@ namespace Armere.PlayerController
 			Vector3 direction = c.WorldDown;
 			if (!stepCol.Raycast(new Ray(origin, direction), out hitInfo, t.maxStepHeight + t.maxStepDown))
 			{
-				if (debugStep) Debug.Log("Nothing to step to");
+				if (t.debugStep) Debug.Log("Nothing to step to");
 				return false;
 			}
 
 
 			if (!c.profile.CanWalkOn(hitInfo.normal, c.WorldUp))
 			{
-				if (debugStep) Debug.Log("Cannot walk onto destination");
+				if (t.debugStep) Debug.Log("Cannot walk onto destination");
 				return false;
 			}
 

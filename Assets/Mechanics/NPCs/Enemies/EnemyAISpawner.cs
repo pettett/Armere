@@ -24,6 +24,7 @@ public class EnemyAISpawner : Spawner
 		body.onPlayerDetected += onPlayerDetected.Invoke;
 		if (startingState != null)
 			body.machine.defaultState = startingState;
+
 		body.InitEnemy();
 	}
 

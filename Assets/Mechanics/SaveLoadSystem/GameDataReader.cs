@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Assertions;
+using System;
 
-public readonly struct GameDataReader
+public readonly struct GameDataReader : IDisposable
 {
 
 	public readonly Version saveVersion;
@@ -14,7 +15,7 @@ public readonly struct GameDataReader
 	readonly void AssertType(PrimitiveCode type)
 	{
 		PrimitiveCode t = ReadType();
-		Assert.IsTrue(t == type, $"Loaded Primitive {t} is not {type}");
+		Assert.IsTrue(t == type, $"Failed in region {regionStack.Peek()}: Loaded Primitive {t} is not {type}");
 	}
 
 	public GameDataReader(BinaryReader reader)
@@ -22,7 +23,11 @@ public readonly struct GameDataReader
 		this.reader = reader;
 		saveVersion = default;
 		regionStack = new Stack<(long, long)>();
+
+		BeginRegion();
+
 		saveVersion = Read<Version>();
+
 	}
 
 	public readonly void BeginRegion()
@@ -137,4 +142,8 @@ public readonly struct GameDataReader
 	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IBinaryVariableAsyncSerializer<T>, new() => ReadAsyncInto(new T(), onDone);
 	public readonly void ReadAsyncInto<T>(T data, System.Action<T> onDone = null) where T : IBinaryVariableAsyncSerializer<T> => data.Read(this, onDone);
 
+	public void Dispose()
+	{
+		EndRegion();
+	}
 }

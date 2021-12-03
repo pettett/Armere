@@ -61,10 +61,7 @@ public struct SplatMapWeights
 public struct GrassCreationConstantBufferData
 {
 	public SplatMapWeights layerWeights;
-	public Vector2 layer0QuadHeightRange,
-					layer1QuadHeightRange,
-					layer2QuadHeightRange,
-					layer3QuadHeightRange;
+	public Vector4 layerQuadSizes;
 
 }
 [System.Serializable]
@@ -148,7 +145,7 @@ public struct GrassLayerInstance
 		//FIXME: pi * r ^ 2
 		//float radius = c.viewRadius * profile.viewRadiusScalar / cellSize;
 
-		maxLoadedCells = 4 * profile.cellsInGreatestChunk;
+		maxLoadedCells = 9 * profile.cellsInGreatestChunk;
 		//Will show the chunk index or 0 of every cell group in the main buffer
 		occupiedBufferCells = new int[maxLoadedCells];
 
@@ -680,7 +677,7 @@ public class GrassLayer : ScriptableObject
 
 	public Mesh mesh;
 	public Texture2D texture;
-	public Texture2D gradientTexture;
+
 	[Range(0f, 1f)]
 	public float viewRadiusScalar = 1;
 

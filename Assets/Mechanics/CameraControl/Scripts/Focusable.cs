@@ -21,9 +21,9 @@ public class Focusable : MonoBehaviour, IVisable
 		focusables.Add(this);
 		GameCameras.s.cameraVision.visionGroup.Add(this);
 
-		indicatorUI = IndicatorsUIController.singleton.CreateFocusableIndicator(indicatorAnchor);
-
-		indicatorUI.focusStateGraphic.canvasRenderer.SetAlpha(0);
+		indicatorUI = IndicatorsUIController.singleton?.CreateFocusableIndicator(indicatorAnchor);
+		if (indicatorUI != null)
+			indicatorUI.focusStateGraphic.canvasRenderer.SetAlpha(0);
 	}
 	void OnDisable()
 	{

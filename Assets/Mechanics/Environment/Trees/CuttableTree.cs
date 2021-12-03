@@ -30,7 +30,7 @@ public struct Triangle
 	}
 }
 public enum TriangleCutMode : byte { Full, Top, Base }
-[ExecuteAlways]
+
 [RequireComponent(typeof(MeshFilter), typeof(MeshCollider), typeof(MeshRenderer))]
 public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 {
@@ -58,7 +58,7 @@ public class CuttableTree : MonoBehaviour, IAttackable, IExplosionEffector
 	[Header("References")]
 	public CuttableTreeProfile profile;
 
-	public List<CutVector> activeCutVectors = new List<CutVector>();
+	[System.NonSerialized] public List<CutVector> activeCutVectors = new List<CutVector>();
 
 	float totalDamage = 0;
 

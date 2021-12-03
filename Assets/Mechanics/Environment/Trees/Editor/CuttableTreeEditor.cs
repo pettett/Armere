@@ -38,7 +38,6 @@ public class CuttableTreeEditor : Editor
 
 		// GUILayout.Label("Cutting", EditorStyles.boldLabel);
 
-		Property("activeCutVectors");
 
 
 		testCutMode = (TriangleCutMode)EditorGUILayout.EnumPopup("Test Cut Mode", testCutMode);

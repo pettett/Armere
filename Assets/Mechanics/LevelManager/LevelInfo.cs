@@ -8,7 +8,7 @@ public class LevelInfo : MonoBehaviour
 	public static LevelInfo currentLevelInfo;
 	public GameObject playerPrefab;
 	public GameObject player;
-	public Transform playerTransform => player.transform;
+	public Transform playerTransform => player == null ? null : player.transform;
 
 
 	public string currentRegionName;

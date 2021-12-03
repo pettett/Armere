@@ -161,7 +161,7 @@ public class MapUI : MonoBehaviour
 			return;
 		}
 
-		if (LevelInfo.currentLevelInfo == null) return;
+		if (LevelInfo.currentLevelInfo == null || LevelInfo.currentLevelInfo.playerTransform == null) return;
 
 
 		map.sizeDelta = SceneMap.instance.map.contours.mapExtents * 2 * mapScale;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using static GrassController;
 public class CreateGrassInstruction : GrassInstruction
@@ -17,6 +18,11 @@ public class CreateGrassInstruction : GrassInstruction
 
 	public override void Execute(GrassController c, ref GrassLayerInstance layer, CommandBuffer cmd)
 	{
+		Assert.IsNotNull(c);
+		Assert.IsNotNull(c.terrainLayerData);
+		Assert.IsNotNull(c.terrainLayerData.terrainLayers);
+		Assert.IsNotNull(c.createGrassInBoundsCompute);
+
 
 		if (!layer.TryFitChunk(chunk, out int cellsOffset))
 		{
@@ -61,10 +67,14 @@ public class CreateGrassInstruction : GrassInstruction
 
 		layer.profile.grassCreationConstantBuffer.BindBuffer(cmd, c.createGrassInBoundsCompute);
 
-		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient0, c.terrainLayerData.terrainLayers[0].colorGradient);
-		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient1, c.terrainLayerData.terrainLayers[1].colorGradient);
-		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient2, c.terrainLayerData.terrainLayers[2].colorGradient);
-		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient3, c.terrainLayerData.terrainLayers[3].colorGradient);
+
+		var layers = c.terrainLayerData.terrainLayers;
+
+
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient0, layers[0].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient1, layers[1].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient2, layers[2].colorGradient);
+		cmd.SetComputeTextureParam(c.createGrassInBoundsCompute, 0, ID_Gradient3, layers[3].colorGradient);
 
 
 		//Splat map weights for sampling terrain textures

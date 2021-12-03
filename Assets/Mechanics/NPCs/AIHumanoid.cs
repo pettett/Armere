@@ -56,6 +56,7 @@ public class AIHumanoid : Character
 		Assert.IsNotNull(agent);
 		Assert.IsNotNull(ragdoller);
 		Assert.IsNotNull(collider);
+		Assert.IsNotNull(machine);
 
 		ragdoller.RagdollEnabled = false;
 	}

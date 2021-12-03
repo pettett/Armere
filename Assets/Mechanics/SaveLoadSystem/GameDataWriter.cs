@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.AddressableAssets;
+using System;
 
-public readonly struct GameDataWriter
+public readonly struct GameDataWriter : IDisposable
 {
 	public readonly BinaryWriter writer;
 
@@ -38,8 +39,12 @@ public readonly struct GameDataWriter
 	{
 		this.writer = writer;
 		regionStack = new Stack<long>();
+
+		BeginRegion();
+
 		//Save the version of the game saved
 		Write(SaveManager.version);
+
 	}
 
 	public readonly void WritePrimitive(int value)
@@ -151,6 +156,8 @@ public readonly struct GameDataWriter
 
 	public readonly void Write<T>(T value) where T : IBinaryVariableWritableSerializer<T> => value.Write(this);
 
-
-
+	public void Dispose()
+	{
+		EndRegion();
+	}
 }

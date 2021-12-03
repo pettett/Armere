@@ -213,7 +213,7 @@ public class WaterController : MonoBehaviour
 
 	public Vector3 ClosestPointOnPath(Vector3 point, float extrude)
 	{
-		System.Span<Vector3> positions = stackalloc Vector3[path.Length];
+		var positions = new NativeArray<Vector3>(path.Length, Allocator.Temp);
 
 		for (int i = 0; i < path.Length; i++)
 			positions[i] = Extrude(i, path[i].waterWidth * extrude);
@@ -321,7 +321,8 @@ public class WaterController : MonoBehaviour
 		Gizmos.color = Color.cyan;
 
 
-		System.Span<Vector3> p = stackalloc Vector3[path.Length + path.Length * subDivisions - subDivisions];
+		var p = new NativeArray<Vector3>(path.Length + path.Length * subDivisions - subDivisions, Allocator.Temp);
+
 		int width = (subDivisions + 1);
 
 		//print(p.Length);

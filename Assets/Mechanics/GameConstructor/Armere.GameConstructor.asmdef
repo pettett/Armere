@@ -1,0 +1,17 @@
+{
+    "name": "Armere.GameConstructor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1482474fb848b804caf2f47f51314db7",
+        "GUID:b82d9132bd5a865498bf65f07d1b65eb"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

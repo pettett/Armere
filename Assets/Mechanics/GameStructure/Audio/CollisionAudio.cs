@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class CollisionAudio : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public class CollisionAudio : MonoBehaviour
 	private void Start()
 	{
 		rigidbody = GetComponent<Rigidbody>();
+
+		Assert.IsNotNull(rigidbody);
+		Assert.IsNotNull(collisionSounds);
+		Assert.IsNotNull(soundEvent);
 	}
 	private void OnCollisionEnter(Collision other)
 	{

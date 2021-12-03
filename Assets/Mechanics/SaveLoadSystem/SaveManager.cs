@@ -178,10 +178,10 @@ public class SaveManager : MonoBehaviour
 		Debug.Log("New save singleton");
 		singleton = this;
 
-		if (autoLoadOnStart)
-			LoadMostRecentSave(false);
-		else
-			SoftLoadBlankSave();
+		// if (autoLoadOnStart)
+		// 	LoadMostRecentSave(false);
+		// else
+		// 	SoftLoadBlankSave();
 
 
 		lastSave = Time.realtimeSinceStartup - 5;
@@ -353,7 +353,7 @@ public class SaveManager : MonoBehaviour
 		string levelName;
 		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
 		{
-			GameDataReader gameDataReader = new GameDataReader(reader);
+			using GameDataReader gameDataReader = new GameDataReader(reader);
 
 			levelName = gameDataReader.ReadString();
 		}
@@ -381,10 +381,12 @@ public class SaveManager : MonoBehaviour
 
 		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
 		{
-			GameDataReader gameDataReader = new GameDataReader(reader);
+			using GameDataReader gameDataReader = new GameDataReader(reader);
 
 			//Level name not actually used - scene already loaded here
+
 			string levelName = gameDataReader.ReadString();
+
 
 			for (int i = 0; i < saveLoadEventChannels.Length; i++)
 			{
@@ -402,6 +404,7 @@ public class SaveManager : MonoBehaviour
 				}
 
 			}
+
 		}
 
 		OnAfterLoad();
@@ -476,7 +479,7 @@ public class SaveManager : MonoBehaviour
 	{
 		using (var writer = new BinaryWriter(File.Open(dir, FileMode.Create)))
 		{
-			GameDataWriter gameWriter = new GameDataWriter(writer);
+			using GameDataWriter gameWriter = new GameDataWriter(writer);
 
 			saveFunction(gameWriter);
 
@@ -491,7 +494,7 @@ public class SaveManager : MonoBehaviour
 		SaveInfo info;
 		using (var reader = new BinaryReader(File.Open(Path.Combine(saveDirectory, metaSaveRecordFileName), FileMode.Open)))
 		{
-			GameDataReader gameDataReader = new GameDataReader(reader);
+			using GameDataReader gameDataReader = new GameDataReader(reader);
 			info = new SaveInfo(gameDataReader);
 		}
 		return info;

@@ -7,37 +7,39 @@ using System.Threading.Tasks;
 
 public class SaveUI : UIMenu
 {
-    public Button confirm;
-    public TextMeshProUGUI text;
-    public string saveText = "Are you sure you would like to save?";
-    public string savingText = "Saving...";
-    public string savedText = "Saved";
-    protected override void Start()
-    {
-        confirm.onClick.AddListener(OnConfirm);
-        base.Start();
-    }
+	public Button confirm;
+	public TextMeshProUGUI text;
 
-    public override void OpenMenu()
-    {
-        base.OpenMenu();
-        backButton.gameObject.SetActive(true);
-        confirm.gameObject.SetActive(true);
-        text.text = saveText;
-    }
+	public VoidEventChannelSO saveGameChannel;
+	public string saveText = "Are you sure you would like to save?";
+	public string savingText = "Saving...";
+	public string savedText = "Saved";
+	protected override void Start()
+	{
+		confirm.onClick.AddListener(OnConfirm);
+		base.Start();
+	}
 
-    async void OnConfirm()
-    {
-        backButton.gameObject.SetActive(false);
-        confirm.gameObject.SetActive(false);
-        text.text = savingText;
+	public override void OpenMenu()
+	{
+		base.OpenMenu();
+		backButton.gameObject.SetActive(true);
+		confirm.gameObject.SetActive(true);
+		text.text = saveText;
+	}
 
-        SaveManager.singleton.SaveGameState();
+	async void OnConfirm()
+	{
+		backButton.gameObject.SetActive(false);
+		confirm.gameObject.SetActive(false);
+		text.text = savingText;
 
-        text.text = savedText;
-        await Task.Delay(100);
-        CloseMenu();
-    }
+		saveGameChannel.RaiseEvent();
+
+		text.text = savedText;
+		await Task.Delay(100);
+		CloseMenu();
+	}
 
 
 

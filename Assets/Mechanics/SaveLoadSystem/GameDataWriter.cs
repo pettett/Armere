@@ -154,10 +154,11 @@ public readonly struct GameDataWriter : IDisposable
 		WritePrimitive(byteList);
 	}
 
-	public readonly void Write<T>(T value) where T : IBinaryVariableWritableSerializer<T> => value.Write(this);
+	public readonly void Write<T>(T value) where T : IGameDataSerializable<T> => value.Write(this);
 
 	public void Dispose()
 	{
 		EndRegion();
+		writer.Dispose();
 	}
 }

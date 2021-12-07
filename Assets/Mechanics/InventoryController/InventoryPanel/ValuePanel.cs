@@ -17,7 +17,7 @@ namespace Armere.Inventory
 		}
 	}
 	//Items added to this panel are not recorded, the values of the items are used
-	public class ValuePanel : InventoryPanel, IBinaryVariableSerializer<ValuePanel>
+	public class ValuePanel : InventoryPanel, IGameDataSavable<ValuePanel>
 	{
 		public uint currency;
 
@@ -90,6 +90,11 @@ namespace Armere.Inventory
 		public void Write(in GameDataWriter writer)
 		{
 			writer.WritePrimitive(currency);
+		}
+
+		public ValuePanel Init()
+		{
+			return this;
 		}
 	}
 }

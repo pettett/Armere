@@ -13,13 +13,18 @@ using UnityEditor;
 
 namespace Armere.Inventory
 {
-	public readonly struct ItemDataAsyncSerializer : IBinaryVariableAsyncSerializer<ItemDataAsyncSerializer>
+	public readonly struct ItemDataAsyncSerializer : IGameDataSavableAsync<ItemDataAsyncSerializer>
 	{
 		public readonly ItemData item;
 
 		public ItemDataAsyncSerializer(ItemData item)
 		{
 			this.item = item;
+		}
+
+		public ItemDataAsyncSerializer Init()
+		{
+			return this;
 		}
 
 		public void Read(in GameDataReader reader, Action<ItemDataAsyncSerializer> data)

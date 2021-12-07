@@ -44,7 +44,8 @@ public class GameController : SceneSaveData
 
 		yield return new WaitForSecondsRealtime(deathScreenTime);
 
-		SaveManager.singleton.LoadMostRecentSave(true);
+		//Should be used to load a new game
+		onPlayerDeathChannel.RaiseEvent();
 
 		UIController.singleton.deathScreen.SetActive(false);
 	}

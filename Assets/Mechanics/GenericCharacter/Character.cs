@@ -42,7 +42,7 @@ public abstract class Character : ArmereBehaviour
 
 	public List<Buff> buffs = new List<Buff>();
 	[NonSerialized] public GameObjectInventory inventoryHolder;
-	public InventoryController inventory => inventoryHolder.inventory;
+	public InventoryController inventory => inventoryHolder == null ? null : inventoryHolder.inventory;
 	public bool hasInventory => inventoryHolder != null;
 
 	public OnBuffChangedEventChannel onBuffAdded;
@@ -87,7 +87,7 @@ public abstract class Character : ArmereBehaviour
 	{
 		FindComponent(out animationController);
 		TryGetComponent(out weaponGraphics);
-		TryGetComponent(out inventoryHolder);
+		AssertComponent(out inventoryHolder);
 		AssertComponent(out spawnableBody);
 	}
 	public virtual void OnEnable()

@@ -5,7 +5,7 @@ using UnityEngine;
 using Yarn.Unity;
 
 [CreateAssetMenu(fileName = "NPC Manager", menuName = "Game/NPCs/Manager", order = 0)]
-public class NPCManager : SaveableSO
+public class NPCManager : ScriptableObject, IGameDataSavable<NPCManager>
 {
 	public static NPCManager singleton;
 	private void OnEnable()
@@ -22,7 +22,21 @@ public class NPCManager : SaveableSO
 	}
 
 
-	public override void LoadBin(in GameDataReader reader)
+
+
+	public static Yarn.Value FromLoad(Version saveVersion, GameDataReader reader)
+	{
+		return (Yarn.Value.Type)reader.ReadInt() switch
+		{
+			Yarn.Value.Type.Bool => new Yarn.Value(reader.ReadBool()),
+			Yarn.Value.Type.Number => new Yarn.Value(reader.ReadFloat()),
+			Yarn.Value.Type.String => new Yarn.Value(reader.ReadString()),
+			_ => null,
+		};
+	}
+
+
+	public NPCManager Read(in GameDataReader reader)
 	{
 		int dataCount = reader.ReadInt();
 		data = new Dictionary<string, NPCData>(dataCount);
@@ -30,8 +44,10 @@ public class NPCManager : SaveableSO
 		{
 			data[reader.ReadString()] = new NPCData(reader.saveVersion, reader);
 		}
+		return this;
 	}
-	public override void SaveBin(in GameDataWriter writer)
+
+	public void Write(in GameDataWriter writer)
 	{
 		//Debug.Log(writer.writer.BaseStream.Position);
 
@@ -62,20 +78,12 @@ public class NPCManager : SaveableSO
 		}
 	}
 
-	public static Yarn.Value FromLoad(Version saveVersion, GameDataReader reader)
-	{
-		return (Yarn.Value.Type)reader.ReadInt() switch
-		{
-			Yarn.Value.Type.Bool => new Yarn.Value(reader.ReadBool()),
-			Yarn.Value.Type.Number => new Yarn.Value(reader.ReadFloat()),
-			Yarn.Value.Type.String => new Yarn.Value(reader.ReadString()),
-			_ => null,
-		};
-	}
-	public override void LoadBlank()
+	public NPCManager Init()
 	{
 
+		return this;
 	}
+
 	public class NPCData
 	{
 		public bool spokenTo = false;

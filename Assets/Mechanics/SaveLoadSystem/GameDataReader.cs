@@ -15,11 +15,13 @@ public readonly struct GameDataReader : IDisposable
 	readonly void AssertType(PrimitiveCode type)
 	{
 		PrimitiveCode t = ReadType();
-		Assert.IsTrue(t == type, $"Failed in region {regionStack.Peek()}: Loaded Primitive {t} is not {type}");
+		Assert.IsTrue(t == type, $"{label} Failed in region {regionStack.Peek()}: Loaded Primitive {t} is not {type}");
 	}
-
-	public GameDataReader(BinaryReader reader)
+	readonly string label;
+	public GameDataReader(BinaryReader reader, string label)
 	{
+		this.label = label;
+
 		this.reader = reader;
 		saveVersion = default;
 		regionStack = new Stack<(long, long)>();
@@ -44,7 +46,7 @@ public readonly struct GameDataReader : IDisposable
 		long actualLength = endPos - startingPosition;
 		if (actualLength != desiredLength)
 		{
-			Debug.LogError($"Region loaded incorrectly: len{actualLength}, supposed{desiredLength}");
+			Debug.LogError($"{label} Region loaded incorrectly: len{actualLength}, supposed{desiredLength}");
 			return false;
 		}
 		return true;
@@ -137,13 +139,20 @@ public readonly struct GameDataReader : IDisposable
 	//Read List functions read a list using metadata also stored
 	public readonly byte[] ReadListByte() => ReadBytes(ReadInt());
 
-	public readonly T Read<T>() where T : IBinaryVariableSerializer<T>, new() => (new T()).Read(this);
-	public readonly T ReadInto<T>(T data) where T : IBinaryVariableSerializer<T> => data.Read(this);
-	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IBinaryVariableAsyncSerializer<T>, new() => ReadAsyncInto(new T(), onDone);
-	public readonly void ReadAsyncInto<T>(T data, System.Action<T> onDone = null) where T : IBinaryVariableAsyncSerializer<T> => data.Read(this, onDone);
+	public readonly T Read<T>() where T : IGameDataSavable<T>, new() => (new T()).Read(this);
+	public readonly T ReadInto<T>(T data) where T : IGameDataSavable<T> => data.Read(this);
+	public readonly void ReadAsync<T>(System.Action<T> onDone) where T : IGameDataSavableAsync<T>, new() => ReadAsyncInto(new T(), onDone);
+	public readonly void ReadAsyncInto<T>(T data, System.Action<T> onDone = null) where T : IGameDataSavableAsync<T> => data.Read(this, onDone);
 
 	public void Dispose()
 	{
-		EndRegion();
+		var failed = !EndRegion();
+		reader.Dispose();
+
+		//if (failed)
+		//throw new InvalidOperationException($"Disposed of {label} game reader before region complete");
+
+
+
 	}
 }

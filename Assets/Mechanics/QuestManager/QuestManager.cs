@@ -78,7 +78,7 @@ public class QuestStatus
 
 
 [CreateAssetMenu(menuName = "Game/Quests/Quest Book")]
-public class QuestManager : SaveableSO
+public class QuestManager : ScriptableObject, IGameDataSavable<QuestManager>
 {
 	public static QuestManager singleton;
 	public QuestDatabase qdb;
@@ -129,65 +129,7 @@ public class QuestManager : SaveableSO
 	}
 
 
-	public override void LoadBlank()
-	{
-		quests = new List<QuestStatus>();
-		completedQuests = new List<QuestStatus>();
-	}
 
-	public override void SaveBin(in GameDataWriter writer)
-	{
-		if (selectedQuest == null)
-		{
-			writer.WritePrimitive(-1);
-		}
-		else
-		{
-			writer.WritePrimitive(selectedQuest.questIndex);
-		}
-		writer.WritePrimitive(quests.Count);
-		writer.WritePrimitive(completedQuests.Count);
-		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
-		for (int i = 0; i < quests.Count; i++)
-		{
-			quests[i].WriteQuestStatus(writer);
-		}
-		for (int i = 0; i < completedQuests.Count; i++)
-		{
-			completedQuests[i].WriteQuestStatus(writer);
-		}
-	}
-
-	public override void LoadBin(in GameDataReader reader)
-	{
-		int selectedQuestIndex = -1;
-		if (reader.saveVersion > new Version(0, 0, 1))
-		{
-			selectedQuestIndex = reader.ReadInt();
-		}
-
-		//Read the number of quests in each list
-		int questsCount = reader.ReadInt();
-		quests = new List<QuestStatus>(questsCount);
-		int completed = reader.ReadInt();
-		completedQuests = new List<QuestStatus>(completed);
-
-
-		//Debug.Log($"Loading {quests} quests, {completed} compelted");
-		//Read all the data for the quests
-		for (int i = 0; i < questsCount; i++)
-		{
-			quests.Add(new QuestStatus(this, reader));
-		}
-		for (int i = 0; i < completed; i++)
-		{
-			completedQuests.Add(new QuestStatus(this, reader));
-		}
-
-
-		//Call this after so that the selected quest actually indexes of a real value in the quests storage
-		selectedQuest = quests.Find(x => x.questIndex == selectedQuestIndex);
-	}
 
 	private void Start()
 	{
@@ -358,8 +300,67 @@ public class QuestManager : SaveableSO
 		questsSingleton.Remove(questStatus);
 	}
 
+	public QuestManager Read(in GameDataReader reader)
+	{
+		int selectedQuestIndex = -1;
+		if (reader.saveVersion > new Version(0, 0, 1))
+		{
+			selectedQuestIndex = reader.ReadInt();
+		}
+
+		//Read the number of quests in each list
+		int questsCount = reader.ReadInt();
+		quests = new List<QuestStatus>(questsCount);
+		int completed = reader.ReadInt();
+		completedQuests = new List<QuestStatus>(completed);
 
 
+		//Debug.Log($"Loading {quests} quests, {completed} compelted");
+		//Read all the data for the quests
+		for (int i = 0; i < questsCount; i++)
+		{
+			quests.Add(new QuestStatus(this, reader));
+		}
+		for (int i = 0; i < completed; i++)
+		{
+			completedQuests.Add(new QuestStatus(this, reader));
+		}
 
 
+		//Call this after so that the selected quest actually indexes of a real value in the quests storage
+		selectedQuest = quests.Find(x => x.questIndex == selectedQuestIndex);
+		return this;
+	}
+
+	public void Write(in GameDataWriter writer)
+	{
+
+		if (selectedQuest == null)
+		{
+			writer.WritePrimitive(-1);
+		}
+		else
+		{
+			writer.WritePrimitive(selectedQuest.questIndex);
+		}
+		writer.WritePrimitive(quests.Count);
+		writer.WritePrimitive(completedQuests.Count);
+		//Debug.Log($"Saving {questBook.quests.Count} quests, {questBook.completedQuests.Count} compelted");
+		for (int i = 0; i < quests.Count; i++)
+		{
+			quests[i].WriteQuestStatus(writer);
+		}
+		for (int i = 0; i < completedQuests.Count; i++)
+		{
+			completedQuests[i].WriteQuestStatus(writer);
+		}
+	}
+
+	public QuestManager Init()
+	{
+		quests = new List<QuestStatus>();
+		completedQuests = new List<QuestStatus>();
+
+		return this;
+	}
 }

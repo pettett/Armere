@@ -7,7 +7,7 @@ namespace Armere.Inventory
 {
 
 
-	public class ItemStack : ItemStackBase, IBinaryVariableAsyncSerializer<ItemStack>
+	public class ItemStack : ItemStackBase, IGameDataSavableAsync<ItemStack>
 	{
 		public uint count;
 		public ItemStack()
@@ -46,10 +46,14 @@ namespace Armere.Inventory
 			base.Write(in writer);
 		}
 
+		ItemStack IGameDataSerializable<ItemStack>.Init()
+		{
+			return this;
+		}
 	}
 
-	public class StackPanel<StackT> : InventoryPanel, IBinaryVariableAsyncSerializer<StackPanel<StackT>>
-			where StackT : ItemStack, IBinaryVariableAsyncSerializer<StackT>, new()
+	public class StackPanel<StackT> : InventoryPanel, IGameDataSavableAsync<StackPanel<StackT>>
+			where StackT : ItemStack, IGameDataSavableAsync<StackT>, new()
 	{
 
 		public readonly List<StackT> items;
@@ -174,6 +178,11 @@ namespace Armere.Inventory
 		public void Write(in GameDataWriter writer)
 		{
 			writer.Write<BinaryListAsyncSerializer<StackT>>(items);
+		}
+
+		public StackPanel<StackT> Init()
+		{
+			return this;
 		}
 	}
 }

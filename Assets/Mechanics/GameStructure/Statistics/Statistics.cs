@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public struct EntityInteractionData : IBinaryVariableSerializer<EntityInteractionData>
+public struct EntityInteractionData : IGameDataSavable<EntityInteractionData>
 {
 	public uint kills;
 	public uint deaths;
 	public string Format(string name)
 	{
 		return $"Killed {name} {kills} times, died {deaths} times";
+	}
+
+	public EntityInteractionData Init()
+	{
+		return this;
 	}
 
 	public EntityInteractionData Read(in GameDataReader reader)
@@ -28,7 +33,7 @@ public struct EntityInteractionData : IBinaryVariableSerializer<EntityInteractio
 
 
 [CreateAssetMenu(menuName = "Game/Statistics")]
-public class Statistics : SaveableSO
+public class Statistics : ScriptableObject, IGameDataSavable<Statistics>
 {
 	static readonly Dictionary<string, object> stats = new Dictionary<string, object>();
 
@@ -48,21 +53,18 @@ public class Statistics : SaveableSO
 		stats[name] = value;
 	}
 
-	public override void LoadBin(in GameDataReader reader)
+
+	public Statistics Read(in GameDataReader reader)
 	{
 		int itemCount = reader.ReadInt();
 		for (int i = 0; i < itemCount; i++)
 		{
 			stats.Add(reader.ReadString(), reader.ReadPrimitive());
 		}
+		return this;
 	}
 
-	public override void LoadBlank()
-	{
-
-	}
-
-	public override void SaveBin(in GameDataWriter writer)
+	public void Write(in GameDataWriter writer)
 	{
 		writer.WritePrimitive(stats.Count);
 		foreach (var item in stats)
@@ -70,5 +72,10 @@ public class Statistics : SaveableSO
 			writer.WritePrimitive(item.Key);
 			writer.WritePrimitive(item.Value);
 		}
+	}
+
+	public Statistics Init()
+	{
+		return this;
 	}
 }

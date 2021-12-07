@@ -3,7 +3,7 @@ namespace Armere.Inventory
 {
 
 
-	public class PotionItemUnique : ItemStackBase, IBinaryVariableAsyncSerializer<PotionItemUnique>
+	public class PotionItemUnique : ItemStackBase, IGameDataSavableAsync<PotionItemUnique>
 	{
 
 		public float potency;
@@ -44,6 +44,9 @@ namespace Armere.Inventory
 			base.Write(in writer);
 		}
 
-
+		PotionItemUnique IGameDataSerializable<PotionItemUnique>.Init()
+		{
+			return this;
+		}
 	}
 }

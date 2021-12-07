@@ -84,11 +84,13 @@ public class FlammableBody : MonoBehaviour, IWaterObject, IExplosionEffector
 
 		if (spreadMode.HasFlag(FireSpreadMode.Particle))
 		{
-			var p = GetComponent<ParticleSystem>();
-			if (enabled && !p.isPlaying)
-				p.Play();
-			var e = p.emission;
-			e.enabled = enabled;
+			if (TryGetComponent<ParticleSystem>(out var p))
+			{
+				if (enabled && !p.isPlaying)
+					p.Play();
+				var e = p.emission;
+				e.enabled = enabled;
+			}
 		}
 
 	}

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Armere.Inventory
 {
 
-	public class UniquesPanel<UniqueT> : InventoryPanel, IBinaryVariableAsyncSerializer<UniquesPanel<UniqueT>> where UniqueT : ItemStackBase, IBinaryVariableAsyncSerializer<UniqueT>, new()
+	public class UniquesPanel<UniqueT> : InventoryPanel, IGameDataSavableAsync<UniquesPanel<UniqueT>> where UniqueT : ItemStackBase, IGameDataSavableAsync<UniqueT>, new()
 
 	{
 
@@ -145,5 +145,9 @@ namespace Armere.Inventory
 			writer.Write<BinaryListAsyncSerializer<UniqueT>>(items);
 		}
 
+		public UniquesPanel<UniqueT> Init()
+		{
+			return this;
+		}
 	}
 }

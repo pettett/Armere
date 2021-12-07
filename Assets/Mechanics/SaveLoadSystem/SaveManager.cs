@@ -6,17 +6,18 @@ using System.Linq;
 using UnityEngine.Profiling;
 using System.Collections;
 
-public interface IBinaryVariableWritableSerializer<T>
+public interface IGameDataSerializable<T>
 {
 	void Write(in GameDataWriter writer);
+	T Init();
 }
 
-public interface IBinaryVariableSerializer<T> : IBinaryVariableWritableSerializer<T>
+public interface IGameDataSavable<T> : IGameDataSerializable<T>
 {
 	T Read(in GameDataReader reader);
 }
 
-public interface IBinaryVariableAsyncSerializer<T> : IBinaryVariableWritableSerializer<T>
+public interface IGameDataSavableAsync<T> : IGameDataSerializable<T>
 {
 	void Read(in GameDataReader reader, System.Action<T> data);
 }
@@ -52,6 +53,9 @@ public class SaveManager : MonoBehaviour
 	public static string SaveRootDirectory => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName);
 	public static string NewSaveDirectory => Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName, System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"));
 
+
+
+
 	public static SaveManager singleton;
 	public string lastSaveDir;
 	float lastSave;
@@ -61,8 +65,6 @@ public class SaveManager : MonoBehaviour
 	public bool autoLoadOnStart = true;
 	public bool autoSaveOnDestroy = true;
 
-	public SceneSaveData sceneSaveData;
-	public SaveableSO[] saveLoadEventChannels;
 
 	public UnityEngine.Events.UnityEvent OnBlankSaveLoaded;
 	public static event System.Action OnGameLoadingCompleted;
@@ -81,16 +83,14 @@ public class SaveManager : MonoBehaviour
 		etc.
 	*/
 	[Header("Event Channels")]
-	public InputReader input;
 	public VoidEventChannelSO onSavingBegin;
 	public VoidEventChannelSO onSavingFinish;
 
 	///<summary>
 	///Delete all saves.
 	///Maybe not undoable - remember to use with caution
-	///</summary>
-	[MyBox.ButtonMethod]
-	public void ResetSave()
+	///</summary> 
+	public static void ResetSave()
 	{
 		string rootDir = SaveRootDirectory;
 
@@ -111,7 +111,7 @@ public class SaveManager : MonoBehaviour
 
 	//smaller class to hold info about save that is used in the UI
 	[System.Serializable]
-	public class SaveInfo
+	public class SaveInfo : IGameDataSavable<SaveInfo>
 	{
 		//16 by 9 ratio
 		public const int thumbnailWidth = 8 * 16;
@@ -120,39 +120,14 @@ public class SaveManager : MonoBehaviour
 		public System.DateTime saveTime;
 		public Texture2D thumbnail;
 
-		public SaveInfo(in GameDataReader reader)
-		{
-			LoadBin(reader);
-		}
 		public SaveInfo(string regionName)
 		{
 			this.thumbnail = ScreenshotCapture.CaptureScreenshot(thumbnailWidth, thumbnailHeight);
 			this.regionName = regionName;
 			saveTime = System.DateTime.Now;
 		}
-
-		public void LoadBin(in GameDataReader reader)
+		public SaveInfo()
 		{
-
-			thumbnail = new Texture2D(thumbnailWidth, thumbnailHeight);
-			thumbnail.LoadImage(reader.ReadListByte());
-
-			saveTime = System.DateTime.FromFileTime(reader.ReadLong());
-
-			regionName = reader.ReadString();
-		}
-
-		public void SaveBin(in GameDataWriter writer)
-		{
-
-			var thumb = thumbnail.EncodeToPNG();
-
-			writer.WriteList(thumb);
-
-
-			writer.WritePrimitive(saveTime.ToFileTime());
-
-			writer.WritePrimitive(regionName);
 		}
 
 		public string AdaptiveTime()
@@ -163,6 +138,36 @@ public class SaveManager : MonoBehaviour
 
 			if (now.Minute != saveTime.Minute || now.Hour != saveTime.Hour) return saveTime.ToString("H:mm,") + " Today";
 			return "Just Now";
+		}
+
+		public SaveInfo Read(in GameDataReader reader)
+		{
+
+			thumbnail = new Texture2D(thumbnailWidth, thumbnailHeight);
+			thumbnail.LoadImage(reader.ReadListByte());
+
+			saveTime = System.DateTime.FromFileTime(reader.ReadLong());
+
+			regionName = reader.ReadString();
+
+			return this;
+		}
+
+		public void Write(in GameDataWriter writer)
+		{
+			var thumb = thumbnail.EncodeToPNG();
+
+			writer.WriteList(thumb);
+
+
+			writer.WritePrimitive(saveTime.ToFileTime());
+
+			writer.WritePrimitive(regionName);
+		}
+
+		public SaveInfo Init()
+		{
+			return this;
 		}
 	}
 
@@ -186,46 +191,43 @@ public class SaveManager : MonoBehaviour
 
 		lastSave = Time.realtimeSinceStartup - 5;
 
-		input.quicksaveEvent += OnQuicksave;
-		input.quickloadEvent += OnQuickload;
-
 	}
 
 	//"do not destroy on load"
-	private void OnApplicationQuit()
-	{
-		if (autoSaveOnDestroy)
-		{
-			Debug.Log("Saving game");
-			SaveGameState();
-		}
-	}
+	// private void OnApplicationQuit()
+	// {
+	// 	if (autoSaveOnDestroy)
+	// 	{
+	// 		Debug.Log("Saving game");
+	// 		SaveGameState();
+	// 	}
+	// }
 
-	public void OnQuicksave(InputActionPhase phase)
-	{
-		if (phase == InputActionPhase.Performed)
-			SaveGameState();
-	}
-	public void OnQuickload(InputActionPhase phase)
-	{
-		if (phase == InputActionPhase.Performed)
-			LoadMostRecentSave(true);
-	}
+	// public void OnQuicksave(InputActionPhase phase)
+	// {
+	// 	if (phase == InputActionPhase.Performed)
+	// 		SaveGameState();
+	// }
+	// public void OnQuickload(InputActionPhase phase)
+	// {
+	// 	if (phase == InputActionPhase.Performed)
+	// 		LoadMostRecentSave(true);
+	// }
 
-	public void AttemptAutoSave()
-	{
-		if (lastSave + minAutosaveGap < Time.realtimeSinceStartup)
-		{
-			//Save the game and show an indicator so show the game is saving
-			SaveGameState();
-			print("Autosaved");
-			lastSave = Time.realtimeSinceStartup;
-		}
-		else
-		{
-			print("Too soon to autosave again");
-		}
-	}
+	// public void AttemptAutoSave()
+	// {
+	// 	if (lastSave + minAutosaveGap < Time.realtimeSinceStartup)
+	// 	{
+	// 		//Save the game and show an indicator so show the game is saving
+	// 		SaveGameState();
+	// 		print("Autosaved");
+	// 		lastSave = Time.realtimeSinceStartup;
+	// 	}
+	// 	else
+	// 	{
+	// 		print("Too soon to autosave again");
+	// 	}
+	// }
 
 
 
@@ -249,15 +251,22 @@ public class SaveManager : MonoBehaviour
 			return null;
 		}
 	}
+	public static string SaveDirName()
+	{
+
+		return Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName);
+	}
 	public static IEnumerable<string> SaveFileSaveDirectories()
 	{
-		string selectedSaveFileDirectory = Path.Combine(Application.persistentDataPath, savesDirectoryName, currentSaveFileDirectoryName);
+		string selectedSaveFileDirectory = SaveDirName();
 
 		if (Directory.Exists(selectedSaveFileDirectory))
 		{
 			string[] dirs = Directory.GetDirectories(selectedSaveFileDirectory);
 
+
 			if (dirs.Length == 0) yield break;
+
 
 			System.Array.Sort(dirs);
 			System.Array.Reverse(dirs);
@@ -265,7 +274,7 @@ public class SaveManager : MonoBehaviour
 			for (int i = 0; i < dirs.Length; i++)
 			{
 				//Valid save file needs a binsave file and a metasave file
-				if (File.Exists(Path.Combine(dirs[i], metaSaveRecordFileName)) && File.Exists(Path.Combine(dirs[i], saveRecordFileName)))
+				if (File.Exists(Path.Combine(dirs[i], metaSaveRecordFileName)))
 					yield return dirs[i];
 			}
 		}
@@ -273,144 +282,187 @@ public class SaveManager : MonoBehaviour
 
 	public static int GetSaveCount() => SaveFileSaveDirectories().Count();
 
-	public void LoadMostRecentSave(bool hardLoad)
-	{
-		string dir = GetDirectoryForSaveInstance(0);
-		if (dir != null)
-			LoadSave(dir, hardLoad);
-		else
-			LoadBlankSave(hardLoad);
-	}
-
-	public void LoadSave(int saveIndex, bool hardLoad)
-	{
-		string dir = GetDirectoryForSaveInstance(saveIndex);
-		if (dir == null)
-		{
-			throw new System.ArgumentException("Save index outside range of saves");
-		}
-		LoadSave(dir, hardLoad);
-	}
+	// public void LoadMostRecentSave(bool hardLoad)
+	// {
+	// 	string dir = GetDirectoryForSaveInstance(0);
+	// 	if (dir != null)
+	// 		LoadSave(dir, hardLoad);
+	// 	else
+	// 		LoadBlankSave(hardLoad);
+	// }
 
 
-	public void DeleteSave(int saveIndex) => DeleteSave(GetDirectoryForSaveInstance(saveIndex));
-	public void DeleteSave(string dir)
+
+
+
+	// public void LoadSave(int saveIndex, bool hardLoad)
+	// {
+	// 	string dir = GetDirectoryForSaveInstance(saveIndex);
+	// 	if (dir == null)
+	// 	{
+	// 		throw new System.ArgumentException("Save index outside range of saves");
+	// 	}
+	// 	LoadSave(dir, hardLoad);
+	// }
+
+
+	public static void DeleteSave(int saveIndex) => DeleteSave(GetDirectoryForSaveInstance(saveIndex));
+	public static void DeleteSave(string dir)
 	{
 		if (dir != null)
 			Directory.Delete(dir, true);
 	}
 
 
-	public void LoadSave(string dir, bool hardLoad)
+	// public void LoadSave(string dir, bool hardLoad)
+	// {
+	// 	if (hardLoad)
+	// 	{
+	// 		HardLoadSave(dir);
+	// 	}
+	// 	else
+	// 	{
+	// 		StartCoroutine(SoftLoadSave(dir));
+	// 	}
+	// }
+
+	// public void LoadBlankSave(bool hardLoad)
+	// {
+	// 	if (hardLoad)
+	// 		HardLoadBlankSave();
+	// 	else
+	// 		SoftLoadBlankSave();
+	// }
+
+	// public void HardLoadBlankSave()
+	// {
+	// 	//Reload current Scene
+
+	// 	Debug.Log("Hard loading blank save...");
+	// 	HardSceneLoad(LevelManager.singleton.currentLevel, () =>
+	// 	{
+	// 		SoftLoadBlankSave();
+	// 	});
+
+	//}
+	// public void SoftLoadBlankSave()
+	// {
+	// 	Debug.Log("Soft loading blank save...");
+	// 	for (int i = 0; i < saveLoadEventChannels.Length; i++)
+	// 	{
+	// 		saveLoadEventChannels[i].LoadBlank();
+	// 	}
+	// 	OnBlankSaveLoaded?.Invoke();
+
+
+	// 	OnAfterLoad();
+	// }
+
+	// public void HardLoadSave(string dir)
+	// {
+
+	// 	string savePath = Path.Combine(dir, saveRecordFileName);
+
+	// 	string levelName;
+	// 	using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
+	// 	{
+	// 		using GameDataReader gameDataReader = new GameDataReader(reader);
+
+	// 		levelName = gameDataReader.ReadString();
+	// 	}
+
+	// 	HardSceneLoad(levelName, () =>
+	// 	{
+	// 		StartCoroutine(SoftLoadSave(dir));
+	// 	});
+	// }
+	public static void CreateSaveDirectory(string dir)
 	{
-		if (hardLoad)
+		Directory.CreateDirectory(dir);
+
+		WriteFromObject(new SaveInfo("todo"), dir, metaSaveRecordFileName);
+
+	}
+	public static GameDataReader ReadFile(string dir, string fileName)
+	{
+		string savePath = Path.Combine(dir, fileName);
+
+		return new GameDataReader(new BinaryReader(File.Open(savePath, FileMode.Open, FileAccess.Read, FileShare.Read)), fileName);
+	}
+
+	public static GameDataWriter WriteNewFile(string dir, string fileName)
+	{
+		string savePath = Path.Combine(dir, fileName);
+
+		return new GameDataWriter(new BinaryWriter(File.Open(savePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)));
+	}
+
+	public static T ReadIntoObject<T>(T obj, string dir, string fileName) where T : IGameDataSavable<T>
+	{
+		using (var f = ReadFile(dir, fileName))
 		{
-			HardLoadSave(dir);
+			return obj.Read(f);
 		}
-		else
+	}
+
+	public static void ReadIntoObject<T>(T obj, string dir, string fileName, System.Action<T> compeleted) where T : IGameDataSavableAsync<T>
+	{
+		using (var f = ReadFile(dir, fileName))
 		{
-			StartCoroutine(SoftLoadSave(dir));
+			obj.Read(f, compeleted);
 		}
 	}
 
-	public void LoadBlankSave(bool hardLoad)
+	public static void WriteFromObject<T>(T obj, string dir, string fileName) where T : IGameDataSerializable<T>
 	{
-		if (hardLoad)
-			HardLoadBlankSave();
-		else
-			SoftLoadBlankSave();
-	}
-
-	public void HardLoadBlankSave()
-	{
-		//Reload current Scene
-
-		Debug.Log("Hard loading blank save...");
-		HardSceneLoad(LevelManager.singleton.currentLevel, () =>
+		using (var f = WriteNewFile(dir, fileName))
 		{
-			SoftLoadBlankSave();
-		});
-
-	}
-	public void SoftLoadBlankSave()
-	{
-		Debug.Log("Soft loading blank save...");
-		for (int i = 0; i < saveLoadEventChannels.Length; i++)
-		{
-			saveLoadEventChannels[i].LoadBlank();
+			obj.Write(f);
 		}
-		OnBlankSaveLoaded?.Invoke();
-
-
-		OnAfterLoad();
 	}
 
-	public void HardLoadSave(string dir)
-	{
 
-		string savePath = Path.Combine(dir, saveRecordFileName);
-
-		string levelName;
-		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
-		{
-			using GameDataReader gameDataReader = new GameDataReader(reader);
-
-			levelName = gameDataReader.ReadString();
-		}
-
-		HardSceneLoad(levelName, () =>
-		{
-			StartCoroutine(SoftLoadSave(dir));
-		});
-	}
-	public void HardSceneLoad(string sceneName, System.Action OnCompleted)
-	{
-
-		LevelManager.LoadLevel(sceneName, OnCompleted);
+	// public IEnumerator SoftLoadSave(string dir)
+	// {
+	// 	Profiler.BeginSample("Loading Game");
+	// 	Debug.Log("Loading Game…");
 
 
-	}
+	// 	string savePath = Path.Combine(dir, saveRecordFileName);
 
-	public IEnumerator SoftLoadSave(string dir)
-	{
-		Profiler.BeginSample("Loading Game");
-		Debug.Log("Loading Game…");
+	// 	using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
+	// 	{
+	// 		using GameDataReader gameDataReader = new GameDataReader(reader);
 
+	// 		//Level name not actually used - scene already loaded here
 
-		string savePath = Path.Combine(dir, saveRecordFileName);
-
-		using (var reader = new BinaryReader(File.Open(savePath, FileMode.Open)))
-		{
-			using GameDataReader gameDataReader = new GameDataReader(reader);
-
-			//Level name not actually used - scene already loaded here
-
-			string levelName = gameDataReader.ReadString();
+	// 		string levelName = gameDataReader.ReadString();
 
 
-			for (int i = 0; i < saveLoadEventChannels.Length; i++)
-			{
-				//Debug.Log($"Loading {i} from position {gameDataReader.reader.BaseStream.Position}");
-				gameDataReader.BeginRegion();
-				saveLoadEventChannels[i].LoadBin(gameDataReader);
-				if (saveLoadEventChannels[i] is LoadableAsyncSO async)
-				{
-					yield return async.LoadBinAsync(gameDataReader);
-				}
+	// 		for (int i = 0; i < saveLoadEventChannels.Length; i++)
+	// 		{
+	// 			//Debug.Log($"Loading {i} from position {gameDataReader.reader.BaseStream.Position}");
+	// 			gameDataReader.BeginRegion();
+	// 			saveLoadEventChannels[i].LoadBin(gameDataReader);
 
-				if (!gameDataReader.EndRegion())
-				{
-					break;
-				}
+	// 			if (saveLoadEventChannels[i] is LoadableAsyncSO async)
+	// 			{
+	// 				yield return async.LoadBinAsync(gameDataReader);
+	// 			}
 
-			}
+	// 			if (!gameDataReader.EndRegion())
+	// 			{
+	// 				break;
+	// 			}
 
-		}
+	// 		}
 
-		OnAfterLoad();
+	// 	}
 
-		Profiler.EndSample();
-	}
+	// 	OnAfterLoad();
+
+	// 	Profiler.EndSample();
+	// }
 	public void OnAfterLoad()
 	{
 		OnGameLoadingCompleted?.Invoke();
@@ -426,54 +478,49 @@ public class SaveManager : MonoBehaviour
 	}
 
 
-	public void SaveGameState()
-	{
-		Profiler.BeginSample("Saving Game");
-		onSavingBegin.RaiseEvent();
-		Debug.Log($"Saving Game in {LevelManager.singleton.currentLevel}");
+	// public void SaveGameState()
+	// {
+	// 	Profiler.BeginSample("Saving Game");
+	// 	onSavingBegin.RaiseEvent();
+	// 	Debug.Log($"Saving Game in {LevelManager.singleton.currentLevel}");
 
-		//dont allow saving more then once every 5 seconds
+	// 	//dont allow saving more then once every 5 seconds
 
-		lastSave = Time.realtimeSinceStartup;
+	// 	lastSave = Time.realtimeSinceStartup;
 
-		//setup directory
-		string dir = NewSaveDirectory;
-		Directory.CreateDirectory(dir);
-		//Debug.LogFormat("Quick saving to {0}", dir);
+	// 	//setup directory
+	// 	string dir = NewSaveDirectory;
+	// 	Directory.CreateDirectory(dir);
+	// 	//Debug.LogFormat("Quick saving to {0}", dir);
 
-		lastSaveDir = dir;
+	// 	lastSaveDir = dir;
 
-		string savePath = Path.Combine(dir, saveRecordFileName);
+	// 	string savePath = Path.Combine(dir, saveRecordFileName);
 
-		//Save the actual file
+	// 	//Save the actual file
 
-		WriteFile(savePath, gameWriter =>
-		{
-			gameWriter.WritePrimitive(LevelManager.singleton.currentLevel);
-			for (int i = 0; i < saveLoadEventChannels.Length; i++)
-			{
-				gameWriter.BeginRegion();
-				saveLoadEventChannels[i].SaveBin(gameWriter);
-				gameWriter.EndRegion();
-			}
-		});
+	// 	WriteFile(savePath, gameWriter =>
+	// 	{
+	// 		gameWriter.WritePrimitive(LevelManager.singleton.currentLevel);
+	// 		for (int i = 0; i < saveLoadEventChannels.Length; i++)
+	// 		{
+	// 			gameWriter.BeginRegion();
+	// 			saveLoadEventChannels[i].SaveBin(gameWriter);
+	// 			gameWriter.EndRegion();
+	// 		}
+	// 	});
 
-		SaveInfo info = new SaveInfo(sceneSaveData.SaveTooltip);
+	// 	//If there are now more than max saves, remove the last save 
+	// 	while (GetSaveCount() > maxSaves)
+	// 	{
+	// 		DeleteSave(maxSaves);
+	// 	}
 
-		WriteFile(Path.Combine(dir, metaSaveRecordFileName), gameWriter =>
-		{
-			info.SaveBin(gameWriter);
-		});
+	// 	onSavingFinish.RaiseEvent();
+	// 	Profiler.EndSample();
+	// }
 
-		//If there are now more than max saves, remove the last save 
-		while (GetSaveCount() > maxSaves)
-		{
-			DeleteSave(maxSaves);
-		}
 
-		onSavingFinish.RaiseEvent();
-		Profiler.EndSample();
-	}
 
 	public static void WriteFile(string dir, System.Action<GameDataWriter> saveFunction)
 	{
@@ -490,14 +537,7 @@ public class SaveManager : MonoBehaviour
 
 	public static SaveInfo LoadSaveInfo(string saveDirectory)
 	{
-
-		SaveInfo info;
-		using (var reader = new BinaryReader(File.Open(Path.Combine(saveDirectory, metaSaveRecordFileName), FileMode.Open)))
-		{
-			using GameDataReader gameDataReader = new GameDataReader(reader);
-			info = new SaveInfo(gameDataReader);
-		}
-		return info;
+		return ReadIntoObject(new SaveInfo(), saveDirectory, metaSaveRecordFileName);
 	}
 
 }

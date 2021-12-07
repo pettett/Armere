@@ -12,7 +12,7 @@ using Armere.UI;
 namespace Armere.PlayerController
 {
 	[RequireComponent(typeof(Rigidbody), typeof(PlayerMachine))]
-	public class PlayerController : Character, IInteractor
+	public class PlayerController : Character, IGameDataSavable<PlayerController>, IInteractor
 	{
 		public enum WeaponSet { MeleeSidearm, BowArrow }
 
@@ -83,9 +83,14 @@ namespace Armere.PlayerController
 
 		[Header("Animations")]
 		public AnimationTransitionSet transitionSet;
+		public Vector3Int armourSelections = new Vector3Int(-1, -1, -1);
 
-		public int[] armourSelections => playerSaveData.armourSelections;
-		public Dictionary<ItemType, int> itemSelections => playerSaveData.itemSelections;
+		public readonly Dictionary<ItemType, int> itemSelections = new Dictionary<ItemType, int>(new ItemTypeEqualityComparer()){
+			{ItemType.Melee,-1},
+			{ItemType.Bow,-1},
+			{ItemType.Ammo,-1},
+			{ItemType.SideArm,-1},
+		};
 
 		public int currentMelee { get => itemSelections[ItemType.Melee]; set => itemSelections[ItemType.Melee] = value; }
 		public int currentBow { get => itemSelections[ItemType.Bow]; set => itemSelections[ItemType.Bow] = value; }
@@ -99,7 +104,6 @@ namespace Armere.PlayerController
 		public IntEventChannelSO onChangeSelectedBow;
 		public IntEventChannelSO onChangeSelectedAmmo;
 		public InputReader inputReader;
-		public PlayerSaveData playerSaveData;
 
 
 		[NonSerialized] public EquipmentSet<bool> sheathing = new EquipmentSet<bool>(false, false, false);
@@ -124,6 +128,7 @@ namespace Armere.PlayerController
 
 		private void OnDestroy()
 		{
+			if (inventory == null) return;
 
 			inventory.armour.onItemRemoved -= OnArmourRemoved;
 			inventory.OnDropItemEvent -= OnDropItem;
@@ -134,8 +139,6 @@ namespace Armere.PlayerController
 			inventory.sideArm.onItemRemoved -= OnEquipableItemRemoved;
 
 
-
-			if (playerSaveData.c == this) playerSaveData.c = null;
 		}
 
 
@@ -166,9 +169,7 @@ namespace Armere.PlayerController
 			//Allow for custom gravity
 			rb.useGravity = false;
 
-			playerSaveData.c = this;
 
-			transform.SetPositionAndRotation(playerSaveData.position, playerSaveData.rotation);
 
 			inventory.armour.onItemRemoved += OnArmourRemoved;
 			inventory.OnDropItemEvent += OnDropItem;
@@ -179,41 +180,10 @@ namespace Armere.PlayerController
 			inventory.bow.onItemRemoved += OnEquipableItemRemoved;
 			inventory.sideArm.onItemRemoved += OnEquipableItemRemoved;
 
-			for (int i = 0; i < 3; i++)
-			{
-				//Apply the chosen armour to the player on load
-				if (armourSelections[i] != -1)
-				{
-					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
-					//Will automatically remove the old armour piece
-					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
-				}
-			}
 
-			for (int i = 1; i < 5; i++)
-			{
-				ItemType t = (ItemType)i;
-				if (itemSelections[t] >= inventory.StackCount(t))
-				{
-					Debug.LogWarning($"Selected {t}, {itemSelections[t]} is out of range");
-					itemSelections[t] = inventory.StackCount(t) - 1;
-				}
-
-				if (itemSelections[t] >= 0)
-				{
-					ItemData item = inventory.ItemAt(itemSelections[t], t).item;
-					if (item is HoldableItemData holdableItemData)
-					{
-						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
-						weaponGraphics.holdables[t].sheathed = playerSaveData.sheathedItems[t];
-
-						//OnSelectItem(t, selection);
-					}
-				}
-			}
 
 			//start a fresh state
-			machine.ChangeToState(playerSaveData.startingState ?? machine.defaultState);
+			machine.ChangeToState(machine.defaultState);
 
 			inputReader.SwitchToGameplayInput();
 			enabled = true;
@@ -648,6 +618,93 @@ namespace Armere.PlayerController
 		{
 			knockoutState.time = time;
 			machine.ChangeToState(knockoutState);
+		}
+
+
+
+
+		public PlayerController Read(in GameDataReader reader)
+		{
+			transform.position = reader.ReadVector3();
+
+			transform.rotation = reader.ReadQuaternion();
+
+			armourSelections[0] = reader.ReadInt();
+			armourSelections[1] = reader.ReadInt();
+			armourSelections[2] = reader.ReadInt();
+
+			itemSelections[ItemType.Melee] = reader.ReadInt();
+			itemSelections[ItemType.SideArm] = reader.ReadInt();
+			itemSelections[ItemType.Bow] = reader.ReadInt();
+			itemSelections[ItemType.Ammo] = reader.ReadInt();
+
+			var sheathedItems = new EquipmentSet<bool>(reader.ReadBool(), reader.ReadBool(), reader.ReadBool());
+
+			//	startingState = SymbolToType(reader.ReadChar());
+
+
+
+			for (int i = 0; i < 3; i++)
+			{
+				//Apply the chosen armour to the player on load
+				if (armourSelections[i] != -1)
+				{
+					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
+					//Will automatically remove the old armour piece
+					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
+				}
+			}
+
+			for (int i = 1; i < 5; i++)
+			{
+				ItemType t = (ItemType)i;
+				if (itemSelections[t] >= inventory.StackCount(t))
+				{
+					Debug.LogWarning($"Selected {t}, {itemSelections[t]} is out of range");
+					itemSelections[t] = inventory.StackCount(t) - 1;
+				}
+
+				if (itemSelections[t] >= 0)
+				{
+					ItemData item = inventory.ItemAt(itemSelections[t], t).item;
+					if (item is HoldableItemData holdableItemData)
+					{
+						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
+						weaponGraphics.holdables[t].sheathed = sheathedItems[t];
+
+						//OnSelectItem(t, selection);
+					}
+				}
+			}
+
+			return this;
+		}
+
+		public void Write(in GameDataWriter writer)
+		{
+			writer.WritePrimitive(transform.position);
+			writer.WritePrimitive(transform.rotation);
+
+			writer.WritePrimitive(armourSelections[0]);
+			writer.WritePrimitive(armourSelections[1]);
+			writer.WritePrimitive(armourSelections[2]);
+
+			writer.WritePrimitive(itemSelections[ItemType.Melee]);
+			writer.WritePrimitive(itemSelections[ItemType.SideArm]);
+			writer.WritePrimitive(itemSelections[ItemType.Bow]);
+			writer.WritePrimitive(itemSelections[ItemType.Ammo]);
+
+			writer.WritePrimitive(weaponGraphics.holdables.melee.sheathed);
+			writer.WritePrimitive(weaponGraphics.holdables.sidearm.sheathed);
+			writer.WritePrimitive(weaponGraphics.holdables.bow.sheathed);
+
+			//Save the current state
+			writer.WritePrimitive(machine.mainState.stateSymbol);
+		}
+
+		public PlayerController Init()
+		{
+			return this;
 		}
 	}
 }

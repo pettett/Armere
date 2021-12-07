@@ -14,21 +14,22 @@ public class SaveDisplayUI : MonoBehaviour
 	public TextMeshProUGUI saveTime;
 	int saveIndex;
 
+	IntEventChannelSO loadSaveIndex;
 
-
-	public void Init(int saveIndex)
+	public void Init(int saveIndex, IntEventChannelSO loadSaveIndex)
 	{
 		SaveManager.SaveInfo saveInfo = SaveManager.LoadSaveInfo(saveIndex);
 
 		scene.text = saveInfo.regionName;
 		saveTime.text = saveInfo.AdaptiveTime();
 		thumbnail.texture = saveInfo.thumbnail;
+		this.loadSaveIndex = loadSaveIndex;
 
 		this.saveIndex = saveIndex;
 		GetComponent<Button>().onClick.AddListener(OnClicked);
 	}
 	void OnClicked()
 	{
-		SaveManager.singleton.LoadSave(saveIndex, true);
+		loadSaveIndex.RaiseEvent(saveIndex);
 	}
 }

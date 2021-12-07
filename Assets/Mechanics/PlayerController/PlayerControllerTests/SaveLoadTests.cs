@@ -13,27 +13,30 @@ public class SaveLoadTests
 	[Test]
 	public void SaveLoadTestsSimplePasses()
 	{
-		var data = AssetDatabase.LoadAssetAtPath<PlayerSaveData>("Assets/Mechanics/PlayerController/Channels/Player Save Data.asset");
+		var data = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Mechanics/PlayerController/Player.prefab");
 
 		// Use the Assert class to test conditions
 
 		Assert.NotNull(data);
 
+		var playerObj = GameObject.Instantiate(data);
+
+		var p = playerObj.GetComponent<PlayerController>();
 
 		using var s = new MemoryStream();
 
 		using (var w = new BinaryWriter(s))
 		{
-			data.SaveBin(new GameDataWriter(w));
+			p.Write(new GameDataWriter(w));
 		}
 
 
 		using (var r = new BinaryReader(s))
 		{
-			data.LoadBin(new GameDataReader(r));
+			p.Read(new GameDataReader(r, "Player Test"));
 		}
 
-
+		GameObject.DestroyImmediate(playerObj);
 
 	}
 

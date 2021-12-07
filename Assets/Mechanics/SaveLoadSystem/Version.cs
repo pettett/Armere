@@ -1,4 +1,4 @@
-public readonly struct Version : IBinaryVariableSerializer<Version>
+public readonly struct Version : IGameDataSavable<Version>
 {
 	//Takes up 4 bytes - same as an integer
 	public readonly byte major;
@@ -46,5 +46,10 @@ public readonly struct Version : IBinaryVariableSerializer<Version>
 		writer.WritePrimitive(major);
 		writer.WritePrimitive(minor);
 		writer.WritePrimitive(patch);
+	}
+
+	public Version Init()
+	{
+		return this;
 	}
 }

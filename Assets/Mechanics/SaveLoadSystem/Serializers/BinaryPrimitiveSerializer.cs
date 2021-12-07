@@ -1,4 +1,4 @@
-public readonly struct BinaryIntSerializer : IBinaryVariableSerializer<BinaryIntSerializer>
+public readonly struct BinaryIntSerializer : IGameDataSavable<BinaryIntSerializer>
 {
 	readonly int value;
 	public BinaryIntSerializer(int value)
@@ -11,11 +11,16 @@ public readonly struct BinaryIntSerializer : IBinaryVariableSerializer<BinaryInt
 
 	public override string ToString() => value.ToString();
 
+	public BinaryIntSerializer Init()
+	{
+		return this;
+	}
+
 	public static implicit operator BinaryIntSerializer(int value) => new BinaryIntSerializer(value);
 	public static implicit operator int(BinaryIntSerializer value) => value.value;
 }
 
-public readonly struct BinaryStringSerializer : IBinaryVariableSerializer<BinaryStringSerializer>
+public readonly struct BinaryStringSerializer : IGameDataSavable<BinaryStringSerializer>
 {
 	readonly string value;
 	public BinaryStringSerializer(string value)
@@ -28,11 +33,16 @@ public readonly struct BinaryStringSerializer : IBinaryVariableSerializer<Binary
 
 	public override string ToString() => value.ToString();
 
+	public BinaryStringSerializer Init()
+	{
+		return this;
+	}
+
 	public static implicit operator BinaryStringSerializer(string value) => new BinaryStringSerializer(value);
 	public static implicit operator string(BinaryStringSerializer value) => value.value;
 }
 
-public readonly struct BinaryULongSerializer : IBinaryVariableSerializer<BinaryULongSerializer>
+public readonly struct BinaryULongSerializer : IGameDataSavable<BinaryULongSerializer>
 {
 	readonly ulong value;
 	public BinaryULongSerializer(ulong value)
@@ -45,6 +55,11 @@ public readonly struct BinaryULongSerializer : IBinaryVariableSerializer<BinaryU
 	}
 	public void Write(in GameDataWriter writer) => writer.WritePrimitive(value);
 	public BinaryULongSerializer Read(in GameDataReader reader) => reader.ReadULong();
+
+	public BinaryULongSerializer Init()
+	{
+		return this;
+	}
 
 	public static implicit operator BinaryULongSerializer(ulong value) => new BinaryULongSerializer(value);
 	public static implicit operator ulong(BinaryULongSerializer value) => value.value;

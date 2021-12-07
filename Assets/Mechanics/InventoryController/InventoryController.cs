@@ -22,7 +22,7 @@ namespace Armere.Inventory
 	}
 
 
-	public class ItemStackBase : IBinaryVariableAsyncSerializer<ItemStackBase>
+	public class ItemStackBase : IGameDataSavableAsync<ItemStackBase>
 	{
 		public readonly ItemData item;
 
@@ -51,6 +51,11 @@ namespace Armere.Inventory
 			_ => string.Empty
 		};
 
+		public ItemStackBase Init()
+		{
+			throw new NotImplementedException();
+		}
+
 		public void Read(in GameDataReader reader, System.Action<ItemStackBase> onDone)
 		{
 			reader.ReadAsync<ItemDataAsyncSerializer>(item =>
@@ -64,7 +69,7 @@ namespace Armere.Inventory
 			writer.Write(item);
 		}
 	}
-	public class ItemStackT<ItemDataT> : ItemStackBase, IBinaryVariableAsyncSerializer<ItemStackT<ItemDataT>> where ItemDataT : ItemData
+	public class ItemStackT<ItemDataT> : ItemStackBase, IGameDataSavableAsync<ItemStackT<ItemDataT>> where ItemDataT : ItemData
 	{
 		public ItemStackT()
 		{
@@ -74,6 +79,11 @@ namespace Armere.Inventory
 		public ItemDataT itemData
 		{
 			get => (ItemDataT)item;
+		}
+
+		public new ItemStackT<ItemDataT> Init()
+		{
+			return this;
 		}
 
 		public void Read(in GameDataReader reader, System.Action<ItemStackT<ItemDataT>> onDone)
@@ -86,12 +96,17 @@ namespace Armere.Inventory
 
 	}
 	[CreateAssetMenu(menuName = "Game/Inventory/Inventory Controller")]
-	public class InventoryController : LoadableAsyncSO, IVariableAddon
+	public class InventoryController : ScriptableObject, IGameDataSavableAsync<InventoryController>, IVariableAddon
 	{
 
-		public struct ItemHistroy : IBinaryVariableSerializer<ItemHistroy>
+		public struct ItemHistroy : IGameDataSavable<ItemHistroy>
 		{
 			public bool hasPickedUp;
+
+			public ItemHistroy Init()
+			{
+				return this;
+			}
 
 			public ItemHistroy Read(in GameDataReader reader)
 			{
@@ -193,55 +208,6 @@ namespace Armere.Inventory
 			panels[(int)ItemType.Potion] = potions;
 			panels[(int)ItemType.Ammo] = ammo;
 			panels[(int)ItemType.Currency] = currency;
-		}
-		public override void LoadBlank()
-		{
-			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
-		}
-		public override void LoadBin(in GameDataReader reader)
-		{
-			//Nothing to load in sync
-		}
-
-		public override IEnumerator LoadBinAsync(GameDataReader reader)
-		{
-			uint loaded = 0;
-			const uint asyncLoads = 8;
-			void OnLoaded<T>(T inp) where T : InventoryPanel
-			{
-				loaded++;
-			}
-			Debug.Log("Loading inv");
-
-			reader.ReadAsyncInto(common, OnLoaded);
-			reader.ReadAsyncInto(quest, OnLoaded);
-			reader.ReadAsyncInto(melee, OnLoaded);
-			reader.ReadAsyncInto(sideArm, OnLoaded);
-			reader.ReadAsyncInto(bow, OnLoaded);
-			reader.ReadAsyncInto(armour, OnLoaded);
-			reader.ReadAsyncInto(potions, OnLoaded);
-			reader.ReadAsyncInto(ammo, OnLoaded);
-
-			reader.ReadInto(currency);
-			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
-
-			yield return new WaitUntil(() => loaded == asyncLoads);
-
-			Debug.Log($"Loaded inv, {loaded}");
-		}
-
-		public override void SaveBin(in GameDataWriter writer)
-		{
-			writer.Write(common);
-			writer.Write(quest);
-			writer.Write(melee);
-			writer.Write(sideArm);
-			writer.Write(bow);
-			writer.Write(armour);
-			writer.Write(potions);
-			writer.Write(ammo);
-			writer.Write(currency);
-			//writer.WriteList(itemsHistroy);
 		}
 
 		private void OnEnable()
@@ -401,5 +367,54 @@ namespace Armere.Inventory
 			return GetEnumerator();
 		}
 
+		public void Read(in GameDataReader reader, Action<InventoryController> data)
+		{
+			uint loaded = 0;
+			const uint asyncLoads = 8;
+			void OnLoaded<T>(T inp) where T : InventoryPanel
+			{
+				loaded++;
+
+				if (loaded == asyncLoads)
+				{
+					Debug.Log($"Loaded inv, {loaded}");
+					data.Invoke(this);
+				}
+			}
+			Debug.Log("Loading inv");
+
+			reader.ReadAsyncInto(common, OnLoaded);
+			reader.ReadAsyncInto(quest, OnLoaded);
+			reader.ReadAsyncInto(melee, OnLoaded);
+			reader.ReadAsyncInto(sideArm, OnLoaded);
+			reader.ReadAsyncInto(bow, OnLoaded);
+			reader.ReadAsyncInto(armour, OnLoaded);
+			reader.ReadAsyncInto(potions, OnLoaded);
+			reader.ReadAsyncInto(ammo, OnLoaded);
+
+			reader.ReadInto(currency);
+			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
+
+		}
+
+
+		public void Write(in GameDataWriter writer)
+		{
+			writer.Write(common);
+			writer.Write(quest);
+			writer.Write(melee);
+			writer.Write(sideArm);
+			writer.Write(bow);
+			writer.Write(armour);
+			writer.Write(potions);
+			writer.Write(ammo);
+			writer.Write(currency);
+		}
+
+		public InventoryController Init()
+		{
+			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
+			return this;
+		}
 	}
 }

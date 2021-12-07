@@ -41,7 +41,7 @@ public class AutoSerializerTest
 			stream.Position = 0;
 
 
-			GameDataReader r = new GameDataReader(new BinaryReader(stream));
+			GameDataReader r = new GameDataReader(new BinaryReader(stream), "test");
 			AutoSerializeClass test2 = AutoSerializer.AutoRead<AutoSerializeClass>(r);
 
 

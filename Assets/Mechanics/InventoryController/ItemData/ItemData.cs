@@ -8,7 +8,7 @@ namespace Armere.Inventory
 
 	[CreateAssetMenu(menuName = "Game/Items/Item Data", fileName = "New Item Data")]
 	[AllowItemTypes(ItemType.Common, ItemType.Quest, ItemType.Currency, ItemType.Potion)]
-	public class ItemData : ScriptableObject, IBinaryVariableWritableSerializer<ItemData>
+	public class ItemData : ScriptableObject, IGameDataSerializable<ItemData>
 	{
 		public static implicit operator ItemData(string itemName) => ItemDatabase.itemDataNames[itemName];
 
@@ -47,6 +47,11 @@ namespace Armere.Inventory
 			(ulong, ulong) value = ItemDatabase.itemDataPrimaryKeys[this];
 			writer.WritePrimitive(value.Item1);
 			writer.WritePrimitive(value.Item2);
+		}
+
+		public ItemData Init()
+		{
+			return this;
 		}
 	}
 }

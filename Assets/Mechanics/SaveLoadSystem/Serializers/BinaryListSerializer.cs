@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct BinaryListSerializer<T> : IBinaryVariableSerializer<List<T>> where T : IBinaryVariableSerializer<T>, new()
+public struct BinaryListSerializer<T> : IGameDataSavable<List<T>> where T : IGameDataSavable<T>, new()
 {
 	List<T> value;
 	public BinaryListSerializer(List<T> value)
@@ -27,12 +27,17 @@ public struct BinaryListSerializer<T> : IBinaryVariableSerializer<List<T>> where
 		return value;
 	}
 
+	public List<T> Init()
+	{
+		return this;
+	}
+
 	public static implicit operator BinaryListSerializer<T>(List<T> value) => new BinaryListSerializer<T>(value);
 	public static implicit operator List<T>(BinaryListSerializer<T> value) => value.value;
 }
 
 
-public readonly struct BinaryListAsyncSerializer<T> : IBinaryVariableAsyncSerializer<BinaryListAsyncSerializer<T>> where T : IBinaryVariableAsyncSerializer<T>, new()
+public readonly struct BinaryListAsyncSerializer<T> : IGameDataSavableAsync<BinaryListAsyncSerializer<T>> where T : IGameDataSavableAsync<T>, new()
 {
 	readonly List<T> list;
 	public BinaryListAsyncSerializer(List<T> value)
@@ -72,6 +77,10 @@ public readonly struct BinaryListAsyncSerializer<T> : IBinaryVariableAsyncSerial
 			}
 	}
 
+	public BinaryListAsyncSerializer<T> Init()
+	{
+		return this;
+	}
 
 	public static implicit operator BinaryListAsyncSerializer<T>(List<T> value) => new BinaryListAsyncSerializer<T>(value);
 	public static implicit operator List<T>(BinaryListAsyncSerializer<T> value) => value.list;

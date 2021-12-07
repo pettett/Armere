@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public struct BinaryDictionarySerializer<TKey, TValue> :
-	IBinaryVariableSerializer<Dictionary<TKey, TValue>>,
-	IBinaryVariableSerializer<BinaryDictionarySerializer<TKey, TValue>>
+	IGameDataSavable<Dictionary<TKey, TValue>>,
+	IGameDataSavable<BinaryDictionarySerializer<TKey, TValue>>
 
-	where TKey : IBinaryVariableSerializer<TKey>, new()
-	where TValue : IBinaryVariableSerializer<TValue>, new()
+	where TKey : IGameDataSavable<TKey>, new()
+	where TValue : IGameDataSavable<TValue>, new()
 {
 	Dictionary<TKey, TValue> value;
 	public BinaryDictionarySerializer(Dictionary<TKey, TValue> value)
@@ -35,9 +35,19 @@ public struct BinaryDictionarySerializer<TKey, TValue> :
 		return value;
 	}
 
-	BinaryDictionarySerializer<TKey, TValue> IBinaryVariableSerializer<BinaryDictionarySerializer<TKey, TValue>>.Read(in GameDataReader reader)
+	BinaryDictionarySerializer<TKey, TValue> IGameDataSavable<BinaryDictionarySerializer<TKey, TValue>>.Read(in GameDataReader reader)
 	{
 		return new BinaryDictionarySerializer<TKey, TValue>(Read(in reader));
+	}
+
+	public BinaryDictionarySerializer<TKey, TValue> Init()
+	{
+		return this;
+	}
+
+	Dictionary<TKey, TValue> IGameDataSerializable<Dictionary<TKey, TValue>>.Init()
+	{
+		return this;
 	}
 
 	public static implicit operator BinaryDictionarySerializer<TKey, TValue>(Dictionary<TKey, TValue> value) => new BinaryDictionarySerializer<TKey, TValue>(value);

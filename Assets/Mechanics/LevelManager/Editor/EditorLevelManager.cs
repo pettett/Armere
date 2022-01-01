@@ -10,6 +10,7 @@ public static class EditorLevelManager
 	[MenuItem("Levels/Mobility Dungeon")] public static void LoadMobility() => LoadEditorLevel("MobilityDungeon");
 	[MenuItem("Levels/Enemy Dungeon")] public static void LoadEnemyDungeon() => LoadEditorLevel("EnemyDungeon");
 	[MenuItem("Levels/Test Town")] public static void LoadTestTown() => LoadEditorLevel("TestTown");
+	[MenuItem("Levels/Combat Test")] public static void LoadCombatTest() => LoadEditorLevel("combatTest");
 
 
 

@@ -1199,6 +1199,8 @@ namespace Armere.PlayerController
 		{
 			foreach (var item in allCPs)
 			{
+				if (item.otherCollider == null) continue;
+
 				if (item.otherCollider.attachedRigidbody is Rigidbody rb && !rb.isKinematic && rb.mass >= t.minPushMass && rb.mass < t.maxPushMass)
 				{
 					//Not null	

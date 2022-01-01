@@ -118,7 +118,7 @@ namespace Armere.Inventory
 				writer.WritePrimitive(hasPickedUp);
 			}
 		}
-		Dictionary<(ulong, ulong), ItemHistroy> itemsHistroy;
+		Dictionary<(ulong, ulong), ItemHistroy> itemsHistroy = new();
 
 		public ItemAddedEventChannelSO onItemAdded;
 
@@ -265,6 +265,7 @@ namespace Armere.Inventory
 
 			return addedIndex != -1;
 		}
+
 		public bool TryAddItem(int index, ItemType type, uint count, bool hiddenAddition)
 		{
 			var b = GetPanelFor(type).AddItem(index, count);
@@ -377,7 +378,6 @@ namespace Armere.Inventory
 
 				if (loaded == asyncLoads)
 				{
-					Debug.Log($"Loaded inv, {loaded}");
 					data.Invoke(this);
 				}
 			}
@@ -393,7 +393,6 @@ namespace Armere.Inventory
 			reader.ReadAsyncInto(ammo, OnLoaded);
 
 			reader.ReadInto(currency);
-			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
 
 		}
 
@@ -413,8 +412,22 @@ namespace Armere.Inventory
 
 		public InventoryController Init()
 		{
-			itemsHistroy = new Dictionary<(ulong, ulong), ItemHistroy>();
 			return this;
 		}
+
+
+		public void RegisterForCommands()
+		{
+			string prefix = name.Split(' ')[0].ToLower();
+
+			//ItemData item, uint count, bool hiddenAddition
+			Armere.Console.Console.RegisterCommand(prefix + ".additem", (object[] args) =>
+			{
+				uint count = (args[1] as uint?).GetValueOrDefault(1);
+
+				ItemDatabase.LoadItemDataAsync<ItemData>(args[0], x => TryAddItem(x, count, false));
+			}, "itemdata", "u32");
+		}
+
 	}
 }

@@ -34,6 +34,9 @@ public class GameConstructor : MonoBehaviour
 	private PlayerController player;
 
 	public Statistics statistics;
+	[Header("Loading")]
+	public VoidEventChannelSO loadBlankSave;
+
 
 	[Header("Channels")]
 	public VoidEventChannelSO triggerSave;
@@ -81,6 +84,7 @@ public class GameConstructor : MonoBehaviour
 	{
 		if (player != null)
 		{
+			Debug.Log("Destroying player");
 			Destroy(player.gameObject);
 		}
 	}
@@ -90,6 +94,10 @@ public class GameConstructor : MonoBehaviour
 		CleanUpOldState();
 
 		player = Instantiate(playerPrefab);
+
+		inventory.RegisterForCommands();
+
+		loadBlankSave?.RaiseEvent();
 	}
 
 	void Save()
@@ -114,15 +122,17 @@ public class GameConstructor : MonoBehaviour
 	}
 	public void LoadSave(int index)
 	{
-		LoadSave(SaveManager.GetDirectoryForSaveInstance(index));
+		StartCoroutine(LoadSave(SaveManager.GetDirectoryForSaveInstance(index)));
 	}
-	public void LoadSave(string dir)
+	public IEnumerator LoadSave(string dir)
 	{
 		CleanUpOldState();
 
-
+		yield return null;
 
 		player = Instantiate(playerPrefab);
+
+		inventory.RegisterForCommands();
 
 		if (dir != null)
 		{
@@ -141,9 +151,8 @@ public class GameConstructor : MonoBehaviour
 
 				SaveManager.ReadIntoObject(statistics, dir, "stats");
 			});
-
-
 		}
+
 	}
 
 

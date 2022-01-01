@@ -25,20 +25,21 @@ public interface IGameDataSavableAsync<T> : IGameDataSerializable<T>
 
 enum PrimitiveCode : byte
 {
-	Unsigned = 0b1000_0000,
-	Long = 1,
-	Short = 2,
-	Byte = 3,
-	Bool = 4,
-	Float = 5,
-	Char = 6,
-	Vector3 = 7,
-	Vector2 = 8,
-	Quaternion = 9,
-	Int = 10,
-	UInt = Unsigned | Int,
-	ULong = Unsigned | Long,
-	UShort = Unsigned | Short,
+	Long,
+	Short,
+	Byte,
+	Bool,
+	Float,
+	Char,
+	Vector3,
+	Vector2,
+	Quaternion,
+	Int,
+	UInt,
+	ULong,
+	UShort,
+	ArrayHeader,
+	MapHeader,
 }
 public class SaveManager : MonoBehaviour
 {
@@ -69,6 +70,8 @@ public class SaveManager : MonoBehaviour
 	public UnityEngine.Events.UnityEvent OnBlankSaveLoaded;
 	public static event System.Action OnGameLoadingCompleted;
 	public static bool gameLoadingCompleted;
+
+
 
 	/*
 	Save Structure:

@@ -10,12 +10,47 @@ public readonly struct GameDataReader : IDisposable
 	public readonly Version saveVersion;
 	public readonly BinaryReader reader;
 
-	readonly Stack<(long, long)> regionStack;
 	readonly PrimitiveCode ReadType() => (PrimitiveCode)reader.ReadByte();
+	readonly bool NextTypeValid(out PrimitiveCode c)
+	{
+		int n = reader.PeekChar();
+		if (n == -1)
+		{
+			c = default;
+			return false;
+		}
+		else
+		{
+			c = (PrimitiveCode)n;
+			return true;
+		}
+	}
+
+
+	public static void Log(GameDataReader reader)
+	{
+		var p = reader.reader.BaseStream.Position;
+
+		while (reader.NextTypeValid(out var n))
+		{
+			Debug.Log(n switch
+			{
+				PrimitiveCode.Byte => reader.ReadByte(),
+				PrimitiveCode.Int => reader.ReadInt(),
+				PrimitiveCode.UInt => reader.ReadUInt(),
+				PrimitiveCode.UShort => reader.ReadUShort(),
+				_ => "unknown"
+			});
+		}
+
+		reader.reader.BaseStream.Position = p;
+	}
+
+
 	readonly void AssertType(PrimitiveCode type)
 	{
 		PrimitiveCode t = ReadType();
-		Assert.IsTrue(t == type, $"{label} Failed in region {regionStack.Peek()}: Loaded Primitive {t} is not {type}");
+		Assert.IsTrue(t == type, $"{label} Failed: Loaded Primitive {t} is not {type}");
 	}
 	readonly string label;
 	public GameDataReader(BinaryReader reader, string label)
@@ -24,32 +59,9 @@ public readonly struct GameDataReader : IDisposable
 
 		this.reader = reader;
 		saveVersion = default;
-		regionStack = new Stack<(long, long)>();
-
-		BeginRegion();
 
 		saveVersion = Read<Version>();
 
-	}
-
-	public readonly void BeginRegion()
-	{
-		long startingPosition = reader.BaseStream.Position;
-		long desiredLength = reader.ReadInt64();
-		regionStack.Push((desiredLength, startingPosition));
-	}
-	public readonly bool EndRegion()
-	{
-		(long desiredLength, long startingPosition) = regionStack.Pop();
-		long endPos = reader.BaseStream.Position;
-
-		long actualLength = endPos - startingPosition;
-		if (actualLength != desiredLength)
-		{
-			Debug.LogError($"{label} Region loaded incorrectly: len{actualLength}, supposed{desiredLength}");
-			return false;
-		}
-		return true;
 	}
 
 
@@ -64,6 +76,9 @@ public readonly struct GameDataReader : IDisposable
 		PrimitiveCode.Vector3 => ReadVector3(),
 		_ => throw new System.Exception("Attempting to load non-primitive")
 	};
+
+
+
 
 
 	public readonly int ReadInt()
@@ -146,13 +161,6 @@ public readonly struct GameDataReader : IDisposable
 
 	public void Dispose()
 	{
-		var failed = !EndRegion();
 		reader.Dispose();
-
-		//if (failed)
-		//throw new InvalidOperationException($"Disposed of {label} game reader before region complete");
-
-
-
 	}
 }

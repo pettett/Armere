@@ -62,7 +62,7 @@ public class EnemyAI : AIHumanoid, IExplosionEffector
 
 		base.Start();
 		//TODO: remove
-		meshController.SetMeshColor(Color.red);
+		meshController.SetMeshColor(team == Team.Evil ? Color.red : Color.blue);
 
 		if (hasInventory && inventory.HasMeleeWeapon)
 		{

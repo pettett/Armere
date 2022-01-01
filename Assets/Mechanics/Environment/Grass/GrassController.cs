@@ -192,7 +192,7 @@ public class GrassController : MonoBehaviour
 	{
 		mainCamera = Camera.main;
 		m_Grass_Profile = new ProfilingSampler(k_RenderGrassTag);
-		terrainHeight = terrain.terrainData.heightmapTexture;
+
 		Setup();
 
 		RenderPipelineManager.beginFrameRendering += OnBeginCameraRendering;
@@ -340,7 +340,6 @@ public class GrassController : MonoBehaviour
 		bounds = new Bounds(transform.position + new Vector3(offset, 0, offset), Vector3.one * (range * 2 + 1));
 	}
 
-	public RenderTexture terrainHeight;
 
 
 

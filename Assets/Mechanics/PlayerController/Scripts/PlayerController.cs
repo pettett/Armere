@@ -188,6 +188,46 @@ namespace Armere.PlayerController
 			inputReader.SwitchToGameplayInput();
 			enabled = true;
 
+
+
+
+
+			for (int i = 0; i < 3; i++)
+			{
+				//Apply the chosen armour to the player on load
+				if (armourSelections[i] != -1)
+				{
+					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
+					//Will automatically remove the old armour piece
+					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
+				}
+			}
+
+			for (int i = 1; i < 5; i++)
+			{
+				ItemType t = (ItemType)i;
+				if (itemSelections[t] >= inventory.StackCount(t))
+				{
+					Debug.LogWarning($"Selected {t}, {itemSelections[t]} is out of range");
+					itemSelections[t] = inventory.StackCount(t) - 1;
+				}
+
+				if (itemSelections[t] >= 0)
+				{
+					ItemData item = inventory.ItemAt(itemSelections[t], t).item;
+					if (item is HoldableItemData holdableItemData)
+					{
+						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
+						weaponGraphics.holdables[t].sheathed = sheathing[t];
+
+						//OnSelectItem(t, selection);
+					}
+				}
+			}
+			//reinit sheathing to false after being used as cache for save data
+
+			sheathing = new EquipmentSet<bool>(false, false, false);
+
 		}
 
 
@@ -626,7 +666,6 @@ namespace Armere.PlayerController
 		public PlayerController Read(in GameDataReader reader)
 		{
 			transform.position = reader.ReadVector3();
-
 			transform.rotation = reader.ReadQuaternion();
 
 			armourSelections[0] = reader.ReadInt();
@@ -638,44 +677,12 @@ namespace Armere.PlayerController
 			itemSelections[ItemType.Bow] = reader.ReadInt();
 			itemSelections[ItemType.Ammo] = reader.ReadInt();
 
-			var sheathedItems = new EquipmentSet<bool>(reader.ReadBool(), reader.ReadBool(), reader.ReadBool());
+			sheathing = new EquipmentSet<bool>(reader.ReadBool(), reader.ReadBool(), reader.ReadBool());
 
 			//	startingState = SymbolToType(reader.ReadChar());
 
 
 
-			for (int i = 0; i < 3; i++)
-			{
-				//Apply the chosen armour to the player on load
-				if (armourSelections[i] != -1)
-				{
-					var selected = (ArmourItemData)inventory.armour.ItemAt(armourSelections[i]).item;
-					//Will automatically remove the old armour piece
-					weaponGraphics.characterMesh.SetClothing((CharacterMeshController.ClothPosition)selected.armourPosition, selected.hideBody, true, selected.armaturePrefab);
-				}
-			}
-
-			for (int i = 1; i < 5; i++)
-			{
-				ItemType t = (ItemType)i;
-				if (itemSelections[t] >= inventory.StackCount(t))
-				{
-					Debug.LogWarning($"Selected {t}, {itemSelections[t]} is out of range");
-					itemSelections[t] = inventory.StackCount(t) - 1;
-				}
-
-				if (itemSelections[t] >= 0)
-				{
-					ItemData item = inventory.ItemAt(itemSelections[t], t).item;
-					if (item is HoldableItemData holdableItemData)
-					{
-						var x = weaponGraphics.holdables[t].SetHeld(holdableItemData);
-						weaponGraphics.holdables[t].sheathed = sheathedItems[t];
-
-						//OnSelectItem(t, selection);
-					}
-				}
-			}
 
 			return this;
 		}
@@ -683,6 +690,7 @@ namespace Armere.PlayerController
 		public void Write(in GameDataWriter writer)
 		{
 			writer.WritePrimitive(transform.position);
+			Debug.Log(transform.position);
 			writer.WritePrimitive(transform.rotation);
 
 			writer.WritePrimitive(armourSelections[0]);

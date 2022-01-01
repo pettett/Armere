@@ -8,44 +8,26 @@ public readonly struct GameDataWriter : IDisposable
 {
 	public readonly BinaryWriter writer;
 
-	readonly Stack<long> regionStack;
 
 	readonly void AssertType(PrimitiveCode type)
 	{
 		writer.Write((byte)type);
 	}
 
-	public readonly void BeginRegion()
-	{
-		//Record the starting position of this portion of the saving
-		regionStack.Push(writer.BaseStream.Position);
-		writer.Write(0L);
-	}
-	public readonly void EndRegion()
-	{
-		long startingPos = regionStack.Pop();
-		long endingPos = writer.BaseStream.Position;
-
-		//Write the length of the saved file for loading
-		writer.BaseStream.Position = startingPos;
-		writer.Write(endingPos - startingPos);
-		//And return the writer to where it was before
-		writer.BaseStream.Position = endingPos;
-	}
-
-
-
 	public GameDataWriter(BinaryWriter writer)
 	{
 		this.writer = writer;
-		regionStack = new Stack<long>();
-
-		BeginRegion();
 
 		//Save the version of the game saved
 		Write(SaveManager.version);
-
 	}
+	public readonly void WriteArrayHeader(int length)
+	{
+		AssertType(PrimitiveCode.ArrayHeader);
+		writer.Write(length);
+	}
+
+
 
 	public readonly void WritePrimitive(int value)
 	{
@@ -137,11 +119,6 @@ public readonly struct GameDataWriter : IDisposable
 		writer.Write(value.y);
 	}
 
-	public readonly void WriteAssetRef(AssetReference value)
-	{
-		writer.Write(ulong.Parse(value.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber));
-		writer.Write(ulong.Parse(value.AssetGUID.Substring(0, 16), System.Globalization.NumberStyles.HexNumber));
-	}
 
 
 	public readonly void WritePrimitive(string value) => writer.Write(value);
@@ -158,7 +135,6 @@ public readonly struct GameDataWriter : IDisposable
 
 	public void Dispose()
 	{
-		EndRegion();
 		writer.Dispose();
 	}
 }

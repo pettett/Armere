@@ -98,6 +98,14 @@ public class GameConstructor : MonoBehaviour
 		inventory.RegisterForCommands();
 
 		loadBlankSave?.RaiseEvent();
+
+		foreach (GameObject go in GameObject.FindObjectsOfType(typeof(GameObject)))
+		{
+			if (go && go.transform.parent == null)
+			{
+				go.gameObject.BroadcastMessage("OnAfterGameLoaded", SendMessageOptions.DontRequireReceiver);
+			}
+		}
 	}
 
 	void Save()

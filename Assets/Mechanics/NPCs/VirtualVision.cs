@@ -14,7 +14,6 @@ public class VirtualVision : Vision
 	public override Vector3 ViewPoint => eye.position;
 
 	readonly Plane[] planes = new Plane[6];
-	public Character character;
 	public LayerMask visionBlockingMask = -1;
 
 	public void UpdatePlanes()
@@ -25,28 +24,33 @@ public class VirtualVision : Vision
 
 	public bool CanSeeBounds(Bounds b)
 	{
-		UpdatePlanes();
 		return GeometryUtility.TestPlanesAABB(planes, b);
 	}
 
 
-	public bool TryFindTarget(out Character target)
+	public bool TryFindTarget(Character character, out Character target)
 	{
+		UpdatePlanes();
 
 		Team[] enemies = character.Enemies();
+
+
 		for (int i = 0; i < enemies.Length; i++)
 		{
-			if (Character.teams.ContainsKey(enemies[i]))
+			if (Character.teams.TryGetValue(enemies[i], out var targets))
 			{
-				List<Character> targets = Character.teams[enemies[i]];
+
 				for (int j = 0; j < targets.Count; j++)
 				{
-					var b = targets[i].bounds;
-					if (ProportionBoundsVisible(b) != 0)
+					var b = targets[j].bounds;
+					if (CanSeeBounds(b))
 					{
+						// if (ProportionBoundsVisible(b) != 0)
+						// {
 						//can see the player, interrupt current routine
-						target = targets[i];
+						target = targets[j];
 						return true;
+						// }
 					}
 				}
 			}
@@ -59,9 +63,6 @@ public class VirtualVision : Vision
 
 	public override float ProportionBoundsVisible(Bounds b)
 	{
-
-
-		UpdatePlanes();
 
 		float visibility = 0;
 		int samples = 2;
@@ -99,29 +100,24 @@ public class VirtualVision : Vision
 	}
 	private void OnDrawGizmos()
 	{
+		UpdatePlanes();
 
-
-		Team[] enemies = character.Enemies();
-		for (int i = 0; i < enemies.Length; i++)
+		foreach (var targets in Character.teams.Values)
 		{
-			if (Character.teams.ContainsKey(enemies[i]))
+			for (int j = 0; j < targets.Count; j++)
 			{
-				List<Character> targets = Character.teams[enemies[i]];
-				for (int j = 0; j < targets.Count; j++)
+				var b = targets[j].bounds;
+
+				float visibility = ProportionBoundsVisible(b);
+				if (CanSeeBounds(b))
 				{
-					var b = targets[j].bounds;
-
-					float visibility = ProportionBoundsVisible(b);
-					if (CanSeeBounds(b))
-					{
-						Gizmos.color = new Color(visibility, 0, 0); Gizmos.DrawWireCube(b.center, b.size);
-					}
-
-
-
+					Gizmos.color = new Color(visibility, 0, 0);
+					Gizmos.DrawWireCube(b.center, b.size);
 				}
+
 			}
 		}
+
 
 
 		Gizmos.color = Color.white;
@@ -129,5 +125,6 @@ public class VirtualVision : Vision
 		Gizmos.DrawFrustum(Vector3.zero, fov, clippingPlanes.Max, clippingPlanes.Min, Aspect);
 
 	}
+
 
 }

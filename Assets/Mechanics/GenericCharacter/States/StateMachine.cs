@@ -61,22 +61,24 @@ public abstract class StateMachine<StateT, MachineT, TemplateT> : ArmereBehaviou
 	}
 	public virtual StateT ChangeToState(TemplateT template)
 	{
-		mainState = (template ?? defaultState).StartState((MachineT)this);
+		TemplateT t = template ?? defaultState;
 
-		EndAllStatesExcept(template.parallelStates);
+		mainState = t.StartState((MachineT)this);
 
-		StateT[] newStates = new StateT[template.parallelStates.Length + 1];
+		EndAllStatesExcept(t.parallelStates);
 
-		for (int i = 0; i < template.parallelStates.Length; i++)
+		StateT[] newStates = new StateT[t.parallelStates.Length + 1];
+
+		for (int i = 0; i < t.parallelStates.Length; i++)
 		{
 			//test if the desired parallel state is currently active
-			newStates[i] = GetState(template.parallelStates[i].StateType());
+			newStates[i] = GetState(t.parallelStates[i].StateType());
 			if (newStates[i] == null)
 			{
-				newStates[i] = template.parallelStates[i].StartState((MachineT)this);
+				newStates[i] = t.parallelStates[i].StartState((MachineT)this);
 			}
 		}
-		newStates[template.parallelStates.Length] = mainState;
+		newStates[t.parallelStates.Length] = mainState;
 
 		currentStates.Clear();
 		currentStates.AddRange(newStates);
@@ -92,13 +94,13 @@ public abstract class StateMachine<StateT, MachineT, TemplateT> : ArmereBehaviou
 
 	protected virtual void Update()
 	{
-		foreach (var state in currentStates)
-			state.Update();
+		for (int i = 0; i < currentStates.Count; i++)
+			currentStates[i].Update();
 	}
 	protected virtual void FixedUpdate()
 	{
-		foreach (var state in currentStates)
-			state.FixedUpdate();
+		for (int i = 0; i < currentStates.Count; i++)
+			currentStates[i].FixedUpdate();
 	}
 
 

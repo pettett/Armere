@@ -425,7 +425,7 @@ namespace Armere.Inventory
 			{
 				uint count = (args[1] as uint?).GetValueOrDefault(1);
 
-				ItemDatabase.LoadItemDataAsync<ItemData>(args[0], x => TryAddItem(x, count, false));
+				ItemDatabase.LoadItemDataAsync<ItemData>(args[0], x => TryAddItem(x, count, true));
 			}, "itemdata", "u32");
 		}
 

@@ -20,7 +20,7 @@ public class ActOnSight : AIState<ActOnSightTemplate>
 	}
 	public override void Update()
 	{
-		if (vision.TryFindTarget(out var target))
+		if (vision.TryFindTarget(c, out var target))
 		{
 			machine.ChangeToState(t.onSighted.Target(target));
 		}

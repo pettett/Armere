@@ -76,7 +76,6 @@ public class EngagePlayer : AIState<EngagePlayerRoutine>
 
 			switch (melee, tooFarToAttack, movingToCatchPlayer)
 			{
-
 				case (_, true, false):
 					movingToCatchPlayer = true;
 					yield return new WaitForSeconds(0.1f);

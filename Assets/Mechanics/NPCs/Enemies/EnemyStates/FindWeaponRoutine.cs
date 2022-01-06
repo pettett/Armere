@@ -51,6 +51,7 @@ public class FindWeapon : AIState<FindWeaponRoutine>
 		if (best == null)
 		{
 			//Not item in range, resort to throwing rocks or something
+			Debug.Log($"{c.name} found no weapon");
 			machine.ChangeToState(t.notFoundWeaponRoutine?.Target(character));
 		}
 		else

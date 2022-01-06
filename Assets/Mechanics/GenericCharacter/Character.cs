@@ -65,6 +65,7 @@ public abstract class Character : ArmereBehaviour
 	}
 	public Team team;
 	public CharacterProfile profile;
+
 	public bool SameTeamAs(Character other) => !enemies[(int)team].Contains(other.team);
 	public Team[] Enemies() => enemies[(int)team];
 
